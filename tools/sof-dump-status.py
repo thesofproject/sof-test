@@ -98,7 +98,7 @@ class clsSYSCardInfo():
         for idx in range(0, len(output), 2):
             card_info={}
             card_info['id'] = output[idx].strip().split(' ')[0]
-            card_info['short'] = output[idx].split(' ')[-1].strip()
+            card_info['short'] = output[idx].split(' - ')[-1].strip()
             card_info['type']=output[idx].strip().split()[1][1:]
             card_info['desc']=output[idx + 1].strip()
             card_info['codec']=[]
