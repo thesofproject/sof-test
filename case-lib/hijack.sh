@@ -76,11 +76,11 @@ sudo()
             return $?
         ;;
         '1')    # sudo without passwd
-            eval $(echo "$SUDO_CMD $*")
+            eval $(echo "$SUDO_CMD env 'PATH=$PATH' $*")
             return $?
         ;;
         '2')    # sudo need passwd
-            eval $(echo "echo '$SUDO_PASSWD' | $SUDO_CMD -S $*")
+            eval $(echo "echo '$SUDO_PASSWD' | $SUDO_CMD -S env 'PATH=$PATH' $*")
             return $?
         ;;
         *)      # without sudo permission

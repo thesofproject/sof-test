@@ -51,7 +51,7 @@ do
     func_lib_setup_kernel_last_line
 
     dlogi "run kmod/sof-kmod-remove.sh"
-    sudo env "PATH=$PATH" sof_remove.sh
+    sudo sof_remove.sh
     [[ $? -ne 0 ]] && dloge "remove modules error" && exit 1
 
     ## - 1a: check for errors after removal
@@ -63,7 +63,7 @@ do
 
     func_lib_setup_kernel_last_line
     dlogi "run kmod/sof_insert.sh"
-    sudo env "PATH=$PATH" sof_insert.sh
+    sudo sof_insert.sh
     [[ $? -ne 0 ]] && dloge "insert modules error" && exit
     sleep 1
 
