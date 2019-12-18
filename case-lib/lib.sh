@@ -17,8 +17,14 @@ if [ ! "$SOFCARD" ];then
     SOFCARD=$(grep '\]: sof-[a-z]' /proc/asound/cards|awk '{print $1;}')
 fi
 
-declare -g DMESG_LOG_START_LINE=$(wc -l /var/log/kern.log|awk '{print $1;}')
+if [ ! "$DMESG_LOG_START_LINE" ];then
+    declare -g DMESG_LOG_START_LINE=$(wc -l /var/log/kern.log|awk '{print $1;}')
+fi
 declare -g SOF_LOG_COLLECT=0
+# To record output to STRESS_OUTPUT_LOG
+declare -g STRESS_OUTPUT_LOG
+# To record script status to STRESS_STATUS_LOG
+declare -g STRESS_STATUS_LOG
 
 func_lib_setup_kernel_last_line()
 {
@@ -84,4 +90,28 @@ func_lib_restore_pulseaudio()
     done
     unset PULSECMD_LST
     declare -ag PULSECMD_LST
+}
+
+func_lib_trigger_stress()
+{
+    export LOG_ROOT=$LOG_ROOT
+    STRESS_OUTPUT_LOG="$LOG_ROOT/stress.txt"
+    STRESS_STATUS_LOG="$LOG_ROOT/status.txt"
+    [[ -f $STRESS_OUTPUT_LOG ]] && return
+
+    touch $STRESS_OUTPUT_LOG
+    touch $STRESS_STATUS_LOG
+    if [ "$SSH_CLIENT" ];then
+        # convert itself to nohup without ssh lost connect when case trigger by ssh connect
+        if [ $PPID -ne 1 ];then
+            dlogi "redirect the output please check for $STRESS_OUTPUT_LOG"
+            nohup $(cat $LOG_ROOT/cmd-orig.txt) > $STRESS_OUTPUT_LOG &
+            # delay for nohup command apply
+            sleep 1s
+            # now output current process with tail command
+            clear
+            tail -f $STRESS_OUTPUT_LOG
+            builtin exit 0
+        fi
+    fi
 }
