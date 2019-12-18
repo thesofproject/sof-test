@@ -29,7 +29,7 @@ boot_once_flag=${boot_once_flag/:*/}
 if [ "$#" -ne 0 ]; then
     # convert cmd to the cmd full path, because in the rc.local it just support PATH=/bin:/sbin:/usr/bin:/usr/sbin
     cmd_path=$(dirname $(which $1) 2>/dev/null)
-    if [ "X${cmd_path/\/*/}" == "X." ]; then #relative path
+    if [ "X${cmd_path/\/*/}" == "X." -o -d "$cmd_path" ]; then #relative path
         cd $cmd_path
         cmd=$PWD/$(basename $1)
         cd $OLD_PATH
@@ -37,7 +37,7 @@ if [ "$#" -ne 0 ]; then
     elif [ "X${cmd_path:0:1}" == "X/" ]; then #absolute path
         cmd=$cmd_path/$(basename $1)
         shift
-    elif [ "${type -t $(basename $1)}" == "builtin" ]; then
+    elif [ "$(type -t $(basename $1))" == "builtin" ]; then #shell builtin command
         cmd=$(basename $1)
         shift
     else # Miss cmd_path means couldn't find this cmd in the path, so no change
