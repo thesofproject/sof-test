@@ -599,8 +599,7 @@ class TplgFormatter:
                 merged_pcm_list.append(pcm)
         return merged_pcm_list
 
-
-    def format_pcm(self, sofcard):
+    def format_pcm(self):
         pcms = self._merge_pcm_list(self._tplg["pcm_list"])
         for pcm in pcms:
             fmt_list = self._get_pcm_fmt(pcm)
@@ -617,8 +616,8 @@ class TplgFormatter:
                 channel = pcm_channels[2:]
 
             print("pcm=%s;id=%d;type=%s;fmt=%s;rate_min=%d;rate_max=%d;ch_min=%d;ch_max=%d;"
-                "rate=%d;channel=%d;dev=hw:%d,%d;" %(pcm["pcm_name"], pcm["pcm_id"], pcm_type, \
-                fmt[0], rates[0], rates[1], channel[0], channel[1], rates[2], channel[0], sofcard, pcm["pcm_id"]))
+                %(pcm["pcm_name"], pcm["pcm_id"], pcm_type, fmt[0], rates[0], rates[1], \
+                channel[0], channel[1]))
 
 
 if __name__ == "__main__":
@@ -629,9 +628,6 @@ if __name__ == "__main__":
 
         parser.add_argument('--version', action='version', version='%(prog)s 1.0')
         parser.add_argument('-t', '--tplgroot', type=str, help="load tplg file from tplg_root folder")
-        # specify multiple sofcard id is not supported,and will be left unsupported
-        parser.add_argument('-s', '--sofcard', type=str, help='sofcard id, if multiple id is specified, ' \
-            'use "," to seperate them', default="0")
         parser.add_argument('filename', type=str, help='topology file name(s),' \
             'if multiple topology file names are specified, please use "," to seperate them')
 
@@ -658,41 +654,21 @@ if __name__ == "__main__":
             tplg_paths.append(f)
         return tplg_paths
 
-    def get_sofcard_ids(cmd_args):
-        card_ids = cmd_args["sofcard"].strip().split(",")
-        try:
-            card_ids = [int(i) for i in card_ids]
-        except:
-            print("sofcard id should be numbers of u32 type")
-            sys.exit(-1)
-        return card_ids
-
-    # condition 1: user specified some card_ids and coresponding number of tplgs
-    # condition 2: user specified nothing but one or more tplg filenames
-    def dump_pcm_info(cmd_args, parsed_tplgs, card_ids):
-        # number of card_ids and tplgs are the same
-        if len(card_ids) == len(parsed_tplg_list):
-            for idx in range(len(card_ids)):
-                formatter = TplgFormatter(parsed_tplgs[idx])
-                formatter.format_pcm(card_ids[idx])
-                print()
-        # output info of every specified tplg with the same card id
-        elif len(card_ids) == 1:
-            for tplg in parsed_tplgs:
-                formatter = TplgFormatter(tplg)
-                formatter.format_pcm(card_ids[0])
-                print() # add a newline to seperate two tplg info
+    def dump_pcm_info(parsed_tplgs):
+        for tplg in parsed_tplgs:
+            formatter = TplgFormatter(tplg)
+            formatter.format_pcm()
+            print()
 
     parsed_tplg_list = []
 
     cmd_args = parse_cmdline()
 
     tplg_paths = get_tplg_paths(cmd_args)
-    sofcard_ids = get_sofcard_ids(cmd_args)
 
     tplg_parser = TplgParser()
 
     for tplg in tplg_paths:
         parsed_tplg_list.append(tplg_parser.parse(tplg))
 
-    dump_pcm_info(cmd_args, parsed_tplg_list, sofcard_ids)
+    dump_pcm_info(parsed_tplg_list)
