@@ -98,9 +98,9 @@ class clsSYSCardInfo():
         for idx in range(0, len(output), 2):
             card_info={}
             card_info['id'] = output[idx].strip().split(' ')[0]
-            card_info['short'] = output[idx].split(' ')[-1].strip()
+            card_info['short'] = output[idx].split(' - ')[-1].strip()
             card_info['type']=output[idx].strip().split()[1][1:]
-            card_info['desc']=output[idx + 1].strip()
+            card_info['longname']=output[idx + 1].strip()
             card_info['codec']=[]
             card_info['pcm']=[]
             self.proc_card[card_info['id']] = card_info
@@ -204,7 +204,7 @@ if __name__ == "__main__":
             print("Card ID:\t\t" + card_info['id'])
             print("\tType:\t\t" + card_info['type'])
             print("\tShort name:\t" + card_info['short'])
-            print("\tDesc:\t\t" + card_info['desc'])
+            print("\tLong name:\t\t" + card_info['longname'])
             if len(card_info['codec']) == 0:
                 print("\tCodec:\t\tNOCODEC")
             else:
@@ -298,6 +298,7 @@ if __name__ == "__main__":
     parser.add_argument('-w', '--power', action='store_true', help='just dump power status value')
     parser.add_argument('-i', '--id', type=int, help='just dump the pcm infomation of target id sound card')
     parser.add_argument('-s', '--short', type=int, help='just dump the short name of target id sound card')
+    parser.add_argument('-l', '--longname', type=int, help='just dump the longname name of target id sound card')
     parser.add_argument('--version', action='version', version='%(prog)s 1.0')
 
     ret_args = vars(parser.parse_args())
@@ -329,6 +330,14 @@ if __name__ == "__main__":
         if card_info is None:
             exit(0)
         print(card_info['short'])
+        exit(0)
+
+    if ret_args.get('longname') is not None:
+        sysinfo.loadProcSound()
+        card_info = sysinfo.proc_card.get(str(ret_args['longname']))
+        if card_info is None:
+            exit(0)
+        print(card_info['longname'])
         exit(0)
 
     sysinfo.loadDMI()
