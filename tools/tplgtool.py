@@ -599,6 +599,101 @@ class TplgFormatter:
                 merged_pcm_list.append(pcm)
         return merged_pcm_list
 
+    # represent graph with nodes and edges
+    # return values:
+    #   node_widgets -> widget list
+    #   graph_node -> widget name list, used for construct graph
+    #   forward_graph_edges -> adjacency list shows the link between widgets
+    #   backward_graph_edges -> adjacency list shows the reverse link between widgets
+    # The backward_graph_deges is used to backward search the graph, a backward search
+    # can also preceed with forward_graph_edges, but will need more code.
+    def _link_graph(self):
+        graph_nodes = []
+        forward_graph_edges = []
+        backward_graph_edges = []
+        node_widgets = []
+        # traverse original graph list to get a graph node list
+        for graph in self._tplg["graph_list"]:
+            for items in graph:
+                for elem in items:
+                    if elem != '' and elem not in graph_nodes:
+                        graph_nodes.append(elem)
+
+        # traverse original graph list to get a graph edge list
+        # original represention of an edge is a list with three
+        # elements: source control sink.
+        for node in graph_nodes:
+            forward_edges = []
+            backward_edges = []
+            node_widgets.append(self._find_widget_by_name(node))
+            for graph in self._tplg["graph_list"]:
+                for elem in graph:
+                    if node == elem[0] and elem[1] == '':
+                        forward_edges.append(graph_nodes.index(elem[2]))
+                    if node == elem[0] and elem[1] != '':
+                        forward_edges.append(graph_nodes.index(elem[1]))
+                    if node == elem[1]:
+                        forward_edges.append(graph_nodes.index(elem[2]))
+                        backward_edges.append(graph_nodes.index(elem[2]))
+                    if node == elem[2] and elem[1] == '':
+                        backward_edges.append(graph_nodes.index(elem[0]))
+                    if node == elem[2] and elem[1] != '':
+                        backward_edges.append(graph_nodes.index(elem[1]))
+            forward_graph_edges.append(forward_edges)
+            backward_graph_edges.append(backward_edges)
+        return node_widgets, graph_nodes, forward_graph_edges, backward_graph_edges
+
+    # find a widget by it name from widget list
+    def _find_widget_by_name(self, name):
+        if name == '': return None
+        for widgets in self._tplg["widget_list"]:
+            for widget in widgets:
+                if name == widget["name"] or name == widget["sname"]:
+                    return widget
+        return None
+
+    def _search_pga(self, widget, graph, direction="forward"):
+        if widget is None: return None
+        if widget["name"].startswith("PGA"):
+                return widget
+        next_idx = graph[2][graph[1].index(widget["name"])]
+        if direction == "backward":
+            next_idx = graph[3][graph[1].index(widget["name"])]
+        if len(next_idx) == 0:
+            return None
+        val = []
+        if direction == "forward":
+            for idx in next_idx:
+                val.append(self._search_pga(graph[0][idx], graph, "forward"))
+        else:
+            for idx in next_idx:
+                val.append(self._search_pga(graph[0][idx], graph, "backward"))
+
+        for elem in val:
+            if elem is not None:
+                return elem
+        return None
+
+    # find PGA connected with widget
+    def _find_pga_from_graph(self, widget, graph):
+        pga = self._search_pga(widget, graph,"forward")
+        if pga is None:
+            pga = self._search_pga(widget, graph, "backward")
+        return pga
+
+    # find corresponding PGA for PCM
+    def find_pga_for_pcm(self, pcm):
+        pga_list = []
+        graph = self._link_graph()
+        pcm_name = [pcm["caps"][0]["name"], pcm["caps"][1]["name"]]
+        playback_widget = self._find_widget_by_name(pcm_name[0]) # playback widget
+        capture_widget = self._find_widget_by_name(pcm_name[1]) # capture widget
+        playback_pga = self._find_pga_from_graph(playback_widget, graph)
+        capture_pga = self._find_pga_from_graph(capture_widget, graph)
+        pga_list.append(playback_pga)
+        pga_list.append(capture_pga)
+        return pga_list
+
     def format_pcm(self):
         pcms = self._merge_pcm_list(self._tplg["pcm_list"])
         for pcm in pcms:
@@ -606,18 +701,26 @@ class TplgFormatter:
             pcm_type = self._get_pcm_type(pcm)
             pcm_rates = self._get_pcm_rates(pcm)
             pcm_channels = self._get_pcm_channels(pcm)
+            pga_widget = self.find_pga_for_pcm(pcm)
 
             fmt = fmt_list[0]
             rates = pcm_rates[:3]
             channel = pcm_channels[0:2]
+            pga_name = "None" # for pipeline without PGA, the default value is None
+            #default to playback PGA
+            if pga_widget[0] != None:
+                pga_name = pga_widget[0]["name"]
+
             if pcm_type == "capture":
                 fmt = fmt_list[1]
                 rates = pcm_rates[3:]
                 channel = pcm_channels[2:]
+                if pga_widget[0] != None:
+                    pga_name = pga_widget[0]["name"]
 
-            print("pcm=%s;id=%d;type=%s;fmt=%s;rate_min=%d;rate_max=%d;ch_min=%d;ch_max=%d;"
+            print("pcm=%s;id=%d;type=%s;fmt=%s;rate_min=%d;rate_max=%d;ch_min=%d;ch_max=%d;pga=%s;"
                 %(pcm["pcm_name"], pcm["pcm_id"], pcm_type, fmt[0], rates[0], rates[1], \
-                channel[0], channel[1]))
+                channel[0], channel[1], pga_name))
 
 
 if __name__ == "__main__":
