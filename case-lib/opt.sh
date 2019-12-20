@@ -87,7 +87,7 @@ func_opt_parse_option()
             echo -e '    -h |  --help'
             echo -e "\tthis message"
             _func_case_dump_descption
-            exit 0
+            exit 2
         }
 
     # generate the command to load 'getopt'
@@ -101,7 +101,7 @@ func_opt_parse_option()
         [ ! "$idx" ] && idx="${_op_long_lst[$1]}"
         if [ "$idx" ]; then
             if [ ${OPT_PARM_lst[$idx]} -eq 1 ]; then
-                [ ! "$2" ] && echo "option: $1 missing parameter, parsing error" && exit 1
+                [ ! "$2" ] && echo "option: $1 missing parameter, parsing error" && exit 2
                 OPT_VALUE_lst[$idx]="$2"
                 shift 2
             else
@@ -136,4 +136,28 @@ func_opt_parse_option()
     fi
 
     unset _func_create_tmpbash _func_opt_dump_help _func_case_dump_descption
+}
+
+func_opt_add_common_TPLG()
+{
+    OPT_OPT_lst['t']='tplg'
+    OPT_DESC_lst['t']='tplg file, default value is env TPLG: $TPLG'
+    OPT_PARM_lst['t']=1
+    OPT_VALUE_lst['t']="$TPLG"
+}
+
+func_opt_add_common_sof_logger()
+{
+    OPT_OPT_lst['s']='sof-logger'
+    OPT_DESC_lst['s']="Open sof-logger trace the data will store at $LOG_ROOT"
+    OPT_PARM_lst['s']=0
+    OPT_VALUE_lst['s']=1
+}
+
+func_opt_add_common_disable_pulse()
+{
+    OPT_OPT_lst['p']='pulseaudio'
+    OPT_DESC_lst['p']='disable pulseaudio on the test process'
+    OPT_PARM_lst['p']=0
+    OPT_VALUE_lst['p']=1
 }

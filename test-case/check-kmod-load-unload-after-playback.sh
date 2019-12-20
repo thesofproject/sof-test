@@ -32,9 +32,6 @@
 
 source $(dirname ${BASH_SOURCE[0]})/../case-lib/lib.sh
 
-OPT_OPT_lst['t']='tplg'     OPT_DESC_lst['t']='tplg file, default value is env TPLG: $TPLG'
-OPT_PARM_lst['t']=1         OPT_VALUE_lst['t']="$TPLG"
-
 OPT_OPT_lst['l']='loop'
 OPT_DESC_lst['l']='loop of PCM aplay check - module remove / insert - PCM aplay check'
 OPT_PARM_lst['l']=1          OPT_VALUE_lst['l']=2
@@ -42,9 +39,8 @@ OPT_PARM_lst['l']=1          OPT_VALUE_lst['l']=2
 OPT_OPT_lst['d']='duration' OPT_DESC_lst['d']='duration of playback process'
 OPT_PARM_lst['d']=1         OPT_VALUE_lst['d']=3
 
-OPT_OPT_lst['p']='pulseaudio'   OPT_DESC_lst['p']='disable pulseaudio on the test process'
-OPT_PARM_lst['p']=0             OPT_VALUE_lst['p']=1
-
+func_opt_add_common_TPLG
+func_opt_add_common_disable_pulse
 func_opt_parse_option $*
 tplg=${OPT_VALUE_lst['t']}
 loop_cnt=${OPT_VALUE_lst['l']}

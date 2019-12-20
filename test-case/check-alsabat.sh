@@ -32,9 +32,7 @@ OPT_PARM_lst['f']=1             OPT_VALUE_lst['f']=997
 OPT_OPT_lst['n']='frames'     OPT_DESC_lst['n']='test frames'
 OPT_PARM_lst['n']=1             OPT_VALUE_lst['n']=240000
 
-OPT_OPT_lst['s']='sof-logger'   OPT_DESC_lst['s']="Open sof-logger trace the data will store at $LOG_ROOT"
-OPT_PARM_lst['s']=0             OPT_VALUE_lst['s']=1
-
+func_opt_add_common_sof_logger
 func_opt_parse_option $*
 
 pcm_p=${OPT_VALUE_lst['p']}

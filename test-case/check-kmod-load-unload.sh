@@ -26,9 +26,7 @@ OPT_OPT_lst['l']='loop_cnt'
 OPT_DESC_lst['l']='remove / insert module loop count -- per device'
 OPT_PARM_lst['l']=1         OPT_VALUE_lst['l']=2
 
-OPT_OPT_lst['p']='pulseaudio'   OPT_DESC_lst['p']='disable pulseaudio on the test process'
-OPT_PARM_lst['p']=0             OPT_VALUE_lst['p']=1
-
+func_opt_add_common_disable_pulse
 func_opt_parse_option $*
 func_lib_setup_kernel_last_line
 
