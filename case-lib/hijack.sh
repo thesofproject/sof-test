@@ -50,13 +50,13 @@ function exit()
 
     case $exit_status in
         0)
-            dlogi "Test PASS!"
+            dlogi "Test Result: PASS!"
         ;;
         1)
-            dlogi "Test FAIL!"
+            dlogi "Test Result: FAIL!"
         ;;
         2)
-            dlogi "Test SKIP!"
+            dlogi "Test Result: SKIP!"
         ;;
         *)
             dlogi "Unknown test exit code: $exit_status"

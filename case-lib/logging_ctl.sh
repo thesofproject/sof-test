@@ -28,9 +28,18 @@ _func_log_cmd()
     # writing functions
     shopt -s expand_aliases
     if [ "X1" ]; then
+        # PPID: The process ID of the shell's parent.
+        # get Current script parent process name
+        local ppcmd=$(ps -p $PPID -o cmd --noheader|awk '{print $2;}') ext_message=""
+        # confirm this script load by the script, Add the flag for it
+        [[ "$(file $ppcmd 2>/dev/null |grep 'shell script')" ]] && ext_message=" Sub-Test:"
+        _func_logcmd_add_timestamp()
+        {
+            echo $(date -u '+%Y-%m-%d %T %Z') $*
+        }
         for key in ${!LOG_LIST[@]};
         do
-            alias "$key"="echo \$(date -u '+%Y-%m-%d %T %Z') ${LOG_LIST[$key]}"
+            alias "$key"="_func_logcmd_add_timestamp $ext_message ${LOG_LIST[$key]}"
         done
     else
         _func_empty_function() { return 0; }
