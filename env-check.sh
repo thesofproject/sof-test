@@ -65,13 +65,13 @@ check_res=1 && out_str=$out_str"\n
 check_res=1 && out_str=$out_str"\n
 \tMissing permission to run command as sudo\n
 \t\tPlease use the following command to add current user to the sudo group:\n
-\t\e[31msed -i '/^sudo:/s:$:,$user':g' /etc/group\e[0m"
+\t\e[31msed -i '/^sudo:/s:$:,$user:g' /etc/group\e[0m"
 
 [[ "$user" ]] && [[ ! $(awk -F ':' '/^audio:/ {print $NF;}' /etc/group|grep "$user") ]] && \
 check_res=1 && out_str=$out_str"\n
 \tMissing permission to access sound card\n
 \t\tPlease use the following command to add current user to the audio group:\n
-\t\e[31msed -i '/^audio:/s:$:,$user':g' /etc/group\e[0m"
+\t\e[31msed -i '/^audio:/s:$:,$user:g' /etc/group\e[0m"
 
 [[ ! -e "/var/log/kern.log" ]] && \
 check_res=1 && out_str=$out_str"\n
