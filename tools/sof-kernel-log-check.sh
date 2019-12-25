@@ -3,7 +3,7 @@
 begin_line=${1:-1}
 declare err_str ignore_str project_key
 err_str="error|failed|timed out|panic|oops"
-ignore_str="no reply expected,|error: debugfs write failed to idle -16"
+ignore_str="no reply expected,|error: debugfs write failed to idle -16|error: status |error: cl_dsp_init"
 project_key="sof-audio"
 
 [[ ! "$err_str" ]] && echo "Missing error keyword list" && exit 0
