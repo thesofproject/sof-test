@@ -11,7 +11,6 @@ func_check_pkg(){
 check_res=0
 echo -ne "Check for the package:\t\t"
 func_check_pkg expect
-func_check_pkg gcc
 func_check_pkg aplay
 func_check_pkg python3
 [[ $check_res -eq 0 ]] && echo "pass" || \
