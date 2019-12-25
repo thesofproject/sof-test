@@ -2,13 +2,11 @@
 
 import subprocess
 import os
-import shutil
 import re
 from tplgtool import TplgParser
 
 class clsTPLGeader:
     def __init__(self):
-        self._cmd = shutil.which('tplgreader')
         self._pipeline_lst = []
         self._output_lst = []
         self._filed_lst = []
