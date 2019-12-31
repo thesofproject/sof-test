@@ -78,7 +78,7 @@ do
     tplg=${tplg#*,}
     [ "$tplg_file" == "$tplg" ] && tplg=""
     if [ -f "$tplg_file" ]; then
-        tplg_file="$f"
+        tplg_file="$tplg_file"
     elif [ -f "$TPLG_ROOT/$tplg_file" ]; then
         tplg_file="$TPLG_ROOT/$tplg_file"
     else
