@@ -16,10 +16,10 @@ func_pipeline_export()
         # expect left ',' 1st filed
         tplg_str=${tplg_str#*,}
         [ "$f" == "$tplg_str" ] && tplg_str=""
-        if [ -f "$f" ]; then
-            f="$f"
-        elif [ -f "$TPLG_ROOT/$f" ]; then
-            f="$TPLG_ROOT/$f"
+        if [ -f "$TPLG_ROOT/$(basename $f)" ]; then
+            f="$TPLG_ROOT/$(basename $f)"   # catch from TPLG_ROOT
+        elif [ -f "$f" ];then
+            f=$(realpath $f)    # relative path -> absolute path
         else
             dlogw "Couldn't find target TPLG file $f needed to run $0" && exit 1
         fi

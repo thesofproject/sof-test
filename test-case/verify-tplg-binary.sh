@@ -33,14 +33,14 @@ do
     # expect left ',' 1st filed
     tplg_str=${tplg_str#*,}
     [ "$tplg_file" == "$tplg_str" ] && tplg_str=""
-    if [ -f "$tplg_file" ]; then
-        tplg_file="$tplg_file"
-    elif [ -f "$TPLG_ROOT/$tplg_file" ]; then
-        tplg_file="$TPLG_ROOT/$tplg_file"
+    if [ -f "$TPLG_ROOT/$(basename $tplg_file)" ]; then
+        tplg_file="$TPLG_ROOT/$(basename $tplg_file)"   # catch from TPLG_ROOT
+    elif [ -f "$tplg_file" ]; then
+        tplg_file=$(realpath $tplg_file) # relative path -> absolute path
     else
         dloge "Couldn't find target TPLG file $tplg_file"
-	((ret=1))
-	continue
+        ((ret=1))
+        continue
     fi
     dlogi "Found file: $(md5sum $tplg_file|awk '{print $2, $1;}')"
     tplgData=$(sof-tplgreader.py $tplg_file 2>/dev/null)
