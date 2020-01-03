@@ -150,16 +150,6 @@ sofcard=${SOFCARD:-0}
 cardname=$(sof-dump-status.py -s $sofcard)
 [[ $? -ne 0 ]] && exit 1
 
-# TODO: check the audio card dmi name (dmi name is not recommanded).
-ucm_file=${ucm_folder}/${cardname}/${cardname}.conf
-
-[[ ! -e "${ucm_file}" ]] && dloge "ucm configuration: $ucm_file doesn't exist!" && exit 2
-
-# currently we only supports old ucm configuration.
-# only after alsa-lib, alsa-utils and pulseaudio are updated, UCMv2 will be supported.
-# check ucm version
-[[ "$(grep "Syntax 2" "${ucm_file}")" ]] && dloge "not support UCMv2 currently" && exit 2
-
 # 1. use alsaucm to open the card
 dlogc "alsaucm open '$cardname'"
 alsaucm open "$cardname" 2>/dev/null
