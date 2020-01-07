@@ -302,6 +302,7 @@ if __name__ == "__main__":
     parser.add_argument('-i', '--id', type=int, help='just dump the pcm infomation of target id sound card')
     parser.add_argument('-s', '--short', type=int, help='just dump the short name of target id sound card')
     parser.add_argument('-l', '--longname', type=int, help='just dump the longname name of target id sound card')
+    parser.add_argument('-P', '--fwpath', action='store_true', help='get firmware path according to DMI info')
     parser.add_argument('--version', action='version', version='%(prog)s 1.0')
 
     ret_args = vars(parser.parse_args())
@@ -341,6 +342,56 @@ if __name__ == "__main__":
         if card_info is None:
             exit(0)
         print(card_info['longname'])
+        exit(0)
+
+    # The kernel has changed the default firmware path when community
+    # key is used. Here we output firmware path according to kernel's
+    # match table.
+    if ret_args.get('fwpath') is True:
+        def is_community_board(board, community_boards):
+            for elem in community_boards:
+                if match_board(elem, board):
+                    return True
+            return False
+
+        # see if 'board' matches 'match', only match the key defined
+        # in community boards' matches field.
+        def match_board(match, board):
+            for key in match["matches"].keys():
+                if match["matches"][key] != board["matches"][key]:
+                    return False
+            return True
+
+        # The "community_boards" structure here is in accordance
+        # with "struct dmi_system_id community_key_platforms" in
+        # "sound/soc/sof/sof-pci-dev.c".
+        community_boards = [
+            {
+                "ident": "Up Squared",
+                "matches": {
+                    "board_name": "UP-APL01",
+                    "board_vendor": "AAEON"
+                }
+            },
+            {
+                "ident": "Chromebook",
+                "matches":  {
+                    "board_vendor": "Google",
+                }
+            }
+        ]
+        fw_path = "/lib/firmware/intel/sof"
+        sysinfo.loadDMI()
+        board = {
+                    "ident": sysinfo.dmi["board_name"],
+                    "matches": {
+                        "board_name": sysinfo.dmi["board_name"],
+                        "board_vendor": sysinfo.dmi["board_vendor"]
+                    }
+                }
+        if is_community_board(board, community_boards):
+            fw_path += "/community"
+        print(fw_path)
         exit(0)
 
     sysinfo.loadDMI()
