@@ -23,8 +23,8 @@ exit_code=1
 # process status detect
 for state in $(ps $opt $process -o state --no-header)
 do
-    # aplay playing: 'S'; aplay pause: 'R';
-    [[ "$state" == 'S' || "$state" == 'R' ]] && exit_code=0
+    # aplay prepare: 'D'; aplay playing: 'S'; aplay pause: 'R';
+    [[ "$state" == 'D' || "$state" == 'S' || "$state" == 'R' ]] && exit_code=0
     builtin echo process: $process status: ${PS_STATUS[$state]}
 done
 
