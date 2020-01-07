@@ -3,9 +3,9 @@
 import subprocess
 import os
 import re
-from tplgtool import TplgParser
+from tplgtool import TplgParser, TplgFormatter
 
-class clsTPLGeader:
+class clsTPLGReader:
     def __init__(self):
         self._pipeline_lst = []
         self._output_lst = []
@@ -16,43 +16,35 @@ class clsTPLGeader:
     def __comp_pipeline(self, pipeline):
         return pipeline['id']
 
-    # fork & split from TplgFormatter
-    def _fmt2str(self, cap):
-        fmt = cap['formats']
-        if fmt & (1 << 2) != 0:
-            return "S16_LE"
-        elif fmt & (1 << 6) != 0:
-            return "S24_LE"
-        elif fmt & (1 << 10) != 0:
-            return "S32_LE"
-        elif fmt & (1 << 14) != 0:
-            return "FLOAT"
-        else: # without match
-            return ""
-
     def _key2str(self, cap, key):
         return cap["%s_min" % (key)], cap["%s_max" % (key)]
 
     # fork & split from TplgFormatter
     def loadFile(self, filename, sofcard=0):
         tplg_parser = TplgParser()
-        for item in tplg_parser.parse(filename)[:-1]:
+        parsed_tplg = tplg_parser.parse(filename)
+        tplg_formatter = TplgFormatter(parsed_tplg)
+        # ignore the last element, for it is tplg name
+        for item in parsed_tplg[:-1]:
             if "pcm" not in item:
                 continue
             for pcm in item['pcm']:
                 pipeline_dict = {}
                 pipeline_dict['pcm'] = pcm["pcm_name"]
                 pipeline_dict['id'] = str(pcm["pcm_id"])
-                if pcm['playback'] == 1 and pcm['capture'] == 1:
-                    pipeline_dict['type'] = 'both'
-                elif pcm['playback'] == 1:
-                    pipeline_dict['type'] = 'playback'
-                elif pcm['capture'] == 1:
-                    pipeline_dict['type'] = 'capture'
-                else: # error pcm ??
-                    return 1
+                pipeline_dict['type'] = tplg_formatter._get_pcm_type(pcm)
+                # if we find None type pcm, there must be errors in topology
+                if pipeline_dict['type'] == "None":
+                    print("type of %s is neither playback nor capture, please check your"
+                        "topology source file", pcm["pcm_name"])
+                    exit(1)
                 cap = pcm["caps"][pcm['capture']]
-                pipeline_dict['fmt'] = self._fmt2str(cap)
+                # supported formats of playback pipeline in formats[0]
+                # supported formats of capture pipeline in formats[1]
+                formats = tplg_formatter._get_pcm_fmt(pcm)
+                pipeline_dict['fmts'] = " ".join(formats[pcm['capture']])
+                # use the first supported format for test
+                pipeline_dict['fmt'] = pipeline_dict['fmts'].split(' ')[0]
                 pipeline_dict['rate_min'], pipeline_dict['rate_max'] = self._key2str(cap, 'rate')
                 pipeline_dict['ch_min'], pipeline_dict['ch_max'] = self._key2str(cap, 'channels')
                 self._pipeline_lst.append(pipeline_dict)
@@ -208,7 +200,7 @@ PIPELINE_$ID['key']='value' ''')
 
     ret_args = vars(parser.parse_args())
 
-    tplgreader = clsTPLGeader()
+    tplgreader = clsTPLGReader()
     filter_lst = []
     dump_lst = []
     block_lst = []
