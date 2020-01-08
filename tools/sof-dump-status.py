@@ -12,7 +12,9 @@ class clsSYSCardInfo():
             "0x9dc8":"cnl", "0xa348":"cfl", "0x9d71":"kbl", "0x9d70":"skl", "0x34c8":"icl", "0x38c8":"jsl",
             "0x02c8":"cml", "0x06c8":"cml", "0xa0c8":"tgl", "0x4b55":"ehl",
             # https://github.com/thesofproject/linux/blob/topic/sof-dev/sound/soc/sof/sof-acpi-dev.c
-            "0x3438":"bdw", "0x33c8":"hsw", "0x0f04":"byt", "0x2284":"cht"}
+            "0x3438":"bdw", "0x33c8":"hsw", "0x0f04":"byt", "0x2284":"cht",
+            # https://github.com/thesofproject/linux/blob/topic/sof-dev/sound/pci/hda/hda_intel.c
+            "0x160c":"bdw" }
         # self.sys_card=[]
         self.sys_power={}
 
@@ -193,7 +195,8 @@ if __name__ == "__main__":
             print("\tName:\t\t" + pci_info['name'])
             print("\tHex:\t\t" + pci_info['hw_id'])
             print("\tchipset:\t" + pci_info['hw_name'])
-            print("\tmodule:\t\t" + pci_info['module'])
+            if pci_info.get('module') is not None:
+                print("\tmodule:\t\t" + pci_info['module'])
         print("")
 
     def dump_proc_sound(proc_card):
@@ -204,7 +207,7 @@ if __name__ == "__main__":
             print("Card ID:\t\t" + card_info['id'])
             print("\tType:\t\t" + card_info['type'])
             print("\tShort name:\t" + card_info['short'])
-            print("\tLong name:\t\t" + card_info['longname'])
+            print("\tLong name:\t" + card_info['longname'])
             if len(card_info['codec']) == 0:
                 print("\tCodec:\t\tNOCODEC")
             else:
