@@ -23,7 +23,6 @@ class clsTPLGReader:
     def loadFile(self, filename, sofcard=0):
         tplg_parser = TplgParser()
         parsed_tplg = tplg_parser.parse(filename)
-        tplg_formatter = TplgFormatter(parsed_tplg)
         # ignore the last element, for it is tplg name
         for item in parsed_tplg[:-1]:
             if "pcm" not in item:
@@ -32,16 +31,16 @@ class clsTPLGReader:
                 pipeline_dict = {}
                 pipeline_dict['pcm'] = pcm["pcm_name"]
                 pipeline_dict['id'] = str(pcm["pcm_id"])
-                pipeline_dict['type'] = tplg_formatter._get_pcm_type(pcm)
+                pipeline_dict['type'] = TplgFormatter.get_pcm_type(pcm)
                 # if we find None type pcm, there must be errors in topology
                 if pipeline_dict['type'] == "None":
                     print("type of %s is neither playback nor capture, please check your"
-                        "topology source file", pcm["pcm_name"])
+                        "topology source file" % pcm["pcm_name"])
                     exit(1)
                 cap = pcm["caps"][pcm['capture']]
                 # supported formats of playback pipeline in formats[0]
                 # supported formats of capture pipeline in formats[1]
-                formats = tplg_formatter._get_pcm_fmt(pcm)
+                formats = TplgFormatter.get_pcm_fmt(pcm)
                 pipeline_dict['fmts'] = " ".join(formats[pcm['capture']])
                 # use the first supported format for test
                 pipeline_dict['fmt'] = pipeline_dict['fmts'].split(' ')[0]

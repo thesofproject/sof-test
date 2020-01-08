@@ -538,7 +538,8 @@ class TplgFormatter:
         tplg["name"] = parsed_tplg[-1]
         return tplg
 
-    def _sort_by_id(self, item):
+    @staticmethod
+    def _sort_by_id(item):
         # for link sort
         if "id" in item.keys():
             return item["id"]
@@ -546,8 +547,10 @@ class TplgFormatter:
         if "pcm_id" in item.keys():
             return item["pcm_id"]
         return 0
+
     # transform number denoted pipeline format to string
-    def _to_fmt_string(self, fmt):
+    @staticmethod
+    def _to_fmt_string(fmt):
         fmts = []
         if fmt & (1 << 2) != 0:
             fmts.append("S16_LE")
@@ -562,14 +565,16 @@ class TplgFormatter:
     # always return a list, playback stream fmt in fmt_list[0]
     # capture stream fmt in fmt_list[1], the format of absense
     # stream is UNKNOWN
-    def _get_pcm_fmt(self, pcm):
+    @staticmethod
+    def get_pcm_fmt(pcm):
         fmt_list = []
         caps = pcm["caps"]
         for cap in caps:
-            fmt_list.append(self._to_fmt_string(cap["formats"]))
+            fmt_list.append(TplgFormatter._to_fmt_string(cap["formats"]))
         return fmt_list
 
-    def _get_pcm_type(self, item):
+    @staticmethod
+    def get_pcm_type(item):
         if item["playback"] == 1 and item["capture"] == 1:
             return "both"
         if item["playback"] == 1:
@@ -580,14 +585,16 @@ class TplgFormatter:
 
     # return a list of six elements, rate_min, rate_max and rates of playback
     # pipeline and rate_min, rate_max and rates of capture pipeline
-    def _get_pcm_rates(self, pcm):
+    @staticmethod
+    def get_pcm_rates(pcm):
         return [pcm["caps"][0]["rate_min"], pcm["caps"][0]["rate_max"], \
         pcm["caps"][0]["rates"], pcm["caps"][1]["rate_min"], \
         pcm["caps"][1]["rate_max"], pcm["caps"][1]["rates"]]
 
     # return a list of four elements, channels_min/channel_max
     # for playback and channels_min/channel_max for capture
-    def _get_pcm_channels(self, pcm):
+    @staticmethod
+    def get_pcm_channels(pcm):
         return [pcm["caps"][0]["channels_min"], pcm["caps"][0]["channels_max"],
             pcm["caps"][1]["channels_min"], pcm["caps"][1]["channels_max"]]
 
@@ -602,10 +609,10 @@ class TplgFormatter:
     def format_pcm(self):
         pcms = self._merge_pcm_list(self._tplg["pcm_list"])
         for pcm in pcms:
-            fmt_list = self._get_pcm_fmt(pcm)
-            pcm_type = self._get_pcm_type(pcm)
-            pcm_rates = self._get_pcm_rates(pcm)
-            pcm_channels = self._get_pcm_channels(pcm)
+            fmt_list = TplgFormatter.get_pcm_fmt(pcm)
+            pcm_type = TplgFormatter.get_pcm_type(pcm)
+            pcm_rates = TplgFormatter.get_pcm_rates(pcm)
+            pcm_channels = TplgFormatter.get_pcm_channels(pcm)
 
             fmt = fmt_list[0]
             rates = pcm_rates[:3]
