@@ -39,6 +39,9 @@ OPT_PARM_lst['f']=1         OPT_VALUE_lst['f']=''
 OPT_OPT_lst['s']='sof-logger'   OPT_DESC_lst['s']="Open sof-logger trace the data will store at $LOG_ROOT"
 OPT_PARM_lst['s']=0             OPT_VALUE_lst['s']=1
 
+OPT_OPT_lst['F']='fmts'   OPT_DESC_lst['F']='Iterate all supported formats'
+OPT_PARM_lst['F']=0         OPT_VALUE_lst['F']=0
+
 func_opt_parse_option $*
 
 tplg=${OPT_VALUE_lst['t']}
@@ -65,29 +68,35 @@ do
         pcm=$(func_pipeline_parse_value $idx pcm)
         type=$(func_pipeline_parse_value $idx type)
 
+        if [ ${OPT_VALUE_lst['F']} = '1' ]; then
+            fmt=$(func_pipeline_parse_value $idx fmts)
+        fi
         # clean up dmesg
         sudo dmesg -C
-        for i in $(seq 1 $loop_cnt)
+        for fmt_elem in $(echo $fmt)
         do
-            dlogi "Testing: (Round: $round/$round_cnt) (PCM: $pcm [$dev]<$type>) (Loop: $i/$loop_cnt)"
-            # get the output file
-            if [[ -z $file_prefix ]]; then
-                dlogi "no file prefix, use /dev/null as dummy capture output"
-                file=/dev/null
-            else
-                mkdir -p $out_dir
-                file=$out_dir/${file_prefix}_${dev}_${i}.wav
-                dlogi "using $file as capture output"
-            fi
+            for i in $(seq 1 $loop_cnt)
+            do
+                dlogi "Testing: (Round: $round/$round_cnt) (PCM: $pcm [$dev]<$type>) (Loop: $i/$loop_cnt)"
+                # get the output file
+                if [[ -z $file_prefix ]]; then
+                    dlogi "no file prefix, use /dev/null as dummy capture output"
+                    file=/dev/null
+                else
+                    mkdir -p $out_dir
+                    file=$out_dir/${file_prefix}_${dev}_${i}.wav
+                    dlogi "using $file as capture output"
+                fi
 
-            dlogc "arecord -D$dev -r $rate -c $channel -f $fmt -d $duration $file -vv -q"
-            arecord -D$dev -r $rate -c $channel -f $fmt -d $duration $file -vv -q
-            if [[ $? -ne 0 ]]; then
-                dmesg > $LOG_ROOT/arecord_error_${dev}_$i.txt
-                dloge "arecord on PCM $dev failed at $i/$loop_cnt."
-                exit 1
-            fi
-            dmesg > $LOG_ROOT/arecord_${dev}_$i.txt
+                dlogc "arecord -D$dev -r $rate -c $channel -f $fmt_elem -d $duration $file -vv -q"
+                arecord -D$dev -r $rate -c $channel -f $fmt_elem -d $duration $file -vv -q
+                if [[ $? -ne 0 ]]; then
+                    dmesg > $LOG_ROOT/arecord_error_${dev}_$i.txt
+                    dloge "arecord on PCM $dev failed at $i/$loop_cnt."
+                    exit 1
+                fi
+                dmesg > $LOG_ROOT/arecord_${dev}_$i.txt
+            done
         done
     done
 done
