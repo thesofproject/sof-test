@@ -22,6 +22,9 @@ source $(dirname ${BASH_SOURCE[0]})/../case-lib/lib.sh
 OPT_OPT_lst['t']='tplg'     OPT_DESC_lst['t']='tplg file, default value is env TPLG: $TPLG'
 OPT_PARM_lst['t']=1         OPT_VALUE_lst['t']="$TPLG"
 
+OPT_OPT_lst['m']='mode'     OPT_DESC_lst['m']='test mode'
+OPT_PARM_lst['m']=1         OPT_VALUE_lst['m']='playback'
+
 OPT_OPT_lst['d']='duration' OPT_DESC_lst['d']='aplay/arecord duration in second'
 OPT_PARM_lst['d']=1         OPT_VALUE_lst['d']=10
 
@@ -34,6 +37,7 @@ OPT_PARM_lst['s']=0             OPT_VALUE_lst['s']=1
 func_opt_parse_option $*
 
 tplg=${OPT_VALUE_lst['t']}
+test_mode=${OPT_VALUE_lst['m']}
 duration=${OPT_VALUE_lst['d']}
 interval=${OPT_VALUE_lst['i']}
 
@@ -43,11 +47,22 @@ func_lib_setup_kernel_last_line
 func_lib_check_sudo
 func_pipeline_export $tplg "type:playback,capture,both"
 
-declare -A CMD FILE
-CMD['playback,both']='aplay'
-FILE['playback,both']='/dev/zero'
-CMD['capture,both']='arecord'
-FILE['capture,both']='/dev/null'
+case $test_mode in
+    "playback")
+        cmd=aplay
+        test_type=p
+        dummy_file=/dev/zero
+    ;;
+    "capture")
+        cmd=arecord
+        test_type=c
+        dummy_file=/dev/null
+    ;;
+    *)
+        dloge "Invalid test mode: $test_mode (allow value : playback, capture)"
+        exit 1
+    ;;
+esac
 
 func_xrun_injection()
 {
@@ -66,41 +81,35 @@ func_xrun_injection()
     done
 }
 
-func_test_pipeline_with_type()
-{
-    func_pipeline_export $tplg "type:$1"
-    for idx in $(seq 0 $(expr $PIPELINE_COUNT - 1))
-    do
-        channel=$(func_pipeline_parse_value $idx channel)
-        rate=$(func_pipeline_parse_value $idx rate)
-        fmt=$(func_pipeline_parse_value $idx fmt)
-        dev=$(func_pipeline_parse_value $idx dev)
-        pcm=$(func_pipeline_parse_value $idx pcm)
-        id=$(func_pipeline_parse_value $idx id)
-        pipeline_type=$(func_pipeline_parse_value $idx "type")
-        pcm=pcm${id}${2}
-        xrun_injection="/proc/asound/card0/$pcm/sub0/xrun_injection"
+func_pipeline_export $tplg "type:$test_mode,both"
+for idx in $(seq 0 $(expr $PIPELINE_COUNT - 1))
+do
+    channel=$(func_pipeline_parse_value $idx channel)
+    rate=$(func_pipeline_parse_value $idx rate)
+    fmt=$(func_pipeline_parse_value $idx fmt)
+    dev=$(func_pipeline_parse_value $idx dev)
+    pcm=$(func_pipeline_parse_value $idx pcm)
+    id=$(func_pipeline_parse_value $idx id)
+    pipeline_type=$(func_pipeline_parse_value $idx "type")
+    pcm=pcm${id}${test_type}
+    xrun_injection="/proc/asound/card0/$pcm/sub0/xrun_injection"
 
-        # check xrun injection file
-        [[ ! -e $xrun_injection ]] && dloge "XRUN DEBUG is not enabled in kernel, skip the test." && exit 2
-        dlogi "Testing: test xrun injection on PCM:$pcm,$pipeline_type. Interval time: $interval"
-        dlogc "${CMD[$1]}" -D$dev -r $rate -c $channel -f $fmt -d $duration "${FILE[$1]}" -q
-        "${CMD[$1]}" -D$dev -r $rate -c $channel -f $fmt -d $duration "${FILE[$1]}" -q &
-        pid=$!
-        # do xrun injection
-        dlogc "echo 1 > $xrun_injection"
-        func_xrun_injection
-        # check aplay/arecord return value
-        wait $pid
-        if [ $? != 0 ]; then
-            dloge "$pipeline_type on $pcm failed."
-            exit 1
-        fi
-    done
-}
-
-func_test_pipeline_with_type "playback,both" "p"
-func_test_pipeline_with_type "capture,both" "c"
+    # check xrun injection file
+    [[ ! -e $xrun_injection ]] && dloge "XRUN DEBUG is not enabled in kernel, skip the test." && exit 2
+    dlogi "Testing: test xrun injection on PCM:$pcm,$pipeline_type. Interval time: $interval"
+    dlogc $cmd -D$dev -r $rate -c $channel -f $fmt -d $duration $dummy_file -q
+    $cmd -D$dev -r $rate -c $channel -f $fmt -d $duration $dummy_file -q &
+    pid=$!
+    # do xrun injection
+    dlogc "echo 1 > $xrun_injection"
+    func_xrun_injection
+    # check aplay/arecord return value
+    wait $pid
+    if [ $? != 0 ]; then
+        dloge "$pipeline_type on $pcm failed."
+        exit 1
+    fi
+done
 
 sof-kernel-log-check.sh $KERNEL_LAST_LINE
 exit $?
