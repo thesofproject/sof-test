@@ -28,6 +28,9 @@ OPT_PARM_lst['d']=1         OPT_VALUE_lst['d']=10
 OPT_OPT_lst['i']='interval'     OPT_DESC_lst['i']='interval time of xrun injection'
 OPT_PARM_lst['i']=1         OPT_VALUE_lst['i']=0.5
 
+OPT_OPT_lst['c']='count'     OPT_DESC_lst['c']='xrun injection loop count'
+OPT_PARM_lst['c']=1         OPT_VALUE_lst['c']=1
+
 OPT_OPT_lst['s']='sof-logger'   OPT_DESC_lst['s']="Open sof-logger trace the data will store at $LOG_ROOT"
 OPT_PARM_lst['s']=0             OPT_VALUE_lst['s']=1
 
@@ -36,6 +39,7 @@ func_opt_parse_option $*
 tplg=${OPT_VALUE_lst['t']}
 duration=${OPT_VALUE_lst['d']}
 interval=${OPT_VALUE_lst['i']}
+loop_count=${OPT_VALUE_lst['c']}
 
 [[ ${OPT_VALUE_lst['s']} -eq 1 ]] && func_lib_start_log_collect
 
@@ -51,9 +55,9 @@ FILE['capture,both']='/dev/null'
 
 func_xrun_injection()
 {
-    count=1
-    while(true)
-    do
+    count=0
+
+    if [[ $count -lt $loop_count ]]; then
         ps -ef |grep "$pid" |grep -v grep
         if [ $? -eq 0 ]; then
             dlogi "XRUN injection: $count"
@@ -63,7 +67,7 @@ func_xrun_injection()
         else
             break # aplay/arecord is finished, stop xrun injection
         fi
-    done
+    fi
 }
 
 func_test_pipeline_with_type()
