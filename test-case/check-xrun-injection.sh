@@ -25,8 +25,8 @@ OPT_PARM_lst['t']=1         OPT_VALUE_lst['t']="$TPLG"
 OPT_OPT_lst['m']='mode'     OPT_DESC_lst['m']='test mode'
 OPT_PARM_lst['m']=1         OPT_VALUE_lst['m']='playback'
 
-OPT_OPT_lst['d']='duration' OPT_DESC_lst['d']='aplay/arecord duration in second'
-OPT_PARM_lst['d']=1         OPT_VALUE_lst['d']=10
+OPT_OPT_lst['c']='count' OPT_DESC_lst['c']='test count of xrun injection'
+OPT_PARM_lst['c']=1         OPT_VALUE_lst['c']=10
 
 OPT_OPT_lst['i']='interval'     OPT_DESC_lst['i']='interval time of xrun injection'
 OPT_PARM_lst['i']=1         OPT_VALUE_lst['i']=0.5
@@ -38,7 +38,7 @@ func_opt_parse_option $*
 
 tplg=${OPT_VALUE_lst['t']}
 test_mode=${OPT_VALUE_lst['m']}
-duration=${OPT_VALUE_lst['d']}
+count=${OPT_VALUE_lst['c']}
 interval=${OPT_VALUE_lst['i']}
 
 [[ ${OPT_VALUE_lst['s']} -eq 1 ]] && func_lib_start_log_collect
@@ -66,18 +66,20 @@ esac
 
 func_xrun_injection()
 {
-    count=1
-    while(true)
+    local i=1
+    while ( [ $i -le $count ] && [ "$(ps -p $pid --no-header)" ] )
     do
-        ps -ef |grep "$pid" |grep -v grep
-        if [ $? -eq 0 ]; then
-            dlogi "XRUN injection: $count"
-            sudo bash -c "'echo 1 > $xrun_injection'"
-            sleep $interval
-            let count++
-        else
-            break # aplay/arecord is finished, stop xrun injection
+        # check aplay/arecord process state
+        sof-process-state.sh $pid >/dev/null
+        if [[ $? -ne 0 ]]; then
+            dloge "aplay/arecord process is in an abnormal status"
+            kill -9 $pid && wait $pid 2>/dev/null
+            exit 1
         fi
+        dlogi "XRUN injection: $i"
+        sudo bash -c "'echo 1 > $xrun_injection'"
+        sleep $interval
+	let i++
     done
 }
 
@@ -97,18 +99,15 @@ do
     # check xrun injection file
     [[ ! -e $xrun_injection ]] && dloge "XRUN DEBUG is not enabled in kernel, skip the test." && exit 2
     dlogi "Testing: test xrun injection on PCM:$pcm,$pipeline_type. Interval time: $interval"
-    dlogc $cmd -D$dev -r $rate -c $channel -f $fmt -d $duration $dummy_file -q
-    $cmd -D$dev -r $rate -c $channel -f $fmt -d $duration $dummy_file -q &
+    dlogc $cmd -D$dev -r $rate -c $channel -f $fmt $dummy_file -q
+    $cmd -D$dev -r $rate -c $channel -f $fmt $dummy_file -q &
     pid=$!
     # do xrun injection
     dlogc "echo 1 > $xrun_injection"
     func_xrun_injection
-    # check aplay/arecord return value
-    wait $pid
-    if [ $? != 0 ]; then
-        dloge "$pipeline_type on $pcm failed."
-        exit 1
-    fi
+    # kill aplay/arecord process
+    dlogc "kill process: kill -9 $pid"
+    kill -9 $pid && wait $pid 2>/dev/null
 done
 
 sof-kernel-log-check.sh $KERNEL_LAST_LINE
