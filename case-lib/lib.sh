@@ -17,7 +17,9 @@ if [ ! "$SOFCARD" ];then
     SOFCARD=$(grep '\]: sof-[a-z]' /proc/asound/cards|awk '{print $1;}')
 fi
 
-declare -g DMESG_LOG_START_LINE=$(wc -l /var/log/kern.log|awk '{print $1;}')
+if [ ! "$DMESG_LOG_START_LINE" ];then
+    declare -g DMESG_LOG_START_LINE=$(wc -l /var/log/kern.log|awk '{print $1;}')
+fi
 declare -g SOF_LOG_COLLECT=0
 
 func_lib_setup_kernel_last_line()
