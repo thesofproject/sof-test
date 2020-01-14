@@ -22,6 +22,9 @@ OPT_PARM_lst['t']=1         OPT_VALUE_lst['t']="$TPLG"
 OPT_OPT_lst['l']='loop'     OPT_DESC_lst['l']='loop count'
 OPT_PARM_lst['l']=1         OPT_VALUE_lst['l']=3
 
+OPT_OPT_lst['d']='delay'    OPT_DESC_lst['d']='delay time for state convert'
+OPT_PARM_lst['d']=1         OPT_VALUE_lst['d']=6
+
 OPT_OPT_lst['s']='sof-logger'   OPT_DESC_lst['s']="Open sof-logger trace the data will store at $LOG_ROOT"
 OPT_PARM_lst['s']=0             OPT_VALUE_lst['s']=1
 
@@ -82,8 +85,8 @@ do
             dlogc "kill process: kill -9 $pid"
             kill -9 $pid && wait $pid 2>/dev/null
             dlogi "aplay end"
-            dlogc "sleep 5"
-            sleep 5
+            dlogc "sleep ${OPT_VALUE_lst['d']}"
+            sleep ${OPT_VALUE_lst['d']}
 
             result=`cat $runtime_status`
 
