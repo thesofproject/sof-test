@@ -26,12 +26,6 @@ OPT_PARM_lst['m']=1         OPT_VALUE_lst['m']='playback'
 OPT_OPT_lst['c']='count'    OPT_DESC_lst['c']='pause/resume repeat count'
 OPT_PARM_lst['c']=1         OPT_VALUE_lst['c']=10
 
-OPT_OPT_lst['w']='sleep'    OPT_DESC_lst['w']='sleep time between pause/resume'
-OPT_PARM_lst['w']=1         OPT_VALUE_lst['w']=0.5
-
-OPT_OPT_lst['d']='duration' OPT_DESC_lst['d']='duration time'
-OPT_PARM_lst['d']=1         OPT_VALUE_lst['d']=10
-
 OPT_OPT_lst['f']='file'     OPT_DESC_lst['f']='file name'
 OPT_PARM_lst['f']=1         OPT_VALUE_lst['f']=''
 
@@ -43,8 +37,6 @@ func_opt_parse_option $*
 tplg=${OPT_VALUE_lst['t']}
 test_mode=${OPT_VALUE_lst['m']}
 repeat_count=${OPT_VALUE_lst['c']}
-sleep_time=${OPT_VALUE_lst['w']}
-duration=${OPT_VALUE_lst['d']}
 #TODO: file name salt for capture
 file_name=${OPT_VALUE_lst['f']}
 
@@ -76,32 +68,46 @@ do
     fmt=$(func_pipeline_parse_value $idx fmt)
     dev=$(func_pipeline_parse_value $idx dev)
 
-    dlogi "Entering expect script with: $cmd -D $dev -r $rate -c $channel -f $fmt -vv -i -d $duration $file_name -q"
+    dlogi "Entering expect script with: $cmd -D $dev -r $rate -c $channel -f $fmt -vv -i $file_name -q"
 
+    # expect is tcl language script
+    #   expr rand(): produces random numbers between 0 and 1
+    #   after ms: Ms must be an integer giving a time in milliseconds.
+    #       The command sleeps for ms milliseconds and then returns.
     expect <<END
-spawn $cmd -D $dev -r $rate -c $channel -f $fmt -vv -i -d $duration $file_name -q
-set i 0
+spawn $cmd -D $dev -r $rate -c $channel -f $fmt -vv -i $file_name -q
+set i 1
 expect {
     "*#*+*\%" {
-        sleep $sleep_time
+        set sleep_t [expr int([expr rand() * 1000]) + 1000 ]
+        puts "\r(\$i/\$repeat_count) Wait for \$sleep_t ms for pause"
         send " "
-        if { \$i < $repeat_count } {
-            incr i
-            exp_continue
-        }
-        exit 0
+        after \$sleep_t
+        exp_continue
+    }
+    "*PAUSE*" {
+        set sleep_t [expr int([expr rand() * 1000]) + 1000 ]
+        puts "\r(\$i/\$repeat_count) Wait for \$sleep_t ms for resume"
+        send " "
+        after \$sleep_t
+        incr i
+        if { \$i > $repeat_count } { exit 0 }
+        exp_continue
     }
 }
 exit 1
 END
+    ret=$?
     #flush the output
     echo
-    ret=$?
     if [ $ret -ne 0 ]; then
         sof-process-kill.sh
         [[ $? -ne 0 ]] && dlogw "Kill process catch error"
         exit $ret
     fi
+    # sof-kernel-log-check script parameter number is 0/Non-Number will force check from dmesg
+    sof-kernel-log-check.sh 0
+    [[ $? -ne 0 ]] && dloge "Catch dmesg error" && exit 1
 done
 
 sof-kernel-log-check.sh $KERNEL_LAST_LINE
