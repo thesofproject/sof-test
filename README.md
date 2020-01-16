@@ -98,5 +98,8 @@ apl
 * sof-kernel-dump.sh
 <br> catch all kernel information after system boot up from /var/log/kern.log file
 
+* sof-get-kernel-line.sh
+<br> print all kernel versions and their line numbers from /var/log/kern.log, with the most recent <first/last>
+
 * sof-disk-usage.sh
 <br> check current disk size for avoid system problem without enough space
