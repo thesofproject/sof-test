@@ -21,6 +21,9 @@ func_opt_parse_option $*
 
 #TODO: need to add arguments for user to give location for logger and ldc file
 
+# hijack DMESG_LOG_START_LINE which refer dump kernel log in exit function
+DMESG_LOG_START_LINE=$(sof-get-kernel-line.sh|tail -n 1 |awk '{print $1;}')
+
 # check sof-logger location
 if [ -z $(which sof-logger) ]; then
     dloge "sof-logger Not Installed!"

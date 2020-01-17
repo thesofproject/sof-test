@@ -17,6 +17,9 @@ source $(dirname ${BASH_SOURCE[0]})/../case-lib/lib.sh
 
 func_opt_parse_option $*
 
+# hijack DMESG_LOG_START_LINE which refer dump kernel log in exit function
+DMESG_LOG_START_LINE=$(sof-get-kernel-line.sh|tail -n 1 |awk '{print $1;}')
+
 dlogi "Checking SOF Firmware load info in kernel log"
 if [[ $(sof-kernel-dump.sh | grep "] sof-audio.*version") ]]; then
     # dump the version info and ABI info
