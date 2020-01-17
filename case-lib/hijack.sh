@@ -17,7 +17,7 @@ function exit()
     fi
     # case quit to store current kernel log
     [[ $DMESG_LOG_START_LINE -ne 0 ]] && \
-        sed -n "$DMESG_LOG_START_LINE"',$p' /var/log/kern.log |cut -f5- -d ' ' > $LOG_ROOT/dmesg.txt
+        tail -n +$DMESG_LOG_START_LINE /var/log/kern.log |cut -f5- -d ' ' > $LOG_ROOT/dmesg.txt
 
     # when exit force check the pulseaudio whether disabled
     func_lib_restore_pulseaudio

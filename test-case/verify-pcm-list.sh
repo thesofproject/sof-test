@@ -24,6 +24,9 @@ OPT_PARM_lst['t']=1         OPT_VALUE_lst['t']="$TPLG"
 func_opt_parse_option $*
 tplg=${OPT_VALUE_lst['t']}
 
+# hijack DMESG_LOG_START_LINE which refer dump kernel log in exit function
+DMESG_LOG_START_LINE=$(sof-get-kernel-line.sh|tail -n 1 |awk '{print $1;}')
+
 # because here is verify tplg file load result by driver
 # so don't need block list option
 unset TPLG_BLOCK_LST
