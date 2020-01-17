@@ -1,6 +1,6 @@
 #!/bin/bash
 
-[[ $# -ne 1 ]] && echo "This script need parameter: pid/process-name to dump it's state" && exit 2
+[[ $# -ne 1 ]] && echo "This script need parameter: pid/process-name to dump it's state" && builtin exit 2
 
 # catch from man ps: PROCESS STATE CODES
 declare -A PS_STATUS
@@ -19,13 +19,17 @@ process=$1
 exit_code=1
 # process not exist
 [[ ! "$(ps $opt $process -o state --no-header)" ]] && \
-    builtin echo "process: $process status: process run finished/not run" && exit_code=0
+    builtin echo "process: $process status: process run finished/not run" && builtin exit 2
+
+abnormal_status=0
 # process status detect
 for state in $(ps $opt $process -o state --no-header)
 do
+    abnormal_status=$[ $abnormal_status + 1 ]
     # aplay prepare: 'D'; aplay playing: 'S'; aplay pause: 'R';
-    [[ "$state" == 'D' || "$state" == 'S' || "$state" == 'R' ]] && exit_code=0
+    [[ "$state" == 'D' || "$state" == 'S' || "$state" == 'R' ]] && abnormal_status=$[ $abnormal_status - 1 ]
     builtin echo process: $process status: ${PS_STATUS[$state]}
 done
 
-builtin exit $exit_code
+[[ $abnormal_status -eq 0 ]] && builtin exit 0
+builtin exit 1

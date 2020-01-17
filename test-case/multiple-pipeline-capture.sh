@@ -114,9 +114,9 @@ tmp_count=$(expr $tmp_count + $pcount)
 # 2. check arecord process status
 dlogi "checking pipeline status"
 sof-process-state.sh arecord >/dev/null
-[[ $? -ne 0 ]] && func_error_exit "Catch the abnormal process status of arecord"
+[[ $? -eq 1 ]] && func_error_exit "Catch the abnormal process status of arecord"
 sof-process-state.sh aplay >/dev/null
-[[ $? -ne 0 ]] && func_error_exit "Catch the abnormal process status of aplay"
+[[ $? -eq 1 ]] && func_error_exit "Catch the abnormal process status of aplay"
 
 dlogi "preparing sleep ${OPT_VALUE_lst['w']}"
 sleep ${OPT_VALUE_lst['w']}
@@ -132,9 +132,9 @@ tmp_count=$(expr $tmp_count + $pcount)
 # 4. check arecord process status
 dlogi "checking pipeline status again"
 sof-process-state.sh arecord >/dev/null
-[[ $? -ne 0 ]] && func_error_exit "Catch the abnormal process status of arecord"
+[[ $? -eq 1 ]] && func_error_exit "Catch the abnormal process status of arecord"
 sof-process-state.sh aplay >/dev/null
-[[ $? -ne 0 ]] && func_error_exit "Catch the abnormal process status of aplay"
+[[ $? -eq 1 ]] && func_error_exit "Catch the abnormal process status of aplay"
 
 
 # kill all arecord
