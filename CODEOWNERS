@@ -1,0 +1,35 @@
+# Lines starting with '#' are comments.
+# Each line is a file pattern followed by one or more owners.
+
+# These owners will be the default owners for everything in the repo.
+*                       @xiulipan @Bin-QA
+
+# Order is important. The last matching pattern has the most precedence.
+# So if a pull request only touches javascript files, only these owners
+# will be requested to review.
+
+# file type
+*.py                    @Bin-QA @aiChaoSONG
+*.sh                    @Bin-QA
+*.md                    @fredoh9 @stripes41
+
+# tools and caselib
+case-lib/*              @Bin-QA @xiulipan
+tools/*                 @Bin-QA @aiChaoSONG
+tools/kmod/*            @aiChaoSONG @plbossart
+
+# test case
+test-case/manual/*      @fredoh9 @stripes416
+test-case/*playback*    @aiChaoSONG
+test-case/*capture*     @aiChaoSONG
+test-case/*kmod*        @stripes416
+test-case/*pause*       @Bin-QA
+test-case/*runtime*     @stripes416
+test-case/*logger*      @fredoh9
+test-case/verify*       @aiChaoSONG @libinyang
+test-case/*ucm*         @libinyang
+test-case/*papaly*      @aiChaoSONG @libinyang
+test-case/*parecord*    @aiChaoSONG @libinyang
+test-case/*alsabat*     @keqiaozhang
+test-case/*xrun*        @keqiaozhang
+test-case/*stop*        @keqiaozhang
