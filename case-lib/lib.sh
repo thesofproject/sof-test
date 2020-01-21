@@ -17,9 +17,19 @@ if [ ! "$SOFCARD" ];then
     SOFCARD=$(grep '\]: sof-[a-z]' /proc/asound/cards|awk '{print $1;}')
 fi
 
+# Add lock to protect current system just have one sof-test test-case to run
+SOF_LOCK="/tmp/sof-test.lock"
+if [ ! -f "$SOF_LOCK" ];then # lock is not exist
+    echo $$ > /tmp/sof-test.lock # write self pid into lock file
+elif [ ! $(alias |grep "Sub-Test") ]; then # not the sub test-case
+    echo "Find $SOF_LOCK already exist: $(ps -p $(cat $SOF_LOCK))"
+    exit 2 # now skip to run the test-case
+fi
+
 if [ ! "$DMESG_LOG_START_LINE" ];then
     declare -g DMESG_LOG_START_LINE=$(wc -l /var/log/kern.log|awk '{print $1;}')
 fi
+
 declare -g SOF_LOG_COLLECT=0
 
 func_lib_setup_kernel_last_line()
