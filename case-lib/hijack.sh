@@ -45,8 +45,19 @@ function exit()
         done
     fi
 
+    # check function already defined
     # when exit force check the pulseaudio whether disabled
-    func_lib_restore_pulseaudio
+    [[ $(declare -f func_lib_restore_pulseaudio) ]] && func_lib_restore_pulseaudio
+
+    if [ -f $SOF_LOCK ];then
+        # use string compare instead of int to confirm file content correct
+        # just remove the current pid lock file
+        if [ "X$$" == "X$(cat $SOF_LOCK)" ]; then
+            rm -rf $SOF_LOCK
+        fi
+    else
+        dlogw "Missing lock file: $SOF_LOCK"
+    fi
 
     case $exit_status in
         0)
