@@ -19,9 +19,6 @@ function exit()
     [[ $DMESG_LOG_START_LINE -ne 0 ]] && \
         tail -n +$DMESG_LOG_START_LINE /var/log/kern.log |cut -f5- -d ' ' > $LOG_ROOT/dmesg.txt
 
-    # when exit force check the pulseaudio whether disabled
-    func_lib_restore_pulseaudio
-
     # get ps command result as list
     OLD_IFS="$IFS" IFS=$'\n'
     local -a cmd_lst
@@ -42,11 +39,14 @@ function exit()
         do
             # remove '^[:space:]' because IFS change to keep the '^[:space:]' in variable
             line=$(echo $line|xargs)
-            dlogw "Catch: $line"
-            dlogi "Kill cmd:'${line#* }' by kill -9"
+            dlogw "Catch pid: $line"
+            dlogw "Kill cmd:'${line#* }' by kill -9"
             kill -9 ${line%% *}
         done
     fi
+
+    # when exit force check the pulseaudio whether disabled
+    func_lib_restore_pulseaudio
 
     case $exit_status in
         0)

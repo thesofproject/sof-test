@@ -80,8 +80,20 @@ func_lib_restore_pulseaudio()
     do
         user=${line%% *}
         cmd=${line#* }
-        sudo -u $user $cmd >/dev/null 2>&1 &
+        nohup sudo -u $user $cmd >/dev/null &
     done
+    # now wait for the pulseaudio restore in the ps process
+    wait_t=0 timeout=10
+    while [ ! "$(ps -C pulseaudio --no-header)" ];
+    do
+        wait_t=$[ $wait_t + 1 ]
+        sleep 1s
+        if [ $wait_t -ge $timeout ]; then
+            dlogw "Restore pulseaudio wait too long: $timeout"
+            break
+        fi
+    done
+    dlogi "Restoring  pulseaudio took $wait_t seconds"
     unset PULSECMD_LST
     declare -ag PULSECMD_LST
 }
