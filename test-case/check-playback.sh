@@ -86,8 +86,8 @@ do
             for i in $(seq 1 $loop_cnt)
             do
                 dlogi "Testing: (Round: $round/$round_cnt) (PCM: $pcm [$dev]<$type>) (Loop: $i/$loop_cnt)"
-                dlogc "aplay -D$dev -r $rate -c $channel -f $fmt_elem -d $duration $file -vv -q"
-                aplay -D$dev -r $rate -c $channel -f $fmt_elem -d $duration $file -vv -q
+                dlogc "aplay -D$dev -r $rate -c $channel -f $fmt_elem -d $duration $file -v -q"
+                aplay -D$dev -r $rate -c $channel -f $fmt_elem -d $duration $file -v -q
                 if [[ $? -ne 0 ]]; then
                     dmesg > $LOG_ROOT/aplay_error_${dev}_$i.txt
                     dloge "aplay on PCM $dev failed at $i/$loop_cnt."
