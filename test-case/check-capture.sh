@@ -88,8 +88,8 @@ do
                     dlogi "using $file as capture output"
                 fi
 
-                dlogc "arecord -D$dev -r $rate -c $channel -f $fmt_elem -d $duration $file -vv -q"
-                arecord -D$dev -r $rate -c $channel -f $fmt_elem -d $duration $file -vv -q
+                dlogc "arecord -D$dev -r $rate -c $channel -f $fmt_elem -d $duration $file -v -q"
+                arecord -D$dev -r $rate -c $channel -f $fmt_elem -d $duration $file -v -q
                 if [[ $? -ne 0 ]]; then
                     dmesg > $LOG_ROOT/arecord_error_${dev}_$i.txt
                     dloge "arecord on PCM $dev failed at $i/$loop_cnt."
