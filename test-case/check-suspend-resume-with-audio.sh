@@ -74,12 +74,12 @@ fi
 func_pipeline_export $tplg "type:${OPT_VALUE_lst['m']},both"
 
 if [ "${OPT_VALUE_lst['T']}" ]; then
-    opt="-l ${OPT_VALUE_lst['l']} -t ${OPT_VALUE_lst['T']}"
+    opt="-l ${OPT_VALUE_lst['l']} -T ${OPT_VALUE_lst['T']}"
 else
     opt="-l ${OPT_VALUE_lst['l']}"
 fi
 if [ ${OPT_VALUE_lst['r']} -eq 0  ]; then
-    opt="$opt -s ${OPT_VALUE_lst['S']} -w ${OPT_VALUE_lst['w']}"
+    opt="$opt -S ${OPT_VALUE_lst['S']} -w ${OPT_VALUE_lst['w']}"
 else
     opt="$opt -r"
 fi

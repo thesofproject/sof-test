@@ -25,11 +25,11 @@ random_max=20
 OPT_OPT_lst['l']='loop'     OPT_DESC_lst['l']='loop count'
 OPT_PARM_lst['l']=1         OPT_VALUE_lst['l']=5
 
-OPT_OPT_lst['t']='type'    OPT_DESC_lst['t']="suspend/resume type from /sys/power/mem_sleep"
-OPT_PARM_lst['t']=1         OPT_VALUE_lst['t']=""
+OPT_OPT_lst['T']='type'    OPT_DESC_lst['T']="suspend/resume type from /sys/power/mem_sleep"
+OPT_PARM_lst['T']=1         OPT_VALUE_lst['T']=""
 
-OPT_OPT_lst['s']='sleep'    OPT_DESC_lst['s']='suspend/resume command:rtcwake sleep duration'
-OPT_PARM_lst['s']=1         OPT_VALUE_lst['s']=5
+OPT_OPT_lst['S']='sleep'    OPT_DESC_lst['S']='suspend/resume command:rtcwake sleep duration'
+OPT_PARM_lst['S']=1         OPT_VALUE_lst['S']=5
 
 OPT_OPT_lst['w']='wait'     OPT_DESC_lst['w']='idle time after suspend/resume wakeup'
 OPT_PARM_lst['w']=1         OPT_VALUE_lst['w']=5
@@ -41,7 +41,7 @@ func_opt_parse_option $*
 func_lib_check_sudo
 func_lib_setup_kernel_last_line
 
-type=${OPT_VALUE_lst['t']}
+type=${OPT_VALUE_lst['T']}
 # switch type
 if [ "$type" ]; then
     # check for type value effect
@@ -64,7 +64,7 @@ if [ ${OPT_VALUE_lst['r']} -eq 1 ]; then
 else
     for i in $(seq 1 $loop_count)
     do
-        sleep_lst[$i]=${OPT_VALUE_lst['s']}
+        sleep_lst[$i]=${OPT_VALUE_lst['S']}
         wait_lst[$i]=${OPT_VALUE_lst['w']}
     done
 fi
