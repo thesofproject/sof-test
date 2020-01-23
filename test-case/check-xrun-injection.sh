@@ -102,6 +102,19 @@ do
     dlogc $cmd -D$dev -r $rate -c $channel -f $fmt $dummy_file -q
     $cmd -D$dev -r $rate -c $channel -f $fmt $dummy_file -q &
     pid=$!
+
+    # If the process is terminated too early, this is error case.
+    # Typical root causes of the process early termination are
+    #     1. soundcard is not enumerated
+    #     2. soundcard is enumerated but the PCM device($dev) is not available
+    #     3. the device is busy
+    #     4. set params fails, etc
+    sleep 0.5
+    if [[ ! -d /proc/$pid ]]; then
+        dloge "$cmd process[$pid] is terminated too early"
+        exit 1
+    fi
+
     # do xrun injection
     dlogc "echo 1 > $xrun_injection"
     func_xrun_injection
