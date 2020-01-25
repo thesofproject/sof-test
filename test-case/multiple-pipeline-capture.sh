@@ -39,7 +39,11 @@ OPT_PARM_lst['r']=0         OPT_VALUE_lst['r']=0
 OPT_OPT_lst['s']='sof-logger'   OPT_DESC_lst['s']="Open sof-logger trace the data will store at $LOG_ROOT"
 OPT_PARM_lst['s']=0             OPT_VALUE_lst['s']=1
 
+OPT_OPT_lst['l']='loop'     OPT_DESC_lst['l']='loop count'
+OPT_PARM_lst['l']=1         OPT_VALUE_lst['l']=1
+
 func_opt_parse_option $*
+loop_cnt=${OPT_VALUE_lst['l']}
 tplg=${OPT_VALUE_lst['t']}
 func_pipeline_export $tplg
 [[ ${OPT_VALUE_lst['s']} -eq 1 ]] && func_lib_start_log_collect
@@ -96,50 +100,60 @@ func_error_exit()
     exit 1
 }
 
-# start capture:
-func_run_pipeline_with_type "capture,both"
-func_run_pipeline_with_type "playback"
+for i in $(seq 1 $loop_cnt)
+do
+    dlogi "Testing: (Loop: $i/$loop_cnt)"
+    # clean up dmesg
+    sudo dmesg -C
 
-dlogi "pipeline start sleep 0.5s for device wakeup"
-sleep ${OPT_VALUE_lst['w']}
+    # start capture:
+    func_run_pipeline_with_type "capture,both"
+    func_run_pipeline_with_type "playback"
 
-# check all refer capture pipeline status
-# 1. check process count:
-pcount=$(pidof arecord|wc -w)
-tmp_count=$(expr $tmp_count + $pcount)
-pcount=$(pidof aplay|wc -w)
-tmp_count=$(expr $tmp_count + $pcount)
-[[ $tmp_count -ne $max_count ]] && func_error_exit "Target pipeline count: $max_count, current process count: $tmp_count"
+    dlogi "pipeline start sleep 0.5s for device wakeup"
+    sleep ${OPT_VALUE_lst['w']}
 
-# 2. check arecord process status
-dlogi "checking pipeline status"
-sof-process-state.sh arecord >/dev/null
-[[ $? -eq 1 ]] && func_error_exit "Catch the abnormal process status of arecord"
-sof-process-state.sh aplay >/dev/null
-[[ $? -eq 1 ]] && func_error_exit "Catch the abnormal process status of aplay"
+    # check all refer capture pipeline status
+    # 1. check process count:
+    pcount=$(pidof arecord|wc -w)
+    tmp_count=$(expr $tmp_count + $pcount)
+    pcount=$(pidof aplay|wc -w)
+    tmp_count=$(expr $tmp_count + $pcount)
+    [[ $tmp_count -ne $max_count ]] && func_error_exit "Target pipeline count: $max_count, current process count: $tmp_count"
 
-dlogi "preparing sleep ${OPT_VALUE_lst['w']}"
-sleep ${OPT_VALUE_lst['w']}
+    # 2. check arecord process status
+    dlogi "checking pipeline status"
+    sof-process-state.sh arecord >/dev/null
+    [[ $? -eq 1 ]] && func_error_exit "Catch the abnormal process status of arecord"
+    sof-process-state.sh aplay >/dev/null
+    [[ $? -eq 1 ]] && func_error_exit "Catch the abnormal process status of aplay"
 
-# 3. check process count again:
-tmp_count=0
-pcount=$(pidof arecord|wc -w)
-tmp_count=$(expr $tmp_count + $pcount)
-pcount=$(pidof aplay|wc -w)
-tmp_count=$(expr $tmp_count + $pcount)
-[[ $tmp_count -ne $max_count ]] && func_error_exit "Target pipeline count: $max_count, current process count: $tmp_count"
+    dlogi "preparing sleep ${OPT_VALUE_lst['w']}"
+    sleep ${OPT_VALUE_lst['w']}
 
-# 4. check arecord process status
-dlogi "checking pipeline status again"
-sof-process-state.sh arecord >/dev/null
-[[ $? -eq 1 ]] && func_error_exit "Catch the abnormal process status of arecord"
-sof-process-state.sh aplay >/dev/null
-[[ $? -eq 1 ]] && func_error_exit "Catch the abnormal process status of aplay"
+    # 3. check process count again:
+    tmp_count=0
+    pcount=$(pidof arecord|wc -w)
+    tmp_count=$(expr $tmp_count + $pcount)
+    pcount=$(pidof aplay|wc -w)
+    tmp_count=$(expr $tmp_count + $pcount)
+    [[ $tmp_count -ne $max_count ]] && func_error_exit "Target pipeline count: $max_count, current process count: $tmp_count"
+
+    # 4. check arecord process status
+    dlogi "checking pipeline status again"
+    sof-process-state.sh arecord >/dev/null
+    [[ $? -eq 1 ]] && func_error_exit "Catch the abnormal process status of arecord"
+    sof-process-state.sh aplay >/dev/null
+    [[ $? -eq 1 ]] && func_error_exit "Catch the abnormal process status of aplay"
 
 
-# kill all arecord
-pkill -9 arecord
-pkill -9 aplay
+    # kill all arecord
+    pkill -9 arecord
+    pkill -9 aplay
+
+    sof-kernel-log-check.sh 0
+    [[ $? -ne 0 ]] && dloge "Catch dmesg error" && exit 1
+done
 
 sof-kernel-log-check.sh $KERNEL_LAST_LINE >/dev/null
 exit $?
