@@ -48,6 +48,10 @@ function exit()
     # when exit force check the pulseaudio whether disabled
     func_lib_restore_pulseaudio
 
+    # cleanup any aplay / arecord pipelines not closed properly
+    pkill aplay
+    pkill arecord
+
     case $exit_status in
         0)
             dlogi "Test Result: PASS!"
