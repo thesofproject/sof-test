@@ -41,7 +41,7 @@ current=$[ $count - $loop_count ]
 cur_kern=$(uname -r)
 
 # compare kernel version
-if [ "$(head -n 1 $status_log|awk '{print $2;}')" != "$(uname -r)" ]; then
+if [ "$orig_kern" != "$cur_kern" ]; then
     sed -i '$s/$/ fail/' $status_log
     dloge "Kernel version already been changed"
     exit 1
@@ -50,7 +50,8 @@ fi
 # delay timeout for wait SOF load finish
 # catch tplg file as the keyword
 load_time=0
-while [ ! "$(sof-get-default-tplg.sh)" ]
+tplg=$(sof-get-default-tplg.sh)
+while [ ! "$tplg" ]
 do
     sleep 1
     load_time=$[ $load_time + 1 ]
@@ -59,6 +60,7 @@ do
         dloge "Wait too long for SOF load: $load_time s"
         exit 1
     fi
+    tplg=$(sof-get-default-tplg.sh)
 done
 
 dlogi "SOF load took $load_time s to load TPLG success"
@@ -72,8 +74,8 @@ verify_lst=(${verify_lst[*]} "verify-tplg-binary.sh")
 verify_lst=(${verify_lst[*]} "check-runtime-pm-status.sh")
 
 declare -A verify_opt_lst
-verify_opt_lst['verify-pcm-list.sh']="-t $(sof-get-default-tplg.sh)"
-verify_opt_lst['check-runtime-pm-status.sh']="-t $(sof-get-default-tplg.sh) -l 1 -d $delay"
+verify_opt_lst['verify-pcm-list.sh']="-t $tplg"
+verify_opt_lst['check-runtime-pm-status.sh']="-t $tplg -l 1 -d $delay"
 
 dlogi "Round: $current/$count Check status begin"
 for i in ${verify_lst[*]}
@@ -112,17 +114,23 @@ else
     full_cmd=${full_cmd#\/bin\/bash}
 fi
 
-# load script default value for the really full command
-if [ $# -eq 0 ]; then
-    full_cmd=$(echo $full_cmd|sed "s:$0:& -l $loop_count:g")
-fi
-
-# convert relative path to absolute path
-full_cmd=$(echo $full_cmd|sed "s:$0:$(realpath $0):g")
 # some load will use '~' which is $HOME, but after system reboot, in rc.local $USER is root
 # so the '~' will lead to the error path
 full_cmd=$(echo $full_cmd|sed "s:~:$HOME:g")
-# now convert full current command to next round command
+
+# load script default value for the really full command
+# add -d delay
+[[ ! $(echo $full_cmd|grep "'-d $delay'") ]] && full_cmd=$(echo $full_cmd|sed "s:$0:& -d $delay:g")
+# add -t timeout
+[[ ! $(echo $full_cmd|grep "'-t $timeout'") ]] && full_cmd=$(echo $full_cmd|sed "s:$0:& -t $timeout:g")
+# add -l loop_count
+[[ ! $(echo $full_cmd|grep "'-l $loop_count'") ]] && full_cmd=$(echo $full_cmd|sed "s:$0:& -l $loop_count:g")
+# now command will like: $0 -l loop_count -t timeout -d delay
+
+# convert relative path to absolute path
+full_cmd=$(echo $full_cmd|sed "s:$0:$(realpath $0):g")
+
+# convert full current command to next round command
 full_cmd=$(echo $full_cmd|sed "s:-l $loop_count:-l $next_count:g")
 
 boot_file=/etc/rc.local
