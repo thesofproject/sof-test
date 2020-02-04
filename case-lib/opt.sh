@@ -87,7 +87,7 @@ func_opt_parse_option()
             echo -e '    -h |  --help'
             echo -e "\tthis message"
             _func_case_dump_descption
-            exit 0
+            exit 2
         }
 
     # generate the command to load 'getopt'
