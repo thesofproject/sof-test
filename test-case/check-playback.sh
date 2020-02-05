@@ -91,6 +91,7 @@ do
                 if [[ $? -ne 0 ]]; then
                     dmesg > $LOG_ROOT/aplay_error_${dev}_$i.txt
                     dloge "aplay on PCM $dev failed at $i/$loop_cnt."
+                    pkill -9 aplay
                     exit 1
                 fi
                 dmesg > $LOG_ROOT/aplay_${dev}_$i.txt
@@ -99,5 +100,6 @@ do
     done
 done
 
+pkill -9 aplay
 sof-kernel-log-check.sh $KERNEL_LAST_LINE
 exit $?
