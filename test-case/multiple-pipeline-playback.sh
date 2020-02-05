@@ -48,19 +48,17 @@ tplg=${OPT_VALUE_lst['t']}
 func_pipeline_export $tplg
 [[ ${OPT_VALUE_lst['s']} -eq 1 ]] && func_lib_start_log_collect
 
-max_count=0
 # get the min value of TPLG:'pipeline count' with Case:'pipeline count'
-[[ $PIPELINE_COUNT -gt ${OPT_VALUE_lst['c']} ]] && max_count=${OPT_VALUE_lst['c']} || max_count=$PIPELINE_COUNT
+max_count=${OPT_VALUE_lst['c']}
 func_lib_setup_kernel_last_line
 
 # now small function define
 declare -A APP_LST DEV_LST
 APP_LST['playback,both']='aplay'
 DEV_LST['playback,both']='/dev/zero'
-APP_LST['capture']='arecord'
-DEV_LST['capture']='/dev/null'
+APP_LST['capture,both']='arecord'
+DEV_LST['capture,both']='/dev/null'
 
-tmp_count=$max_count
 
 # define for load pipeline
 func_run_pipeline_with_type()
@@ -87,6 +85,7 @@ func_run_pipeline_with_type()
         dlogc "${APP_LST[$1]} -D $dev -c $channel -r $rate -f $fmt ${DEV_LST[$1]} -q"
         "${APP_LST[$1]}" -D $dev -c $channel -r $rate -f $fmt "${DEV_LST[$1]}" -q &
 
+        let running_count+=1
         tmp_count=$(expr $tmp_count - 1 )
         [[ $tmp_count -le 0 ]] && return
     done
@@ -106,9 +105,12 @@ do
     # clean up dmesg
     sudo dmesg -C
 
+    tmp_count=$max_count
+    running_count=0
+
     # start capture:
     func_run_pipeline_with_type "playback,both"
-    func_run_pipeline_with_type "capture"
+    func_run_pipeline_with_type "capture,both"
 
     dlogi "pipeline start sleep 0.5s for device wakeup"
     sleep ${OPT_VALUE_lst['w']}
@@ -137,7 +139,7 @@ do
     tmp_count=$(expr $tmp_count + $pcount)
     pcount=$(pidof aplay|wc -w)
     tmp_count=$(expr $tmp_count + $pcount)
-    [[ $tmp_count -ne $max_count ]] && func_error_exit "Target pipeline count: $max_count, current process count: $tmp_count"
+    [[ $tmp_count -ne $running_count ]] && func_error_exit "Target pipeline count: $running_count, current process count: $tmp_count"
 
     # 4. check arecord process status
     dlogi "checking pipeline again"
