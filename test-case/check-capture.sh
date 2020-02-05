@@ -93,6 +93,7 @@ do
                 if [[ $? -ne 0 ]]; then
                     dmesg > $LOG_ROOT/arecord_error_${dev}_$i.txt
                     dloge "arecord on PCM $dev failed at $i/$loop_cnt."
+                    pkill -9 arecord
                     exit 1
                 fi
                 dmesg > $LOG_ROOT/arecord_${dev}_$i.txt
@@ -101,5 +102,6 @@ do
     done
 done
 
+pkill -9 arecord
 sof-kernel-log-check.sh $KERNEL_LAST_LINE
 exit $?
