@@ -16,7 +16,7 @@ PULSEAUDIO_CONFIG=${PULSEAUDIO_CONFIG:-/etc/pulse/client.conf}
 # example: block pcm is HDA Digital & HDA Analog
 # TPLG_BLOCK_LST['pcm']='HDA Digital,HDA Analog'
 declare -A TPLG_BLOCK_LST
-TPLG_BLOCK_LST['pcm']='HDA Digital,Media Playback'
+TPLG_BLOCK_LST['pcm']='HDA Digital,Media Playback,DMIC16k'
 
 # Will be set by the lib function, don't need to set
 # Catches the last line of /var/log/kern.log, which will be used by
