@@ -21,7 +21,7 @@ fi
 SOF_LOCK="/tmp/sof-test.lock"
 if [ ! -f "$SOF_LOCK" ];then # lock is not exist
     echo $$ > /tmp/sof-test.lock # write self pid into lock file
-elif [ ! $(alias |grep "Sub-Test") ]; then # not the sub test-case
+elif [ ! "$(alias |grep -i 'Sub-Test')" ]; then # not the sub test-case
     echo "Find $SOF_LOCK already exist: $(ps -p $(cat $SOF_LOCK))"
     exit 2 # now skip to run the test-case
 fi
