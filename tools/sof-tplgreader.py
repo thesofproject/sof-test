@@ -12,7 +12,7 @@ class clsTPLGReader:
         self._filed_lst = []
         self._filter_lst = []
         self._block_lst = []
-    
+
     def __comp_pipeline(self, pipeline):
         return pipeline['id']
 
@@ -51,7 +51,7 @@ class clsTPLGReader:
         # format pipeline, this change for script direct access 'rate' 'channel' 'dev'
         for pipeline in self._pipeline_lst:
             #pipeline['fmt']=pipeline['fmt'].upper().replace('LE', '_LE')
-            pipeline['rate'] = pipeline['rate_min']
+            pipeline['rate'] = pipeline['rate_min'] if int(pipeline['rate_min']) != 0 else pipeline['rate_max']
             pipeline['channel'] = pipeline['ch_min']
             pipeline['dev'] = "hw:" + str(sofcard) + ',' + pipeline['id']
         return 0
@@ -125,7 +125,7 @@ class clsTPLGReader:
         self._blockKeyword()
         self._filterFiled()
         return self._output_lst
-    
+
 if __name__ == "__main__":
     def func_dump_pipeline(pipeline, noKey=False):
         output = ""
@@ -170,7 +170,7 @@ if __name__ == "__main__":
 
     parser.add_argument('filename', type=str, help='tplg file name, multi-tplg file name use "," to split it')
     parser.add_argument('-s', '--sofcard', type=int, help='sofcard id', default=0)
-    parser.add_argument('-f', '--filter', type=str, nargs='+',  
+    parser.add_argument('-f', '--filter', type=str, nargs='+',
         help='''setup filter, this value is format value,
 string format is 'key':'value','value'
 for example: Get "type" is "capture"
@@ -188,7 +188,7 @@ pcm:HDA Digital
     parser.add_argument('-e', '--export', action='store_true',
         help='''export the pipeline to Bash declare -Ax Array
 this option conflict with other output format option: -c -i -v
-export format: 
+export format:
 PIPELINE_$ID['key']='value' ''')
     parser.add_argument('-c', '--count', action='store_true', help='Get pipeline count')
     parser.add_argument('-i', '--index', type=int, help='Get index of pipeline, start with 0')
