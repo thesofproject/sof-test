@@ -303,6 +303,7 @@ if __name__ == "__main__":
     parser.add_argument('-s', '--short', type=int, help='just dump the short name of target id sound card')
     parser.add_argument('-l', '--longname', type=int, help='just dump the longname name of target id sound card')
     parser.add_argument('-P', '--fwpath', action='store_true', help='get firmware path according to DMI info')
+    parser.add_argument('-S', '--dsp_status', type=int, help='get current dsp power status, should specify sof card number')
     parser.add_argument('--version', action='version', version='%(prog)s 1.0')
 
     ret_args = vars(parser.parse_args())
@@ -342,6 +343,11 @@ if __name__ == "__main__":
         if card_info is None:
             exit(0)
         print(card_info['longname'])
+        exit(0)
+
+    if ret_args.get('dsp_status') is not None:
+        sysinfo.loadPower()
+        print(sysinfo.sys_power['run_status'][ret_args['dsp_status']]['status'])
         exit(0)
 
     # The kernel has changed the default firmware path when community
