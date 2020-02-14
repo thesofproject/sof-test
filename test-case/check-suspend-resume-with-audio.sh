@@ -98,13 +98,27 @@ do
     sleep 1
     # check process status is correct
     sof-process-state.sh $process_id
-    [[ $? -ne 0 ]] && dloge "$cmd error without process" && exit 1
+    if [ $? -ne 0 ]; then
+        dloge "error process state of $cmd"
+        dlogi "dump ps for aplay & arecord"
+        ps -ef |grep -E 'aplay|arecord'
+        dlogi "dump ps for child process"
+        ps --ppid $$ -f
+        exit 1
+    fi
     $(dirname ${BASH_SOURCE[0]})/check-suspend-resume.sh $(echo $opt)
     ret=$?
     [[ $ret -ne 0 ]] && dloge "suspend resume failed" && exit $ret
     # check process status is correct
     sof-process-state.sh $process_id
-    [[ $? -ne 0 ]] && dloge "process status is abnormal" && exit 1
+    if [ $? -ne 0 ]; then
+        dloge "process status is abnormal"
+        dlogi "dump ps for aplay & arecord"
+        ps -ef |grep -E 'aplay|arecord'
+        dlogi "dump ps for child process"
+        ps --ppid $$ -f
+        exit 1
+    fi
     kill -9 $process_id
     sof-kernel-log-check.sh 0
     [[ $? -ne 0 ]] && dloge "Catch dmesg error" && exit 1
