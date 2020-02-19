@@ -37,7 +37,23 @@ tplg=${OPT_VALUE_lst['t']}
 wait_time=${OPT_VALUE_lst['w']}
 loop_cnt=${OPT_VALUE_lst['l']}
 
-func_pipeline_export $tplg "type:both"
+# get 'both' pcm, it means pcm have same id with different type
+declare -A tmp_id_lst
+id_lst_str=""
+[[ -f $TPLG_ROOT/$tplg ]] && tmp_tplg=$TPLG_ROOT/$tplg || tmp_tplg=$tplg
+for i in $(sof-tplgreader.py $tmp_tplg -d id -v)
+do
+    if [ ! "${tmp_id_lst["$i"]}" ]; then  # this id is never used
+        tmp_id_lst["$i"]=0
+    else # this id already used
+        tmp_id_lst["$i"]=1
+        id_lst_str="$id_lst_str,$i"
+    fi
+done
+# now all duplicate ids have already been caught
+unset tmp_id_lst tmp_tplg
+id_lst_str=${id_lst_str/,/} # remove 1st, which is not used
+func_pipeline_export $tplg "id:$id_lst_str"
 [[ ${OPT_VALUE_lst['s']} -eq 1 ]] && func_lib_start_log_collect
 func_lib_setup_kernel_last_line
 
@@ -54,8 +70,10 @@ do
     dlogi "Testing: (Loop: $i/$loop_cnt)"
     # clean up dmesg
     sudo dmesg -C
-    for idx in $(seq 0 $(expr $PIPELINE_COUNT - 1))
+    # following sof-tplgreader, split 'both' pipelines into separate playback & capture pipelines, with playback occurring first
+    for order in $(seq 0 2 $(expr $PIPELINE_COUNT - 1))
     do
+        idx=$order
         channel=$(func_pipeline_parse_value $idx channel)
         rate=$(func_pipeline_parse_value $idx rate)
         fmt=$(func_pipeline_parse_value $idx fmt)
@@ -64,6 +82,12 @@ do
         dlogc "aplay -D $dev -c $channel -r $rate -f $fmt /dev/zero -q &"
         aplay -D $dev -c $channel -r $rate -f $fmt /dev/zero -q &
         aplay_pid=$!
+
+        idx=$[ $order + 1 ]
+        channel=$(func_pipeline_parse_value $idx channel)
+        rate=$(func_pipeline_parse_value $idx rate)
+        fmt=$(func_pipeline_parse_value $idx fmt)
+        dev=$(func_pipeline_parse_value $idx dev)
 
         dlogc "arecord -D $dev -c $channel -r $rate -f $fmt /dev/null -q &"
         arecord -D $dev -c $channel -r $rate -f $fmt /dev/null -q &
