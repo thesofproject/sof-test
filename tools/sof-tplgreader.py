@@ -23,21 +23,33 @@ class clsTPLGReader:
     def loadFile(self, filename, sofcard=0):
         tplg_parser = TplgParser()
         parsed_tplg = tplg_parser.parse(filename)
+        formatter = TplgFormatter(parsed_tplg)
         # ignore the last element, for it is tplg name
         for item in parsed_tplg[:-1]:
             if "pcm" not in item:
                 continue
             for pcm in item['pcm']:
+                pcm_type = TplgFormatter.get_pcm_type(pcm)
+                # if we find None type pcm, there must be errors in topology
+                if pcm_type == "None":
+                    print("type of %s is neither playback nor capture, please check your"
+                        "topology source file" % pcm["pcm_name"])
+                    exit(1)
+                pgas = formatter.find_comp_for_pcm(pcm, 'PGA')
+                eqs = formatter.find_comp_for_pcm(pcm, 'EQ')
                 pipeline_dict = {}
                 pipeline_dict['pcm'] = pcm["pcm_name"]
                 pipeline_dict['id'] = str(pcm["pcm_id"])
                 pipeline_dict['type'] = TplgFormatter.get_pcm_type(pcm)
-                # if we find None type pcm, there must be errors in topology
-                if pipeline_dict['type'] == "None":
-                    print("type of %s is neither playback nor capture, please check your"
-                        "topology source file" % pcm["pcm_name"])
-                    exit(1)
                 cap = pcm["caps"][pcm['capture']]
+                pga = pgas[pcm['capture']]
+                if pga != []:
+                    pga_names = [i['name'] for i in pga]
+                    pipeline_dict['pga'] = " ".join(pga_names)
+                eq = eqs[pcm['capture']]
+                if eq != []:
+                    eq_names = [i['name'] for i in eq]
+                    pipeline_dict['eq'] = " ".join(eq_names)
                 # supported formats of playback pipeline in formats[0]
                 # supported formats of capture pipeline in formats[1]
                 formats = TplgFormatter.get_pcm_fmt(pcm)
@@ -46,6 +58,25 @@ class clsTPLGReader:
                 pipeline_dict['fmt'] = pipeline_dict['fmts'].split(' ')[0]
                 pipeline_dict['rate_min'], pipeline_dict['rate_max'] = self._key2str(cap, 'rate')
                 pipeline_dict['ch_min'], pipeline_dict['ch_max'] = self._key2str(cap, 'channels')
+                if pcm_type == "both":
+                    pipeline_dict["type"] = "capture"
+                    # copy pipeline and change values
+                    pb_pipeline_dict = pipeline_dict.copy()
+                    pb_pipeline_dict["type"] = "playback"
+                    cap = pcm["caps"][pcm['playback']]
+                    pga = pgas[pcm['capture']]
+                    if pga != []:
+                        pga_names = [i['name'] for i in pga]
+                        pipeline_dict['pga'] = " ".join(pga_names)
+                    eq = eqs[pcm['capture']]
+                    if eq != []:
+                        eq_names = [i['name'] for i in eq]
+                        pipeline_dict['eq'] = " ".join(eq_names)
+                    pb_pipeline_dict["fmts"] = " ".join(formats[pcm['playback']])
+                    pipeline_dict['fmt'] = pipeline_dict['fmts'].split(' ')[0]
+                    pb_pipeline_dict['rate_min'], pb_pipeline_dict['rate_max'] = self._key2str(cap, 'rate')
+                    pb_pipeline_dict['ch_min'], pb_pipeline_dict['ch_max'] = self._key2str(cap, 'channels')
+                    self._pipeline_lst.append(pb_pipeline_dict)
                 self._pipeline_lst.append(pipeline_dict)
 
         # format pipeline, this change for script direct access 'rate' 'channel' 'dev'
