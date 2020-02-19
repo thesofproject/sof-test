@@ -8,11 +8,11 @@
 ##    Pick up pipelines from TPLG file for max count
 ##    Rule:
 ##      a. fill pipeline need match max count
-##      b. fill pipeline type order: playback & both > capture
+##      b. fill pipeline type order: playback > capture
 ##      c. if pipeline in TPLG is not enough of count, max count is pipeline count
 ## Case step:
 ##    1. Parse TPLG file to get pipeline count to decide max count is parameter or pipeline count
-##    2. load playback & both for aplay to fill pipeline count
+##    2. load playback for aplay to fill pipeline count
 ##    3. load capture for arecord to fill pipeline count
 ##    4. wait for 0.5s for process already loaded
 ##    5. check process status & process count
@@ -55,8 +55,8 @@ func_lib_setup_kernel_last_line
 
 # now small function define
 declare -A APP_LST DEV_LST
-APP_LST['playback,both']='aplay'
-DEV_LST['playback,both']='/dev/zero'
+APP_LST['playback']='aplay'
+DEV_LST['playback']='/dev/zero'
 APP_LST['capture']='arecord'
 DEV_LST['capture']='/dev/null'
 
@@ -107,7 +107,7 @@ do
     sudo dmesg -C
 
     # start capture:
-    func_run_pipeline_with_type "playback,both"
+    func_run_pipeline_with_type "playback"
     func_run_pipeline_with_type "capture"
 
     dlogi "pipeline start sleep 0.5s for device wakeup"

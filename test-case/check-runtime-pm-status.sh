@@ -52,7 +52,7 @@ runtime_status="/sys/bus/pci/devices/0000:$(lspci |awk '/[Aa]udio/ {print $1;}')
 dlogc "Runtime status check: cat $runtime_status"
 
 [[ ${OPT_VALUE_lst['s']} -eq 1 ]] && func_lib_start_log_collect
-func_pipeline_export $tplg "type:playback,both"
+func_pipeline_export $tplg "type:playback"
 func_lib_setup_kernel_last_line
 #TODO: need to go through both playback and capture
 for idx in $(seq 0 $(expr $PIPELINE_COUNT - 1))

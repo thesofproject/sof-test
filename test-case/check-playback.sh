@@ -9,7 +9,7 @@
 ##    default duration is 10s
 ##    default loop count is 3
 ## Case step:
-##    1. Parse TPLG file to get pipeline with type of "play" and "both"
+##    1. Parse TPLG file to get pipeline with type of "play"
 ##    2. Specify the audio parameters
 ##    3. Run aplay on each pipeline with parameters
 ## Expect result:
@@ -63,7 +63,7 @@ fi
 
 func_lib_setup_kernel_last_line
 func_lib_check_sudo
-func_pipeline_export $tplg "type:playback,both"
+func_pipeline_export $tplg "type:playback"
 
 for round in $(seq 1 $round_cnt)
 do
