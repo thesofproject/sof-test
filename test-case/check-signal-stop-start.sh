@@ -82,7 +82,7 @@ func_stop_start_pipeline()
     done
 }
 
-func_pipeline_export $tplg "type:$test_mode,both"
+func_pipeline_export $tplg "type:$test_mode"
 for idx in $(seq 0 $(expr $PIPELINE_COUNT - 1))
 do
     channel=$(func_pipeline_parse_value $idx channel)

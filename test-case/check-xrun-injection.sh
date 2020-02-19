@@ -45,7 +45,7 @@ interval=${OPT_VALUE_lst['i']}
 
 func_lib_setup_kernel_last_line
 func_lib_check_sudo
-func_pipeline_export $tplg "type:playback,capture,both"
+func_pipeline_export $tplg "type:playback,capture"
 
 case $test_mode in
     "playback")
@@ -83,7 +83,7 @@ func_xrun_injection()
     done
 }
 
-func_pipeline_export $tplg "type:$test_mode,both"
+func_pipeline_export $tplg "type:$test_mode"
 for idx in $(seq 0 $(expr $PIPELINE_COUNT - 1))
 do
     channel=$(func_pipeline_parse_value $idx channel)

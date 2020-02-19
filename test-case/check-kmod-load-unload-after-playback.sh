@@ -8,7 +8,7 @@
 ##    check kernel module removal/insert process with playback before and after
 ## Case step:
 ##    1. enter loop for module remove / insert test
-##    2. for each pcm type == playback or both:
+##    2. for each pcm type == playback:
 ##       start playback of duration OPT_VALUE_lst['d]'
 ##    3. check for playback errors
 ##    4. remove all loaded modules listed in sof_remove.sh
@@ -19,7 +19,7 @@
 ##       (only once, not per PCM)
 ##    8. check for successful sof-firmware boot
 ##    9. check for dmesg errors
-##    10. for each pcm type == playback or both:
+##    10. for each pcm type == playback:
 ##        start playback of duration OPT_VALUE_lst['d]'
 ##    11. check for playback errors
 ##    12. loop to beginning (max OPT_VALUE_lst['l'])
@@ -50,7 +50,7 @@ tplg=${OPT_VALUE_lst['t']}
 loop_cnt=${OPT_VALUE_lst['l']}
 pb_duration=${OPT_VALUE_lst['d']}
 
-func_pipeline_export $tplg "type:playback,both"
+func_pipeline_export $tplg "type:playback"
 
 func_lib_check_sudo
 # overwirte the subscript: test-case LOG_ROOT environment

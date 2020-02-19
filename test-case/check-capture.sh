@@ -9,7 +9,7 @@
 ##    default duration is 10s
 ##    default loop count is 3
 ## Case step:
-##    1. Parse TPLG file to get pipeline with type of "record" and "both"
+##    1. Parse TPLG file to get pipeline with type of "record"
 ##    2. Specify the audio parameters
 ##    3. Run arecord on each pipeline with parameters
 ## Expect result:
@@ -55,7 +55,7 @@ file_prefix=${OPT_VALUE_lst['f']}
 
 func_lib_setup_kernel_last_line
 func_lib_check_sudo
-func_pipeline_export $tplg "type:capture,both"
+func_pipeline_export $tplg "type:capture"
 
 for round in $(seq 1 $round_cnt)
 do
