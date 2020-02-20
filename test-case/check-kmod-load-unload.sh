@@ -50,25 +50,24 @@ do
     ## - 1: remove module section
     func_lib_setup_kernel_last_line
 
-    # 1. check dsp status before removal, only remove module when dsp is suspended.
-    # 2. it will take some time (about 10s) for dsp to become suspended from active
-    # after module insertion on some platforms, here we check dsp status, and only continue
-    # next removal when dsp is suspended.
+    # After module removal, it takes about 10s for "aplay -l" to show
+    # device list, within this 10s, it shows "no soundcard found". Here
+    # we wait dsp status to workaround this.
     dlogi "wait dsp power status to become suspended"
-    declare I=0 # used to check if for loop is early exit
     for i in $(seq 1 15)
     do
         # Here we pass a hardcoded 0 to python script, and need to ensure
         # DSP is the first audio pci device in 'lspci', this is true unless
         # we have a third-party pci sound card installed.
+        [[ $(sof-dump-status.py --dsp_status 0) == "unsupported" ]] &&
+            dlogi "platform doesn't support runtime pm, skip waiting" && break
         [[ $(sof-dump-status.py --dsp_status 0) == "suspended" ]] && break
-        let I=i
         sleep 1
+        if [ $i -eq 15 ]; then
+            dlogi "dsp is not suspended after 15s, end test"
+            exit 1
+        fi
     done
-    if [ $I -eq 15 ]; then
-        dlogi "dsp is not suspended after 15s, end test"
-        exit 1
-    fi
 
     dlogi "run kmod/sof-kmod-remove.sh"
     sudo sof_remove.sh
@@ -106,6 +105,17 @@ do
     for i in $(seq 1 10)
     do
         [[ "X$(awk '/^snd_sof_pci/ {print $3;}' /proc/modules)" == "X0" ]] && break
+        sleep 1
+    done
+
+    # After the last module insertion, it still takes about 10s for 'aplay -l' to show device
+    # list. We need to wait before aplay can function. Here, wait dsp status to suspend to
+    # avoid influence on next test case.
+    for i in $(seq 1 15)
+    do
+        # ignore platforms not support runtime pm
+        [[ $(sof-dump-status.py --dsp_status 0) == "unsupported" ]] && break
+        [[ $(sof-dump-status.py --dsp_status 0) == "suspended" ]] && break
         sleep 1
     done
 

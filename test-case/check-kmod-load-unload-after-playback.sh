@@ -77,6 +77,22 @@ do
     ret=$?
     [[ $ret -ne 0 ]] && dloge "kmod reload failed" && exit $ret
 
+    dlogi "wait dsp power status to become suspended"
+    for i in $(seq 1 15)
+    do
+        # Here we pass a hardcoded 0 to python script, and need to ensure
+        # DSP is the first audio pci device in 'lspci', this is true unless
+        # we have a third-party pci sound card installed.
+        [[ $(sof-dump-status.py --dsp_status 0) == "unsupported" ]] &&
+            dlogi "platform doesn't support runtime pm, skip waiting" && break
+        [[ $(sof-dump-status.py --dsp_status 0) == "suspended" ]] && break
+        sleep 1
+        if [ $i -eq 15 ]; then
+            dlogi "dsp is not suspended after 15s, end test"
+            exit 1
+        fi
+    done
+
     $(dirname ${BASH_SOURCE[0]})/check-playback.sh -l 1 -t $tplg -d $pb_duration
     ret=$?
     [[ $ret -ne 0 ]] && dloge "aplay check failed" && exit $ret
