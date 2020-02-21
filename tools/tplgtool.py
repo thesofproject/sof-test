@@ -47,6 +47,7 @@ class TplgParser():
         return None
 
     # parse snd_soc_tplg_dapm_graph_elem struct
+    # the order is rearranged, [sink, ctrl, source] -> [source, ctrl, sink]
     def _tplg_dapm_graph_parse(self, block):
         graph_list = []
         bytes_data = block["data"]
@@ -605,6 +606,121 @@ class TplgFormatter:
             for pcm in pcms:
                 merged_pcm_list.append(pcm)
         return merged_pcm_list
+
+    # graph node form: {"name":name, "widget":widget, "ctrl":ctrl, "source":source, "sink":sink}
+    # return values:
+    #   link_head_list: head node list of every graph
+    #   node_list: list of all nodes
+    def _link_graph(self):
+        node_list = self._init_node_list()
+        # const variables for graph
+        SOURCE = 0
+        CONTROL = 1
+        SINK = 2
+        for graphs in self._tplg["graph_list"]:
+            for graph in graphs:
+                source_node = self.find_node_by_name(graph[SOURCE], node_list)
+                sink_node = self.find_node_by_name(graph[SINK], node_list)
+
+                # some of the names in graph are from widget["name"] (eg: PCM0P), and others are
+                # from widget["sname"] (eg: SSP1.OUT), use the name in graph as standard name of a node
+                source_node["name"] = graph[SOURCE]
+                sink_node["name"] = graph[SINK]
+
+                source_node["ctrl"] = graph[CONTROL]
+                # a node may link to multiple nodes
+                if source_node["sink"] != None: # this node has a link already
+                    # if already link to a node
+                    if type(source_node["sink"]) != list:
+                        next_list = [source_node["sink"], sink_node]
+                        source_node["sink"] = next_list
+                    # if already link to a node list
+                    else:
+                        source_node["sink"].append(sink_node)
+                # not link to any node
+                else:
+                    source_node["sink"] = sink_node
+
+                if sink_node["source"] != None:
+                    if type(sink_node["source"]) != list:
+                        prev_list = [sink_node["source"], source_node]
+                        sink_node["source"] = prev_list
+                    else:
+                        sink_node["source"].append(source_node)
+                else:
+                    sink_node["source"] = source_node
+
+        link_head_list = []
+        # find head node of a graph
+        for elem in node_list:
+            if elem["source"] == None and elem["sink"] != None:
+                link_head_list.append(elem)
+        return link_head_list, node_list
+
+    # initialize node list from widget list, all the node should have its name
+    # and widget filed initialized, and other fileds are left None
+    def _init_node_list(self):
+        node_list = []
+
+        for widgets in self._tplg["widget_list"]:
+            for widget in widgets:
+                node = {"name":widget["name"], "widget":widget, "ctrl":None, "source":None, "sink":None}
+                node_list.append(node)
+        if node_list == []: # should never goes here
+            print("No widget in topology!")
+            sys.exit(1)
+        return node_list
+
+    # find node by its name from node_list, as the name of a node is not unified to
+    # widget["name"] or widget["sname"], we should check both
+    @staticmethod
+    def find_node_by_name(name, node_list):
+        if name == '': return None
+        for node in node_list:
+                if name == node["widget"]["name"] or name == node["widget"]["sname"]:
+                    return node
+        # if excution goes here, it means we didn't find the widget in the list,
+        # obviously, there is error in topology
+        print("Widget {} not exist, error in topology", name)
+        sys.exit(1)
+        return None
+
+    # find specified type of components connected to ref_node
+    @staticmethod
+    def find_connected_comp(ref_node, comp_type):
+        if ref_node is None:
+            return None
+        comp_type = comp_type.upper() # to upper case
+        comp_list = []
+        node = ref_node
+        # Currently, multiplex node is not supported, once met
+        # multiplex node, end while loop
+        while type(node) != list and node["source"] != None:
+            if node["widget"]["name"].startswith(comp_type) or \
+                node["widget"]["sname"].startswith(comp_type):
+                comp_list.append(node["widget"])
+            node = node["source"]
+
+        node = ref_node
+        while type(node) != list and node["sink"] != None:
+            if node["widget"]["name"].startswith(comp_type) or \
+                node["widget"]["sname"].startswith(comp_type):
+                comp_list.append(node["widget"])
+            node = node["sink"]
+        return comp_list
+
+    # find specified components for PCM
+    # return a list:
+    #   [0]: specified components connected to playback
+    #   [1]: specified components connected to capture
+    def find_comp_for_pcm(self, pcm, comp_type):
+        _, node_list = self._link_graph()
+        pcm_name = [pcm["caps"][0]["name"], pcm["caps"][1]["name"]]
+        playback_node = self.find_node_by_name(pcm_name[0], node_list) # playback node
+        capture_node = self.find_node_by_name(pcm_name[1], node_list) # capture node
+        playback_comp = self.find_connected_comp(playback_node, comp_type)
+        capture_comp = self.find_connected_comp(capture_node, comp_type)
+        return [playback_comp, capture_comp]
 
     def format_pcm(self):
         pcms = self._merge_pcm_list(self._tplg["pcm_list"])
