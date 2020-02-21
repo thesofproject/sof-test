@@ -16,6 +16,9 @@ class clsSYSCardInfo():
             # https://github.com/thesofproject/linux/blob/topic/sof-dev/sound/pci/hda/hda_intel.c
             "0x160c":"bdw" }
         # self.sys_card=[]
+        # some device use acpi-dev instead of pci-dev
+        # https://github.com/thesofproject/linux/blob/topic/sof-dev/sound/soc/sof/sof-acpi-dev.c
+        self._acpi_ids={"byt":"80860F28", "cht": "808622A8", "bdw":"INT3438"}
         self.sys_power={}
 
     def _convert_dmi_type(self, line):
@@ -68,6 +71,7 @@ class clsSYSCardInfo():
         # grep exit 1 means nothing match
         if exit_code != 0:
             return
+        apci_key_lst = self._acpi_ids.keys()
         for line in output.splitlines():
             pci_info = {}
             pci_info['pci_id'] = line.split(' ')[0]
@@ -80,7 +84,9 @@ class clsSYSCardInfo():
                     tmp_line = tmp_output[i].split()
                     break
             pci_info['hw_id']="0x" + tmp_line[2] + tmp_line[1] + " 0x" + tmp_line[4] + tmp_line[3]
-            pci_info['hw_name']=self._pci_ids["0x" + tmp_line[4] + tmp_line[3]]
+            pci_info['hw_name'] = self._pci_ids["0x" + tmp_line[4] + tmp_line[3]]
+            if pci_info['hw_name'] in apci_key_lst:
+                pci_info['device_id'] = self._acpi_ids[pci_info['hw_name']]
             self.pci_lst.append(pci_info)
 
     def loadProcSound(self):
@@ -157,19 +163,27 @@ class clsSYSCardInfo():
             return
         self.sys_power['wakeup_count']=output
         self.sys_power['run_status'] = []
-        if len(self.pci_lst) > 0:
-            self.sys_power['run_status'] = [ {'pci_id': pci_info['pci_id'] for pci_info in self.pci_lst} ]
-        else:
-            exit_code, output=subprocess.getstatusoutput("lspci |grep audio -i")
-            # grep exit 1 means nothing match
-            if exit_code != 0:
-                return
-            self.sys_power['run_status'] = [ {'pci_id': line.split(' ')[0] for line in output.splitlines()} ]
-        for run_status in self.sys_power['run_status']:
-            exit_code, output=subprocess.getstatusoutput("cat /sys/bus/pci/devices/0000:%s/power/runtime_status" % (run_status['pci_id']))
+        if len(self.pci_lst) == 0:
+            self.loadPCI()
+
+        def _getPowerPath(device_id):
+            retStr = "/sys/module/snd_sof_acpi/drivers/platform:sof-audio-acpi/%s*" % (device_id)
+            cmd = "cd /sys/module/snd_sof_acpi/drivers/platform:sof-audio-acpi/%s*/ " % (device_id)
+            cmd += " && find -name runtime_status |awk -F '/' '{ if ($3 == \"power\") print $2;}'"
+            exit_code, output = subprocess.getstatusoutput(cmd)
+            if exit_code == 0 and len(output) != 0: # filter to get the folder name to match the codec name
+                retStr += "/" + output
+            return retStr + "/power/runtime_status"
+
+        for pci_info in self.pci_lst:
+            if 'device_id' in pci_info:
+                exit_code, output = subprocess.getstatusoutput("cat %s" % (_getPowerPath(pci_info['device_id'])))
+                if exit_code == 0:
+                    self.sys_power['run_status'].append({'map_id': pci_info['device_id'], 'status': output})
+            exit_code, output=subprocess.getstatusoutput("cat /sys/bus/pci/devices/0000:%s/power/runtime_status" % (pci_info['pci_id']))
             if exit_code != 0:
                 continue
-            run_status['status'] = output
+            self.sys_power['run_status'].append({'map_id': pci_info['pci_id'], 'status': output})
 
 if __name__ == "__main__":
     def dump_dmi(dmi):
@@ -192,6 +206,8 @@ if __name__ == "__main__":
             return
         for pci_info in pci_lst:
             print("PCI ID:\t\t\t" +  pci_info['pci_id'])
+            if 'device_id' in pci_info:
+                print("\tDevice ID:\t" + pci_info['device_id'])
             print("\tName:\t\t" + pci_info['name'])
             print("\tHex:\t\t" + pci_info['hw_id'])
             print("\tchipset:\t" + pci_info['hw_name'])
@@ -235,7 +251,7 @@ if __name__ == "__main__":
         print("\tWakeup Count:\t%s" %(sys_power['wakeup_count']))
         print("Power Status:")
         for run_status in sys_power['run_status']:
-            print("\tPCI ID:\t%s" %(run_status['pci_id']))
+            print("\tMap ID:\t%s" %(run_status['map_id']))
             print("\t\tstatus:\t%s" %(run_status['status']))
         print("")
 
