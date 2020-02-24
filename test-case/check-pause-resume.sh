@@ -91,14 +91,14 @@ set i 1
 expect {
     "*#*+*\%" {
         set sleep_t [expr int([expr rand() * $rnd_range]) + $rnd_min ]
-        puts "\r(\$i/$repeat_count) Wait for \$sleep_t ms before pause"
+        puts "\r(\$i/$repeat_count) Wait for \$sleep_t ms after pause"
         send " "
         after \$sleep_t
         exp_continue
     }
     "*PAUSE*" {
         set sleep_t [expr int([expr rand() * $rnd_range]) + $rnd_min ]
-        puts "\r(\$i/$repeat_count) Wait for \$sleep_t ms before resume"
+        puts "\r(\$i/$repeat_count) Wait for \$sleep_t ms after resume"
         send " "
         after \$sleep_t
         incr i
