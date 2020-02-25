@@ -7,10 +7,9 @@
 ## Description:
 ##    using /proc/asound/pcm to compare with tplg content
 ## Case step:
-##    1. load tplg file to get pipeline list
-##    2. load /proc/asound/pcm to get pcm list
-##    3. compare count
-##    4. compare type, pcm keyword between pipeline & pcm with same id
+##    1. load tplg file to get pipeline list string
+##    2. load /proc/asound/pcm to get pcm list string
+##    3. compare string list
 ## Expect result:
 ##    pipeline list is same as pcm list
 ##
@@ -24,50 +23,10 @@ OPT_PARM_lst['t']=1         OPT_VALUE_lst['t']="$TPLG"
 func_opt_parse_option $*
 tplg=${OPT_VALUE_lst['t']}
 
+[[ ! "$tplg" ]] && dlogw "Missing tplg file for this case" && exit 1
+
 # hijack DMESG_LOG_START_LINE which refer dump kernel log in exit function
 DMESG_LOG_START_LINE=$(sof-get-kernel-line.sh|tail -n 1 |awk '{print $1;}')
-
-# because here is verify tplg file load result by driver
-# so don't need block list option
-unset TPLG_BLOCK_LST
-
-func_asound_pcm_export()
-{
-    local sofcard=${SOFCARD:-0}
-
-    cmd=$(echo sof-dump-status.py -i $sofcard)
-    OLD_IFS="$IFS" IFS=$'\n'
-    dlogi "Run command: '$cmd' to get BASH Array"
-    for line in $(eval $cmd);
-    do
-        eval $line
-    done
-    IFS="$OLD_IFS"
-    [[ ! "$ASOUND_PCM_COUNT" ]] && dloge "run $cmd without any pcm detected ,please check with /proc/asound/pcm information" && exit 1
-    [[ $ASOUND_PCM_COUNT -eq 0 ]] && dloge "Missing target PCM list" && exit 1
-    return 0
-}
-
-func_asound_pcm_parse_value()
-{
-    eval echo "\${ASOUND_PCM_$1['$2']}"
-}
-
-func_error_process()
-{
-    local tplg_file="$1" sofcard=${SOFCARD:-0}
-    shift
-    dloge $*
-    dlogi "Dump PCM List"
-    cat /proc/asound/pcm
-    dlogi "Dump TPLG List"
-    sof-tplgreader.py $tplg_file -s $sofcard
-    dlogi "Dump aplay -l"
-    aplay -l
-    dlogi "Dump arecord -l"
-    arecord -l
-    exit 1
-}
 
 # check TPLG by the loop
 # TODO: current miss multiple tplg behaivor
@@ -88,26 +47,22 @@ do
         dloge "Couldn't find target TPLG file $tplg_file needed to run ${BASH_SOURCE[0]}" && exit 1
     fi
 
-    func_pipeline_export $tplg_file
-    func_asound_pcm_export
+    tplg_str="$(sof-tplgreader.py $tplg_file -d id pcm type -o)"
+    pcm_str="$(sof-dump-status.py -i ${SOFCARD:-0})"
 
-    [[ $PIPELINE_COUNT -ne $ASOUND_PCM_COUNT ]] && \
-        dloge "pipeline count:$PIPELINE_COUNT in tplg file mismatch with system asound count:$ASOUND_PCM_COUNT"
+    dlogi "CMD: 'sof-tplgreader.py $tplg_file -d id pcm type -o' to get tplg list string:"
+    echo "$tplg_str"
+    dlogi "CMD: 'sof-dump-status.py -i ${SOFCARD:-0}' to get pcm list string:"
+    echo "$pcm_str"
 
-    for idx in $(seq 0 $(expr $PIPELINE_COUNT - 1))
-    do
-        # vierfy the pcm list for keyword: type, id, pcm
-        pid=$(func_pipeline_parse_value $idx id)
-        ptype=$(func_pipeline_parse_value $idx type)
-        ppcm=$(func_pipeline_parse_value $idx pcm)
-        aid=$(func_asound_pcm_parse_value $pid id)
-        atype=$(func_asound_pcm_parse_value $pid type)
-        apcm=$(func_asound_pcm_parse_value $pid pcm)
-        dlogi "Comparing $ptype device $pid: $ppcm"
-        [[ "$pid" != "$aid" ]] && func_error_process $tplg_file "id $pid mismatch, tplg id: $pid, asound type: $aid" && exit 1
-        [[ "$ptype" != "$atype" ]] && func_error_process $tplg_file "id $pid mismatch, tplg type: $ptype, asound type: $atype" && exit 1
-        [[ "$ppcm" != "$apcm" ]] && func_error_process $tplg_file "id $pid mismatch, tplg pcm: $ppcm, asound pcm: $apcm" && exit 1
-    done
+    if [[ "$tplg_str" != "$pcm_str" ]]; then
+        dloge "TPLG mismatch with PCM"
+        dlogi "Dump aplay -l"
+        aplay -l
+        dlogi "Dump arecord -l"
+        arecord -l
+        exit 1
+    fi
 
     # TODO: Miss multiple TPLG mapping pcm logic
     break
