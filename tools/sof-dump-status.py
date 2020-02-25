@@ -135,15 +135,24 @@ class clsSYSCardInfo():
             return int(pcm_info['id'])
 
         for line in output.splitlines():
-            line_filed = line.split(':')
-            id = line_filed[0].strip()
+            line_field = line.split(':')
+            # field 0 : "s-id" s is sound card id; id is pcm id
+            id = line_field[0].strip()
             card_info = self.proc_card[str(int(id.split('-')[0]))]
             pcm_info = {}
             pcm_info['id']=str(int(id.split('-')[1]))
-            pcm_info['pcm']=line_filed[1].strip()
-            # filed 2 is same with filed 1 ??
-            pcm_info['type']=[str(el).strip() for el in line_filed[3:]]
+            # field 1 : "pcm name (*)"
+            pcm_info['pcm']=line_field[1].strip().replace('(*)', '').strip()
+            # field 2 is empty or same with field 1
+            # field 3 : "playback N"
+            pcm_info['type']=line_field[3].split()[0].lower()
             card_info['pcm'].append(pcm_info)
+            # field 4 : "capture N"
+            if len(line_field) > 4:
+                # sof-tplgreader order is playback > caputre
+                pcm_info2 = pcm_info.copy()
+                pcm_info2['type']=line_field[4].split()[0].lower()
+                card_info['pcm'].append(pcm_info2)
 
         card_info['pcm'].sort(key=_sort_pcm)
 
@@ -238,7 +247,7 @@ if __name__ == "__main__":
                 for item in card_info['pcm']:
                     print("\t\tID:\t" + item['id'])
                     print("\t\tPCM:\t" + item['pcm'])
-                    print("\t\tType:\t" + ', '.join(item['type']))
+                    print("\t\tType:\t" + item['type'].capitalize())
             print("")
 
     def dump_power(sys_power):
@@ -266,45 +275,12 @@ if __name__ == "__main__":
         if len(proc_card.keys()) == 0:
             return
 
-    def export_cardinfo_pcm(card_info):
+    def dump_cardinfo_pcm(card_info):
         pcm_lst = card_info.get('pcm')
-        length = len(pcm_lst)
-        if length == 0:
-            return
-
-        keyword = 'ASOUND_PCM'
-        # clear up the older define
-        print('unset %s_COUNT' % (keyword))
-        print('unset %s_LST' % (keyword))
-        print('declare -g %s_COUNT' % (keyword))
-        print('declare -ag %s_LST' % (keyword))
-        print('%s_COUNT=%d' % (keyword, length))
-
         def _getStr(tmp_dict, key):
             return '%s=%s'%(key, tmp_dict.get(key))
-
-        def _covertType(type_lst):
-            ret=0
-            for type_str in type_lst:
-                if type_str.split()[0].lower() == 'playback':   ret += 1
-                elif type_str.split()[0].lower() == 'capture':  ret += 2
-                # here maybe have some problem, so don't need to check it
-                else:   return ""
-            if ret == 1:    return 'playback'
-            elif ret == 2:  return 'capture'
-            else:           return 'both'
-
-        for idx in range(0, length):
-            pcm = pcm_lst[idx]
-            print('%s_LST[%d]="%s;%s;%s=%s"' % (keyword, idx, _getStr(pcm, 'id'), _getStr(pcm, 'pcm'), 'type', ', '.join(pcm.get('type'))))
-            # date format for match tplg format
-            pcm['pcm'] = pcm['pcm'].replace('(*)', '').strip()
-            pcm['type'] = _covertType(pcm['type'])
-            # store pcm to each list
-            print('unset %s_%s' % (keyword, pcm['id']))
-            print('declare -Ag %s_%s' % (keyword, pcm['id']))
-            for key, value in pcm_lst[idx].items():
-                print('%s_%s["%s"]="%s"' % (keyword, pcm['id'], key, value))
+        for pcm in pcm_lst:
+            print('%s;%s;%s;' % (_getStr(pcm, 'id'), _getStr(pcm, 'pcm'), _getStr(pcm, 'type')))
         return 0
 
     import argparse
@@ -342,7 +318,7 @@ if __name__ == "__main__":
         card_info = sysinfo.proc_card.get(str(ret_args['id']))
         if card_info is None:
             exit(0)
-        export_cardinfo_pcm(card_info)
+        dump_cardinfo_pcm(card_info)
         exit(0)
 
     if ret_args.get('short') is not None:
