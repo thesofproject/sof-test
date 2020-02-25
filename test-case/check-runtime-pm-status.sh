@@ -7,11 +7,14 @@
 ## Description:
 ##    check the audio runtime pm status
 ## Case step:
-##    1. start aplay
-##    2. stop aplay
-##    3. check the runtime pm status
+##    1. start aplay/arecord
+##    2. stop aplay/arecord
+##    3. sleep for runtime pm transition time
+##    4. check the runtime pm status
 ## Expect result:
 ##    command line check with $? without error
+##    runtime pm status must be suspended
+##    no error in dmesg
 ##
 
 source $(dirname ${BASH_SOURCE[0]})/../case-lib/lib.sh
@@ -49,17 +52,22 @@ func_check_dsp_status()
 
 func_opt_parse_option $*
 tplg=${OPT_VALUE_lst['t']}
-[[ -z $tplg ]] && dloge "Miss tplg file to run" && exit 1
-
 loop_count=${OPT_VALUE_lst['l']}
+[[ -z $tplg ]] && dloge "Miss tplg file to run" && exit 1
 
 [[ $(sof-dump-status.py --dsp_status 0) == "unsupported" ]] &&
     dlogi "platform doesn't support runtime pm, skip test case" && exit 2
 
+declare -A APP_LST DEV_LST
+APP_LST['playback']='aplay'
+DEV_LST['playback']='/dev/zero'
+APP_LST['capture']='arecord'
+DEV_LST['capture']='/dev/null'
+
 [[ ${OPT_VALUE_lst['s']} -eq 1 ]] && func_lib_start_log_collect
-func_pipeline_export $tplg "type:playback"
+func_pipeline_export $tplg
 func_lib_setup_kernel_last_line
-#TODO: need to go through both playback and capture
+
 for idx in $(seq 0 $(expr $PIPELINE_COUNT - 1))
 do
     channel=$(func_pipeline_parse_value $idx channel)
@@ -67,44 +75,52 @@ do
     fmt=$(func_pipeline_parse_value $idx fmt)
     dev=$(func_pipeline_parse_value $idx dev)
     pcm=$(func_pipeline_parse_value $idx pcm)
+    type=$(func_pipeline_parse_value $idx type)
+
+    cmd="${APP_LST[$type]}"
+    dummy_file="${DEV_LST[$type]}"
+    [[ -z $cmd ]] && dloge "$type is not supported, $cmd, $dummy_file" && exit 1
 
     for i in $(seq 1 $loop_count)
     do
         dlogi "Iteration $i of $loop_count for $pcm"
-        # playback device - check status
-        dlogc "aplay -D $dev -r $rate -c $channel -f $fmt /dev/zero -q"
-        aplay -D $dev -r $rate -c $channel -f $fmt /dev/zero -q &
+        # playback or capture device - check status
+        dlogc "$cmd -D $dev -r $rate -c $channel -f $fmt $dummy_file -q"
+        $cmd -D $dev -r $rate -c $channel -f $fmt $dummy_file -q &
         pid=$!
 
         # TODO: delay 2.5s is workaround for the SSH aplay delay issue.
         sleep 2.5
 
         kill -0 $pid
-        [[ $? -ne 0 ]] && dloge "aplay process for pcm $pcm is not alive" && exit 1
+        [[ $? -ne 0 ]] && dloge "$cmd process for pcm $pcm is not alive" && exit 1
 
         [[ -d /proc/$pid ]] && result=`sof-dump-status.py --dsp_status 0`
 
         dlogi "runtime status: $result"
         if [[ $result == active ]]; then
-            # stop playback device - check status again
+            # stop playback or capture device - check status again
             dlogc "kill process: kill -9 $pid"
             kill -9 $pid && wait $pid 2>/dev/null
-            dlogi "aplay killed"
+            dlogi "$cmd killed"
             func_check_dsp_status ${OPT_VALUE_lst['d']}
             result=`sof-dump-status.py --dsp_status 0`
+
             dlogi "runtime status: $result"
             if [[ $result != suspended ]]; then
-                dloge "aplay process for pcm $pcm runtime status is not suspended as expected"
+                dloge "$cmd process for pcm $pcm runtime status is not suspended as expected"
                 exit 1
             fi
         else
-            dloge "aplay process for pcm $pcm runtime status is not active as expected"
-            # stop playback device otherwise no one will stop this aplay.
+            dloge "$cmd process for pcm $pcm runtime status is not active as expected"
+            # stop playback or capture device otherwise no one will stop this $cmd.
             dlogc "kill process: kill -9 $pid"
             kill -9 $pid && wait $pid 2>/dev/null
             exit 1
         fi
     done
+
+    sof-kernel-log-check.sh 0
 done
 
 sof-kernel-log-check.sh $KERNEL_LAST_LINE
