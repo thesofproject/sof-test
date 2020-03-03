@@ -8,14 +8,14 @@ function exit()
     local exit_status=${1:-0}
 
     # when sof logger collect is open
-    if [ "X$SOF_LOG_COLLECT" == "X1" ];then
-        # when have the error exit force catch etrace log
+    if [ "X$SOF_LOG_COLLECT" == "X1" ]; then
+        # when error occurs, exit and catch etrace log
         [[ $exit_status -eq 1 ]] && func_lib_start_log_collect 1 && sleep 1s
         local loggerBin=$(basename $SOFLOGGER)
         sudo pkill -9 $loggerBin 2>/dev/null
         sleep 1s
     fi
-    # case quit to store current kernel log
+    # when case ends, store kernel log
     if [ $DMESG_LOG_START_LINE -ne 0 ]; then
         tail -n +$DMESG_LOG_START_LINE /var/log/kern.log |cut -f5- -d ' ' > $LOG_ROOT/dmesg.txt
     else
@@ -29,7 +29,7 @@ function exit()
     # $$ as current script pid
     # NOTICE: already test with $BASHPID:
     # it can output the same result of $$
-    # but it couldn't be store the result to the array
+    # but the result could not be stored in the array
     for line in $(ps --ppid $$ -o pid,cmd --no-header|grep -vE "ps|${BASH_SOURCE[-1]}");
     do
         cmd_lst=( "${cmd_lst[@]}" "$line")
@@ -37,7 +37,7 @@ function exit()
     IFS="$OLD_IFS"
     # now force kill target process which maybe block the script quit
     if [ ${#cmd_lst[@]} -gt 0 ]; then
-        dlogw "${BASH_SOURCE[-1]} load exit still have those process exist:"
+        dlogw "${BASH_SOURCE[-1]} on exit, these processes still exist:"
         for line in "${cmd_lst[@]}"
         do
             # remove '^[:space:]' because IFS change to keep the '^[:space:]' in variable
@@ -48,11 +48,11 @@ function exit()
         done
     fi
 
-    # check function already defined
-    # when exit force check the pulseaudio whether disabled
+    # check if function already defined
+    # on exit check whether pulseaudio is disabled
     [[ $(declare -f func_lib_restore_pulseaudio) ]] && func_lib_restore_pulseaudio
 
-    if [ -f $SOF_LOCK ];then
+    if [ -f $SOF_LOCK ]; then
         # use string compare instead of int to confirm file content correct
         # just remove the current pid lock file
         if [ "X$$" == "X$(cat $SOF_LOCK)" ]; then
@@ -109,7 +109,7 @@ sudo()
 func_hijack_setup_sudo_level()
 {
     [[ "$SUDO_LEVEL" ]] && return 0
-    # root permission don't need to check
+    # root permission, don't need to check
     [[ $UID -eq 0 ]] && SUDO_LEVEL=0 && return 0
     # now check whether we need sudo passwd using expect
     expect >/dev/null <<END
