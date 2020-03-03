@@ -10,13 +10,13 @@ SUDO_PASSWD=${SUDO_PASSWD:-}
 TPLG_ROOT=${TPLG_ROOT:-/lib/firmware/intel/sof-tplg}
 PULSEAUDIO_CONFIG=${PULSEAUDIO_CONFIG:-/etc/pulse/client.conf}
 
-# block the target keyword for tplg
-# example: block id is 2 pipeline
-# TPLG_BLOCK_LST['id']='2'
-# example: block pcm is HDA Digital & HDA Analog
-# TPLG_BLOCK_LST['pcm']='HDA Digital,HDA Analog'
-declare -A TPLG_BLOCK_LST
-TPLG_BLOCK_LST['pcm']='HDA Digital,Media Playback,DMIC16k'
+# ignore the target keyword for tplg
+# example: ignore 'pipeline ids equal to 2'
+# TPLG_IGNORE_LST['id']='2'
+# example: ignore 'pcms that are HDA Digital & HDA Analog'
+# TPLG_IGNORE_LST['pcm']='HDA Digital,HDA Analog'
+declare -A TPLG_IGNORE_LST
+TPLG_IGNORE_LST['pcm']='HDA Digital,Media Playback,DMIC16k'
 
 # Will be set by the lib function, don't need to set
 # Catches the last line of /var/log/kern.log, which will be used by
