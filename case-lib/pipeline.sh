@@ -41,12 +41,12 @@ func_pipeline_export()
     fi
 
     # create block option string
-    if [ ${#TPLG_BLOCK_LST[@]} -ne 0 ]; then
+    if [ ${#TPLG_IGNORE_LST[@]} -ne 0 ]; then
         opt=$opt" -b"
-        for key in ${!TPLG_BLOCK_LST[@]}
+        for key in ${!TPLG_IGNORE_LST[@]}
         do
-            dlogi "Catch block option from TPLG_BLOCK_LST will block '$key=${TPLG_BLOCK_LST[$key]}' for $tplg_str"
-            opt=$opt" $key:'${TPLG_BLOCK_LST[$key]}'"
+            dlogi "Catch ignore option from TPLG_IGNORE_LST will ignore '$key=${TPLG_IGNORE_LST[$key]}' for $tplg_str"
+            opt=$opt" $key:'${TPLG_IGNORE_LST[$key]}'"
         done
     fi
 
