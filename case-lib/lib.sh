@@ -13,16 +13,16 @@ PATH=$PWD:$PATH
 cd $OLDPWD
 
 # setup SOFCARD id
-if [ ! "$SOFCARD" ];then
+if [ ! "$SOFCARD" ]; then
     SOFCARD=$(grep '\]: sof-[a-z]' /proc/asound/cards|awk '{print $1;}')
 fi
 
-# Add lock to protect current system just have one sof-test test-case to run
+# Add lock to ensure only one sof-test test-case can run at a time
 SOF_LOCK="/tmp/sof-test.lock"
-if [ ! -f "$SOF_LOCK" ];then # lock is not exist
+if [ ! -f "$SOF_LOCK" ]; then # lock does not exist
     echo $$ > /tmp/sof-test.lock # write self pid into lock file
 elif [ ! "$(alias |grep -i 'Sub-Test')" ]; then # not the sub test-case
-    if [ "$(ps -p $(cat $SOF_LOCK) --no-headers)" ]; then # Detect whether have other case
+    if [ "$(ps -p $(cat $SOF_LOCK) --no-headers)" ]; then # lock exists
         dloge "Find $SOF_LOCK already exist: $(ps -p $(cat $SOF_LOCK))"
         # exit 2 # now skip to run the test-case
         exit 3 # mark test-case as incomplete
@@ -32,7 +32,7 @@ elif [ ! "$(alias |grep -i 'Sub-Test')" ]; then # not the sub test-case
     fi
 fi
 
-if [ ! "$DMESG_LOG_START_LINE" ];then
+if [ ! "$DMESG_LOG_START_LINE" ]; then
     declare -g DMESG_LOG_START_LINE=$(wc -l /var/log/kern.log|awk '{print $1;}')
 fi
 
@@ -107,11 +107,11 @@ func_lib_restore_pulseaudio()
         wait_t=$[ $wait_t + 1 ]
         sleep 1s
         if [ $wait_t -ge $timeout ]; then
-            dlogw "Restore pulseaudio wait too long: $timeout"
+            dlogw "Restoring pulseaudio is taking too long: $timeout"
             break
         fi
     done
-    dlogi "Restoring  pulseaudio took $wait_t seconds"
+    dlogi "Restoring pulseaudio took $wait_t seconds"
     unset PULSECMD_LST
     declare -ag PULSECMD_LST
 }
