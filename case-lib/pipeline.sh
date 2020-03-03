@@ -11,14 +11,14 @@ func_pipeline_export()
     local tplg_str="$1" opt="" sofcard=${SOFCARD:-0} idx=0 tplg_file="" cmd=""
     while [ ${#tplg_str} -gt 0 ]
     do
-        # left ',' 1st filed
+        # left ',' 1st field
         f=${tplg_str%%,*}
-        # expect left ',' 1st filed
+        # expect left ',' 1st field
         tplg_str=${tplg_str#*,}
         [ "$f" == "$tplg_str" ] && tplg_str=""
         if [ -f "$TPLG_ROOT/$(basename $f)" ]; then
             f="$TPLG_ROOT/$(basename $f)"   # catch from TPLG_ROOT
-        elif [ -f "$f" ];then
+        elif [ -f "$f" ]; then
             f=$(realpath $f)    # relative path -> absolute path
         else
             dlogw "Couldn't find target TPLG file $f needed to run $0" && exit 1
@@ -59,7 +59,7 @@ func_pipeline_export()
         eval $line
     done
     IFS="$OLD_IFS"
-    [[ ! "$PIPELINE_COUNT" ]] && dlogw "Load $tplg_str meet some problem, please check '$cmd' command" && exit 1
+    [[ ! "$PIPELINE_COUNT" ]] && dlogw "A problem occured while loading $tplg_str, please check '$cmd' command" && exit 1
     [[ $PIPELINE_COUNT -eq 0 ]] && dlogw "Missing target PIPELINE for ${opt:3} needed to run ${BASH_SOURCE[-1]}" && exit 2
     return 0
 }
