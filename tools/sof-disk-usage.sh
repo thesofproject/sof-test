@@ -14,7 +14,7 @@ done
     echo "disk usage check: health" && \
     exit 0
 
-echo -e "disk usage check: \e[31m\e[5mwarnning\e[0m\e[25m"
+echo -e "disk usage check: \e[31m\e[5mwarning\e[0m\e[25m"
 df -h --total ${disk_lst[@]}
 
 exit 1
