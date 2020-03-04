@@ -20,7 +20,7 @@ _func_log_cmd()
     [[ ! "$remote" ]] && __LOG_PREFIX="REMOTE_"
 
     LOG_LIST['dlogi']="[$__LOG_PREFIX""INFO]"
-    LOG_LIST['dloge']="[$__LOG_PREFIX""ERR]"
+    LOG_LIST['dloge']="[$__LOG_PREFIX""ERROR]"
     LOG_LIST['dlogc']="[$__LOG_PREFIX""COMMAND]"
     LOG_LIST['dlogw']="[$__LOG_PREFIX""WARNING]"
 
@@ -29,9 +29,9 @@ _func_log_cmd()
     shopt -s expand_aliases
     if [ "X1" ]; then
         # PPID: The process ID of the shell's parent.
-        # get Current script parent process name
+        # get current script parent process name
         local ppcmd=$(ps -p $PPID -o cmd --noheader|awk '{print $2;}') ext_message=""
-        # confirm this script load by the script, Add the flag for it
+        # confirm this is loaded by the script, and add the flag for it
         [[ "$(file $ppcmd 2>/dev/null |grep 'shell script')" ]] && ext_message=" Sub-Test:"
         _func_logcmd_add_timestamp()
         {
