@@ -39,6 +39,9 @@ dlogi "Check sof debug fs environment"
 [[ "$(sudo file $ipc_flood_dfs|grep 'No such file')" ]] && dlogw "${BASH_SOURCE[0]} need $ipc_flood_dfs to run the test case" && exit 2
 dlogi "Checking ipc flood test!"
 
+# cleanup dmesg buffer before test
+sudo dmesg -c > /dev/null
+
 for i in $(seq 1 $loop_cnt)
 do
     dlogc "sudo bash -c 'echo $lpc_loop_cnt > $ipc_flood_dfs'"
