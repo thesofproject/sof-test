@@ -54,7 +54,7 @@ class clsSYSCardInfo():
     def loadDMI(self):
         self.dmi.clear()
         exit_code, output=subprocess.getstatusoutput("cat /sys/class/dmi/id/modalias")
-        # grep exit 1 means nothing match
+        # grep exit 1 means nothing matched
         if exit_code != 0:
             return
         output = output.split(':')
@@ -68,7 +68,7 @@ class clsSYSCardInfo():
     def loadPCI(self):
         self.pci_lst.clear()
         exit_code, output=subprocess.getstatusoutput("lspci |grep audio -i")
-        # grep exit 1 means nothing match
+        # grep exit 1 means nothing matched
         if exit_code != 0:
             return
         apci_key_lst = self._acpi_ids.keys()
@@ -149,7 +149,7 @@ class clsSYSCardInfo():
             card_info['pcm'].append(pcm_info)
             # field 4 : "capture N"
             if len(line_field) > 4:
-                # sof-tplgreader order is playback > caputre
+                # sof-tplgreader order is playback > capture
                 pcm_info2 = pcm_info.copy()
                 pcm_info2['type']=line_field[4].split()[0].lower()
                 card_info['pcm'].append(pcm_info2)
@@ -289,11 +289,11 @@ if __name__ == "__main__":
         add_help=True, formatter_class=argparse.RawTextHelpFormatter)
 
     # spec option for the automation bash
-    parser.add_argument('-p', '--platform', action='store_true', help='just dump pci chipset value')
-    parser.add_argument('-w', '--power', action='store_true', help='just dump power status value')
-    parser.add_argument('-i', '--id', type=int, help='just dump the pcm infomation of target id sound card')
-    parser.add_argument('-s', '--short', type=int, help='just dump the short name of target id sound card')
-    parser.add_argument('-l', '--longname', type=int, help='just dump the longname name of target id sound card')
+    parser.add_argument('-p', '--platform', action='store_true', help='dump pci chipset value')
+    parser.add_argument('-w', '--power', action='store_true', help='dump power status value')
+    parser.add_argument('-i', '--id', type=int, help='dump the pcm information of target id sound card')
+    parser.add_argument('-s', '--short', type=int, help='dump the short name of target id sound card')
+    parser.add_argument('-l', '--longname', type=int, help='dump the longname name of target id sound card')
     parser.add_argument('-P', '--fwpath', action='store_true', help='get firmware path according to DMI info')
     parser.add_argument('-S', '--dsp_status', type=int, help='get current dsp power status, should specify sof card number')
     parser.add_argument('--version', action='version', version='%(prog)s 1.0')
