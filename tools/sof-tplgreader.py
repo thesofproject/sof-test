@@ -11,7 +11,7 @@ class clsTPLGReader:
         self._output_lst = []
         self._filed_lst = []
         self._filter_lst = []
-        self._block_lst = []
+        self._ignore_lst = []
 
     def __comp_pipeline(self, pipeline):
         return pipeline['id']
@@ -104,8 +104,8 @@ class clsTPLGReader:
     def setFiled(self, filed_lst):
         self._filed_lst = self._setlist(filed_lst)[:]
 
-    def setBlock(self, block_lst=None):
-        self._block_lst = self._setlist(block_lst)[:]
+    def setBlock(self, ignore_lst=None):
+        self._ignore_lst = self._setlist(ignore_lst)[:]
 
     def _filterOutput(self, target_lst, filter_dict, bIn):
         self._output_lst.clear()
@@ -137,12 +137,12 @@ class clsTPLGReader:
                     tmp_dict[filed]=pipeline[filed]
             self._output_lst.append(tmp_dict)
 
-    def _blockKeyword(self):
-        if len(self._block_lst) == 0:
+    def _ignoreKeyword(self):
+        if len(self._ignore_lst) == 0:
             return
-        for block_dict in self._block_lst:
+        for ignore_dict in self._ignore_lst:
             tmp_lst = self._output_lst[:]
-            self._filterOutput(tmp_lst, block_dict, True)
+            self._filterOutput(tmp_lst, ignore_dict, True)
 
     def sortPipeline(self):
         if len(self._pipeline_lst) != 0:
@@ -153,7 +153,7 @@ class clsTPLGReader:
     def getPipeline(self):
         self._output_lst = self._pipeline_lst[:]
         self._filterKeyword()
-        self._blockKeyword()
+        self._ignoreKeyword()
         self._filterFiled()
         return self._output_lst
 
@@ -209,10 +209,10 @@ type: capture
 for example: Get "type" is "capture, both" and "fmt" is S16_LE
 type:capture,both fmt:S16_LE
 ''')
-    parser.add_argument('-b', '--block', type=str, nargs='+',
-        help='''setup block list, this value is format value,
+    parser.add_argument('-b', '--ignore', type=str, nargs='+',
+        help='''setup ignore list, this value is format value,
 string format is 'key':'value','value'
-for example: block "pcm" is "HDA Digital"
+for example: ignore "pcm" is "HDA Digital"
 pcm:HDA Digital
 ''')
     parser.add_argument('-d', '--dump', type=str, nargs='+', help='Dump target field')
@@ -233,7 +233,7 @@ PIPELINE_$ID['key']='value' ''')
     tplgreader = clsTPLGReader()
     filter_lst = []
     dump_lst = []
-    block_lst = []
+    ignore_lst = []
     pipeline_lst = []
     tplg_root = ""
 
@@ -242,18 +242,18 @@ PIPELINE_$ID['key']='value' ''')
             key, flag, value=emStr.partition(':')
             filter_lst.append({key.strip():value.strip().replace('[','').replace(']','').split(',')})
 
-    if ret_args['block'] is not None and len(ret_args['block']) > 0:
-        for emStr in ret_args['block']:
+    if ret_args['ignore'] is not None and len(ret_args['ignore']) > 0:
+        for emStr in ret_args['ignore']:
             key, flag, value=emStr.partition(':')
-            block_lst.append({key.strip():value.strip().replace('[','').replace(']','').split(',')})
+            ignore.append({key.strip():value.strip().replace('[','').replace(']','').split(',')})
 
     if ret_args['dump'] is not None and len(ret_args['dump']) > 0:
         dump_lst = ret_args['dump']
 
     if len(filter_lst) > 0:
         tplgreader.setFilter(filter_lst)
-    if len(block_lst) > 0:
-        tplgreader.setBlock(block_lst)
+    if len(ignore_lst) > 0:
+        tplgreader.setIgnore(ignore_lst)
     if len(dump_lst) > 0:
         tplgreader.setFiled(dump_lst)
 
