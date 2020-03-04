@@ -52,9 +52,9 @@ runtime_status="/sys/bus/pci/devices/0000:$(lspci |awk '/[Aa]udio/ {print $1;}')
 dlogc "Runtime status check: cat $runtime_status"
 
 [[ ${OPT_VALUE_lst['s']} -eq 1 ]] && func_lib_start_log_collect
-func_pipeline_export $tplg "type:playback"
+func_pipeline_export $tplg "type:playback,capture"
 func_lib_setup_kernel_last_line
-#TODO: need to go through both playback and capture
+
 for idx in $(seq 0 $(expr $PIPELINE_COUNT - 1))
 do
     channel=$(func_pipeline_parse_value $idx channel)
@@ -62,20 +62,29 @@ do
     fmt=$(func_pipeline_parse_value $idx fmt)
     dev=$(func_pipeline_parse_value $idx dev)
     pcm=$(func_pipeline_parse_value $idx pcm)
+    type=$(func_pipeline_parse_value $idx type)
+
+    if [[ $type == "playback" ]]; then
+        cmd=aplay
+        file=/dev/zero
+    else
+        cmd=arecord
+        file=/dev/null
+    fi
 
     for i in $(seq 1 $loop_count)
     do
-        dlogi "Iteration $i of $loop_count for $pcm"
+        dlogi "Iteration $i of $loop_count for $pcm $type"
         # playback device - check status
-        dlogc "aplay -D $dev -r $rate -c $channel -f $fmt /dev/zero -q"
-        aplay -D $dev -r $rate -c $channel -f $fmt /dev/zero -q &
+        dlogc "$cmd -D $dev -r $rate -c $channel -f $fmt $file -q"
+        $cmd -D $dev -r $rate -c $channel -f $fmt $file -q &
         pid=$!
 
         # TODO: delay 2.5s is workaround for the SSH aplay delay issue.
         sleep 2.5
 
         kill -0 $pid
-        [[ $? -ne 0 ]] && dloge "aplay process for pcm $pcm is not alive" && exit 1
+        [[ $? -ne 0 ]] && dloge "$cmd process for pcm $pcm is not alive" && exit 1
 
         [[ -d /proc/$pid ]] && result=`cat $runtime_status`
 
@@ -84,7 +93,7 @@ do
             # stop playback device - check status again
             dlogc "kill process: kill -9 $pid"
             kill -9 $pid && wait $pid 2>/dev/null
-            dlogi "aplay end"
+            dlogi "$cmd killed"
             dlogc "sleep ${OPT_VALUE_lst['d']}"
             sleep ${OPT_VALUE_lst['d']}
 
@@ -92,11 +101,11 @@ do
 
             dlogi "runtime status: $result"
             if [[ $result != suspended ]]; then
-                dloge "aplay process for pcm $pcm runtime status is not suspended as expected"
+                dloge "$cmd process for pcm $pcm runtime status is not suspended as expected"
                 exit 1
             fi
         else
-            dloge "aplay process for pcm $pcm runtime status is not active as expected"
+            dloge "$cmd process for pcm $pcm runtime status is not active as expected"
             # stop playback device otherwise no one will stop this aplay.
             dlogc "kill process: kill -9 $pid"
             kill -9 $pid && wait $pid 2>/dev/null
