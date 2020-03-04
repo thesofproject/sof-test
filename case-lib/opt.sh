@@ -17,7 +17,7 @@ func_opt_parse_option()
     # OPT_PARM_lst['r']=1
     # OPT_VALUE_lst['r']='' ## if PARM=1, must be set, if PARM=0, can ignore
 
-    # h & help is default option, so don't need add into option list
+    # h & help is default option, so don't need to add into option list
     OPT_OPT_lst['h']='help'
     OPT_DESC_lst['h']='this message'
     OPT_PARM_lst['h']=0
@@ -38,7 +38,7 @@ func_opt_parse_option()
     _func_create_tmpbash()
     {
         local i _short_opt _long_opt
-        # loop to combine option which will be load by getopt
+        # loop to combine option which will be loaded by getopt
         for i in ${!OPT_DESC_lst[*]}
         do
             _short_opt=$_short_opt"$i"
@@ -48,7 +48,7 @@ func_opt_parse_option()
                 _long_opt=$_long_opt"${OPT_OPT_lst[$i]}"
                 _op_long_lst["--${OPT_OPT_lst[$i]}"]="$i"
             fi
-            # option will accpect parameter
+            # option will accept parameter
             [ ${OPT_PARM_lst[$i]} -eq 1 ] && _short_opt=$_short_opt':' && _long_opt=$_long_opt':'
         done
         _op_temp_script=`getopt -o "$_short_opt" --long "$_long_opt" -n "$ST_NAME" -- $@`
@@ -111,12 +111,12 @@ func_opt_parse_option()
         elif [ "X$1" == "X--" ]; then
             shift && break
         else
-            echo "option: $1 unknown, internal error!" && exit 2
+            echo "option: $1 unknown, error!" && exit 2
         fi
     done
     
     [ ${OPT_VALUE_lst['h']} -eq 1 ] && _func_opt_dump_help
-    # verify & check all option value
+    # verify & check all option values
     [[ $(declare -p |grep "[[:space:]]OPT_VALUE_lst=\"\"") ]] && echo "Missing parameter/script default value" && _func_opt_dump_help
     # record the full parameter to the cmd
     if [ ! -f $LOG_ROOT/cmd.txt ]; then
@@ -124,10 +124,10 @@ func_opt_parse_option()
         for opt in ${!OPT_OPT_lst[@]}
         do
             [[ $opt == "h" ]] && continue
-            if [ ${OPT_PARM_lst[$opt]} -eq 1 ];then
+            if [ ${OPT_PARM_lst[$opt]} -eq 1 ]; then
                 cmd="$cmd -$opt ${OPT_VALUE_lst[$opt]}"
             else
-                if [ $(echo '!'${OPT_VALUE_lst[$opt]}|bc) -eq 1 ];then
+                if [ $(echo '!'${OPT_VALUE_lst[$opt]}|bc) -eq 1 ]; then
                     cmd="$cmd -$opt"
                 fi
             fi
