@@ -22,9 +22,9 @@ project_key="sof-audio"
 #echo "run $0 with parameter '$*' for check kernel message error"
 
 if [ "$ignore_str" ]; then
-    err=$(eval $cmd|grep 'Call Trace')$(eval $cmd | grep $project_key | grep -E "$err_str"|grep -vE "$ignore_str")
+    err=$(eval $cmd|grep 'Call Trace' -A5 -B3)$(eval $cmd | grep $project_key | grep -E "$err_str"|grep -vE "$ignore_str")
 else
-    err=$(eval $cmd|grep 'Call Trace')$(eval $cmd | grep $project_key | grep -E "$err_str")
+    err=$(eval $cmd|grep 'Call Trace' -A5 -B3)$(eval $cmd | grep $project_key | grep -E "$err_str")
 fi
 
 if [ "$err" ]; then
