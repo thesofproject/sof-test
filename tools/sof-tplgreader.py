@@ -9,7 +9,7 @@ class clsTPLGReader:
     def __init__(self):
         self._pipeline_lst = []
         self._output_lst = []
-        self._filed_lst = []
+        self._field_lst = []
         self._filter_lst = []
         self._ignore_lst = []
 
@@ -24,7 +24,7 @@ class clsTPLGReader:
         tplg_parser = TplgParser()
         parsed_tplg = tplg_parser.parse(filename)
         formatter = TplgFormatter(parsed_tplg)
-        # ignore the last element, for it is tplg name
+        # ignore the last element, it is tplg name
         for item in parsed_tplg[:-1]:
             if "pcm" not in item:
                 continue
@@ -101,8 +101,8 @@ class clsTPLGReader:
     def setFilter(self, filter_lst=None):
         self._filter_lst = self._setlist(filter_lst)[:]
 
-    def setFiled(self, filed_lst):
-        self._filed_lst = self._setlist(filed_lst)[:]
+    def setField(self, field_lst):
+        self._field_lst = self._setlist(field_lst)[:]
 
     def setBlock(self, ignore_lst=None):
         self._ignore_lst = self._setlist(ignore_lst)[:]
@@ -125,16 +125,16 @@ class clsTPLGReader:
             tmp_lst = self._output_lst[:]
             self._filterOutput(tmp_lst, filter_dict, False)
 
-    def _filterFiled(self):
-        if len(self._filed_lst) == 0:
+    def _filterField(self):
+        if len(self._field_lst) == 0:
             return
         tmp_lst = self._output_lst[:]
         self._output_lst.clear()
         for pipeline in tmp_lst:
             tmp_dict ={}
-            for filed in self._filed_lst:
-                if filed in pipeline.keys():
-                    tmp_dict[filed]=pipeline[filed]
+            for field in self._field_lst:
+                if field in pipeline.keys():
+                    tmp_dict[field]=pipeline[field]
             self._output_lst.append(tmp_dict)
 
     def _ignoreKeyword(self):
@@ -154,7 +154,7 @@ class clsTPLGReader:
         self._output_lst = self._pipeline_lst[:]
         self._filterKeyword()
         self._ignoreKeyword()
-        self._filterFiled()
+        self._filterField()
         return self._output_lst
 
 if __name__ == "__main__":
@@ -218,12 +218,12 @@ pcm:HDA Digital
     parser.add_argument('-d', '--dump', type=str, nargs='+', help='Dump target field')
     parser.add_argument('-e', '--export', action='store_true',
         help='''export the pipeline to Bash declare -Ax Array
-this option conflict with other output format option: -c -i -v
+this option conflicts with other output format option: -c -i -v
 export format:
 PIPELINE_$ID['key']='value' ''')
     parser.add_argument('-c', '--count', action='store_true', help='Get pipeline count')
     parser.add_argument('-i', '--index', type=int, help='Get index of pipeline, start with 0')
-    parser.add_argument('-v', '--value', action='store_true', help="Just display the vaule")
+    parser.add_argument('-v', '--value', action='store_true', help="Just display the value")
     parser.add_argument('-t', '--tplgroot', type=str, help="load file from tplg-root folder")
     parser.add_argument('-o', '--sort', action='store_true', help="sort pipeline by id for the same tplg")
     parser.add_argument('--version', action='version', version='%(prog)s 1.0')
@@ -255,7 +255,7 @@ PIPELINE_$ID['key']='value' ''')
     if len(ignore_lst) > 0:
         tplgreader.setIgnore(ignore_lst)
     if len(dump_lst) > 0:
-        tplgreader.setFiled(dump_lst)
+        tplgreader.setField(dump_lst)
 
     if ret_args['tplgroot'] is not None and len(ret_args['tplgroot']) >0:
         tplg_root = ret_args['tplgroot']
