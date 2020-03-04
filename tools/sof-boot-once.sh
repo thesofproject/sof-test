@@ -13,10 +13,8 @@ cd $OLDPWD
 boot_exec_file="/etc/rc.local"
 # because Ubuntu 18.04 doesn't have an /etc/rc.local file, create it
 if [ ! -f "$boot_exec_file"  ]; then
-    echo "Missing $boot_exec_file Now create it."
+    echo "Missing $boot_exec_file Now creating it."
 cat > /etc/rc.local << END
-#!/bin/bash
-# this script created by SOF
 
 exit 0
 END
@@ -40,13 +38,13 @@ if [ "$#" -ne 0 ]; then
     elif [ "$(type -t $(basename $1))" == "builtin" ]; then #shell builtin command
         cmd=$(basename $1)
         shift
-    else # Miss cmd_path means couldn't find this cmd in the path, so no change
+    else # Missing cmd_path means it couldn't find this cmd in the path, so no change
         exit
     fi
     [[ ! "$boot_once_flag" ]] && echo $boot_full_name >> $boot_exec_file
     echo "$cmd $*" >> $boot_exec_file
 else
-    # clear up the boot once flag to remove it to bottom
+    # clean up the boot once flag to force it to the end
     [[ "$boot_once_flag" ]] && \
         sed -i "$boot_once_flag,\$d" $boot_exec_file
 fi
