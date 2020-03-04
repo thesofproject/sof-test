@@ -4,7 +4,7 @@ import itertools
 import argparse
 
 parser = argparse.ArgumentParser(description='''
-Help to dump the cermutation and combination:
+Help to dump the permutation and combination:
 each combine split by SPACE,
 each element split by \',\'
 
@@ -18,7 +18,7 @@ for example:
     output: "0,1 0,2 0,3 1,0 1,2 1,3 2,0 2,1 2,3 3,0 3,1 3,2"
 ''', add_help=True, formatter_class=argparse.RawTextHelpFormatter)
 
-parser.add_argument('-t', '--type', choices=['c','p'], help='p: Permutation; c: combination', default='c')
+parser.add_argument('-t', '--type', choices=['c','p'], help='p: permutation; c: combination', default='c')
 parser.add_argument('-n', '--number', type=int, help='total number count', required=True)
 parser.add_argument('-p', '--pick', type=int, help='pick up count', required=True)
 parser.add_argument('-s', '--start', type=int, help='index start value', default=0)
@@ -26,7 +26,7 @@ parser.add_argument('-s', '--start', type=int, help='index start value', default
 ret_args = vars(parser.parse_args())
 
 if ret_args['number'] < ret_args['pick']:
-    print(f"Count:{ret_args['pick']} > Number Count:{ret_args['number']} is not allow")
+    print(f"Count:{ret_args['pick']} > Number Count:{ret_args['number']} is not allowed")
     exit(2)
 
 number = ret_args['number']
