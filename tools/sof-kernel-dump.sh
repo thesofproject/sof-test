@@ -1,13 +1,13 @@
 #!/bin/bash
 
-# dump the kernel information form target
+# dump the kernel information from target
 last_order=${1:-0}
-# check whether parameter 1 have the Non-Number
+# check whether parameter 1 has the Non-Number
 [[ "${last_order//[0-9]/}" ]] && echo "$0 parameter 1 just support +N number, N start from 0" && builtin exit 1
 last_order=$[ $last_order + 1 ]
 log_file=${2:-"/var/log/kern.log"}
-# check whether target file is not exit
-[[ ! -f "$log_file" ]] && echo "$0 parameter 2 $log_file is not exist" && builtin exit 1
+# check whether target file exists
+[[ ! -f "$log_file" ]] && echo "$0 parameter 2 $log_file does not exist" && builtin exit 1
 declare -a line_lst
 # here line lst to keep 2 value, [0] is target line, [1] is end line
 # if target is last one, so will cut content form [0] -> file end
