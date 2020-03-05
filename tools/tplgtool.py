@@ -200,7 +200,7 @@ class TplgParser():
     # parse snd_soc_tplg_dapm_widget struct
     def _parse_dapm_widget_struct(self, bytes_data):
         widget_fields = ["size", "id", "name", "sname", "reg", "shift", "mask", "subseq", "invert", \
-            "ignore_suspend", "event_flags", "evnet_type", "num_kcontrols", "priv"]
+            "ignore_suspend", "event_flags", "event_type", "num_kcontrols", "priv"]
 
         values = []
 
