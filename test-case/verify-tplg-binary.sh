@@ -28,9 +28,9 @@ tplg_str=$tplg
 ((ret=0))
 while [ ${#tplg_str} -gt 0 ]
 do
-    # left ',' 1st filed
+    # left ',' 1st field
     tplg_file=${tplg_str%%,*}
-    # expect left ',' 1st filed
+    # expect left ',' 1st field
     tplg_str=${tplg_str#*,}
     [ "$tplg_file" == "$tplg_str" ] && tplg_str=""
     if [ -f "$TPLG_ROOT/$(basename $tplg_file)" ]; then

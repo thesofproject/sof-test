@@ -34,9 +34,9 @@ DMESG_LOG_START_LINE=$(sof-get-kernel-line.sh|tail -n 1 |awk '{print $1;}')
 while [ ${#tplg} -gt 0 ]
 do
     # go through each TPLG file and check the PCM list
-    # left ',' 1st filed
+    # left ',' 1st field
     tplg_file=${tplg%%,*}
-    # expect left ',' 1st filed
+    # expect left ',' 1st field
     tplg=${tplg#*,}
     [ "$tplg_file" == "$tplg" ] && tplg=""
     if [ -f "$TPLG_ROOT/$(basename $tplg_file)" ]; then
