@@ -104,7 +104,7 @@ class clsTPLGReader:
     def setField(self, field_lst):
         self._field_lst = self._setlist(field_lst)[:]
 
-    def setBlock(self, ignore_lst=None):
+    def setIgnore(self, ignore_lst=None):
         self._ignore_lst = self._setlist(ignore_lst)[:]
 
     def _filterOutput(self, target_lst, filter_dict, bIn):
@@ -245,7 +245,7 @@ PIPELINE_$ID['key']='value' ''')
     if ret_args['ignore'] is not None and len(ret_args['ignore']) > 0:
         for emStr in ret_args['ignore']:
             key, flag, value=emStr.partition(':')
-            ignore.append({key.strip():value.strip().replace('[','').replace(']','').split(',')})
+            ignore_lst.append({key.strip():value.strip().replace('[','').replace(']','').split(',')})
 
     if ret_args['dump'] is not None and len(ret_args['dump']) > 0:
         dump_lst = ret_args['dump']
