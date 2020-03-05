@@ -450,12 +450,12 @@ class TplgParser():
 
 
     def _parse_block_header(self, block):
-        header_fileds = ["abi","version", "type", "size", \
+        header_fields = ["abi","version", "type", "size", \
             "vender_type","payload_size", "index", "count"]
         header_values = [i[0] for i in list(struct.iter_unpack("I",block[:32]))]
         # we lost magic info when we use it to split tplg binary, add it back here
         header_values.append({"magic":"CoSA"})
-        parse_header = dict(zip(header_fileds, header_values))
+        parse_header = dict(zip(header_fields, header_values))
         # retain raw data in the dict
         block = {"header": parse_header, "data": block[32:], "raw_hdr":b'CoSA' + block[:32]}
         return block
@@ -501,7 +501,7 @@ class TplgParser():
 
         # here we call a header with its data a block
         parsed_tplg = []
-        # split binary with header's "magic" filed
+        # split binary with header's "magic" field
         splited_blocks = self._tplg_binary.split(b'CoSA')
 
         # skip the first element for it is introduced by the 'split' and is actually nothing
@@ -658,7 +658,7 @@ class TplgFormatter:
         return link_head_list, node_list
 
     # initialize node list from widget list, all the node should have its name
-    # and widget filed initialized, and other fileds are left None
+    # and widget field initialized, and other fields are left None
     def _init_node_list(self):
         node_list = []
 
