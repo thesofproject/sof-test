@@ -24,6 +24,7 @@ insert_module snd_soc_rt5640
 insert_module snd_soc_rt5645
 insert_module snd_soc_rt5651
 insert_module snd_soc_rt5670
+insert_module snd_soc_rt5677
 insert_module snd_soc_rt5677_spi
 insert_module snd_soc_rt5682
 
