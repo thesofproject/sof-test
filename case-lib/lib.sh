@@ -24,7 +24,8 @@ if [ ! -f "$SOF_LOCK" ];then # lock is not exist
 elif [ ! "$(alias |grep -i 'Sub-Test')" ]; then # not the sub test-case
     if [ "$(ps -p $(cat $SOF_LOCK) --no-headers)" ]; then # Detect whether have other case
         dloge "Find $SOF_LOCK already exist: $(ps -p $(cat $SOF_LOCK))"
-        exit 2 # now skip to run the test-case
+        # exit 2 # now skip to run the test-case
+        exit 3 # mark test-case as incomplete
     else # without other case
         dlogw "Prepare case exit is abnormal"
         echo $$ > /tmp/sof-test.lock # write self pid into lock file

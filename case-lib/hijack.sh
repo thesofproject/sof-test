@@ -69,6 +69,9 @@ function exit()
         2)
             dlogi "Test Result: SKIP!"
         ;;
+        3)
+            dlogi "Test Result: INCOMPLETE!"
+        ;;
         *)
             dlogi "Unknown test exit code: $exit_status"
         ;;
