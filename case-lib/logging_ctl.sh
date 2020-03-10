@@ -54,7 +54,10 @@ _func_log_cmd()
 # without setting up the LOG_ROOT keyword, now create the log directory for it
 _func_log_directory()
 {
-    [[ "$LOG_ROOT" ]] && return
+    if [ "$LOG_ROOT" ]; then
+        mkdir -p $LOG_ROOT
+        return
+    fi
 
     local case_name=$(basename ${BASH_SOURCE[-1]})
     local log_dir=$(dirname ${BASH_SOURCE[0]})/../logs/
