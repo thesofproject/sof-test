@@ -22,12 +22,30 @@ OPT_PARM_lst['t']=1         OPT_VALUE_lst['t']="$TPLG"
 OPT_OPT_lst['l']='loop'     OPT_DESC_lst['l']='loop count'
 OPT_PARM_lst['l']=1         OPT_VALUE_lst['l']=3
 
-OPT_OPT_lst['d']='delay'    OPT_DESC_lst['d']='delay time for state convert'
-OPT_PARM_lst['d']=1         OPT_VALUE_lst['d']=6
+OPT_OPT_lst['d']='delay'    OPT_DESC_lst['d']='max delay time for state convert'
+OPT_PARM_lst['d']=1         OPT_VALUE_lst['d']=15
 
 OPT_OPT_lst['s']='sof-logger'   OPT_DESC_lst['s']="Open sof-logger trace the data will store at $LOG_ROOT"
 OPT_PARM_lst['s']=0             OPT_VALUE_lst['s']=1
 
+# param: $1 -> max delay time for dsp pm status switch
+func_check_dsp_status()
+{
+    dlogi "wait dsp power status to become suspended"
+    for i in $(seq 1 $1)
+    do
+        # Here we pass a hardcoded 0 to python script, and need to ensure
+        # DSP is the first audio pci device in 'lspci', this is true unless
+        # we have a third-party pci sound card installed.
+        [[ $(sof-dump-status.py --dsp_status 0) == "suspended" ]] && break
+        sleep 1
+        if [ $i -eq $1 ]; then
+            dlogi "dsp is not suspended after $1s, end test"
+            exit 1
+        fi
+    done
+    dlogi "dsp suspended in ${i}s"
+}
 
 func_opt_parse_option $*
 tplg=${OPT_VALUE_lst['t']}
@@ -35,21 +53,8 @@ tplg=${OPT_VALUE_lst['t']}
 
 loop_count=${OPT_VALUE_lst['l']}
 
-platform=$(sof-dump-status.py -p)
-case $platform in
-    "byt"|"cht"|"hsw"|"bdw")
-        dlogi "$platform is not supported, skipping test case" && exit 2
-    ;;
-    *)
-        dlogi "Now test power status for $platform"
-    ;;
-esac
-
-runtime_status="/sys/bus/pci/devices/0000:$(lspci |awk '/[Aa]udio/ {print $1;}')/power/runtime_status"
-
-[[ ! -f $runtime_status ]] && dloge "no runtime_status entry: $runtime_status" && exit 1
-
-dlogc "Runtime status check: cat $runtime_status"
+[[ $(sof-dump-status.py --dsp_status 0) == "unsupported" ]] &&
+    dlogi "platform doesn't support runtime pm, skip test case" && exit 2
 
 [[ ${OPT_VALUE_lst['s']} -eq 1 ]] && func_lib_start_log_collect
 func_pipeline_export $tplg "type:playback"
@@ -77,19 +82,16 @@ do
         kill -0 $pid
         [[ $? -ne 0 ]] && dloge "aplay process for pcm $pcm is not alive" && exit 1
 
-        [[ -d /proc/$pid ]] && result=`cat $runtime_status`
+        [[ -d /proc/$pid ]] && result=`sof-dump-status.py --dsp_status 0`
 
         dlogi "runtime status: $result"
         if [[ $result == active ]]; then
             # stop playback device - check status again
             dlogc "kill process: kill -9 $pid"
             kill -9 $pid && wait $pid 2>/dev/null
-            dlogi "aplay end"
-            dlogc "sleep ${OPT_VALUE_lst['d']}"
-            sleep ${OPT_VALUE_lst['d']}
-
-            result=`cat $runtime_status`
-
+            dlogi "aplay killed"
+            func_check_dsp_status ${OPT_VALUE_lst['d']}
+            result=`sof-dump-status.py --dsp_status 0`
             dlogi "runtime status: $result"
             if [[ $result != suspended ]]; then
                 dloge "aplay process for pcm $pcm runtime status is not suspended as expected"
