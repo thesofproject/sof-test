@@ -16,8 +16,11 @@ function exit()
         sleep 1s
     fi
     # case quit to store current kernel log
-    [[ $DMESG_LOG_START_LINE -ne 0 ]] && \
+    if [ $DMESG_LOG_START_LINE -ne 0 ]; then
         tail -n +$DMESG_LOG_START_LINE /var/log/kern.log |cut -f5- -d ' ' > $LOG_ROOT/dmesg.txt
+    else
+        cat /var/log/kern.log |cut -f5- -d ' ' > $LOG_ROOT/dmesg.txt
+    fi
 
     # get ps command result as list
     OLD_IFS="$IFS" IFS=$'\n'
