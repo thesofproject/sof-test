@@ -61,6 +61,7 @@ do
         aplay -l
         dlogi "Dump arecord -l"
         arecord -l
+        sof-kernel-dump.sh > $LOOG_ROOT/kernel.txt
         exit 1
     fi
 
