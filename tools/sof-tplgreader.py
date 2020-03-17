@@ -79,12 +79,19 @@ class clsTPLGReader:
                     self._pipeline_lst.append(pb_pipeline_dict)
                 self._pipeline_lst.append(pipeline_dict)
 
-        # format pipeline, this change for script direct access 'rate' 'channel' 'dev'
+        # format pipeline, this change for script direct access 'rate' 'channel' 'dev' 'snd'
         for pipeline in self._pipeline_lst:
             #pipeline['fmt']=pipeline['fmt'].upper().replace('LE', '_LE')
             pipeline['rate'] = pipeline['rate_min'] if int(pipeline['rate_min']) != 0 else pipeline['rate_max']
             pipeline['channel'] = pipeline['ch_min']
             pipeline['dev'] = "hw:" + str(sofcard) + ',' + pipeline['id']
+            # the character devices for PCM under /dev/snd take the form of
+            # "pcmC + card_number + D + device_number + capability", eg, pcmC0D0p.
+            pipeline['snd'] = "/dev/snd/pcmC" + str(sofcard) + "D" + pipeline['id']
+            if pipeline['type'] == "playback":
+                pipeline['snd'] += 'p'
+            else:
+                pipeline['snd'] += 'c'
         return 0
 
     def _setlist(self, orig_lst):
