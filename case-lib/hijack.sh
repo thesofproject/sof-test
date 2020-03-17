@@ -37,7 +37,7 @@ function exit()
     IFS="$OLD_IFS"
     # now force kill target process which maybe block the script quit
     if [ ${#cmd_lst[@]} -gt 0 ]; then
-        dlogw "${BASH_SOURCE[-1]} on exit, these processes still exist:"
+        dlogw "Process(es) started by ${BASH_SOURCE[-1]} are still active, kill these process(es):"
         for line in "${cmd_lst[@]}"
         do
             # remove '^[:space:]' because IFS change to keep the '^[:space:]' in variable
@@ -76,7 +76,7 @@ function exit()
             dlogi "Test Result: INCOMPLETE!"
         ;;
         *)
-            dlogi "Unknown test exit code: $exit_status"
+            dlogi "Unknown exit code: $exit_status"
         ;;
     esac
 
@@ -101,7 +101,7 @@ sudo()
             return $?
         ;;
         *)      # without sudo permission
-            dlogw "without permission to run $*"
+            dlogw "Need root privilege to run $*"
     esac
     return 2
 }
