@@ -91,6 +91,7 @@ do
     dev=$(func_pipeline_parse_value $idx dev)
     pcm=$(func_pipeline_parse_value $idx pcm)
     pipeline_type=$(func_pipeline_parse_value $idx "type")
+    snd=$(func_pipeline_parse_value $idx snd)
 
     dlogi "Testing: run stop/start test on PCM:$pcm,$pipeline_type. Interval time: $interval"
     dlogc $cmd -D$dev -r $rate -c $channel -f $fmt $dummy_file -q &
@@ -105,6 +106,7 @@ do
     #     4. set params fails, etc
     sleep 0.5
     if [[ ! -d /proc/$pid ]]; then
+        lsof $snd
         dloge "$cmd process[$pid] is terminated too early"
         exit 1
     fi

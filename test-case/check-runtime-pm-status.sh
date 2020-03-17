@@ -76,6 +76,7 @@ do
     dev=$(func_pipeline_parse_value $idx dev)
     pcm=$(func_pipeline_parse_value $idx pcm)
     type=$(func_pipeline_parse_value $idx type)
+    snd=$(func_pipeline_parse_value $idx snd)
 
     cmd="${APP_LST[$type]}"
     dummy_file="${DEV_LST[$type]}"
@@ -93,7 +94,11 @@ do
         sleep 2.5
 
         kill -0 $pid
-        [[ $? -ne 0 ]] && dloge "$cmd process for pcm $pcm is not alive" && exit 1
+        if [ $? -ne 0 ]; then
+            func_lib_lsof_error_dump $snd
+            dloge "$cmd process for pcm $pcm is not alive"
+            exit 1
+        fi
 
         [[ -d /proc/$pid ]] && result=`sof-dump-status.py --dsp_status 0`
 
@@ -108,6 +113,7 @@ do
 
             dlogi "runtime status: $result"
             if [[ $result != suspended ]]; then
+                func_lib_lsof_error_dump $snd
                 dloge "$cmd process for pcm $pcm runtime status is not suspended as expected"
                 exit 1
             fi
@@ -116,6 +122,7 @@ do
             # stop playback or capture device otherwise no one will stop this $cmd.
             dlogc "kill process: kill -9 $pid"
             kill -9 $pid && wait $pid 2>/dev/null
+            func_lib_lsof_error_dump $snd
             exit 1
         fi
     done

@@ -75,6 +75,7 @@ do
         dev=$(func_pipeline_parse_value $idx dev)
         pcm=$(func_pipeline_parse_value $idx pcm)
         type=$(func_pipeline_parse_value $idx type)
+        snd=$(func_pipeline_parse_value $idx snd)
 
         if [ ${OPT_VALUE_lst['F']} = '1' ]; then
             fmt=$(func_pipeline_parse_value $idx fmts)
@@ -89,6 +90,7 @@ do
                 dlogc "aplay -D$dev -r $rate -c $channel -f $fmt_elem -d $duration $file -v -q"
                 aplay -D$dev -r $rate -c $channel -f $fmt_elem -d $duration $file -v -q
                 if [[ $? -ne 0 ]]; then
+                    func_lib_lsof_error_dump $snd
                     dmesg > $LOG_ROOT/aplay_error_${dev}_$i.txt
                     dloge "aplay on PCM $dev failed at $i/$loop_cnt."
                     exit 1

@@ -37,6 +37,7 @@ do
     rate=$(func_pipeline_parse_value $idx rate)
     fmt=$(func_pipeline_parse_value $idx fmt)
     dev=$(func_pipeline_parse_value $idx dev)
+    snd=$(func_pipeline_parse_value $idx snd)
 
     dlogc "speaker-test -D $dev -r $rate -c $channel -f $fmt -l $tcnt -t wav -P 8"
     speaker-test -D $dev -r $rate -c $channel -f $fmt -l $tcnt -t wav -P 8 2>&1 |tee $LOG_ROOT/result_$idx.txt
@@ -45,6 +46,7 @@ do
     if [[ $resultRet -eq 0 ]]; then
         grep -nr -E "error|failed" $LOG_ROOT/result_$idx.txt
         if [[ $? -eq 0 ]]; then
+            func_lib_lsof_error_dump $snd
             dloge "speaker test failed"
             exit 1
         fi
