@@ -133,3 +133,13 @@ func_lib_get_random()
     fi
 }
 
+func_lib_lsof_error_dump()
+{
+    local file=$1
+    [[ ! -f $file ]] && return
+    local ret=$(lsof $file)
+    if [ "$ret" ];then
+        dloge "Sound device file is in use:"
+        echo "$ret"
+    fi
+}

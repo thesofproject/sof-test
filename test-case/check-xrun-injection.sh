@@ -92,6 +92,7 @@ do
     dev=$(func_pipeline_parse_value $idx dev)
     pcm=$(func_pipeline_parse_value $idx pcm)
     id=$(func_pipeline_parse_value $idx id)
+    snd=$(func_pipeline_parse_value $idx snd)
     pipeline_type=$(func_pipeline_parse_value $idx "type")
     pcm=pcm${id}${test_type}
     xrun_injection="/proc/asound/card0/$pcm/sub0/xrun_injection"
@@ -111,6 +112,7 @@ do
     #     4. set params fails, etc
     sleep 0.5
     if [[ ! -d /proc/$pid ]]; then
+        func_lib_lsof_error_dump $snd
         dloge "$cmd process[$pid] is terminated too early"
         exit 1
     fi

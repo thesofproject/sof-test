@@ -91,6 +91,7 @@ do
     fmt=$(func_pipeline_parse_value $idx fmt)
     dev=$(func_pipeline_parse_value $idx dev)
     pcm=$(func_pipeline_parse_value $idx pcm)
+    snd=$(func_pipeline_parse_value $idx snd)
     dlogi "Run $TYPE command for the background"
     dlogc "$cmd -D$dev -r $rate -c $channel -f $fmt $file_name -q"
     $cmd -D$dev -r $rate -c $channel -f $fmt $file_name -q 2>/dev/null & process_id=$!
@@ -99,6 +100,7 @@ do
     # check process status is correct
     sof-process-state.sh $process_id
     if [ $? -ne 0 ]; then
+        func_lib_lsof_error_dump $snd
         dloge "error process state of $cmd"
         dlogi "dump ps for aplay & arecord"
         ps -ef |grep -E 'aplay|arecord'
@@ -112,6 +114,7 @@ do
     # check process status is correct
     sof-process-state.sh $process_id
     if [ $? -ne 0 ]; then
+        func_lib_lsof_error_dump $snd
         dloge "process status is abnormal"
         dlogi "dump ps for aplay & arecord"
         ps -ef |grep -E 'aplay|arecord'

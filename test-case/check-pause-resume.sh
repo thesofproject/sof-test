@@ -78,6 +78,7 @@ do
     rate=$(func_pipeline_parse_value $idx rate)
     fmt=$(func_pipeline_parse_value $idx fmt)
     dev=$(func_pipeline_parse_value $idx dev)
+    snd=$(func_pipeline_parse_value $idx snd)
 
     dlogi "Entering expect script with: $cmd -D $dev -r $rate -c $channel -f $fmt -vv -i $file_name -q"
 
@@ -112,6 +113,7 @@ END
     #flush the output
     echo
     if [ $ret -ne 0 ]; then
+        func_lib_lsof_error_dump $snd
         sof-process-kill.sh
         [[ $? -ne 0 ]] && dlogw "Kill process catch error"
         exit $ret
