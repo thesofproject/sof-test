@@ -64,16 +64,16 @@ class clsTPLGReader:
                     pb_pipeline_dict = pipeline_dict.copy()
                     pb_pipeline_dict["type"] = "playback"
                     cap = pcm["caps"][pcm['playback']]
-                    pga = pgas[pcm['capture']]
+                    pga = pgas[0] # idx 0 is playback PGA
                     if pga != []:
                         pga_names = [i['name'] for i in pga]
-                        pipeline_dict['pga'] = " ".join(pga_names)
-                    eq = eqs[pcm['capture']]
+                        pb_pipeline_dict['pga'] = " ".join(pga_names)
+                    eq = eqs[0]
                     if eq != []:
                         eq_names = [i['name'] for i in eq]
-                        pipeline_dict['eq'] = " ".join(eq_names)
+                        pb_pipeline_dict['eq'] = " ".join(eq_names)
                     pb_pipeline_dict["fmts"] = " ".join(formats[pcm['playback']])
-                    pipeline_dict['fmt'] = pipeline_dict['fmts'].split(' ')[0]
+                    pb_pipeline_dict['fmt'] = pb_pipeline_dict['fmts'].split(' ')[0]
                     pb_pipeline_dict['rate_min'], pb_pipeline_dict['rate_max'] = self._key2str(cap, 'rate')
                     pb_pipeline_dict['ch_min'], pb_pipeline_dict['ch_max'] = self._key2str(cap, 'channels')
                     self._pipeline_lst.append(pb_pipeline_dict)
