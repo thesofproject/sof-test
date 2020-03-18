@@ -84,7 +84,11 @@ func_lib_disable_pulseaudio()
     func_lib_check_sudo
     [[ ! -f $PULSEAUDIO_CONFIG.bak ]] && sudo cp $PULSEAUDIO_CONFIG $PULSEAUDIO_CONFIG.bak -f
     # because hijack the sudo command
-    sudo "sed -i '/autospawn/cautospawn = no' $PULSEAUDIO_CONFIG"
+    if [ "$(grep 'autospawn' $PULSEAUDIO_CONFIG)" ]; then
+        sudo "sed -i '/autospawn/cautospawn = no' $PULSEAUDIO_CONFIG"
+    else
+        sudo "bash -c 'echo \"autospawn = no\" >> $PULSEAUDIO_CONFIG'"
+    fi
     sudo pkill -9 pulseaudio
 }
 
