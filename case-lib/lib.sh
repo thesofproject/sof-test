@@ -90,6 +90,14 @@ func_lib_disable_pulseaudio()
         sudo "bash -c 'echo \"autospawn = no\" >> $PULSEAUDIO_CONFIG'"
     fi
     sudo pkill -9 pulseaudio
+    sleep 1s # wait pulseaudio to be disabled
+    if [ ! "$(ps -C pulseaudio --no-header)" ]; then
+        dlogi "Pulseaudio disabled"
+    else
+        # if failed to disable pulseaudio before running test case, fail the test case directly.
+        echo "Failed to disable pulseaudio"
+        exit 1
+    fi
 }
 
 func_lib_restore_pulseaudio()
@@ -105,19 +113,21 @@ func_lib_restore_pulseaudio()
         nohup sudo -u $user $cmd >/dev/null &
     done
     # now wait for the pulseaudio restore in the ps process
-    wait_t=0 timeout=10
-    while [ ! "$(ps -C pulseaudio --no-header)" ];
+    timeout=10
+    dlogi "Restoring pulseaudio"
+    for wait_time in $(seq 1 $timeout)
     do
-        wait_t=$[ $wait_t + 1 ]
         sleep 1s
-        if [ $wait_t -ge $timeout ]; then
-            dlogw "Time out. Pulseaudio not restored in $timeout seconds"
-            break
+        [ -n "$(ps -C pulseaudio --no-header)" ] && break
+        if [ $wait_time -eq $timeout ]; then
+             dlogi "Time out. Pulseaudio not restored in $timeout seconds"
+             return 1
         fi
     done
-    dlogi "Restoring pulseaudio takes $wait_t seconds"
+    dlogi "Restoring pulseaudio takes $wait_time seconds"
     unset PULSECMD_LST
     declare -ag PULSECMD_LST
+    return 0
 }
 
 func_lib_get_random()

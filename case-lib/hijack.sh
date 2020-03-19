@@ -48,9 +48,18 @@ function exit()
         done
     fi
 
-    # check if function already defined
-    # on exit check whether pulseaudio is disabled
-    [[ $(declare -f func_lib_restore_pulseaudio) ]] && func_lib_restore_pulseaudio
+    # check if function already defined.
+    # on exit check whether pulseaudio is disabled.
+    ret=0
+    if [[ $(declare -f func_lib_restore_pulseaudio) ]]; then
+        func_lib_restore_pulseaudio
+        ret=$?
+    fi
+    # if failed to restore pulseaudio, even test caes passed, set exit status to ret
+    # to make test case failed. this helps to dectect pulseaudio failures.
+    if [ $exit_status -eq 0 -a $ret -ne 0 ]; then
+        exit_status=ret
+    fi
 
     if [ -f $SOF_LOCK ]; then
         # use string compare instead of int to confirm file content correct
