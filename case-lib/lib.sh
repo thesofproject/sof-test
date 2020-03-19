@@ -23,11 +23,11 @@ if [ ! -f "$SOF_LOCK" ]; then # lock does not exist
     echo $$ > /tmp/sof-test.lock # write self pid into lock file
 elif [ ! "$(alias |grep -i 'Sub-Test')" ]; then # not the sub test-case
     if [ "$(ps -p $(cat $SOF_LOCK) --no-headers)" ]; then # lock exists
-        dloge "Find $SOF_LOCK already exist: $(ps -p $(cat $SOF_LOCK))"
+        dloge "Lock file $SOF_LOCK already exists: $(ps -p $(cat $SOF_LOCK))"
         # exit 2 # now skip to run the test-case
         exit 3 # mark test-case as incomplete
     else # without other case
-        dlogw "Prepare case exit is abnormal"
+        dlogw "Previous test case may exit abnormally"
         echo $$ > /tmp/sof-test.lock # write self pid into lock file
     fi
 fi
@@ -67,7 +67,7 @@ func_lib_check_sudo()
 {
     func_hijack_setup_sudo_level
     [[ $? -ne 0 ]] && \
-        dlogw "Next command needs root permission to run. If you haven't done so, please configure SUDO_PASSWD in case-lib/config.sh file" && \
+        dlogw "Command needs root privilege to run, please configure SUDO_PASSWD in case-lib/config.sh" && \
         exit 2
 }
 
@@ -111,11 +111,11 @@ func_lib_restore_pulseaudio()
         wait_t=$[ $wait_t + 1 ]
         sleep 1s
         if [ $wait_t -ge $timeout ]; then
-            dlogw "Restoring pulseaudio is taking too long: $timeout"
+            dlogw "Time out. Pulseaudio not restored in $timeout seconds"
             break
         fi
     done
-    dlogi "Restoring pulseaudio took $wait_t seconds"
+    dlogi "Restoring pulseaudio takes $wait_t seconds"
     unset PULSECMD_LST
     declare -ag PULSECMD_LST
 }
