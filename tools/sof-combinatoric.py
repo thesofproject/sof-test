@@ -4,8 +4,8 @@ import itertools
 import argparse
 
 parser = argparse.ArgumentParser(description='''
-Help to dump the permutation and combination:
-each combine split by SPACE,
+Returns a permutation or combination list:
+each combination split by SPACE,
 each element split by \',\'
 
 for example:
