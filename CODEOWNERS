@@ -11,7 +11,7 @@
 # file type
 *.py                    @Bin-QA @aiChaoSONG
 *.sh                    @Bin-QA
-*.md                    @fredoh9 @stripes41
+*.md                    @fredoh9 @stripes416
 
 # tools and caselib
 case-lib/*              @Bin-QA @xiulipan
