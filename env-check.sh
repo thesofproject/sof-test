@@ -89,7 +89,7 @@ case "$SUDO_LEVEL" in
         if [[ "$SUDO_LEVEL" -eq 2 ]]; then
             [[ ! "$SUDO_PASSWD" ]] &&  check_res=1 && out_str=$out_str"\n
 \tPlease setup \e[31mSUDO_PASSWD\e[0min $(dirname $0)/case-lib/config.sh file\n
-\t\tIf you don't want modify this value, you will need to export SUDO_PASSWD\n
+\t\tIf you don't want modify to this value, you will need to export SUDO_PASSWD\n
 \t\tso our scripts can access debugfs, as some test cases need it.\n
 \t\tYou also can modify the SUDO_LEVEL to 1, using visudo to modify the permission"
         fi
@@ -107,7 +107,8 @@ case "$SUDO_LEVEL" in
 esac
 [[ "$LOG_ROOT" ]] && [[ ! -d $LOG_ROOT ]] && check_res=1 && out_str=$out_str"\n
 \tAlready setup LOG_ROOT, but missing the folder: $LOG_ROOT\n
-\t\tMaybe in the script process will meet the permission issue, please check it."
+\t\tPossible permission error occurred during script execution. Please ensure\n
+\t\tthe permissions are properly set up according to instructions."
 
 [[ $check_res -eq 0 ]] && echo "pass" || \
     echo -e "\e[31mWarning\e[0m\nSolution:"$out_str
