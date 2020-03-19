@@ -1,7 +1,7 @@
 # SOF Test Case repo
 - [SOF Test Case repo](#sof-test-case-repo)
-  - [Enviroment set up](#enviroment-set-up)
-    - [requirments](#requirments)
+  - [Environment set up](#environment-set-up)
+    - [requirements](#requirements)
       - [apt packages](#apt-packages)
       - [user group](#user-group)
     - [env-check.sh](#env-checksh)
@@ -10,8 +10,8 @@
     - [tools](#tools)
   - [Folder description](#folder-description)
   - [Tools list description](#tools-list-description)
-## Enviroment set up
-### requirments
+## Environment set up
+### requirements
 #### apt packages
 expect alsa-utils python3
 ```
@@ -21,29 +21,38 @@ sudo apt install expect alsa-utils python3
 sudo adm audio
 
 ### env-check.sh
-You can use this scripts to check what you missed and follow the guide to set the enviroment
+You can use this script to ensure the sof-test environment is set up properly
 
 ## Usage
 ### test cases
-call the scripts directly.
--h will show the usage for the test
+To run a test, call the scripts directly
+ * `-h` will show the usage for the test
 
 Example:
 ```
-$ ./test-case/verify-sof-firmware-load.sh
-2019-12-12 07:29:46 UTC [INFO] Checking SOF Firmware load info in kernel log
-kernel: [    3.296245] sof-audio-pci 0000:00:0e.0: Firmware info: version 1:1:0-65de2
-kernel: [    3.296247] sof-audio-pci 0000:00:0e.0: Firmware: ABI 3:12:0 Kernel ABI 3:12:0
-kernel: [    3.296249] sof-audio-pci 0000:00:0e.0: Firmware debug build 1 on Dec  4 2019-21:17:51 - options:
-kernel: [    3.296249]  GDB: disabled
-kernel: [    3.296249]  lock debug: disabled
-kernel: [    3.296249]  lock vdebug: disabled
-2019-12-12 07:29:47 UTC [INFO] Test PASS!
-```
+~/sof-test/test-case$ ./check-playback.sh -h
+Usage: ./check-playback.sh [OPTION]
 
+    -F |  --fmts
+	    Iterate all supported formats
+	    Default Value: Off
+    -d parameter |  --duration parameter
+	    aplay duration in second
+	    Default Value: 10
+    ...
+```
+```
+~/sof-test/test-case$ ./check-playback.sh -d 4
+2020-03-19 22:13:32 UTC [INFO] no source file, use /dev/zero as dummy playback source
+2020-03-19 22:13:32 UTC [INFO] ./check-playback.sh using /lib/firmware/intel/sof-tplg/sof-apl-pcm512x.tplg as target TPLG to run the test case
+2020-03-19 22:13:32 UTC [INFO] Catch block option from TPLG_BLOCK_LST will block 'pcm=HDA Digital,Media Playback,DMIC16k' for /lib/firmware/intel/sof-tplg/sof-apl-pcm512x.tplg
+2020-03-19 22:13:32 UTC [INFO] Run command: 'sof-tplgreader.py /lib/firmware/intel/sof-tplg/sof-apl-pcm512x.tplg -f type:playback,both -b pcm:'HDA Digital,Media Playback,DMIC16k' -s 0 -e' to get BASH Array
+2020-03-19 22:13:32 UTC [INFO] Testing: (Round: 1/1) (PCM: Port5 [hw:0,0]<both>) (Loop: 1/3)
+    ...
+```
 ### tools
-call the scripts directly.
--h will show the usage for the tool
+To use tool script, call the scripts directly
+ * `-h` will show the usage for the tool
 
 Example:
 ```
@@ -53,14 +62,14 @@ apl
 
 ## Folder description
 * case-lib
-<br> Test case helper functions libary
+<br> Test case helper functions library
 
 * test-case
-<br> Test case folder holds the test cases
+<br> The test cases
 
 * tools
-<br> Script helper tools for setting up system.
-<br> Can be used via the command line
+<br> Script helper tools for the test cases.
+<br> Can also be used directly via the command line
 <br> Filenames should have the "sof-" prefix
 
 * logs
@@ -76,30 +85,38 @@ apl
 <br> example: sof-boot-once.sh reboot
 <br> Effect: when system boots up it will auto reboot again
 
-* sof-dmesg-check.sh
-<br> Check dmesg for errors
-<br> Contains keyword lists to ensure we're stopping due to a real error.
+* sof-combinatoric.py
+<br> Used to compute permutations or combinations of the various pipelines
+     avilable during tests if multiple are needed at once.
 
-* tplgtool.py
-<br> tplgtool dump info from tplg binary file.
-
-* sof-tplgreader.py
-<br> tplgtool.py wrapper, it read info from tplgtool.py to analyze tplgs.
+* sof-disk-usage.sh
+<br> Used to ensure we have enough disk space to collect logs and avoid system
+     problems.
 
 * sof-dump-status.py
 <br> Dump the sound card status
 
-* sof-process-clear.sh
-<br> force confirm kill process
-
 * sof-get-default-tplg.sh
 <br> Load the tplg file name from system log which is recorded from system bootup
 
-* sof-kernel-dump.sh
-<br> catch all kernel information after system boot up from /var/log/kern.log file
-
 * sof-get-kernel-line.sh
-<br> print all kernel versions and their line numbers from /var/log/kern.log, with the most recent <first/last>
+<br> Print all kernel versions and their line numbers from /var/log/kern.log,
+     with the most recent <first/last>
 
-* sof-disk-usage.sh
-<br> check current disk size for avoid system problem without enough space
+* sof-kernel-dump.sh
+<br> Catch all kernel information after system boot up from /var/log/kern.log file
+
+* sof-kernel-log-check.sh
+<br> Check dmesg for errors and ensure that any found are real errors
+
+* sof-process-kill.sh
+<br> Kills aplay or arecord processes
+
+* sof-process-state.sh
+<br> Shows the current state of a given process
+
+* sof-tplgreader.py
+<br> tplgtool.py wrapper, it reads info from tplgtool.py to analyze topologies.
+
+* tplgtool.py
+<br> Dumps info from tplg binary file.
