@@ -17,21 +17,6 @@ if [ ! "$SOFCARD" ]; then
     SOFCARD=$(grep '\]: sof-[a-z]' /proc/asound/cards|awk '{print $1;}')
 fi
 
-# Add lock to ensure only one sof-test test-case can run at a time
-SOF_LOCK="/tmp/sof-test.lock"
-if [ ! -f "$SOF_LOCK" ]; then # lock does not exist
-    echo $$ > /tmp/sof-test.lock # write self pid into lock file
-elif [ ! "$(alias |grep -i 'Sub-Test')" ]; then # not the sub test-case
-    if [ "$(ps -p $(cat $SOF_LOCK) --no-headers)" ]; then # lock exists
-        dloge "Lock file $SOF_LOCK already exists: $(ps -p $(cat $SOF_LOCK))"
-        # exit 2 # now skip to run the test-case
-        exit 3 # mark test-case as incomplete
-    else # without other case
-        dlogw "Previous test case may exit abnormally"
-        echo $$ > /tmp/sof-test.lock # write self pid into lock file
-    fi
-fi
-
 if [ ! "$DMESG_LOG_START_LINE" ]; then
     declare -g DMESG_LOG_START_LINE=$(wc -l /var/log/kern.log|awk '{print $1;}')
 fi

@@ -61,16 +61,6 @@ function exit()
         exit_status=ret
     fi
 
-    if [ -f $SOF_LOCK ]; then
-        # use string compare instead of int to confirm file content correct
-        # just remove the current pid lock file
-        if [ "X$$" == "X$(cat $SOF_LOCK)" ]; then
-            rm -rf $SOF_LOCK
-        fi
-    else
-        dlogw "Missing lock file: $SOF_LOCK"
-    fi
-
     case $exit_status in
         0)
             dlogi "Test Result: PASS!"
