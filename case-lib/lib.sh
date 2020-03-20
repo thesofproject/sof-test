@@ -135,8 +135,8 @@ func_lib_get_random()
     # RANDOM: Each time this parameter is referenced, a random integer between 0 and 32767 is generated
     local random_max random_min random_scope
     if [ $# -ge 2 ];then
-        random_max=$2
-        random_min=$1
+        random_max=$1
+        random_min=$2
         random_scope=$(expr $random_max - $random_min)
         expr $RANDOM % $random_scope + $random_min
     elif [ $# -eq 1 ];then
