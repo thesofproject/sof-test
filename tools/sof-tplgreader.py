@@ -10,7 +10,7 @@ class clsTPLGReader:
         self._pipeline_lst = []
         self._output_lst = []
         self._field_lst = []
-        self._filter_lst = []
+        self._filter_dict = {"filter":[], "op":[]}
         self._ignore_lst = []
 
     def __comp_pipeline(self, pipeline):
@@ -87,6 +87,24 @@ class clsTPLGReader:
             pipeline['dev'] = "hw:" + str(sofcard) + ',' + pipeline['id']
         return 0
 
+    @staticmethod
+    def list_and(lst1, lst2):
+        assert(lst1 is not None and lst2 is not None)
+        output_lst = []
+        for elem in lst1:
+            if elem in lst2:
+                output_lst.append(elem)
+        return output_lst
+
+    @staticmethod
+    def list_or(lst1, lst2):
+        assert(lst1 is not None and lst2 is not None)
+        output_lst = lst1.copy()
+        for elem in lst2:
+            if elem not in output_lst:
+                output_lst.append(elem)
+        return output_lst
+
     def _setlist(self, orig_lst):
         tmp_lst = []
         if orig_lst is None:
@@ -98,8 +116,9 @@ class clsTPLGReader:
             tmp_lst.append(orig_lst)
         return tmp_lst
 
-    def setFilter(self, filter_lst=None):
-        self._filter_lst = self._setlist(filter_lst)[:]
+    def setFilter(self, filter_dict=None):
+        self._filter_dict['filter'] = self._setlist(filter_dict['filter'])[:]
+        self._filter_dict['op'] = self._setlist(filter_dict['op'])
 
     def setField(self, field_lst):
         self._field_lst = self._setlist(field_lst)[:]
@@ -110,20 +129,45 @@ class clsTPLGReader:
     def _filterOutput(self, target_lst, filter_dict, bIn):
         self._output_lst.clear()
         for line in target_lst[:]:
+            check = False
             for key, value in filter_dict.items():
-                # match for 'keyword'/'keyword [0-9]' target line
-                check = len ([em for em in value if re.match(em + '$|' + em + '[^a-zA-Z]', line[key], re.I)]) > 0
+                if 'any' in value or value == ['']:
+                    check = True if key in line.keys() else False
+                else:
+                    # match for 'keyword'/'keyword [0-9]' target line
+                    check = len ([em for em in value if re.match(em + '$|' + em + '[^a-zA-Z]', str(line[key]), re.I)]) > 0
                 if check is bIn:
                     break
             else:
                 self._output_lst.append(line)
 
+        return self._output_lst.copy()
+
     def _filterKeyword(self):
-        if len(self._filter_lst) == 0:
+        if len(self._filter_dict['filter']) == 0:
             return
-        for filter_dict in self._filter_lst:
-            tmp_lst = self._output_lst[:]
-            self._filterOutput(tmp_lst, filter_dict, False)
+
+        full_list = self._output_lst[:]
+        filtered = None
+        # pipelines filtered by the first filter item
+        for key, value in self._filter_dict['filter'][0].items():
+            if key.startswith('~'):
+                filtered = self._filterOutput(full_list, {key[1:]:value}, True)
+            else:
+                filtered = self._filterOutput(full_list, {key:value}, False)
+        # do filtering by the rest filter items and logic operations
+        for idx in range(1, len(self._filter_dict['filter'])):
+            new_filtered = None
+            for key, value in self._filter_dict['filter'][idx].items():
+                if key.startswith("~"):
+                    new_filtered = self._filterOutput(full_list, {key[1:]:value} , True)
+                else:
+                    new_filtered = self._filterOutput(full_list, {key:value}, False)
+            if self._filter_dict['op'][idx-1] == '&':
+                filtered = self.list_and(filtered, new_filtered)
+            if self._filter_dict['op'][idx-1] == '|':
+                filtered = self.list_or(filtered, new_filtered)
+        self._output_lst = filtered # the final filtered pipeline list
 
     def _filterField(self):
         if len(self._field_lst) == 0:
@@ -201,13 +245,17 @@ if __name__ == "__main__":
 
     parser.add_argument('filename', type=str, help='tplg file name, multi-tplg file name use "," to split it')
     parser.add_argument('-s', '--sofcard', type=int, help='sofcard id', default=0)
-    parser.add_argument('-f', '--filter', type=str, nargs='+',
-        help='''setup filter, this value is format value,
-string format is 'key':'value','value'
-for example: Get "type" is "capture"
-type: capture
-for example: Get "type" is "capture, both" and "fmt" is S16_LE
-type:capture,both fmt:S16_LE
+    parser.add_argument('-f', '--filter', type=str,
+        help='''setup filter, command line parameter
+string format is 'key':'value','value', the filter
+string support & | and ~ logic operation.
+if only care about key, you can use 'key':'any'.
+Example Usage:
+`-f "type:any` -> all pipelines
+`-f "type:playback"` -> playback pipelines
+`-f "type:capture & pga"` -> capture pipelines with PGA
+`-f "pga & eq"` -> pipelines with both EQ and PGA
+`-f "id:3"` -> pipeline whose id is 3
 ''')
     parser.add_argument('-b', '--ignore', type=str, nargs='+',
         help='''setup ignore list, this value is format value,
@@ -231,16 +279,26 @@ PIPELINE_$ID['key']='value' ''')
     ret_args = vars(parser.parse_args())
 
     tplgreader = clsTPLGReader()
-    filter_lst = []
+    filter_dict = {"filter":[], "op":[]}
     dump_lst = []
     ignore_lst = []
     pipeline_lst = []
     tplg_root = ""
 
     if ret_args['filter'] is not None and len(ret_args['filter']) > 0:
-        for emStr in ret_args['filter']:
-            key, flag, value=emStr.partition(':')
-            filter_lst.append({key.strip():value.strip().replace('[','').replace(']','').split(',')})
+        # parse filter string into two structures, one is dict list for each filter item,
+        # and another is logic operation list.
+        filter_lst = []
+        op_lst = []
+        for filter_elem in ret_args['filter'].split('|'):
+            for item in filter_elem.split('&'):
+                key, _, value = item.partition(':')
+                filter_lst.append({key.strip():value.strip().split(',')})
+        for char in ret_args['filter']:
+            if char == '|' or char == "&":
+                op_lst.append(char)
+        filter_dict['filter'] = filter_lst
+        filter_dict['op'] = op_lst
 
     if ret_args['ignore'] is not None and len(ret_args['ignore']) > 0:
         for emStr in ret_args['ignore']:
@@ -250,8 +308,9 @@ PIPELINE_$ID['key']='value' ''')
     if ret_args['dump'] is not None and len(ret_args['dump']) > 0:
         dump_lst = ret_args['dump']
 
-    if len(filter_lst) > 0:
-        tplgreader.setFilter(filter_lst)
+    if len(filter_dict['filter']) > 0:
+        tplgreader.setFilter(filter_dict)
+
     if len(ignore_lst) > 0:
         tplgreader.setIgnore(ignore_lst)
     if len(dump_lst) > 0:
@@ -278,5 +337,3 @@ PIPELINE_$ID['key']='value' ''')
     else:
         for pipeline in pipeline_lst:
             print(func_dump_pipeline(pipeline, ret_args['value']))
-
-
