@@ -47,23 +47,46 @@ if [[ ! -f $ldcFile ]]; then
 fi
 dlogi "Found file: $(md5sum $ldcFile|awk '{print $2, $1;}')"
 
-tmp_file=/tmp/$RANDOM.sof-logger.log
+rdnum=$RANDOM
+tmp_file=/tmp/$rdnum.logger.log
+err_tmp_file=/tmp/$rdnum.err_logger.log
 
 func_lib_check_sudo
 
 dlogi "Try to dump the dma trace log via sof-logger ..."
-dlogc "sudo $loggerBin -t -l $ldcFile -o $tmp_file 2>&1 &"
-sudo $loggerBin -t -l $ldcFile -o $tmp_file 2>&1 &
+# sof-logger errors will output to $err_tmp_file
+dlogc "sudo $loggerBin -t -l $ldcFile -o $tmp_file 2> $err_tmp_file &"
+sudo $loggerBin -t -l $ldcFile -o $tmp_file 2> $err_tmp_file &
 sleep 2
 dlogc "sudo pkill -9 $(basename $loggerBin)"
 sudo pkill -9 $(basename $loggerBin) 2> /dev/null
 
-# get size of trace log$
-size=`du -k $tmp_file | awk '{print $1}'`
-if [[ $size -lt 1 ]]; then
-    dloge "No available log export."
+# check if we get any sof-logger errors
+logger_err=`grep -i "error" $err_tmp_file`
+if [[ $logger_err ]]; then
+    dloge "No available log to export due to sof-logger errors."
+    dlogi "Logger error BEG>>"
+    cat $err_tmp_file
+    dlogi "<<END Logger error"
     exit 1
 fi
+# get size of trace log$
+size=`du -k $tmp_file | awk '{print $1}'`
+fw_log_err=`grep -i "error" $tmp_file`
+# 100 here is log header size
+# only log header and no fw log
+if [[ $size -le 100 ]]; then
+    dloge "No available log to export."
+    exit 1
+# we catch error from fw log
+elif [[ $fw_log_err ]]; then
+    dloge "Errors in firmware log:"
+    dlogi "Log data BEG>>"
+    cat $tmp_file
+    dlogi "<<END log data"
+    exit 1
+fi
+# no error with sof-logger and no error in fw log
 dlogi "Log data BEG>>"
 cat $tmp_file
 dlogi "<<END log data"
