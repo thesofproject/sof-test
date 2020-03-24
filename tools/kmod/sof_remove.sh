@@ -14,7 +14,7 @@ remove_module() {
     fi
 }
 
-remove_module snd_usb_audio
+remove_module -f snd_usb_audio
 
 remove_module snd_hda_intel
 remove_module sof_pci_dev
