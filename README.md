@@ -8,6 +8,7 @@
   - [Usage](#usage)
     - [test cases](#test-cases)
     - [tools](#tools)
+    - [test case result](#test-case-result)
   - [Folder description](#folder-description)
   - [Tools list description](#tools-list-description)
 ## Environment set up
@@ -59,6 +60,14 @@ Example:
 $ ./tools/sof-dump-status.py -p
 apl
 ```
+
+### test case result
+| exit code | display | description            |
+| --------- | ------- | ---------------------- |
+| 0         | PASS    | Test has passed        |
+| 1         | FAIL    | Test has failed        |
+| 2         | N/A     | Test is not applicable |
+| *         |         | unknown exit status    |
 
 ## Folder description
 * case-lib
