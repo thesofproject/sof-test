@@ -63,6 +63,7 @@ remove_module snd_soc_rt286
 remove_module snd_soc_rt298
 remove_module snd_soc_rt700
 remove_module snd_soc_rt711
+remove_module snd_soc_rt1308
 remove_module snd_soc_rt1308_sdw
 remove_module snd_soc_rt715
 remove_module snd_soc_rt1011
