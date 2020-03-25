@@ -201,11 +201,13 @@ class clsTPLGReader:
         if len(self._output_lst) != 0:
             self._output_lst.sort(key=self.__comp_pipeline)
 
-    def getPipeline(self):
+    def getPipeline(self, sort=False):
         self._output_lst = self._pipeline_lst[:]
         self._filterKeyword()
         self._ignoreKeyword()
         self._filterField()
+        if sort:
+            self.sortPipeline()
         return self._output_lst
 
 if __name__ == "__main__":
@@ -241,9 +243,7 @@ if __name__ == "__main__":
         if tplgObj.loadFile(tplgName, sdcard_id) != 0:
             print("tplgreader load file %s failed" %(tplgName))
             exit(1)
-        if sort:
-            tplgreader.sortPipeline()
-        return tplgObj.getPipeline()
+        return tplgObj.getPipeline(sort)
 
     import argparse
 
