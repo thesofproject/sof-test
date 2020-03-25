@@ -56,7 +56,7 @@ func_lib_check_sudo
 dlogi "Try to dump the dma trace log via sof-logger ..."
 # sof-logger errors will output to $err_tmp_file
 dlogc "sudo $loggerBin -t -l $ldcFile -o $tmp_file 2> $err_tmp_file &"
-sudo $loggerBin -t -l $ldcFile -o $tmp_file 2> $err_tmp_file &
+sudo bash -c "'$loggerBin -t -l $ldcFile -o $tmp_file 2> $err_tmp_file &'"
 sleep 2
 dlogc "sudo pkill -9 $(basename $loggerBin)"
 sudo pkill -9 $(basename $loggerBin) 2> /dev/null
@@ -73,9 +73,9 @@ fi
 # get size of trace log$
 size=`du -k $tmp_file | awk '{print $1}'`
 fw_log_err=`grep -i "error" $tmp_file`
-# 100 here is log header size
+# 4 here is log header size
 # only log header and no fw log
-if [[ $size -le 100 ]]; then
+if [[ $size -le 4 ]]; then
     dloge "No available log to export."
     exit 1
 # we catch error from fw log
