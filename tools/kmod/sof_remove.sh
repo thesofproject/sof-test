@@ -97,6 +97,8 @@ remove_module snd_hda_codec_generic
 remove_module snd_soc_acpi
 remove_module snd_hda_ext_core
 
+remove_module snd_intel_dspcfg
+
 remove_module soundwire_intel_init
 remove_module soundwire_intel
 remove_module soundwire_cadence
