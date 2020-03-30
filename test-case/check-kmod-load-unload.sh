@@ -89,6 +89,10 @@ do
     ## - 2a: check for errors after insertion
     dlogi "checking for general errors after kmod insert with sof-kernel-log-check tool"
     sof-kernel-log-check.sh $KERNEL_LAST_LINE
+    if [[ $? -ne 0 ]]; then
+        dloge "Found error(s) in kernel log after module insertion"
+        exit 1
+    fi
 
     dlogi "checking for fw_boot success"
     keyword_info=$(dmesg |grep sof-audio | grep 'boot complete')
