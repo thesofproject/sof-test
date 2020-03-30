@@ -59,8 +59,10 @@ do
         # Here we pass a hardcoded 0 to python script, and need to ensure
         # DSP is the first audio pci device in 'lspci', this is true unless
         # we have a third-party pci sound card installed.
-        [[ $(sof-dump-status.py --dsp_status 0) == "unsupported" ]] &&
-            dlogi "platform doesn't support runtime pm, skip waiting" && break
+        if [[ $(sof-dump-status.py --dsp_status 0) == "unsupported" ]]; then
+            dlogi "platform doesn't support runtime pm, skip waiting"
+            break
+        fi
         [[ $(sof-dump-status.py --dsp_status 0) == "suspended" ]] && break
         sleep 1
         if [ $i -eq 15 ]; then
@@ -76,9 +78,10 @@ do
     ## - 1a: check for errors after removal
     dlogi "checking for general errors after kmod unload with sof-kernel-log-check tool"
     sof-kernel-log-check.sh $KERNEL_LAST_LINE
-    [[ $? -ne 0 ]] && \
-        dloge "error found after kmod unload is real error, failing" && \
+    if [[ $? -ne 0 ]]; then
+        dloge "error found after kmod unload is real error, failing"
         exit 1
+    fi
 
     func_lib_setup_kernel_last_line
     dlogi "run kmod/sof_insert.sh"
@@ -96,9 +99,10 @@ do
 
     dlogi "checking for fw_boot success"
     keyword_info=$(dmesg |grep sof-audio | grep 'boot complete')
-    [[ ! "$keyword_info" ]] && \
-        dloge "Error: Boot Complete not found in dmesg, fw_boot empty" && \
+    if [[ ! "$keyword_info" ]]; then
+        dloge "Error: Boot Complete not found in dmesg, fw_boot empty"
         exit 1
+    fi
 
     # successful remove/insert module pass
     dlogi "==== completed boot firmware: $idx of $loop_cnt ===="
