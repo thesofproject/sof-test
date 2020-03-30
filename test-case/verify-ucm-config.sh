@@ -144,15 +144,13 @@ func_verify_verb_device()
     return 0
 }
 
-ucm_folder=/usr/share/alsa/ucm
-
 sofcard=${SOFCARD:-0}
 cardname=$(sof-dump-status.py -s $sofcard)
 [[ $? -ne 0 ]] && exit 1
 
 # 1. use alsaucm to open the card
-dlogc "alsaucm open '$cardname'"
-alsaucm open "$cardname" 2>/dev/null
+dlogc "alsaucm -c ${cardname} open ${cardname}"
+alsaucm -c "${cardname}" open "${cardname}" 2>/dev/null
 [[ $? -ne 0 ]] && dloge "open card '$cardname' failed!" && exit 1
 
 # 2. try to reload the card to the initial settings.
