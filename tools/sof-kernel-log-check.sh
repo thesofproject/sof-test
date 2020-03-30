@@ -28,8 +28,10 @@ else
 fi
 
 if [ "$err" ]; then
-    echo "Caught error: $err"
-    echo "kernel log has error(s)"
+    echo `date -u '+%Y-%m-%d %T %Z'` "[ERROR]" "Caught dmesg error"
+    echo "===========================>>"
+    echo "$err"
+    echo "<<==========================="
     builtin exit 1
 fi
 
