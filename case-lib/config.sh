@@ -8,7 +8,6 @@ SUDO_PASSWD=${SUDO_PASSWD:-}
 
 # global define
 TPLG_ROOT=${TPLG_ROOT:-/lib/firmware/intel/sof-tplg}
-PULSEAUDIO_CONFIG=${PULSEAUDIO_CONFIG:-/etc/pulse/client.conf}
 
 # ignore the target keyword for tplg
 # example: ignore 'pipeline ids equal to 2'

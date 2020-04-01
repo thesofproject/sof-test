@@ -57,6 +57,7 @@ func_lib_check_sudo()
 }
 
 declare -ag PULSECMD_LST
+declare -ag PULSE_PATHS
 
 func_lib_disable_pulseaudio()
 {
@@ -67,13 +68,15 @@ func_lib_disable_pulseaudio()
     IFS="$OLD_IFS"
     [[ "${#PULSECMD_LST[@]}" -eq 0 ]] && return
     func_lib_check_sudo
-    [[ ! -f $PULSEAUDIO_CONFIG.bak ]] && sudo cp $PULSEAUDIO_CONFIG $PULSEAUDIO_CONFIG.bak -f
-    # because hijack the sudo command
-    if [ "$(grep 'autospawn' $PULSEAUDIO_CONFIG)" ]; then
-        sudo "sed -i '/autospawn/cautospawn = no' $PULSEAUDIO_CONFIG"
-    else
-        sudo "bash -c 'echo \"autospawn = no\" >> $PULSEAUDIO_CONFIG'"
-    fi
+    # get all running pulseaudio paths
+    PULSE_PATHS=( $(ps -C pulseaudio -o cmd --no-header | awk '{print $1}') )
+    for PA_PATH in "${PULSE_PATHS[@]}"
+    do
+        # rename pulseaudio before kill it
+        if [ -x "$PA_PATH" ]; then
+            sudo mv -f $PA_PATH $PA_PATH.bak
+        fi
+    done
     sudo pkill -9 pulseaudio
     sleep 1s # wait pulseaudio to be disabled
     if [ ! "$(ps -C pulseaudio --no-header)" ]; then
@@ -89,7 +92,14 @@ func_lib_restore_pulseaudio()
 {
     [[ "${#PULSECMD_LST[@]}" -eq 0 ]] && return
     func_lib_check_sudo
-    [[ -f $PULSEAUDIO_CONFIG.bak ]] && sudo mv -f $PULSEAUDIO_CONFIG.bak $PULSEAUDIO_CONFIG
+    # restore pulseaudio
+    for PA_PATH in "${PULSE_PATHS[@]}"
+    do
+        if [ -x "$PA_PATH.bak" ]; then
+            sudo mv -f $PA_PATH.bak $PA_PATH
+        fi
+    done
+    # start pulseaudio
     local cmd="" user="" line=""
     for line in "${PULSECMD_LST[@]}"
     do
@@ -111,7 +121,9 @@ func_lib_restore_pulseaudio()
     done
     dlogi "Restoring pulseaudio takes $wait_time seconds"
     unset PULSECMD_LST
+    unset PULSE_PATHS
     declare -ag PULSECMD_LST
+    declare -ag PULSE_PATHS
     return 0
 }
 
