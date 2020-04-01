@@ -65,7 +65,7 @@ function exit()
     # if failed to restore pulseaudio, even test caes passed, set exit status to ret
     # to make test case failed. this helps to dectect pulseaudio failures.
     if [ $exit_status -eq 0 -a $ret -ne 0 ]; then
-        exit_status=ret
+        exit_status=$ret
     fi
 
     case $exit_status in
