@@ -611,7 +611,7 @@ class TplgFormatter:
     # return values:
     #   link_head_list: head node list of every graph
     #   node_list: list of all nodes
-    def _link_graph(self):
+    def link_graph(self):
         node_list = self._init_node_list()
         # const variables for graph
         SOURCE = 0
@@ -714,7 +714,7 @@ class TplgFormatter:
     #   [0]: specified components connected to playback
     #   [1]: specified components connected to capture
     def find_comp_for_pcm(self, pcm, comp_type):
-        _, node_list = self._link_graph()
+        _, node_list = self.link_graph()
         pcm_name = [pcm["caps"][0]["name"], pcm["caps"][1]["name"]]
         playback_node = self.find_node_by_name(pcm_name[0], node_list) # playback node
         capture_node = self.find_node_by_name(pcm_name[1], node_list) # capture node
@@ -751,8 +751,16 @@ if __name__ == "__main__":
 
         parser.add_argument('--version', action='version', version='%(prog)s 1.0')
         parser.add_argument('-t', '--tplgroot', type=str, help="load tplg file from tplg_root folder")
-        parser.add_argument('filename', type=str, help='topology file name(s),' \
-            'if multiple topology file names are specified, please use "," to seperate them')
+        parser.add_argument('-d', '--dump', type=str, help='dump specified topology information, '
+            'if multiple information types are wanted, use "," to separate them, eg, `-d pcm,graph`')
+        parser.add_argument('filename', type=str, help='topology file name(s), ' \
+            'if multiple topology file names are specified, please use "," to separate them')
+        # The below options are used to control generated graph
+        parser.add_argument('-D', '--directory', type=str, default=".", help="output directory for generated graph")
+        parser.add_argument('-F', '--format', type=str, default="png", help="output format for generated graph, check "
+            "https://graphviz.gitlab.io/_pages/doc/info/output.html for all supported formats")
+        parser.add_argument('-V', '--live_view', action="store_true", help="generate and view topology graph")
+
 
         return vars(parser.parse_args())
 
@@ -777,11 +785,76 @@ if __name__ == "__main__":
             tplg_paths.append(f)
         return tplg_paths
 
+    # connect nodes
+    def connect(graph, head):
+        assert(head is not None) # make sure head is not None
+        if head["sink"] != None and type(head["sink"]) != list:
+            graph.edge(head["name"], head["sink"]["name"])
+            connect(graph, head["sink"])
+        elif head["sink"] != None:
+            for node in head["sink"]:
+                graph.edge(head["name"], node["name"])
+                connect(graph, node)
+
+    # traverse all nodes, and add them to graph
+    def init_node(graph, head):
+        # this function is used to deal with multiple connections.
+        def inner_init(graph, head):
+            if head["sink"] != None and type(head) != list:
+                graph.node(name=head["name"],)
+                init_node(graph, head["sink"])
+            elif head["sink"] != None:
+                for node in head["sink"]:
+                    init_node(graph, node,)
+            else :
+                graph.node(name=head["name"])
+
+        assert(head is not None) # make sure head is not None
+        if type(head) != list:
+            inner_init(graph, head)
+        else :
+            for subhead in head:
+                inner_init(graph, subhead)
+
     def dump_pcm_info(parsed_tplgs):
         for tplg in parsed_tplgs:
             formatter = TplgFormatter(tplg)
             formatter.format_pcm()
             print()
+
+    def dump_graph(parsed_tplgs, cmd_args):
+        try:
+            from graphviz import Digraph
+        except:
+            print("graphviz package not installed, please install with `sudo apt install python3-graphviz`")
+            sys.exit(1)
+
+        format = cmd_args['format'].strip()
+        dir = cmd_args['directory'].strip()
+
+        for tplg in parsed_tplgs:
+            # the last element in tplg is topology path
+            outfile = tplg[-1].split(sep='/')[-1].split('.')[0]
+            formatter = TplgFormatter(tplg)
+            head_list, _ = formatter.link_graph()
+
+            graph = Digraph("Topology Graph", format=format)
+            # Here we make every pipeline as a subgraph, this gives us more precise control
+            for head in head_list:
+                subgraph = Digraph('Pipeline' + head['name'])
+                init_node(subgraph, head)
+                connect(subgraph,head)
+                # add subgraph to the graph
+                graph.subgraph(graph=subgraph)
+            # Developers may want to view graph without saving it.
+            if cmd_args['live_view']:
+                # if run the tool over ssh, live view feature will be disabled
+                if 'DISPLAY' not in os.environ.keys():
+                    print("No available GUI over ssh, unable to view the graph")
+                else:
+                    graph.view(filename=outfile, directory='/tmp', cleanup=True)
+            else:
+                graph.render(filename=outfile, directory=dir, cleanup=True)
 
     parsed_tplg_list = []
 
@@ -794,4 +867,10 @@ if __name__ == "__main__":
     for tplg in tplg_paths:
         parsed_tplg_list.append(tplg_parser.parse(tplg))
 
-    dump_pcm_info(parsed_tplg_list)
+    supported_dump = ['pcm', 'graph']
+    dump_types = supported_dump if cmd_args['dump'] is None else cmd_args['dump'].split(',')
+    dump_types = list(map(lambda elem: elem.strip(), dump_types))
+    if 'pcm' in dump_types:
+        dump_pcm_info(parsed_tplg_list)
+    if 'graph' in dump_types:
+        dump_graph(parsed_tplg_list, cmd_args)
