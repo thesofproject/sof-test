@@ -47,47 +47,53 @@ if [[ ! -f $ldcFile ]]; then
 fi
 dlogi "Found file: $(md5sum $ldcFile|awk '{print $2, $1;}')"
 
-rdnum=$RANDOM
-tmp_file=/tmp/$rdnum.logger.log
-err_tmp_file=/tmp/$rdnum.err_logger.log
+data_file=$LOG_ROOT/logger.data.log
+error_file=$LOG_ROOT/logger.error.log
 
 func_lib_check_sudo
 
 dlogi "Try to dump the dma trace log via sof-logger ..."
-# sof-logger errors will output to $err_tmp_file
-dlogc "sudo $loggerBin -t -l $ldcFile -o $tmp_file 2> $err_tmp_file &"
-sudo bash -c "'$loggerBin -t -l $ldcFile -o $tmp_file 2> $err_tmp_file &'"
+# sof-logger errors will output to $error_file
+dlogc "sudo $loggerBin -t -l $ldcFile -o $data_file 2> $error_file &"
+sudo bash -c "'$loggerBin -t -l $ldcFile -o $data_file 2> $error_file &'"
 sleep 2
 dlogc "sudo pkill -9 $(basename $loggerBin)"
 sudo pkill -9 $(basename $loggerBin) 2> /dev/null
 
+func_logger_exit()
+{
+    local code=$1 type=${2:-data}
+    dlogi "Log $type BEG>>"
+    cat $LOG_ROOT/logger.$type.log
+    dlogi "<<END $type data"
+    exit $code
+}
+
 # check if we get any sof-logger errors
-logger_err=`grep -i "error" $err_tmp_file`
+logger_err=`grep -i "error" $error_file`
 if [[ $logger_err ]]; then
     dloge "No available log to export due to sof-logger errors."
-    dlogi "Logger error BEG>>"
-    cat $err_tmp_file
-    dlogi "<<END Logger error"
-    exit 1
+    func_logger_exit 1 'error'
 fi
 # get size of trace log$
-size=`du -k $tmp_file | awk '{print $1}'`
-fw_log_err=`grep -i "error" $tmp_file`
+size=`du -k $data_file | awk '{print $1}'`
+# '\.c\:[1-9]' to filter like '.c:6' this type keyword like:
+# [3017136.770833]  (11.302083) c0 SA  src/lib/agent.c:65  ERROR validate(), ll drift detected, delta = 25549
+fw_log_err=`grep -i "error" $data_file | grep -v '\.c\:[1-9]'`
 # 4 here is log header size
 # only log header and no fw log
-if [[ $size -le 4 ]]; then
+if [[ $size -lt 4 ]]; then
     dloge "No available log to export."
-    exit 1
+    func_logger_exit 1
 # we catch error from fw log
 elif [[ $fw_log_err ]]; then
     dloge "Errors in firmware log:"
-    dlogi "Log data BEG>>"
-    cat $tmp_file
-    dlogi "<<END log data"
-    exit 1
+    func_logger_exit 1
 fi
+
+if [ "$(grep -i 'error' $data_file)" ]; then
+    dlogw "Catch keyword 'ERROR' in firmware log"
+fi
+
 # no error with sof-logger and no error in fw log
-dlogi "Log data BEG>>"
-cat $tmp_file
-dlogi "<<END log data"
-exit 0
+func_logger_exit 0
