@@ -27,6 +27,7 @@ insert_module snd_soc_rt5670
 insert_module snd_soc_rt5677
 insert_module snd_soc_rt5677_spi
 insert_module snd_soc_rt5682
+insert_module snd_soc_rt5682_sdw
 
 insert_module snd_soc_pcm512x_i2c
 insert_module snd_soc_wm8804_i2c
