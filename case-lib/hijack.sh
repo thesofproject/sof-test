@@ -7,6 +7,13 @@ function exit()
 {
     local exit_status=${1:-0}
 
+    # To generate topology graph, test case should export $tplg for us
+    if [[ -n "$tplg" ]]; then
+        tplgtool.py -d graph -D $LOG_ROOT $tplg &> /dev/null
+        [[ "$?" != "0" ]] && dloge "Failed to generate topology graph"
+        unset tplg
+    fi
+
     # when sof logger collect is open
     if [ "X$SOF_LOG_COLLECT" == "X1" ]; then
         # when error occurs, exit and catch etrace log
