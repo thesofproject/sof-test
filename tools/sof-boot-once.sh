@@ -30,7 +30,7 @@ if [ "$#" -ne 0 ]; then
     if [ "X${cmd_path/\/*/}" == "X." -o -d "$cmd_path" ]; then #relative path
         cd $cmd_path
         cmd=$PWD/$(basename $1)
-        cd $OLD_PATH
+        cd $OLDPWD
         shift
     elif [ "X${cmd_path:0:1}" == "X/" ]; then #absolute path
         cmd=$cmd_path/$(basename $1)

@@ -15,7 +15,7 @@ if [ $? -eq 0 ]; then
 else
     cd $(dirname $0)
     kernel_line_script=$PWD/sof-get-kernel-line.sh
-    cd $OLDPATH
+    cd $OLDPWD
 fi
 declare -a line_lst
 # here line lst to keep 2 value, [0] is target line, [1] is end line
