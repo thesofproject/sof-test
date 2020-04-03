@@ -8,9 +8,10 @@ source $(dirname ${BASH_SOURCE[0]})/pipeline.sh
 source $(dirname ${BASH_SOURCE[0]})/hijack.sh
 
 # Add tools to command PATH
-cd $(dirname ${BASH_SOURCE[1]})/../tools
-PATH=$PWD:$PATH
-cd $OLDPWD
+if [ ! "$(declare -p TOOL_PATH 2>/dev/null)" ]; then
+    declare -x TOOL_PATH=$(realpath $(dirname ${BASH_SOURCE[1]})/../tools)
+    PATH=$TOOL_PATH:$PATH
+fi
 
 # setup SOFCARD id
 if [ ! "$SOFCARD" ]; then

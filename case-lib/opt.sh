@@ -133,10 +133,9 @@ func_opt_parse_option()
             fi
         done
         echo $cmd >> $LOG_ROOT/cmd.txt
-        cd $(dirname $0)
-        echo "Branch: "$(git branch|grep '^*') >> $LOG_ROOT/version.txt
-        echo "Commit: "$(git log --oneline -1) >> $LOG_ROOT/version.txt
-        cd $OLDPATH
+        local git_path=$(dirname $0)
+        echo "Branch: "$(git -C $git_path branch |grep '^*') >> $LOG_ROOT/version.txt
+        echo "Commit: "$(git -C $git_path log --oneline -1) >> $LOG_ROOT/version.txt
     fi
 
     unset _func_create_tmpbash _func_opt_dump_help _func_case_dump_descption

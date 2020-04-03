@@ -61,21 +61,18 @@ _func_log_directory()
 
     local case_name=$(basename ${BASH_SOURCE[-1]})
     local log_dir=$(dirname ${BASH_SOURCE[0]})/../logs/
+    log_dir=$(realpath $log_dir)
     local timetag=$(date +%F"-"%T)"-"$RANDOM
     local cur_pwd=$PWD
     case_name=${case_name%.*}
-    mkdir -p $log_dir/$case_name/$timetag
-    cd $log_dir/$case_name
+    local case_folder=$log_dir/$case_name
+    mkdir -p $case_folder/$timetag
     # now using the last link for the time tag
-    [[ -L last ]] && rm last
-    if [[ ! -e last ]]; then
-        ln -s $timetag last
-        cd last
-    else     # if "last" is not the link skip it
-        cd $timetag
+    [[ -L $case_folder/last ]] && rm $case_folder/last
+    if [[ ! -e $case_folder/last ]]; then
+        ln -s $case_folder/$timetag $case_folder/last
     fi
-    export LOG_ROOT=$PWD
-    cd $cur_pwd
+    export LOG_ROOT=$case_folder/$timetag
 }
 
 for _func_ in $(declare -F|grep _func_log_|awk '{print $NF;}')
