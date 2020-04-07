@@ -75,6 +75,7 @@ verify_lst=(${verify_lst[*]} "check-runtime-pm-status.sh")
 
 declare -A verify_opt_lst
 verify_opt_lst['verify-pcm-list.sh']="-t $tplg"
+verify_opt_lst['verify-tplg-binary.sh']="-t $tplg"
 verify_opt_lst['check-runtime-pm-status.sh']="-t $tplg -l 1 -d $delay"
 
 dlogi "Round: $current/$count Check status begin"
