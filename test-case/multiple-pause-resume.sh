@@ -156,12 +156,12 @@ do
         done
         # wait for expect script finished
         dlogi "wait for expect process finished"
-        i=0
-        while [ "$(pidof expect)" ]
+        i=$max_wait_time
+        while [ $i -gt 0 ]
         do
-            i=$[ $i + 1 ]
+            i=$[ $i - 1 ]
             sleep 1s
-            [[ $i -ge $max_wait_time ]] && break
+            [[ ! "$(pidof expect)" ]] && break
         done
         # fix aplay/arecord last output
         echo 
