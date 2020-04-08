@@ -17,15 +17,20 @@ source $(dirname ${BASH_SOURCE[0]})/../case-lib/lib.sh
 
 func_opt_parse_option $*
 
-# hijack DMESG_LOG_START_LINE which refer dump kernel log in exit function
-DMESG_LOG_START_LINE=$(sof-get-kernel-line.sh|tail -n 1 |awk '{print $1;}')
+if [ ! "$(alias |grep 'Sub-Test')" ];then
+    # hijack DMESG_LOG_START_LINE which refer dump kernel log in exit function
+    DMESG_LOG_START_LINE=$(sof-get-kernel-line.sh|tail -n 1 |awk '{print $1;}')
+    cmd="sof-kernel-dump.sh"
+else
+    cmd="dmesg"
+fi
 
 dlogi "Checking SOF Firmware load info in kernel log"
-if [[ $(sof-kernel-dump.sh | grep "] sof-audio.*version") ]]; then
+if [[ $(eval $cmd | grep "] sof-audio.*version") ]]; then
     # dump the version info and ABI info
-    sof-kernel-dump.sh | grep "Firmware info" -A1
+    eval $cmd | grep "Firmware info" -A1
     # dump the debug info
-    sof-kernel-dump.sh | grep "Firmware debug build" -A3
+    eval $cmd | grep "Firmware debug build" -A3
     exit 0
 else
     dloge "Cannot find the sof audio version" && exit 1

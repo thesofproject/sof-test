@@ -7,6 +7,9 @@ source $(dirname ${BASH_SOURCE[0]})/logging_ctl.sh
 source $(dirname ${BASH_SOURCE[0]})/pipeline.sh
 source $(dirname ${BASH_SOURCE[0]})/hijack.sh
 
+# force ask buffer data write into file system
+sudo sync -f
+
 # Add tools to command PATH
 if [ ! "$(declare -p TOOL_PATH 2>/dev/null)" ]; then
     declare -x TOOL_PATH=$(realpath $(dirname ${BASH_SOURCE[1]})/../tools)
