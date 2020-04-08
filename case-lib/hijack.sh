@@ -9,7 +9,15 @@ function exit()
 
     # To generate topology graph, test case should export $tplg for us
     if [[ -n "$tplg" ]]; then
-        tplgtool.py -d graph -D $LOG_ROOT $tplg &> /dev/null
+        if [[ -f "$tplg" ]]; then
+            tplg_path="$tplg"
+        elif [[ -f "$TPLG_ROOT/$(basename $tplg)" ]]; then
+            tplg_path="$TPLG_ROOT/$(basename $tplg)"
+        else
+            tplg_path=""
+        fi
+        # don't check fw_path here, if fw_path is empty, print debug error.
+        tplgtool.py -d graph -D $LOG_ROOT $tplg_path &> /dev/null
         [[ "$?" != "0" ]] && dloge "Failed to generate topology graph"
         unset tplg
     fi
