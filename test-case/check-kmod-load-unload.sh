@@ -97,15 +97,12 @@ do
         exit 1
     fi
 
-    dlogi "checking for fw_boot success"
-    keyword_info=$(dmesg |grep sof-audio | grep 'boot complete')
-    if [[ ! "$keyword_info" ]]; then
-        dloge "Error: Boot Complete not found in dmesg, fw_boot empty"
-        exit 1
-    fi
+    dlogi "checking if firmware is loaded successfully"
+    $(dirname ${BASH_SOURCE[0]})/verify-sof-firmware-load.sh > /dev/null
+    [[ $? -ne 0 ]] && dloge "Falied to load firmware after module insertion" && exit 1
 
     # successful remove/insert module pass
-    dlogi "==== completed boot firmware: $idx of $loop_cnt ===="
+    dlogi "==== firmware boot complete: $idx of $loop_cnt ===="
 
     # pulseaudio deamon will detect the snd_sof_pci device after 3s
     # so after 2s snd_sof_pci device will in used status which is block current case logic
