@@ -23,8 +23,8 @@ function exit()
         sleep 1s
     fi
     # when case ends, store kernel log
-    if [ $DMESG_LOG_START_LINE -ne 0 ]; then
-        tail -n +$DMESG_LOG_START_LINE /var/log/kern.log |cut -f5- -d ' ' > $LOG_ROOT/dmesg.txt
+    if [[ -n "$DMESG_LOG_START_LINE" && "$DMESG_LOG_START_LINE" -ne 0 ]]; then
+        tail -n +"$DMESG_LOG_START_LINE" /var/log/kern.log |cut -f5- -d ' ' > $LOG_ROOT/dmesg.txt
     else
         cat /var/log/kern.log |cut -f5- -d ' ' > $LOG_ROOT/dmesg.txt
     fi
