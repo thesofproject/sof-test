@@ -100,7 +100,7 @@ do
     # check xrun injection file
     [[ ! -e $xrun_injection ]] && dloge "XRUN DEBUG is not enabled in kernel, skip the test." && exit 2
     dlogi "Testing: test xrun injection on PCM:$pcm,$pipeline_type. Interval time: $interval"
-    dlogc $cmd -D$dev -r $rate -c $channel -f $fmt $dummy_file -q
+    dlogc "$cmd -D$dev -r $rate -c $channel -f $fmt $dummy_file -q"
     $cmd -D$dev -r $rate -c $channel -f $fmt $dummy_file -q &
     pid=$!
 

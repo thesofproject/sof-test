@@ -68,7 +68,7 @@ do
     for i in "${pgalist[@]}"
     do
         volctrl=$(echo $i | sed 's/_/ /g;')
-        dlogi $volctrl
+        dlogi "$volctrl"
 
         for vol in ${volume_array[@]}; do
             dlogc "amixer -c$sofcard cset name='$volctrl' $vol"
