@@ -155,3 +155,22 @@ func_lib_lsof_error_dump()
         echo "$ret"
     fi
 }
+
+func_lib_get_tplg_path()
+{
+    local tplg=$1
+    # tplg given is empty
+    if [[ -z "$tplg" ]]; then
+        return 1
+    fi
+
+    if [[ -f "$TPLG_ROOT/$(basename "$tplg")" ]]; then
+        echo "$TPLG_ROOT/$(basename "$tplg")"
+    elif [[ -f "$tplg" ]]; then
+        echo $(realpath "$tplg")
+    else
+        return 1
+    fi
+
+    return 0
+}
