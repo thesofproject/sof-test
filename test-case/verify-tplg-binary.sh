@@ -22,29 +22,16 @@ OPT_PARM_lst['t']=1         OPT_VALUE_lst['t']="$TPLG"
 func_opt_parse_option $*
 tplg=${OPT_VALUE_lst['t']}
 
-[ -z $tplg ] && dloge "need to give topology files for check!" && exit 1
-dlogi "checking the topology file: $tplg ..."
-tplg_str=$tplg
-((ret=0))
-while [ ${#tplg_str} -gt 0 ]
-do
-    # left ',' 1st field
-    tplg_file=${tplg_str%%,*}
-    # expect left ',' 1st field
-    tplg_str=${tplg_str#*,}
-    [ "$tplg_file" == "$tplg_str" ] && tplg_str=""
-    if [ -f "$TPLG_ROOT/$(basename $tplg_file)" ]; then
-        tplg_file="$TPLG_ROOT/$(basename $tplg_file)"   # catch from TPLG_ROOT
-    elif [ -f "$tplg_file" ]; then
-        tplg_file=$(realpath $tplg_file) # relative path -> absolute path
-    else
-        dloge "Couldn't find target TPLG file $tplg_file"
-        ((ret=1))
-        continue
-    fi
-    dlogi "Found file: $(md5sum $tplg_file|awk '{print $2, $1;}')"
-    tplgData=$(sof-tplgreader.py $tplg_file 2>/dev/null)
-    [[ -z $tplgData ]] && dloge "$tplg_file doesn't have any valid pipelines ..." && ((ret=1)) && continue
-done
+tplg_path=`func_lib_get_tplg_path "$tplg"`
+[[ "$?" != "0" ]] && dloge "No available topology for this test case" && exit 1
 
-exit $ret
+dlogi "Checking topology file: $tplg_path"
+dlogi "Found file: $(md5sum $tplg_path|awk '{print $2, $1;}')"
+tplgData=$(sof-tplgreader.py $tplg_path 2>/dev/null)
+[[ -z "$tplgData" ]] && dloge "No valid pipeline(s) found in $tplg_path" && exit 1
+dlogi "Valid pipeline(s) in this topology:"
+echo "===========================>>"
+echo "$tplgData"
+echo "<<==========================="
+
+exit 0
