@@ -40,8 +40,9 @@ loop_cnt=${OPT_VALUE_lst['l']}
 # get 'both' pcm, it means pcm have same id with different type
 declare -A tmp_id_lst
 id_lst_str=""
-[[ -f $TPLG_ROOT/$tplg ]] && tmp_tplg=$TPLG_ROOT/$tplg || tmp_tplg=$tplg
-for i in $(sof-tplgreader.py $tmp_tplg -d id -v)
+tplg_path=`func_lib_get_tplg_path "$tplg"`
+[[ "$?" -ne "0" ]] && dloge "No available topology for this test case" && exit 1
+for i in $(sof-tplgreader.py $tplg_path -d id -v)
 do
     if [ ! "${tmp_id_lst["$i"]}" ]; then  # this id is never used
         tmp_id_lst["$i"]=0
@@ -51,7 +52,7 @@ do
     fi
 done
 # now all duplicate ids have already been caught
-unset tmp_id_lst tmp_tplg
+unset tmp_id_lst tplg_path
 id_lst_str=${id_lst_str/,/} # remove 1st, which is not used
 [[ ${#id_lst_str} -eq 0 ]] && dlogw "no pipeline with both playback and capture capabilities found in $tplg" && exit 2
 func_pipeline_export $tplg "id:$id_lst_str"
