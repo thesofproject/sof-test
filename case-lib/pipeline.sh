@@ -7,29 +7,14 @@ func_pipeline_export()
         dlogi "Topology file name is not specified, unable to run command: ${BASH_SOURCE[-1]}" && exit 1
     fi
 
-    # got tplg_file, verify file exist
-    local tplg_str="$1" opt="" sofcard=${SOFCARD:-0} idx=0 tplg_file="" cmd=""
-    while [ ${#tplg_str} -gt 0 ]
-    do
-        # left ',' 1st field
-        f=${tplg_str%%,*}
-        # expect left ',' 1st field
-        tplg_str=${tplg_str#*,}
-        [ "$f" == "$tplg_str" ] && tplg_str=""
-        if [ -f "$TPLG_ROOT/$(basename $f)" ]; then
-            f="$TPLG_ROOT/$(basename $f)"   # catch from TPLG_ROOT
-        elif [ -f "$f" ]; then
-            f=$(realpath $f)    # relative path -> absolute path
-        else
-            dlogw "Topology $f is not found, unable to run command: $0" && exit 1
-        fi
-        dlogi "${BASH_SOURCE[-1]} will use topology $f to run the test case"
-        tplg_file="$tplg_file$f,"
-    done
-    # remove the right last ','
-    tplg_str=${tplg_file/%,/}
-    shift
+    local tplg="$1" opt="" sofcard=${SOFCARD:-0} cmd=""
 
+    # got tplg_file, verify file exist
+    tplg_path=`func_lib_get_tplg_path "$tplg"`
+    [[ "$?" != "0" ]] && dloge "No available topology for pipeline export" && exit 1
+    dlogi "${BASH_SOURCE[-1]} will use topology $tplg_path to run the test case"
+
+    shift
     # create filter option string
     if [ $# -ne 0 ]; then
         opt="-f"
@@ -50,16 +35,17 @@ func_pipeline_export()
         done
     fi
 
-    cmd=$(echo sof-tplgreader.py $tplg_str $opt -s $sofcard -e)
+    cmd=$(echo sof-tplgreader.py $tplg_path $opt -s $sofcard -e)
 
     OLD_IFS="$IFS" IFS=$'\n'
-    dlogi "Run command: '$cmd' to get pipeline parameters"
+    dlogi "Run command to get pipeline parameters"
+    dlogc "$cmd"
     for line in $(eval $cmd);
     do
         eval $line
     done
     IFS="$OLD_IFS"
-    [[ ! "$PIPELINE_COUNT" ]] && dlogw "A problem occured while loading $tplg_str, please check '$cmd' command" && exit 1
+    [[ ! "$PIPELINE_COUNT" ]] && dlogw "A problem occured while loading $tplg_path, please check '$cmd' command" && exit 1
     [[ $PIPELINE_COUNT -eq 0 ]] && dlogw "No pipeline found with option: ${opt:3}, unable to run ${BASH_SOURCE[-1]}" && exit 2
     return 0
 }
