@@ -13,6 +13,7 @@ echo -ne "Check for the package:\t\t"
 func_check_pkg expect
 func_check_pkg aplay
 func_check_pkg python3
+func_check_pkg python3-graphviz
 [[ $check_res -eq 0 ]] && echo "pass" || \
     echo -e "\e[31mWarning\e[0m\nSolution:"$out_str
 
