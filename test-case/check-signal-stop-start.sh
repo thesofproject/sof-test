@@ -94,7 +94,7 @@ do
     snd=$(func_pipeline_parse_value $idx snd)
 
     dlogi "Testing: run stop/start test on PCM:$pcm,$pipeline_type. Interval time: $interval"
-    dlogc $cmd -D$dev -r $rate -c $channel -f $fmt $dummy_file -q &
+    dlogc "$cmd -D$dev -r $rate -c $channel -f $fmt $dummy_file -q &"
     $cmd -D$dev -r $rate -c $channel -f $fmt $dummy_file -q &
     pid=$!
 
