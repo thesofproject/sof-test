@@ -8,19 +8,14 @@ function exit()
     local exit_status=${1:-0}
 
     # To generate topology graph, test case should export $tplg for us
-    if [[ -n "$tplg" ]]; then
-        if [[ -f "$tplg" ]]; then
-            tplg_path="$tplg"
-        elif [[ -f "$TPLG_ROOT/$(basename $tplg)" ]]; then
-            tplg_path="$TPLG_ROOT/$(basename $tplg)"
-        else
-            tplg_path=""
-        fi
-        # don't check fw_path here, if fw_path is empty, print debug error.
+    tplg_path=`func_lib_get_tplg_path "$tplg"`
+    if [[ "$?" != "0" ]]; then
+        dlogw "No available topology for graph generation"
+    else
         tplgtool.py -d graph -D $LOG_ROOT $tplg_path &> /dev/null
         [[ "$?" != "0" ]] && dloge "Failed to generate topology graph"
-        unset tplg
     fi
+    unset tplg
 
     # when sof logger collect is open
     if [ "X$SOF_LOG_COLLECT" == "X1" ]; then
