@@ -13,8 +13,8 @@ function exit()
         dlogw "No available topology for graph generation"
     else
         dlogi "Graph of $tplg_path will be generated to $LOG_ROOT"
-        tplgtool.py -d graph -D $LOG_ROOT $tplg_path > /dev/null
-        [[ "$?" != "0" ]] && dloge "Failed to generate topology graph"
+        tplgtool.py -d graph -D $LOG_ROOT $tplg_path
+        [[ "$?" != "0" ]] && dlogw "Failed to generate topology graph"
     fi
     unset tplg
 

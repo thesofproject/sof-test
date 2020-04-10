@@ -681,7 +681,7 @@ class TplgFormatter:
                     return node
         # if excution goes here, it means we didn't find the widget in the list,
         # obviously, there is error in topology
-        print("Widget {} not exist, error in topology", name)
+        print("Widget %s not exist, error in topology" %name)
         sys.exit(1)
         return None
 
