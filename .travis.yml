@@ -1,0 +1,17 @@
+# bionic = 2018
+dist: bionic
+
+language: minimal
+
+git:
+  depth: false
+  quiet: true
+
+before_install:
+  - sudo apt-get -y install shellcheck
+
+jobs:
+  include:
+
+    - name: "shellcheck"
+      script: ./tools/shellcheck-gitrange.bash "${TRAVIS_COMMIT_RANGE}"
