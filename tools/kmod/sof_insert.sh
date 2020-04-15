@@ -8,7 +8,7 @@ insert_module() {
 
     if modinfo "$MODULE" &> /dev/null ; then
         echo "Inserting $MODULE"
-        sudo modprobe $MODULE
+        sudo modprobe "$MODULE"
     else
         echo "skipping $MODULE, not in tree"
     fi
@@ -23,6 +23,7 @@ insert_module snd_soc_rt298
 insert_module snd_soc_rt5640
 insert_module snd_soc_rt5645
 insert_module snd_soc_rt5651
+insert_module snd_soc_rt5660
 insert_module snd_soc_rt5670
 insert_module snd_soc_rt5677
 insert_module snd_soc_rt5677_spi
