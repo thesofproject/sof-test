@@ -8,7 +8,7 @@ remove_module() {
 
     if lsmod | grep -w "$MODULE" &> /dev/null ; then
         echo "Removing $MODULE"
-        sudo rmmod $MODULE
+        sudo rmmod "$MODULE"
     else
         echo "skipping $MODULE, not loaded"
     fi
@@ -51,6 +51,7 @@ remove_module snd_soc_skl_hda_dsp
 remove_module snd_soc_sdw_rt700
 remove_module snd_soc_sdw_rt711_rt1308_rt715
 remove_module snd_soc_sof_sdw
+remove_module snd_soc_ehl_rt5660
 
 remove_module snd_sof
 remove_module snd_sof_nocodec
@@ -72,6 +73,7 @@ remove_module snd_soc_rt1011
 remove_module snd_soc_rt5640
 remove_module snd_soc_rt5645
 remove_module snd_soc_rt5651
+remove_module snd_soc_rt5660
 remove_module snd_soc_rt5670
 remove_module snd_soc_rt5677
 remove_module snd_soc_rt5677_spi
