@@ -15,9 +15,10 @@
 ##
 
 # source from the relative path of current folder
-source $(dirname ${BASH_SOURCE[0]})/../case-lib/lib.sh
+my_dir=$(dirname "${BASH_SOURCE[0]}")
+source "$my_dir"/../case-lib/lib.sh
 
-OPT_OPT_lst['t']='tplg'     OPT_DESC_lst['t']='tplg file, default value is env TPLG: $TPLG'
+OPT_OPT_lst['t']='tplg'     OPT_DESC_lst['t']="tplg file, default value is env TPLG: $TPLG"
 OPT_PARM_lst['t']=1         OPT_VALUE_lst['t']="$TPLG"
 
 OPT_OPT_lst['d']='duration' OPT_DESC_lst['d']='aplay duration in second'
@@ -34,8 +35,8 @@ tplg=${OPT_VALUE_lst['t']}
 duration=${OPT_VALUE_lst['d']}
 loop_cnt=${OPT_VALUE_lst['l']}
 
-# TODO: direct import only EQ pipeline
-func_pipeline_export $tplg "type:playback"
+# import only EQ pipeline from topology
+func_pipeline_export $tplg "eq:any"
 sofcard=${SOFCARD:-0}
 
 # Test equalizer
@@ -44,103 +45,90 @@ func_test_eq()
     local id=$1
     local conf=$2
 
-    [ ! -f $conf ] && dloge "$conf not exist" && exit 1
-
     dlogc "sof-ctl -Dhw:$sofcard -n $id -s $conf"
-    sof-ctl -Dhw:$sofcard -n $id -s $conf
-    if [ $? -ne 0 ]; then
+    sof-ctl -Dhw:"$sofcard" -n "$id" -s "$conf" || {
         dloge "Equalizer setting failure with $conf"
         return 1
-    fi
-    # test with aplay
-    dlogc "aplay -D$dev -f $fmt -c $channel -r $rate /dev/zero -d $duration"
-    aplay -D$dev -f $fmt -c $channel /dev/zero -d $duration
-    if [ $? -ne 0 ]; then
+    }
+
+    dlogc "$cmd -D $dev -f $fmt -c $channel -r $rate -d $duration $dummy_file"
+    $cmd -D "$dev" -f "$fmt" -c "$channel" -r "$rate" -d "$duration" "$dummy_file" || {
         dloge "Equalizer test failure with $conf"
         return 1
-    fi
+    }
     sleep 1
 }
 
-current_dir=$(dirname ${BASH_SOURCE[0]})
-
-# initialized with negative value. If none of test is performed the test result will be failed.
-result=1
-failed_cnt=0
-
-# TODO: direct import only EQ pipeline and loop for EQ pipeline only
-for idx in $(seq 0 $(expr $PIPELINE_COUNT - 1))
-do
-    dlogi "$idx - total pipeline= $PIPELINE_COUNT"
-    dev=$(func_pipeline_parse_value $idx dev)
-    channel=$(func_pipeline_parse_value $idx channel)
-    rate=$(func_pipeline_parse_value $idx rate)
-    fmt=$(func_pipeline_parse_value $idx fmt)
-    eq_support=$(func_pipeline_parse_value $idx eq)
-    if [ -z "$eq_support" ]; then
-        dlogi "None of FIR/IIF filter is available in this pipeline, skip"
-        continue
-    fi
-    dlogi "eq_support= $eq_support"
-    is_iir=$(echo $eq_support | grep -i iir | wc -l)
-    is_fir=$(echo $eq_support | grep -i fir | wc -l)
-    if [ $is_iir -ne $is_fir ]; then
-        dlogi "no FIR or IIF filter is available in this pipeline, skip"
-        continue
+# this function performs IIR/FIR filter test
+# param1 must be must be iir or fir
+func_test_filter()
+{
+    local testfilter=$1
+    dlogi "Get amixer control id for $testfilter"
+    # TODO: Need to match alsa control id with the filter in the pipeline,
+    #       currently the test discards EQ pipelines except first one.
+    Filterid=$(amixer -D hw:"$sofcard" controls | sed -n -e "/eq${testfilter}/I "'s/numid=\([0-9]*\),.*/\1/p' | head -1)
+    if [ -z "$Filterid" ]; then
+        dloge "can't find $testfilter"
+        exit 1
     fi
 
-    dlogi "0. Get amixer control id for IIR and FIR"
-    IIRid=`amixer -D hw:$sofcard controls | grep EQIIR| head -1| sed 's/numid=\([0-9]*\),.*/\1/'`
-    if [ -z $IIRid ]; then
-            dloge "can't find IIR filter"
-            exit 1
-    fi
-
-    FIRid=`amixer -D hw:$sofcard controls | grep EQFIR| head -1| sed 's/numid=\([0-9]*\),.*/\1/'`
-    if [ -z $FIRid ]; then
-            dloge "can't find FIR filter"
-            exit 1
-    fi
-
-    declare -a IIRList=($(ls -d ${current_dir}/eqctl/eq_iir_*.txt))
-    nIIRList=${#IIRList[@]}
-    dlogi "IIR list $nIIRList ${IIRList[*]}"
-    declare -a FIRList=($(ls -d ${current_dir}/eqctl/eq_fir_*.txt))
-    nFIRList=${#FIRList[@]}
-    dlogi "FIR list $nFIRList ${FIRList[*]}"
-    if [ $nIIRList ==  0 ] || [ $nFIRList ==  0 ]; then
-        dloge "IIR or FIR flter coeff list error!"
-	exit 1
+    declare -a FilterList=($(ls -d "${my_dir}"/eqctl/eq_"${testfilter}"_*.txt))
+    nFilterList=${#FilterList[@]}
+    dlogi "$testfilter list, num= $nFilterList, coeff files= ${FilterList[*]}"
+    if [ "$nFilterList" -eq  0 ]; then
+        dloge "$testfilter flter coeff list error!"
+        exit 1
     fi
 
     for i in $(seq 1 $loop_cnt)
     do
-        dlogi "[$i/$loop_cnt] 1. Test IIR config list, IIR amixer control id=$IIRid"
-        for config in ${IIRList[@]}; do
-            func_test_eq $IIRid $current_dir/$config
-            result=$?
-            if [[ $result -ne 0 ]]; then
-                dloge "Failed at $config"
-                let failed_cnt++
-            fi
+        dlogi "[$i/$loop_cnt] Test $testfilter config list, $testfilter amixer control id=$Filterid"
+        for config in "${FilterList[@]}"; do
+            func_test_eq "$Filterid" "$my_dir/$config" || {
+                dloge "EQ test failed with $config"
+                : $((failed_cnt++))
+            }
         done
 
-        dlogi "[$i/$loop_cnt] 2. Test FIR config list, FIR amixer control id=$FIRid"
-        for config in ${FIRList[@]}; do
-            func_test_eq $FIRid $current_dir/$config
-            result=$?
-            if [[ $result -ne 0 ]]; then
-                dloge "Failed at $config"
-                let failed_cnt++
-            fi
-        done
-        dlogi "EQ test done: failed_cnt is $failed_cnt"
+        dlogi "$testfilter test done: failed_cnt is $failed_cnt"
         if [ $failed_cnt -gt 0 ]; then
             exit 1
+        fi
+    done
+}
+
+failed_cnt=0
+
+for idx in $(seq 0 "$((PIPELINE_COUNT-1))")
+do
+    dlogi "$idx - total pipeline= $PIPELINE_COUNT"
+    dev=$(func_pipeline_parse_value "$idx" dev)
+    channel=$(func_pipeline_parse_value "$idx" channel)
+    rate=$(func_pipeline_parse_value "$idx" rate)
+    fmt=$(func_pipeline_parse_value "$idx" fmt)
+    type=$(func_pipeline_parse_value "$idx" type)
+    eq_support=$(func_pipeline_parse_value "$idx" eq)
+
+    case $type in
+        "playback")
+            cmd=aplay
+            dummy_file=/dev/zero
+        ;;
+        "capture")
+            cmd=arecord
+            dummy_file=/dev/null
+        ;;
+    esac
+
+    dlogi "eq_support= $eq_support"
+    # if IIR/FIR filter is avilable, test with coef list
+    for filter_type in iir fir; do
+        if echo "$eq_support" | grep -q -i $filter_type; then
+            func_test_filter $filter_type
         fi
     done
 
 done
 
-exit $result
-
+exit 0
