@@ -175,20 +175,9 @@ class clsSYSCardInfo():
         if len(self.pci_lst) == 0:
             self.loadPCI()
 
-        def _getPowerPath(device_id):
-            retStr = "/sys/module/snd_sof_acpi/drivers/platform:sof-audio-acpi/%s*" % (device_id)
-            cmd = "cd /sys/module/snd_sof_acpi/drivers/platform:sof-audio-acpi/%s*/ " % (device_id)
-            cmd += " && find -name runtime_status |awk -F '/' '{ if ($3 == \"power\") print $2;}'"
-            exit_code, output = subprocess.getstatusoutput(cmd)
-            if exit_code == 0 and len(output) != 0: # filter to get the folder name to match the codec name
-                retStr += "/" + output
-            return retStr + "/power/runtime_status"
-
         for pci_info in self.pci_lst:
             if 'device_id' in pci_info:
-                exit_code, output = subprocess.getstatusoutput("cat %s" % (_getPowerPath(pci_info['device_id'])))
-                if exit_code == 0:
-                    self.sys_power['run_status'].append({'map_id': pci_info['device_id'], 'status': output})
+                self.sys_power['run_status'].append({'map_id': pci_info['device_id'], 'status': 'unsupported'})
             exit_code, output=subprocess.getstatusoutput("cat /sys/bus/pci/devices/0000:%s/power/runtime_status" % (pci_info['pci_id']))
             if exit_code != 0:
                 continue
