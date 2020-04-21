@@ -15,12 +15,12 @@
 ##
 
 # source from the relative path of current folder
-source $(dirname ${BASH_SOURCE[0]})/../case-lib/lib.sh
+source "$(dirname ${BASH_SOURCE[0]})/../case-lib/lib.sh"
 
 OPT_OPT_lst['t']='tplg'     OPT_DESC_lst['t']='tplg file, default value is env TPLG: $TPLG'
-OPT_PARM_lst['t']=1         OPT_VALUE_lst['t']="$TPLG"
+OPT_PARM_lst['t']=1         OPT_VALUE_lst['t']="${TPLG:-}"
 
-func_opt_parse_option $*
+func_opt_parse_option "$@"
 tplg=${OPT_VALUE_lst['t']}
 
 tplg_path=`func_lib_get_tplg_path "$tplg"`
@@ -45,7 +45,7 @@ if [[ "$tplg_str" != "$pcm_str" ]]; then
     aplay -l
     dlogi "Dump arecord -l"
     arecord -l
-    sof-kernel-dump.sh > $LOOG_ROOT/kernel.txt
+    sof-kernel-dump.sh > $LOG_ROOT/kernel.txt
     exit 1
 else
     dlogi "Pipeline(s) from topology match pipeline(s) from system"
