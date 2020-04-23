@@ -141,7 +141,9 @@ do
         fi
     done
 
-    sof-kernel-log-check.sh 0
+    sof-kernel-log-check.sh 0 || {
+        dloge "Catch error in dmesg" && exit 1
+    }
 done
 
 sof-kernel-log-check.sh $KERNEL_LAST_LINE
