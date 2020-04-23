@@ -28,8 +28,8 @@ func_pipeline_export()
         done
     fi
 
-    opt="-f \"$filter\" -b \"$ignore\""
-    cmd="sof-tplgreader.py $tplg_path $opt -s $sofcard -e"
+    local opt="-f \"$filter\" -b \"$ignore\""
+    local cmd="sof-tplgreader.py $tplg_path $opt -s $sofcard -e"
     dlogi "Run command to get pipeline parameters"
     dlogc "$cmd"
     OLD_IFS="$IFS" IFS=$'\n'
