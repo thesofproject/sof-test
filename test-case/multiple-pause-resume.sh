@@ -186,8 +186,9 @@ do
             [[ $? -ne 0 ]] && dloge "pause resume is exit status error" && exit 1
         done
     done
-    sof-kernel-log-check.sh 0
-    [[ $? -ne 0 ]] && dloge "Catch error from dmesg" && exit 1
+    sof-kernel-log-check.sh 0 || {
+        dloge "Catch error in dmesg" && exit 1
+    }
 done
 
 sof-kernel-log-check.sh $KERNEL_LAST_LINE

@@ -83,8 +83,9 @@ do
     dlogi "Check for the kernel log status"
     wake_count=$(cat /sys/power/wakeup_count)
     # sof-kernel-log-check script parameter number is 0/Non-Number will force check from dmesg
-    sof-kernel-log-check.sh 0
-    [[ $? -ne 0 ]] && dloge "Catch dmesg error" && exit 1
+    sof-kernel-log-check.sh 0 || {
+        dloge "Catch error in dmesg" && exit 1
+    }
     # check wakeup count correct
     [[ $wake_count -le $sleep_count ]] && dloge "suspend/resume didn't happen, because /sys/power/wakeup_count does not increase" && exit 1
 done
