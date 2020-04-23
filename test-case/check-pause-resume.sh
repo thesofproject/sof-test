@@ -38,6 +38,9 @@ OPT_PARM_lst['a']=1         OPT_VALUE_lst['a']='200'
 OPT_OPT_lst['s']='sof-logger'   OPT_DESC_lst['s']="Open sof-logger trace the data will store at $LOG_ROOT"
 OPT_PARM_lst['s']=0             OPT_VALUE_lst['s']=1
 
+OPT_OPT_lst['S']='filter_string'   OPT_DESC_lst['S']="run this case on specified pipelines"
+OPT_PARM_lst['S']=1             OPT_VALUE_lst['S']="id:any"
+
 func_opt_parse_option $*
 
 tplg=${OPT_VALUE_lst['t']}
@@ -70,7 +73,7 @@ esac
 
 [[ -z $file_name ]] && file_name=$dummy_file
 
-func_pipeline_export $tplg "type:$test_mode"
+func_pipeline_export $tplg "type:$test_mode & ${OPT_VALUE_lst['S']}"
 func_lib_setup_kernel_last_line
 for idx in $(seq 0 $(expr $PIPELINE_COUNT - 1))
 do
