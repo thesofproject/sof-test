@@ -42,6 +42,9 @@ OPT_PARM_lst['s']=0             OPT_VALUE_lst['s']=1
 OPT_OPT_lst['F']='fmts'   OPT_DESC_lst['F']='Iterate all supported formats'
 OPT_PARM_lst['F']=0         OPT_VALUE_lst['F']=0
 
+OPT_OPT_lst['S']='filter_string'   OPT_DESC_lst['S']="run this case on specified pipelines"
+OPT_PARM_lst['S']=1             OPT_VALUE_lst['S']="id:any"
+
 func_opt_parse_option $*
 
 tplg=${OPT_VALUE_lst['t']}
@@ -55,7 +58,7 @@ file_prefix=${OPT_VALUE_lst['f']}
 
 func_lib_setup_kernel_last_line
 func_lib_check_sudo
-func_pipeline_export $tplg "type:capture"
+func_pipeline_export $tplg "type:capture & ${OPT_VALUE_lst['S']}"
 
 for round in $(seq 1 $round_cnt)
 do
