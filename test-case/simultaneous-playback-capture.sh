@@ -112,8 +112,9 @@ do
         kill -9 $arecord_pid && wait $arecord_pid 2>/dev/null
 
     done
-    sof-kernel-log-check.sh 0
-    [[ $? -ne 0 ]] && dloge "Catch dmesg error" && exit 1
+    sof-kernel-log-check.sh 0 || {
+        dloge "Catch error in dmesg" && exit 1
+    }
 done
 
 sof-kernel-log-check.sh $KERNEL_LAST_LINE > /dev/null
