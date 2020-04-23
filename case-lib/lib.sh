@@ -1,19 +1,29 @@
 #!/bin/bash
 
+# get test-case script dirname
+SCRIPT_HOME="$(dirname "$0")"
+# get test-case parent folder name
+SCRIPT_HOME=$(cd "$SCRIPT_HOME/.." && pwd)
+
 # Source from the relative path of current folder
-source $(dirname ${BASH_SOURCE[0]})/config.sh
-source $(dirname ${BASH_SOURCE[0]})/opt.sh
-source $(dirname ${BASH_SOURCE[0]})/logging_ctl.sh
-source $(dirname ${BASH_SOURCE[0]})/pipeline.sh
-source $(dirname ${BASH_SOURCE[0]})/hijack.sh
+# shellcheck disable=SC1091 source=./config.sh
+source "$SCRIPT_HOME/case-lib/config.sh"
+# shellcheck disable=SC1091 source=./opt.sh
+source "$SCRIPT_HOME/case-lib/opt.sh"
+# shellcheck disable=SC1091 source=./logging_ctl.sh
+source "$SCRIPT_HOME/case-lib/logging_ctl.sh"
+# shellcheck disable=SC1091 source=./pipeline.sh
+source "$SCRIPT_HOME/case-lib/pipeline.sh"
+# shellcheck disable=SC1091 source=./hijack.sh
+source "$SCRIPT_HOME/case-lib/hijack.sh"
 
 # force ask buffer data write into file system
 sudo sync -f
 
 # Add tools to command PATH
-if [ ! "$(declare -p TOOL_PATH 2>/dev/null)" ]; then
-    declare -x TOOL_PATH=$(realpath $(dirname ${BASH_SOURCE[1]})/../tools)
-    PATH=$TOOL_PATH:$PATH
+# this line equal `! $(echo $PATH|grep "$SCRIPT_HOME/tools")`
+if [[ ! $PATH =~ $SCRIPT_HOME/tools ]]; then
+    PATH=$SCRIPT_HOME/tools:$PATH
 fi
 
 # setup SOFCARD id
