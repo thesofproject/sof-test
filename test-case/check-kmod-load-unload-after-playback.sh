@@ -45,7 +45,7 @@ OPT_PARM_lst['d']=1         OPT_VALUE_lst['d']=3
 OPT_OPT_lst['p']='pulseaudio'   OPT_DESC_lst['p']='disable pulseaudio on the test process'
 OPT_PARM_lst['p']=0             OPT_VALUE_lst['p']=1
 
-func_opt_parse_option $*
+func_opt_parse_option "$@"
 tplg=${OPT_VALUE_lst['t']}
 loop_cnt=${OPT_VALUE_lst['l']}
 pb_duration=${OPT_VALUE_lst['d']}

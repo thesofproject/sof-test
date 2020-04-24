@@ -19,7 +19,7 @@ source $(dirname ${BASH_SOURCE[0]})/../case-lib/lib.sh
 OPT_OPT_lst['t']='tplg'     OPT_DESC_lst['t']='tplg file, default value is env TPLG: $TPLG'
 OPT_PARM_lst['t']=1         OPT_VALUE_lst['t']="$TPLG"
 
-func_opt_parse_option $*
+func_opt_parse_option "$@"
 tplg=${OPT_VALUE_lst['t']}
 
 tplg_path=`func_lib_get_tplg_path "$tplg"`

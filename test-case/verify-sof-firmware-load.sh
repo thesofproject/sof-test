@@ -15,7 +15,7 @@
 # source from the relative path of current folder
 source $(dirname ${BASH_SOURCE[0]})/../case-lib/lib.sh
 
-func_opt_parse_option $*
+func_opt_parse_option "$@"
 
 if [ ! "$(alias |grep 'Sub-Test')" ];then
     # hijack DMESG_LOG_START_LINE which refer dump kernel log in exit function

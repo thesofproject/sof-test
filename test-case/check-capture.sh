@@ -45,7 +45,7 @@ OPT_PARM_lst['F']=0         OPT_VALUE_lst['F']=0
 OPT_OPT_lst['S']='filter_string'   OPT_DESC_lst['S']="run this case on specified pipelines"
 OPT_PARM_lst['S']=1             OPT_VALUE_lst['S']="id:any"
 
-func_opt_parse_option $*
+func_opt_parse_option "$@"
 
 tplg=${OPT_VALUE_lst['t']}
 round_cnt=${OPT_VALUE_lst['r']}

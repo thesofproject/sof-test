@@ -25,7 +25,7 @@ OPT_PARM_lst['t']=1         OPT_VALUE_lst['t']=30
 OPT_OPT_lst['d']='delay'    OPT_DESC_lst['d']='delay time mapping to sub-case PM status'
 OPT_PARM_lst['d']=1         OPT_VALUE_lst['d']=10
 
-func_opt_parse_option $*
+func_opt_parse_option "$@"
 
 func_lib_check_sudo
 loop_count=${OPT_VALUE_lst['l']}

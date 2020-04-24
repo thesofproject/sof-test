@@ -24,7 +24,7 @@
 
 source $(dirname ${BASH_SOURCE[0]})/../case-lib/lib.sh
 
-func_opt_parse_option $*
+func_opt_parse_option "$@"
 
 declare -A verb_array
 

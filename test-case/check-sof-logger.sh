@@ -17,7 +17,7 @@
 
 source $(dirname ${BASH_SOURCE[0]})/../case-lib/lib.sh
 
-func_opt_parse_option $*
+func_opt_parse_option "$@"
 
 #TODO: need to add arguments for user to give location for logger and ldc file
 

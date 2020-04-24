@@ -37,7 +37,7 @@ OPT_PARM_lst['w']=1         OPT_VALUE_lst['w']=5
 OPT_OPT_lst['r']='random'   OPT_DESC_lst['r']="Randomly setup wait/sleep time, range is [$random_min-$random_max], this option will overwrite s & w option"
 OPT_PARM_lst['r']=0         OPT_VALUE_lst['r']=0
 
-func_opt_parse_option $*
+func_opt_parse_option "$@"
 func_lib_check_sudo
 func_lib_setup_kernel_last_line
 

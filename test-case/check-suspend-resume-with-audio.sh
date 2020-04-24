@@ -49,7 +49,7 @@ OPT_PARM_lst['s']=0             OPT_VALUE_lst['s']=1
 OPT_OPT_lst['f']='file'     OPT_DESC_lst['f']='file name'
 OPT_PARM_lst['f']=1         OPT_VALUE_lst['f']=''
 
-func_opt_parse_option $*
+func_opt_parse_option "$@"
 func_lib_check_sudo
 func_lib_setup_kernel_last_line
 
