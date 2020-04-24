@@ -24,7 +24,7 @@ OPT_PARM_lst['f']=1         OPT_VALUE_lst['f']="/sys/kernel/debug/sof/ipc_flood_
 OPT_OPT_lst['l']='loop'     OPT_DESC_lst['l']='loop count'
 OPT_PARM_lst['l']=1         OPT_VALUE_lst['l']=1
 
-func_opt_parse_option $*
+func_opt_parse_option "$@"
 
 lpc_loop_cnt=${OPT_VALUE_lst['c']}
 ipc_flood_dfs=${OPT_VALUE_lst['f']}

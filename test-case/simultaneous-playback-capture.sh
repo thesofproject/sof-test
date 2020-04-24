@@ -32,7 +32,7 @@ OPT_PARM_lst['s']=0             OPT_VALUE_lst['s']=1
 OPT_OPT_lst['l']='loop'     OPT_DESC_lst['l']='loop count'
 OPT_PARM_lst['l']=1         OPT_VALUE_lst['l']=1
 
-func_opt_parse_option $*
+func_opt_parse_option "$@"
 tplg=${OPT_VALUE_lst['t']}
 wait_time=${OPT_VALUE_lst['w']}
 loop_cnt=${OPT_VALUE_lst['l']}

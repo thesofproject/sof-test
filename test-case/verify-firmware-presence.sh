@@ -16,7 +16,7 @@
 # source from the relative path of current folder
 source $(dirname ${BASH_SOURCE[0]})/../case-lib/lib.sh
 
-func_opt_parse_option $*
+func_opt_parse_option "$@"
 
 path=$(sof-dump-status.py -P)
 platform=$(sof-dump-status.py -p)

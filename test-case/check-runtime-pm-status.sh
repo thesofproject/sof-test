@@ -50,7 +50,7 @@ func_check_dsp_status()
     dlogi "dsp suspended in ${i}s"
 }
 
-func_opt_parse_option $*
+func_opt_parse_option "$@"
 tplg=${OPT_VALUE_lst['t']}
 loop_count=${OPT_VALUE_lst['l']}
 [[ -z $tplg ]] && dloge "Miss tplg file to run" && exit 1
