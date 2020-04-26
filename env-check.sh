@@ -3,17 +3,33 @@
 # check for the system package
 out_str=""
 func_check_pkg(){
-    which $1 >/dev/null
-    [[ $? -ne 0 ]] && \
-    out_str=$out_str"\nPlease install \e[31m $1 \e[0m package" && \
-    check_res=1
+    if command -v "$1" >/dev/null; then
+        return
+    else
+        out_str=$out_str"\nPlease install \e[31m $1 \e[0m package"
+        check_res=1
+    fi
 }
+
+func_check_python_pkg(){
+    if command -v python3 >/dev/null; then
+        if python3 -c "import $1" &> /dev/null; then
+            return
+        else
+            out_str=$out_str"\nPlease install \e[31m python3-$1 \e[0m package"
+            check_res=1
+        fi
+    else
+        return
+    fi
+}
+
 check_res=0
 echo -ne "Check for the package:\t\t"
 func_check_pkg expect
 func_check_pkg aplay
 func_check_pkg python3
-func_check_pkg python3-graphviz
+func_check_python_pkg graphviz
 [[ $check_res -eq 0 ]] && echo "pass" || \
     echo -e "\e[31mWarning\e[0m\nSolution:"$out_str
 
