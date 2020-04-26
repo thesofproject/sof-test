@@ -22,16 +22,19 @@ project_key="sof-audio"
 #echo "run $0 with parameter '$*' for check kernel message error"
 
 if [ "$ignore_str" ]; then
-    err=$(eval $cmd|grep 'Call Trace' -A5 -B3)$(eval $cmd | grep $project_key | grep -E "$err_str"|grep -vE "$ignore_str")
+    err=$(eval "$cmd"|grep 'Call Trace' -A5 -B3)$(eval "$cmd" | grep "$project_key" | grep -E "$err_str"|grep -vE "$ignore_str")
 else
-    err=$(eval $cmd|grep 'Call Trace' -A5 -B3)$(eval $cmd | grep $project_key | grep -E "$err_str")
+    err=$(eval "$cmd"|grep 'Call Trace' -A5 -B3)$(eval "$cmd" | grep "$project_key" | grep -E "$err_str")
 fi
 
 if [ "$err" ]; then
-    echo `date -u '+%Y-%m-%d %T %Z'` "[ERROR]" "Caught dmesg error"
+    echo "$(date -u '+%Y-%m-%d %T %Z') [ERROR] Caught dmesg error"
     echo "===========================>>"
     echo "$err"
     echo "<<==========================="
+    # exclude none alsa trace, but still print trace message
+    snd_trace=$(echo "$err" | grep "snd")
+    [ -z "$snd_trace" ] && builtin exit 0
     builtin exit 1
 fi
 
