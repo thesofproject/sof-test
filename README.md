@@ -113,7 +113,7 @@ apl
      with the most recent <first/last>
 
 * sof-kernel-dump.sh
-<br> Catch all kernel information after system boot up from /var/log/kern.log file
+<br> Catch all kernel information after system boot up by `journalctl` command
 
 * sof-kernel-log-check.sh
 <br> Check dmesg for errors and ensure that any found are real errors
