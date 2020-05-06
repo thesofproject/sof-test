@@ -26,8 +26,8 @@ tplg=${OPT_VALUE_lst['t']}
 tplg_path=`func_lib_get_tplg_path "$tplg"`
 [[ "$?" != "0" ]] && dloge "No available topology for this test case" && exit 1
 
-# hijack DMESG_LOG_START_LINE which refer dump kernel log in exit function
-DMESG_LOG_START_LINE=$(sof-get-kernel-line.sh|tail -n 1 |awk '{print $1;}')
+# hijack CASE_KERNEL_START_TIME which refer dump kernel log in exit function
+CASE_KERNEL_START_TIME=$(journalctl --list-boots --no-pager|tail -n 1|awk '{print $4" "$5;}')
 
 tplg_str="$(sof-tplgreader.py $tplg_path -d id pcm type -o)"
 pcm_str="$(sof-dump-status.py -i ${SOFCARD:-0})"

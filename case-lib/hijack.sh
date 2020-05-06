@@ -16,10 +16,8 @@ function exit()
         sleep 1s
     fi
     # when case ends, store kernel log
-    if [[ -n "$DMESG_LOG_START_LINE" && "$DMESG_LOG_START_LINE" -ne 0 ]]; then
-        tail -n +"$DMESG_LOG_START_LINE" /var/log/kern.log |cut -f5- -d ' ' > $LOG_ROOT/dmesg.txt
-    else
-        cat /var/log/kern.log |cut -f5- -d ' ' > $LOG_ROOT/dmesg.txt
+    if [[ -n "$CASE_KERNEL_START_TIME" ]]; then
+        journalctl --dmesg --no-pager --no-hostname -o short-precise --since="$CASE_KERNEL_START_TIME" > "$LOG_ROOT/dmesg.txt"
     fi
 
     # get ps command result as list

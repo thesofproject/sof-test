@@ -18,8 +18,8 @@ source $(dirname ${BASH_SOURCE[0]})/../case-lib/lib.sh
 func_opt_parse_option "$@"
 
 if [ ! "$(alias |grep 'Sub-Test')" ];then
-    # hijack DMESG_LOG_START_LINE which refer dump kernel log in exit function
-    DMESG_LOG_START_LINE=$(sof-get-kernel-line.sh|tail -n 1 |awk '{print $1;}')
+    # hijack CASE_KERNEL_START_TIME which refer dump kernel log in exit function
+    CASE_KERNEL_START_TIME=$(journalctl --list-boots --no-pager|tail -n 1|awk '{print $4" "$5;}')
     cmd="sof-kernel-dump.sh"
 else
     cmd="dmesg"

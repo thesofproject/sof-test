@@ -21,8 +21,10 @@ if [ ! "$SOFCARD" ]; then
     SOFCARD=$(grep '\]: sof-[a-z]' /proc/asound/cards|awk '{print $1;}')
 fi
 
-if [ ! "$DMESG_LOG_START_LINE" ]; then
-    declare -g DMESG_LOG_START_LINE=$(wc -l /var/log/kern.log|awk '{print $1;}')
+if [ ! "$CASE_KERNEL_START_TIME" ]; then
+    # format time stamp output for journalctl command
+    LC_TIME='en_US.UTF-8'
+    CASE_KERNEL_START_TIME=$(journalctl --dmesg --no-pager --no-hostname -o short-full -n 1|tail -n 1|awk '{print $2" "$3;}')
 fi
 
 declare -g SOF_LOG_COLLECT=0
