@@ -193,9 +193,9 @@ func_lib_get_tplg_path()
     return 0
 }
 
-# force ask buffer data write into file system
-sudo sync -f
-# catch kern.log last line as current case start line
-if [ ! "$DMESG_LOG_START_LINE" ]; then
-    DMESG_LOG_START_LINE=$(wc -l /var/log/kern.log|awk '{print $1;}')
+journalctl --flush
+if [ ! "$CASE_KERNEL_START_TIME" ]; then
+    # format time stamp output for journalctl command
+    func_lib_setup_kernel_last_time
+    CASE_KERNEL_START_TIME="$KERNEL_LAST_TIME"
 fi

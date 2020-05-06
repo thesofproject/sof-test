@@ -22,8 +22,7 @@ if alias |grep -q 'Sub-Test' ;then
     cmd="dmesg"
 else
     # hijack CASE_KERNEL_START_TIME which refer dump kernel log in exit function
-    # shellcheck disable=SC2034
-    DMESG_LOG_START_LINE=$(sof-get-kernel-line.sh|tail -n 1 |awk '{print $1;}')
+    unset CASE_KERNEL_START_TIME
     cmd="sof-kernel-dump.sh"
 fi
 

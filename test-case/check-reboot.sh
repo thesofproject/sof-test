@@ -144,14 +144,14 @@ sudo chown $UID $boot_file
 old_content="$(cat $boot_file|grep -v '^exit')"
 # write the information to /etc/rc.local
 # LOG_ROOT to make sure all tests, including sub-cases, write log to the same target folder
-# DMESG_LOG_START_LINE to just keep last kernel bootup log
+# CASE_KERNEL_START_TIME to just keep last kernel bootup log
 boot_once_flag=$(realpath $(which sof-boot-once.sh))
 cat << END > $boot_file
 $old_content
 
 $boot_once_flag
 export LOG_ROOT='$(realpath $LOG_ROOT)'
-export DMESG_LOG_START_LINE=$(wc -l /var/log/kern.log|awk '{print $1;}')
+export CASE_KERNEL_START_TIME='$(journalctl --dmesg --no-pager -n 1 |head -n 1|awk '{print $(NF-3)" "$(NF-2);}')'
 bash -c '$full_cmd'
 
 exit 0
