@@ -15,8 +15,8 @@ source $(dirname ${BASH_SOURCE[0]})/../case-lib/lib.sh
 
 func_opt_parse_option "$@"
 
-# hijack DMESG_LOG_START_LINE which refer dump kernel log in exit function
-DMESG_LOG_START_LINE=$(sof-get-kernel-line.sh|tail -n 1 |awk '{print $1;}')
+# hijack CASE_KERNEL_START_TIME which refer dump kernel log in exit function
+unset CASE_KERNEL_START_TIME
 
 dlogi "Checking if sof relative modules loaded"
 dlogc "lsmod | grep \"sof\""

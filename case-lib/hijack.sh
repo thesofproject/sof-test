@@ -20,15 +20,10 @@ function func_exit_handler()
         sleep 1s
     fi
     # when case ends, store kernel log
-    # /var/log/kern.log format:
-    # f1    f2  f3   f4          f5      f6 f7    f8...
-    # Mouth day Time MachineName kernel: [  time] content
-    # May 15 21:28:38 MachineName kernel: [    6.469255] sof-audio-pci 0000:00:0e.0: ipc rx: 0x90020000: GLB_TRACE_MSG
-    # May 15 21:28:38 MachineName kernel: [    6.469268] sof-audio-pci 0000:00:0e.0: ipc rx done: 0x90020000: GLB_TRACE_MSG
-    if [[ -n "$DMESG_LOG_START_LINE" && "$DMESG_LOG_START_LINE" -ne 0 ]]; then
-        tail -n +"$DMESG_LOG_START_LINE" /var/log/kern.log |cut -f5- -d ' ' > "$LOG_ROOT/dmesg.txt"
+    if [[ -n "$CASE_KERNEL_START_TIME" ]]; then
+        journalctl --dmesg --no-pager --no-hostname -o short-precise --since="$CASE_KERNEL_START_TIME" > "$LOG_ROOT/dmesg.txt"
     else
-        cut -f5- -d ' ' /var/log/kern.log > "$LOG_ROOT/dmesg.txt"
+        journalctl --dmesg --no-pager --no-hostname -o short-precise > "$LOG_ROOT/dmesg.txt"
     fi
 
     # get ps command result as list

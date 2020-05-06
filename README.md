@@ -108,10 +108,6 @@ apl
 * sof-get-default-tplg.sh
 <br> Load the tplg file name from system log which is recorded from system bootup
 
-* sof-get-kernel-line.sh
-<br> Print all kernel versions and their line numbers from /var/log/kern.log,
-     with the most recent <first/last>
-
 * sof-kernel-dump.sh
 <br> Catch all kernel information after system boot up from /var/log/kern.log file
 
