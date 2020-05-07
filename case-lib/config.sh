@@ -17,11 +17,6 @@ TPLG_ROOT=${TPLG_ROOT:-/lib/firmware/intel/sof-tplg}
 declare -A TPLG_IGNORE_LST
 TPLG_IGNORE_LST['pcm']='HDA Digital,Media Playback,DMIC16k'
 
-# Will be set by the lib function, don't need to set
-# Catches the last line of /var/log/kern.log, which will be used by
-#   sof-kernel-log-check.
-# KERNEL_LAST_LINE
-
 # If not set will be automatically set by logging_ctl function
 # Test case log root
 # EXAMPLE: the log for test-case/check-ipc-flood.sh will be stored at

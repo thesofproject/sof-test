@@ -109,7 +109,7 @@ esac
 
 [[ ${OPT_VALUE_lst['s']} -eq 1 ]] && func_lib_start_log_collect
 
-func_lib_setup_kernel_last_line
+func_lib_setup_kernel_last_time
 
 dlogi "Entering audio stream expect script with: $cmd -D $pcm -r $rate -c $channel -f $fmt -vv -i $dummy_file -q"
 dlogi "Will enter suspend-resume cycle during paused period of audio stream process"
@@ -179,5 +179,5 @@ if [ $ret -ne 0 ]; then
     [[ $? -ne 0 ]] && dlogw "Kill process catch error"
     exit $ret
 fi
-sof-kernel-log-check.sh $KERNEL_LAST_LINE
+sof-kernel-log-check.sh "$KERNEL_LAST_TIME"
 exit $?

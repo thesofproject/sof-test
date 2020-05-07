@@ -62,7 +62,7 @@ dlogi "pgalist number = ${#pgalist[@]}"
 
 for i in $(seq 1 $maxloop)
 do
-    func_lib_setup_kernel_last_line
+    func_lib_setup_kernel_last_time
     dlogi "Round($i/$maxloop)"
     # TODO: need to check command effect
     for i in "${pgalist[@]}"
@@ -80,7 +80,7 @@ do
     sleep 1
 
     dlogi "check dmesg for error"
-    sof-kernel-log-check.sh $KERNEL_LAST_LINE
+    sof-kernel-log-check.sh "$KERNEL_LAST_TIME"
     [[ $? -ne 0 ]] && func_error_exit "dmesg has errors!"
 done
 

@@ -29,9 +29,9 @@ fi
 
 declare -g SOF_LOG_COLLECT=0
 
-func_lib_setup_kernel_last_line()
+func_lib_setup_kernel_last_time()
 {
-    declare -g KERNEL_LAST_LINE=$(wc -l /var/log/kern.log|awk '{print $1;}')
+    declare -g KERNEL_LAST_TIME=$(journalctl --dmesg --no-pager --no-hostname -o short-full -n 1|tail -n 1|awk '{print $2" "$3;}')
 }
 
 func_lib_start_log_collect()

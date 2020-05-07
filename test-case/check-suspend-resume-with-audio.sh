@@ -51,7 +51,7 @@ OPT_PARM_lst['f']=1         OPT_VALUE_lst['f']=''
 
 func_opt_parse_option "$@"
 func_lib_check_sudo
-func_lib_setup_kernel_last_line
+func_lib_setup_kernel_last_time
 
 tplg=${OPT_VALUE_lst['t']}
 [[ ${OPT_VALUE_lst['s']} -eq 1 ]] && func_lib_start_log_collect
@@ -129,5 +129,5 @@ do
 done
 
 # check full log
-sof-kernel-log-check.sh $KERNEL_LAST_LINE
+sof-kernel-log-check.sh "$KERNEL_LAST_TIME"
 exit $?

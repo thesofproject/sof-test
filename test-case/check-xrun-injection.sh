@@ -43,7 +43,7 @@ interval=${OPT_VALUE_lst['i']}
 
 [[ ${OPT_VALUE_lst['s']} -eq 1 ]] && func_lib_start_log_collect
 
-func_lib_setup_kernel_last_line
+func_lib_setup_kernel_last_time
 func_lib_check_sudo
 func_pipeline_export $tplg "type:playback,capture"
 
@@ -125,5 +125,5 @@ do
     kill -9 $pid && wait $pid 2>/dev/null
 done
 
-sof-kernel-log-check.sh $KERNEL_LAST_LINE
+sof-kernel-log-check.sh "$KERNEL_LAST_TIME"
 exit $?
