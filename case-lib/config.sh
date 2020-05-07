@@ -15,10 +15,11 @@ TPLG_ROOT=${TPLG_ROOT:-/lib/firmware/intel/sof-tplg}
 # example: ignore 'pcms that are HDA Digital & HDA Analog'
 # TPLG_IGNORE_LST['pcm']='HDA Digital,HDA Analog'
 declare -A TPLG_IGNORE_LST
+# shellcheck disable=SC2034 # use by pipeline.sh/func_pipeline_export
 TPLG_IGNORE_LST['pcm']='HDA Digital,Media Playback,DMIC16k'
 
 # Will be set by the lib function, don't need to set
-# Catches the last line of /var/log/kern.log, which will be used by
+# Catches the kernel last line of time stamp by journalctl, which will be used by
 #   sof-kernel-log-check.
 # KERNEL_LAST_LINE
 

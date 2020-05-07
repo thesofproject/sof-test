@@ -41,7 +41,9 @@ fi
 func_lib_setup_kernel_last_line()
 {
     # shellcheck disable=SC2034 # external script will use it
-    KERNEL_LAST_LINE=$(wc -l /var/log/kern.log|awk '{print $1;}')
+    KERNEL_LAST_LINE=$(journalctl --dmesg --no-pager -n 1 -o short-iso-precise|awk '/kernel/ {print $1;}')
+    KERNEL_LAST_LINE=${KERNEL_LAST_LINE:0:-5}
+    KERNEL_LAST_LINE=${KERNEL_LAST_LINE/T/ }
 }
 
 SOF_LOG_COLLECT=0
