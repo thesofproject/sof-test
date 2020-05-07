@@ -80,7 +80,7 @@ do
     sleep 1
 
     dlogi "check dmesg for error"
-    sof-kernel-log-check.sh $KERNEL_LAST_LINE
+    sof-kernel-log-check.sh "$KERNEL_LAST_TIME"
     [[ $? -ne 0 ]] && func_error_exit "dmesg has errors!"
 done
 

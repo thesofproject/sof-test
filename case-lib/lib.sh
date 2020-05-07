@@ -38,10 +38,12 @@ if [ ! "$SOFCARD" ]; then
     SOFCARD=$(grep '\]: sof-[a-z]' /proc/asound/cards|awk '{print $1;}')
 fi
 
-func_lib_setup_kernel_last_line()
+func_lib_setup_kernel_last_time()
 {
     # shellcheck disable=SC2034 # external script will use it
-    KERNEL_LAST_LINE=$(wc -l /var/log/kern.log|awk '{print $1;}')
+    KERNEL_LAST_TIME=$(journalctl --dmesg --no-pager -n 1 -o short-iso-precise|awk '/kernel/ {print $1;}')
+    KERNEL_LAST_TIME=${KERNEL_LAST_TIME:0:-5}
+    KERNEL_LAST_TIME=${KERNEL_LAST_TIME/T/ }
 }
 
 SOF_LOG_COLLECT=0

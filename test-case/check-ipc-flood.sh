@@ -32,7 +32,7 @@ loop_cnt=${OPT_VALUE_lst['l']}
 
 [[ ! "$(sof-kernel-dump.sh|grep 'sof-audio'|grep 'Firmware debug build')" ]] && dlogw "${BASH_SOURCE[0]} need debug version firmware" && exit 2
 
-func_lib_setup_kernel_last_line
+func_lib_setup_kernel_last_time
 func_lib_check_sudo
 
 dlogi "Check sof debug fs environment"
@@ -56,5 +56,5 @@ do
     dmesg | grep "IPC Flood count" -A 2
 done
 
-sof-kernel-log-check.sh $KERNEL_LAST_LINE
+sof-kernel-log-check.sh "$KERNEL_LAST_TIME"
 exit 0
