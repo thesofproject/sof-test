@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 
 import subprocess
+import os
 
 class clsSYSCardInfo():
     def __init__(self):
@@ -20,6 +21,7 @@ class clsSYSCardInfo():
         # https://github.com/thesofproject/linux/blob/topic/sof-dev/sound/soc/sof/sof-acpi-dev.c
         self._acpi_ids={"byt":"80860F28", "cht": "808622A8", "bdw":"INT3438"}
         self.sys_power={}
+        self.dapm={'ctrl_lst':[], 'dapm_lst':[], 'name_lst':[]}
 
     def _convert_dmi_type(self, line):
         name=""
@@ -183,6 +185,49 @@ class clsSYSCardInfo():
                 continue
             self.sys_power['run_status'].append({'map_id': pci_info['pci_id'], 'status': output})
 
+    def loadDAPM(self, filter = "all"):
+        sound_path="/sys/kernel/debug/asoc"
+
+        if len(self.pci_lst) == 0:
+            self.loadPCI()
+        self.dapm['ctrl_lst'].clear()
+        self.dapm['dapm_lst'].clear()
+        self.dapm['name_lst'].clear()
+
+        for pci_info in self.pci_lst:
+            exit_code, output=subprocess.getstatusoutput("cat /sys/bus/pci/devices/0000:%s/power/control" % (pci_info['pci_id']))
+            if exit_code != 0:
+                continue
+            self.dapm['ctrl_lst'].append({'id': pci_info['pci_id'], 'status':output})
+
+        exit_code, output = subprocess.getstatusoutput("find %s -name dapm" % (sound_path))
+        if exit_code != 0:
+            return
+
+        for line in output.splitlines():
+            dapm_dict = {'path':None, 'status':{}}
+            # line format:
+            # /sys/kernel/debug/asoc/'machine-driver'/'path_name'/dapm
+            # /sys/kernel/debug/asoc/'machine-driver'/dapm
+            path_name = line.replace(sound_path, '')
+            path_name = path_name.split('/')[2]
+            dapm_dict['path'] = path_name
+            self.dapm['dapm_lst'].append(dapm_dict)
+            for fname in os.scandir(line):
+                exit_code, output = subprocess.getstatusoutput('cat "%s/%s"' % (line, fname.name))
+                if exit_code != 0:
+                    continue
+                # 1st line format:
+                # 'fname.name': content in x out x
+                # OR
+                # content
+                content = output.splitlines()[0].replace("%s:" %(fname.name), '').strip().split(' ')[0]
+                # content value: [ on, off, standby ]
+                if filter == 'all':
+                    dapm_dict['status'][fname.name]=content
+                elif content.lower() == filter:
+                    self.dapm['name_lst'].append("'%s/%s'" %(path_name ,fname.name))
+
 if __name__ == "__main__":
     def dump_dmi(dmi):
         if len(dmi.keys()) == 0:
@@ -272,6 +317,34 @@ if __name__ == "__main__":
             print('%s;%s;%s;' % (_getStr(pcm, 'id'), _getStr(pcm, 'pcm'), _getStr(pcm, 'type')))
         return 0
 
+    def dump_dapm(dapm, filter = "all"):
+        if filter == "all" and len(dapm['dapm_lst']) == 0:
+            return
+        if filter != "all" and len(dapm['name_lst']) == 0:
+            return
+        print("DPAM Info:")
+        print("\tPower control:")
+        for control in dapm['ctrl_lst']:
+            print("\t\tPCI ID: %s" %(control['id']))
+            print("\t\tStatus: %s" %(control['status']))
+        if filter == "all":
+            for em in dapm['dapm_lst']:
+                print("\tPath:\t%s" %(em['path']))
+                print("\tStatus:")
+                for fname in em['status'].keys():
+                    strtab = ""
+                    if len(fname) < 24:
+                        strtab += "\t"
+                    if len(fname) < 16:
+                        strtab += "\t"
+                    if len(fname) < 8:
+                        strtab += "\t"
+                    print("\t\t%s%s : %s" % (fname, strtab, em['status'][fname]))
+        else:
+            print("\tStatus is '%s' component:" % (filter))
+            for em in dapm['name_lst']:
+                print("\t\t%s;" % em)
+
     import argparse
 
     parser = argparse.ArgumentParser(description='Detect system status for the Sound Card',
@@ -285,6 +358,7 @@ if __name__ == "__main__":
     parser.add_argument('-l', '--longname', type=int, help='dump the longname name of target id sound card')
     parser.add_argument('-P', '--fwpath', action='store_true', help='get firmware path according to DMI info')
     parser.add_argument('-S', '--dsp_status', type=int, help='get current dsp power status, should specify sof card number')
+    parser.add_argument('-d', '--dapm', choices=['all', 'on', 'off', 'standby'], help='get current dapm status, this option need root permission to access debugfs')
     parser.add_argument('--version', action='version', version='%(prog)s 1.0')
 
     ret_args = vars(parser.parse_args())
@@ -329,6 +403,14 @@ if __name__ == "__main__":
     if ret_args.get('dsp_status') is not None:
         sysinfo.loadPower()
         print(sysinfo.sys_power['run_status'][ret_args['dsp_status']]['status'])
+        exit(0)
+
+    if ret_args.get('dapm') is not None:
+        if os.environ['USER'] != 'root': # this operation need root permission
+            print("Need root permission to access debugfs")
+            exit(1)
+        sysinfo.loadDAPM(ret_args.get('dapm'))
+        dump_dapm(sysinfo.dapm, ret_args.get('dapm'))
         exit(0)
 
     # The kernel has changed the default firmware path when community
