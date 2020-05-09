@@ -44,6 +44,7 @@ sudo dmesg -c > /dev/null
 
 for i in $(seq 1 $loop_cnt)
 do
+    dlogi "===== [$i/$loop_cnt] loop Begin ====="
     dlogc "sudo bash -c 'echo $lpc_loop_cnt > $ipc_flood_dfs'"
     sudo bash -c "'echo $lpc_loop_cnt > $ipc_flood_dfs'"
 

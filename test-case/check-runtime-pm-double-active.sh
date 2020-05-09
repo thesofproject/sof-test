@@ -92,7 +92,7 @@ do
     sudo dmesg -C
     for i in $(seq 1 $loop_count)
     do
-        dlogi "Iteration $i of $loop_count for $pcm"
+        dlogi "===== Iteration $i of $loop_count for $pcm ====="
         # playback or capture device - check status
         dlogc "$cmd -D $dev -r $rate -c $channel -f $fmt $dummy_file -q"
         $cmd -D $dev -r $rate -c $channel -f $fmt $dummy_file -q &

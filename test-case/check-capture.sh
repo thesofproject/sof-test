@@ -81,7 +81,7 @@ do
         do
             for i in $(seq 1 $loop_cnt)
             do
-                dlogi "Testing: (Round: $round/$round_cnt) (PCM: $pcm [$dev]<$type>) (Loop: $i/$loop_cnt)"
+                dlogi "===== Testing: (Round: $round/$round_cnt) (PCM: $pcm [$dev]<$type>) (Loop: $i/$loop_cnt) ====="
                 # get the output file
                 if [[ -z $file_prefix ]]; then
                     dlogi "no file prefix, use /dev/null as dummy capture output"
