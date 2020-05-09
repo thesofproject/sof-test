@@ -71,7 +71,7 @@ fi
 
 for i in $(seq 1 $loop_count)
 do
-    dlogi "Round($i/$loop_count)"
+    dlogi "===== Round($i/$loop_count) ====="
     # cleanup dmesg befor run case
     sudo dmesg --clear
     sleep_count=$(cat /sys/power/wakeup_count)

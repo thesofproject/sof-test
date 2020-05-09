@@ -46,7 +46,7 @@ fi
 
 for idx in $(seq 1 $loop_cnt)
 do
-    dlogi "Starting iteration $idx of $loop_cnt"
+    dlogi "===== Starting iteration $idx of $loop_cnt ====="
     ## - 1: remove module section
     func_lib_setup_kernel_last_line
 

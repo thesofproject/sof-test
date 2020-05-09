@@ -78,7 +78,7 @@ verify_opt_lst['verify-pcm-list.sh']="-t $tplg"
 verify_opt_lst['verify-tplg-binary.sh']="-t $tplg"
 verify_opt_lst['check-runtime-pm-status.sh']="-t $tplg -l 1 -d $delay"
 
-dlogi "Round: $current/$count Check status begin"
+dlogi "===== Round: $current/$count Check status begin ====="
 for i in ${verify_lst[*]}
 do
     dlogc "$(dirname ${BASH_SOURCE[0]})/$i $(echo ${verify_opt_lst["$i"]})"

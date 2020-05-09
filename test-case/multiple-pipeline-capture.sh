@@ -102,7 +102,7 @@ func_error_exit()
 
 for i in $(seq 1 $loop_cnt)
 do
-    dlogi "Testing: (Loop: $i/$loop_cnt)"
+    dlogi "===== Testing: (Loop: $i/$loop_cnt) ====="
     # clean up dmesg
     sudo dmesg -C
 

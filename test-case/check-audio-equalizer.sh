@@ -83,7 +83,7 @@ func_test_filter()
 
     for i in $(seq 1 $loop_cnt)
     do
-        dlogi "[$i/$loop_cnt] Test $testfilter config list, $testfilter amixer control id=$Filterid"
+        dlogi "===== [$i/$loop_cnt] Test $testfilter config list, $testfilter amixer control id=$Filterid ====="
         for config in "${FilterList[@]}"; do
             func_test_eq "$Filterid" "$my_dir/$config" || {
                 dloge "EQ test failed with $config"

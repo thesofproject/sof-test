@@ -63,7 +63,7 @@ dlogi "pgalist number = ${#pgalist[@]}"
 for i in $(seq 1 $maxloop)
 do
     func_lib_setup_kernel_last_line
-    dlogi "Round($i/$maxloop)"
+    dlogi "===== Round($i/$maxloop) ====="
     # TODO: need to check command effect
     for i in "${pgalist[@]}"
     do

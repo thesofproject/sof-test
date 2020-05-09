@@ -143,7 +143,7 @@ max_wait_time=$[ 10 * $repeat_count ]
 
 for i in $(seq 1 $loop_count)
 do
-    dlogi "Loop count( $i / $loop_count )"
+    dlogi "===== Loop count( $i / $loop_count ) ====="
     sudo dmesg -c >/dev/null
     for pipeline_combine_str in "${pipeline_combine_lst[@]}"
     do

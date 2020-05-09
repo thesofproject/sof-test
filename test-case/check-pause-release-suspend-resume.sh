@@ -127,7 +127,7 @@ set sleep_t $sleep_period
 expect {
     "#*+*\%" {
         #audio stream (aplay or arecord) is active now and playing
-        puts "\r(\$i/$repeat_count) pb_pbm: Pause $cmd, then wait for"
+        puts "\r===== (\$i/$repeat_count) pb_pbm: Pause $cmd, then wait for ===== "
         puts "\r(\$i/$repeat_count) pb_pbm: $sleep_t ms after pause"
         send " "
         after \$sleep_t

@@ -71,7 +71,7 @@ export LOG_ROOT=$log_root
 
 for counter in $(seq 1 $loop_cnt)
 do
-    dlogi "Starting iteration $counter of $loop_cnt"
+    dlogi "===== Starting iteration $counter of $loop_cnt ====="
 
     export LOG_ROOT=$log_root/round-$counter
     # logic: if this case disable pulseaudio, the sub case don't need to disable pulseaudio
