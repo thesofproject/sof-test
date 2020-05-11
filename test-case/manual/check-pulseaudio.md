@@ -12,6 +12,11 @@ Pulseaudio testing is manual testing for now.
 * Default duration is 10s
 * Default loop count is 3
 
+## Sub-feature Test Case:
+1. Run check-pulseaudio-initial-PGA-volume.md
+2. Run check-muteLED-pulseaudio.md
+3. Run check-pulseaudio-automatic-source-switch.md
+
 ## Playback Test Case:
 1. Check pulseaudio devices in Settings -> Sound, Output
 2. Find current Output Device, select Speaker or Built-in audio if available
