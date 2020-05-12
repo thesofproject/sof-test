@@ -69,7 +69,7 @@ class clsSYSCardInfo():
 
     def loadPCI(self):
         self.pci_lst.clear()
-        exit_code, output=subprocess.getstatusoutput("lspci |grep audio -i")
+        exit_code, output=subprocess.getstatusoutput("lspci |grep audio -i|grep intel -i")
         # grep exit 1 means nothing matched
         if exit_code != 0:
             return
