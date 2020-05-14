@@ -16,8 +16,7 @@ _func_log_cmd()
     local key __LOG_PREFIX=""
     local -A LOG_LIST
 
-    local remote="$LS_COLORS"
-    [[ ! "$remote" ]] && __LOG_PREFIX="REMOTE_"
+    [[ ! "$LS_COLORS" ]] && __LOG_PREFIX="REMOTE_"
 
     LOG_LIST['dlogi']="[$__LOG_PREFIX""INFO]"
     LOG_LIST['dloge']="[$__LOG_PREFIX""ERROR]"
@@ -27,52 +26,41 @@ _func_log_cmd()
     # open aliases for script, so it can use the dlogx commands instead of
     # writing functions
     shopt -s expand_aliases
-    if [ "X1" ]; then
-        # PPID: The process ID of the shell's parent.
-        # get current script parent process name
-        local ppcmd=$(ps -p $PPID -o cmd --noheader|awk '{print $2;}') ext_message=""
-        # confirm this is loaded by the script, and add the flag for it
-        [[ "$(file $ppcmd 2>/dev/null |grep 'shell script')" ]] && ext_message=" Sub-Test:"
-        _func_logcmd_add_timestamp()
-        {
-            echo $(date -u '+%Y-%m-%d %T %Z') $*
-        }
-        for key in ${!LOG_LIST[@]};
-        do
-            alias "$key"="_func_logcmd_add_timestamp $ext_message ${LOG_LIST[$key]}"
-        done
-    else
-        _func_empty_function() { return 0; }
-
-        for key in ${!LOG_LIST[@]};
-        do
-            alias "$key"="_func_empty_function"
-        done
-    fi
+    # PPID: The process ID of the shell's parent.
+    # get current script parent process name
+    local ppcmd
+    ppcmd=$(ps -p $PPID -o cmd --noheader|awk '{print $2;}')
+    local ext_message="" cmd
+    # confirm this script is loaded by other script, and add the flag for it
+    file "$ppcmd" 2>/dev/null |grep -q 'shell script' && ext_message=" Sub-Test:"
+    for key in "${!LOG_LIST[@]}";
+    do
+        # dymaic alias the command with different content
+        cmd="alias $key='echo \$(date -u \"+%F %T %Z\")$ext_message ${LOG_LIST[$key]}'"
+        eval "$cmd"
+    done
 }
 
 # without setting up the LOG_ROOT keyword, now create the log directory for it
 _func_log_directory()
 {
     if [ "$LOG_ROOT" ]; then
-        mkdir -p $LOG_ROOT
+        mkdir -p "$LOG_ROOT"
         return
     fi
 
-    local case_name=$(basename ${BASH_SOURCE[-1]})
-    local log_dir=$(dirname ${BASH_SOURCE[0]})/../logs/
-    log_dir=$(realpath $log_dir)
-    local timetag=$(date +%F"-"%T)"-"$RANDOM
-    local cur_pwd=$PWD
+    local case_name log_dir timetag
+    case_name=$(basename "$SCRIPT_NAME")
     case_name=${case_name%.*}
-    local case_folder=$log_dir/$case_name
-    mkdir -p $case_folder/$timetag
+    log_dir="$SCRIPT_HOME/logs/$case_name"
+    timetag=$(date +%F"-"%T)"-$RANDOM"
+    mkdir -p "$log_dir/$timetag"
     # now using the last link for the time tag
-    [[ -L $case_folder/last ]] && rm $case_folder/last
-    if [[ ! -e $case_folder/last ]]; then
-        ln -s $case_folder/$timetag $case_folder/last
+    [[ -L $log_dir/last ]] && rm "$log_dir"/last
+    if [[ ! -e $log_dir/last ]]; then
+        ln -s "$log_dir/$timetag" "$log_dir"/last
     fi
-    export LOG_ROOT=$case_folder/$timetag
+    export LOG_ROOT=$log_dir/$timetag
 }
 
 for _func_ in $(declare -F|grep _func_log_|awk '{print $NF;}')
