@@ -4,19 +4,15 @@ func_pipeline_export()
 {
     # no parameter input the function
     if [ $# -lt 1 ]; then
-        dlogi "Topology file name is not specified, unable to run command: ${BASH_SOURCE[-1]}" && exit 1
+        dlogi "Topology file name is not specified, unable to run command: $SCRIPT_NAME"
+        exit 1
     fi
-
-    local tplg="$1"
-    local sofcard=${SOFCARD:-0}
-
     # got tplg_file, verify file exist
-    tplg_path=$(func_lib_get_tplg_path "$tplg")
-    [[ "$?" != "0" ]] && dloge "No available topology for pipeline export" && exit 1
-    dlogi "${BASH_SOURCE[-1]} will use topology $tplg_path to run the test case"
-
-    # acquire filter option
-    local filter="$2"
+    tplg_path=$(func_lib_get_tplg_path "$1") || {
+        dloge "No available topology for pipeline export"
+        exit 1
+    }
+    dlogi "$SCRIPT_NAME will use topology $tplg_path to run the test case"
 
     # create block option string
     local ignore=""
@@ -28,8 +24,13 @@ func_pipeline_export()
         done
     fi
 
-    local opt="-f \"$filter\" -b \"$ignore\""
-    local cmd="sof-tplgreader.py $tplg_path $opt -s $sofcard -e"
+    local opt=""
+    # acquire filter option
+    [[ "$2" ]] && opt="-f '$2'"
+    [[ "$ignore" ]] && opt="$opt -b '$ignore'"
+    [[ "$SOFCARD" ]] && opt="$opt -s $SOFCARD"
+
+    local cmd="sof-tplgreader.py $tplg_path $opt -e" line=""
     dlogi "Run command to get pipeline parameters"
     dlogc "$cmd"
     OLD_IFS="$IFS" IFS=$'\n'
@@ -39,7 +40,7 @@ func_pipeline_export()
     done
     IFS="$OLD_IFS"
     [[ ! "$PIPELINE_COUNT" ]] && dlogw "Failed to parse $tplg_path, please check topology parsing command" && exit 1
-    [[ $PIPELINE_COUNT -eq 0 ]] && dlogw "No pipeline found with option: $opt, unable to run ${BASH_SOURCE[-1]}" && exit 2
+    [[ $PIPELINE_COUNT -eq 0 ]] && dlogw "No pipeline found with option: $opt, unable to run $SCRIPT_NAME" && exit 2
     return 0
 }
 
@@ -48,5 +49,6 @@ func_pipeline_parse_value()
     local idx=$1
     local key=$2
     [[ $idx -ge $PIPELINE_COUNT ]] && echo "" && return
-    eval echo "\${PIPELINE_$idx['$key']}"
+    local array_key='PIPELINE_'"$idx"'['"$key"']'
+    eval echo "\${$array_key}" # dynmaic echo the target value of the PIPELINE
 }
