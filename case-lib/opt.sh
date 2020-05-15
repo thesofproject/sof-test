@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Before using, please setup these options for the function
-declare -gA OPT_DESC_lst OPT_OPT_lst OPT_PARM_lst OPT_VALUE_lst
+declare -A OPT_DESC_lst OPT_OPT_lst OPT_PARM_lst OPT_VALUE_lst
 
 # option setup && parse function
 func_opt_parse_option()
@@ -28,11 +28,7 @@ func_opt_parse_option()
 
     _func_case_dump_descption()
     {
-         # bash >= v4.1
-         local main_script=${BASH_SOURCE[-1]}
-         # bash < 4.1
-         # local main_script=${BASH_SOURCE[${#BASH_SOURCE[@]} - 1]}
-         cat $main_script |grep '^##'|sed 's/^##//g'
+         grep '^##' "$SCRIPT_NAME"|sed 's/^##//g'
     }
 
     _func_create_tmpbash()
@@ -51,13 +47,19 @@ func_opt_parse_option()
             # option will accept parameter
             [ ${OPT_PARM_lst[$i]} -eq 1 ] && _short_opt=$_short_opt':' && _long_opt=$_long_opt':'
         done
-        _op_temp_script=`getopt -o "$_short_opt" --long "$_long_opt" -n "$ST_NAME" -- $@`
-        if [ $? != 0 ] ; then echo "Error parsing option" >&2 ; _func_opt_dump_help ; fi
+        if ! _op_temp_script=$(getopt -o "$_short_opt" --long "$_long_opt" -- "$@") ; then
+            # here output for the End-User who don't care about this function/option couldn't to run
+            echo "Error parsing option" >&2
+            # For debug and fix the option problem, you need to open those code:
+            # printf 'Error parsing %s/%s/%s\n' "$i" "$_short_opt" "$_long_opt" >&2
+            # declare -p |grep 'OPT_[A-Z]*_lst'
+            _func_opt_dump_help
+        fi
     }
 
     _func_opt_dump_help()
     {
-        local i def_value
+        local i
         echo -e "Usage: $0 [OPTION]\n"
         for i in ${!OPT_DESC_lst[*]}
         do
@@ -77,9 +79,10 @@ func_opt_parse_option()
                 if [ "${OPT_VALUE_lst[$i]}" ]; then
                     if [ "${OPT_PARM_lst[$i]}" -eq 1 ]; then
                         echo -e "\t""Default Value: ${OPT_VALUE_lst[$i]}"
+                    elif [ "${OPT_VALUE_lst[$i]}" -eq 0 ]; then
+                        echo -e "\t""Default Value: Off"
                     else
-                        [ "${OPT_VALUE_lst[$i]}" -eq 0 ] && echo -e "\t""Default Value: Off" \
-                            || echo -e "\t""Default Value: On"
+                        echo -e "\t""Default Value: On"
                     fi
                 fi
             done
@@ -91,7 +94,7 @@ func_opt_parse_option()
         }
 
     # generate the command to load 'getopt'
-    _func_create_tmpbash $@
+    _func_create_tmpbash "$@"
     eval set -- "$_op_temp_script"
 
     # option function mapping
@@ -105,7 +108,7 @@ func_opt_parse_option()
                 OPT_VALUE_lst[$idx]="$2"
                 shift 2
             else
-                OPT_VALUE_lst[$idx]=$(echo '!'${OPT_VALUE_lst[$idx]}|bc)
+                OPT_VALUE_lst[$idx]=$(echo '!'"${OPT_VALUE_lst[$idx]}"|bc)
                 shift
             fi
         elif [ "X$1" == "X--" ]; then
@@ -115,27 +118,18 @@ func_opt_parse_option()
         fi
     done
     
-    [ ${OPT_VALUE_lst['h']} -eq 1 ] && _func_opt_dump_help
-    # verify & check all option values
-    [[ $(declare -p |grep "[[:space:]]OPT_VALUE_lst=\"\"") ]] && echo "Missing parameter/script default value" && _func_opt_dump_help
+    [ "${OPT_VALUE_lst['h']}" -eq 1 ] && _func_opt_dump_help
     # record the full parameter to the cmd
-    if [ ! -f $LOG_ROOT/cmd.txt ]; then
-        local cmd="$0" opt
-        for opt in ${!OPT_OPT_lst[@]}
-        do
-            [[ $opt == "h" ]] && continue
-            if [ ${OPT_PARM_lst[$opt]} -eq 1 ]; then
-                cmd="$cmd -$opt ${OPT_VALUE_lst[$opt]}"
-            else
-                if [ $(echo '!'${OPT_VALUE_lst[$opt]}|bc) -eq 1 ]; then
-                    cmd="$cmd -$opt"
-                fi
-            fi
-        done
-        echo $cmd >> $LOG_ROOT/cmd.txt
-        local git_path=$(dirname $0)
-        echo "Branch: "$(git -C $git_path branch |grep '^*') >> $LOG_ROOT/version.txt
-        echo "Commit: "$(git -C $git_path log --oneline -1) >> $LOG_ROOT/version.txt
+    if [[ ! -f "$LOG_ROOT/version.txt" ]] && [[ -f "$SCRIPT_HOME/.git/config" ]]; then
+        {
+            echo "Command:"
+            [[ "$TPLG" ]] && echo -n "TPLG=$TPLG "
+            echo "$SCRIPT_NAME $SCRIPT_PRAM"
+            echo 'Branch:'
+            git -C "$SCRIPT_HOME" branch |sed 's/^/\t/g'
+            echo 'Commit:'
+            git -C "$SCRIPT_HOME" log --branches --oneline -n 5
+        } >> "$LOG_ROOT/version.txt"
     fi
 
     unset _func_create_tmpbash _func_opt_dump_help _func_case_dump_descption
