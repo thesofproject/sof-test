@@ -1,19 +1,36 @@
 #!/bin/bash
 
-# Source from the relative path of current folder
-source $(dirname ${BASH_SOURCE[0]})/config.sh
-source $(dirname ${BASH_SOURCE[0]})/opt.sh
-source $(dirname ${BASH_SOURCE[0]})/logging_ctl.sh
-source $(dirname ${BASH_SOURCE[0]})/pipeline.sh
-source $(dirname ${BASH_SOURCE[0]})/hijack.sh
+# get test-case information
+SCRIPT_HOME="$(dirname "$0")"
+# get test-case parent folder name
+SCRIPT_HOME=$(cd "$SCRIPT_HOME/.." && pwd)
+# shellcheck disable=SC2034 # external script can use it
+SCRIPT_NAME="$0"  # get test-case script load name
+# shellcheck disable=SC2034 # external script can use it
+SCRIPT_PRAM="$*"  # get test-case parameter
 
-# force ask buffer data write into file system
-sudo sync -f
+# Source from the relative path of current folder
+# shellcheck disable=SC1091 source=./config.sh
+source "$SCRIPT_HOME/case-lib/config.sh"
+# shellcheck disable=SC1091 source=./opt.sh
+source "$SCRIPT_HOME/case-lib/opt.sh"
+# shellcheck disable=SC1091 source=./logging_ctl.sh
+source "$SCRIPT_HOME/case-lib/logging_ctl.sh"
+# shellcheck disable=SC1091 source=./pipeline.sh
+source "$SCRIPT_HOME/case-lib/pipeline.sh"
+# shellcheck disable=SC1091 source=./hijack.sh
+source "$SCRIPT_HOME/case-lib/hijack.sh"
+
+# restrict bash version for some bash feature
+[[ $(echo -e "$BASH_VERSION\n4.1"|sort -V|head -n 1) == '4.1' ]] || {
+    dlogw "Bash version: ${BASH_VERSINFO[0]}.${BASH_VERSINFO[1]} should > 4.1"
+    exit 2
+}
 
 # Add tools to command PATH
-if [ ! "$(declare -p TOOL_PATH 2>/dev/null)" ]; then
-    declare -x TOOL_PATH=$(realpath $(dirname ${BASH_SOURCE[1]})/../tools)
-    PATH=$TOOL_PATH:$PATH
+# this line equal `! $(echo $PATH|grep "$SCRIPT_HOME/tools")`
+if [[ ! $PATH =~ $SCRIPT_HOME/tools ]]; then
+    export PATH=$SCRIPT_HOME/tools:$PATH
 fi
 
 # setup SOFCARD id
@@ -21,23 +38,22 @@ if [ ! "$SOFCARD" ]; then
     SOFCARD=$(grep '\]: sof-[a-z]' /proc/asound/cards|awk '{print $1;}')
 fi
 
-if [ ! "$DMESG_LOG_START_LINE" ]; then
-    declare -g DMESG_LOG_START_LINE=$(wc -l /var/log/kern.log|awk '{print $1;}')
-fi
-
-declare -g SOF_LOG_COLLECT=0
-
 func_lib_setup_kernel_last_line()
 {
-    declare -g KERNEL_LAST_LINE=$(wc -l /var/log/kern.log|awk '{print $1;}')
+    # shellcheck disable=SC2034 # external script will use it
+    KERNEL_LAST_LINE=$(wc -l /var/log/kern.log|awk '{print $1;}')
 }
 
+SOF_LOG_COLLECT=0
 func_lib_start_log_collect()
 {
-    local is_etrace=${1:-0}
-    local ldcFile=/etc/sof/sof-$(sof-dump-status.py -p).ldc
+    local is_etrace=${1:-0} ldcFile
+    ldcFile=/etc/sof/sof-$(sof-dump-status.py -p).ldc || {
+        >&2 dlogw "sof-dump-status.py -p to query platform failed"
+        return
+    }
     local loggerBin="" logfile="" logopt="-t"
-    [[ "$SOFLOGGER" ]] && loggerBin=$SOFLOGGER || loggerBin=$(which sof-logger)
+    [[ "$SOFLOGGER" ]] && loggerBin=$SOFLOGGER || loggerBin=$(command -v sof-logger)
     if [ "X$is_etrace" == "X0" ];then
         logfile=$LOG_ROOT/slogger.txt
     else
@@ -46,22 +62,27 @@ func_lib_start_log_collect()
     fi
     [[ ! "$loggerBin" ]] && return
     SOFLOGGER=$loggerBin
-    func_hijack_setup_sudo_level
-    [[ $? -eq 0 ]] && SOF_LOG_COLLECT=1
+    if func_hijack_setup_sudo_level ;then
+        # shellcheck disable=SC2034 # external script will use it
+        SOF_LOG_COLLECT=1
+    else
+        >&2 dlogw "without sudo permission to run $SOFLOGGER command"
+        return
+    fi
 
-    sudo $loggerBin $logopt -l $ldcFile -o $logfile 2>/dev/null &
+    sudo "$loggerBin $logopt -l $ldcFile -o $logfile" 2>/dev/null &
 }
 
 func_lib_check_sudo()
 {
-    func_hijack_setup_sudo_level
-    [[ $? -ne 0 ]] && \
-        dlogw "Command needs root privilege to run, please configure SUDO_PASSWD in case-lib/config.sh" && \
+    func_hijack_setup_sudo_level || {
+        dlogw "Command needs root privilege to run, please configure SUDO_PASSWD in case-lib/config.sh"
         exit 2
+    }
 }
 
-declare -ag PULSECMD_LST
-declare -ag PULSE_PATHS
+declare -a PULSECMD_LST
+declare -a PULSE_PATHS
 
 func_lib_disable_pulseaudio()
 {
@@ -78,7 +99,7 @@ func_lib_disable_pulseaudio()
     do
         # rename pulseaudio before kill it
         if [ -x "$PA_PATH" ]; then
-            sudo mv -f $PA_PATH $PA_PATH.bak
+            sudo mv -f "$PA_PATH" "$PA_PATH.bak"
         fi
     done
     sudo pkill -9 pulseaudio
@@ -100,7 +121,7 @@ func_lib_restore_pulseaudio()
     for PA_PATH in "${PULSE_PATHS[@]}"
     do
         if [ -x "$PA_PATH.bak" ]; then
-            sudo mv -f $PA_PATH.bak $PA_PATH
+            sudo mv -f "$PA_PATH.bak" "$PA_PATH"
         fi
     done
     # start pulseaudio
@@ -109,7 +130,7 @@ func_lib_restore_pulseaudio()
     do
         user=${line%% *}
         cmd=${line#* }
-        nohup sudo -u $user $cmd >/dev/null &
+        nohup sudo -u "$user" "$cmd" >/dev/null &
     done
     # now wait for the pulseaudio restore in the ps process
     timeout=10
@@ -118,7 +139,7 @@ func_lib_restore_pulseaudio()
     do
         sleep 1s
         [ -n "$(ps -C pulseaudio --no-header)" ] && break
-        if [ $wait_time -eq $timeout ]; then
+        if [ "$wait_time" -eq $timeout ]; then
              dlogi "Time out. Pulseaudio not restored in $timeout seconds"
              return 1
         fi
@@ -134,15 +155,12 @@ func_lib_restore_pulseaudio()
 func_lib_get_random()
 {
     # RANDOM: Each time this parameter is referenced, a random integer between 0 and 32767 is generated
-    local random_max random_min random_scope
+    local random_max=$1 random_min=$2 random_scope
+    random_scope=$(( random_max - random_min ))
     if [ $# -ge 2 ];then
-        random_max=$1
-        random_min=$2
-        random_scope=$(expr $random_max - $random_min)
-        expr $RANDOM % $random_scope + $random_min
+        echo $(( RANDOM % random_scope + random_min ))
     elif [ $# -eq 1 ];then
-        random_max=$1
-        expr $RANDOM % $random_max
+        echo $(( RANDOM % random_max ))
     else
         echo $RANDOM
     fi
@@ -150,9 +168,9 @@ func_lib_get_random()
 
 func_lib_lsof_error_dump()
 {
-    local file=$1
-    [[ ! -c $file ]] && return
-    local ret=$(lsof $file)
+    local file="$1" ret
+    [[ ! -c "$file" ]] && return
+    ret=$(lsof "$file")
     if [ "$ret" ];then
         dloge "Sound device file is in use:"
         echo "$ret"
@@ -162,18 +180,22 @@ func_lib_lsof_error_dump()
 func_lib_get_tplg_path()
 {
     local tplg=$1
-    # tplg given is empty
-    if [[ -z "$tplg" ]]; then
+    if [[ -z "$tplg" ]]; then   # tplg given is empty
         return 1
-    fi
-
-    if [[ -f "$TPLG_ROOT/$(basename "$tplg")" ]]; then
+    elif [[ -f "$TPLG_ROOT/$(basename "$tplg")" ]]; then
         echo "$TPLG_ROOT/$(basename "$tplg")"
     elif [[ -f "$tplg" ]]; then
-        echo $(realpath "$tplg")
+        realpath "$tplg"
     else
         return 1
     fi
 
     return 0
 }
+
+# force ask buffer data write into file system
+sudo sync -f
+# catch kern.log last line as current case start line
+if [ ! "$DMESG_LOG_START_LINE" ]; then
+    DMESG_LOG_START_LINE=$(wc -l /var/log/kern.log|awk '{print $1;}')
+fi
