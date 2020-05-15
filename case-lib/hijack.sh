@@ -1,6 +1,6 @@
 #!/bin/bash
 
-declare -g SUDO_CMD=$(which sudo)
+SUDO_CMD=$(command -v sudo)
 
 # Overwrite other functions' exit to perform environment cleanup
 function exit()
@@ -10,16 +10,24 @@ function exit()
     # when sof logger collect is open
     if [ "X$SOF_LOG_COLLECT" == "X1" ]; then
         # when error occurs, exit and catch etrace log
-        [[ $exit_status -eq 1 ]] && func_lib_start_log_collect 1 && sleep 1s
-        local loggerBin=$(basename $SOFLOGGER)
-        sudo pkill -9 $loggerBin 2>/dev/null
+        [[ $exit_status -eq 1 ]] && {
+            func_lib_start_log_collect 1
+            sleep 1s
+        }
+        local loggerBin; loggerBin=$(basename "$SOFLOGGER")
+        sudo pkill -9 "$loggerBin" 2>/dev/null
         sleep 1s
     fi
     # when case ends, store kernel log
+    # /var/log/kern.log format:
+    # f1    f2  f3   f4          f5      f6 f7    f8...
+    # Mouth day Time MachineName kernel: [  time] content
+    # May 15 21:28:38 MachineName kernel: [    6.469255] sof-audio-pci 0000:00:0e.0: ipc rx: 0x90020000: GLB_TRACE_MSG
+    # May 15 21:28:38 MachineName kernel: [    6.469268] sof-audio-pci 0000:00:0e.0: ipc rx done: 0x90020000: GLB_TRACE_MSG
     if [[ -n "$DMESG_LOG_START_LINE" && "$DMESG_LOG_START_LINE" -ne 0 ]]; then
-        tail -n +"$DMESG_LOG_START_LINE" /var/log/kern.log |cut -f5- -d ' ' > $LOG_ROOT/dmesg.txt
+        tail -n +"$DMESG_LOG_START_LINE" /var/log/kern.log |cut -f5- -d ' ' > "$LOG_ROOT/dmesg.txt"
     else
-        cat /var/log/kern.log |cut -f5- -d ' ' > $LOG_ROOT/dmesg.txt
+        cut -f5- -d ' ' /var/log/kern.log > "$LOG_ROOT/dmesg.txt"
     fi
 
     # get ps command result as list
@@ -57,7 +65,7 @@ function exit()
     fi
     # if failed to restore pulseaudio, even test caes passed, set exit status to ret
     # to make test case failed. this helps to dectect pulseaudio failures.
-    if [ $exit_status -eq 0 -a $ret -ne 0 ]; then
+    if [ "$exit_status" -eq 0 ] && [ $ret -ne 0 ]; then
         exit_status=$ret
     fi
 
@@ -79,27 +87,24 @@ function exit()
     builtin exit $exit_status
 }
 
+SUDO_LEVEL=""
 # overwrite the sudo command, sudo in the script can direct using sudo command
 sudo()
 {
     func_hijack_setup_sudo_level
+    local cmd
     case $SUDO_LEVEL in
-        '0')    # as root
-            eval $(echo "$*")
-            return $?
+        '0')    cmd="$*" # as root
         ;;
-        '1')    # sudo without passwd
-            eval $(echo "$SUDO_CMD env 'PATH=$PATH' $*")
-            return $?
+        '1')    cmd="$SUDO_CMD env 'PATH=$PATH' $*" # sudo without passwd
         ;;
-        '2')    # sudo need passwd
-            eval $(echo "echo '$SUDO_PASSWD' | $SUDO_CMD -S env 'PATH=$PATH' $*")
-            return $?
+        '2')    cmd="echo '$SUDO_PASSWD' | $SUDO_CMD -S env 'PATH=$PATH' $*" # sudo need passwd
         ;;
         *)      # without sudo permission
             dlogw "Need root privilege to run $*"
+            return 2
     esac
-    return 2
+    eval "$cmd"
 }
 
 func_hijack_setup_sudo_level()
@@ -108,7 +113,7 @@ func_hijack_setup_sudo_level()
     # root permission, don't need to check
     [[ $UID -eq 0 ]] && SUDO_LEVEL=0 && return 0
     # now check whether we need sudo passwd using expect
-    expect >/dev/null <<END
+    if expect >/dev/null <<END
 spawn $SUDO_CMD ls
 expect {
     "password" {
@@ -117,12 +122,13 @@ expect {
 exit 0
 }
 END
-    [[ $? -eq 0 ]] && SUDO_LEVEL=1 && return 0
+    then
+        SUDO_LEVEL=1 && return 0
+    fi
 
     # check for sudo passwd
     if [[ "$SUDO_PASSWD" ]]; then
-        local tmp_uid=$(echo "$SUDO_PASSWD"|$SUDO_CMD -S bash -c 'echo $UID')
-        [[ $tmp_uid -eq 0 ]] && SUDO_LEVEL=2 && return 0
+        [[ $(echo "$SUDO_PASSWD"|$SUDO_CMD -S id -u) -eq 0 ]] && SUDO_LEVEL=2 && return 0
     fi
     return 1
 }
