@@ -31,28 +31,21 @@ function exit()
     fi
 
     # get ps command result as list
-    OLD_IFS="$IFS" IFS=$'\n'
     local -a cmd_lst
-    local line
     # $$ as current script pid
     # NOTICE: already test with $BASHPID:
     # it can output the same result of $$
     # but the result could not be stored in the array
-    for line in $(ps --ppid $$ -o pid,cmd --no-header|grep -vE "ps|${BASH_SOURCE[-1]}");
-    do
-        cmd_lst=( "${cmd_lst[@]}" "$line")
-    done
-    IFS="$OLD_IFS"
+    readarray -t cmd_lst < <(pgrep -P $$ -a|grep -v "$SCRIPT_NAME")
     # now force kill target process which maybe block the script quit
     if [ ${#cmd_lst[@]} -gt 0 ]; then
-        dlogw "Process(es) started by ${BASH_SOURCE[-1]} are still active, kill these process(es):"
+        local line
+        dlogw "Process(es) started by $SCRIPT_NAME are still active, kill these process(es):"
         for line in "${cmd_lst[@]}"
         do
-            # remove '^[:space:]' because IFS change to keep the '^[:space:]' in variable
-            line=$(echo $line|xargs)
             dlogw "Catch pid: $line"
             dlogw "Kill cmd:'${line#* }' by kill -9"
-            kill -9 ${line%% *}
+            kill -9 "${line%% *}"
         done
     fi
 

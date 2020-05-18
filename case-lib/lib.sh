@@ -88,13 +88,11 @@ func_lib_disable_pulseaudio()
 {
     [[ "${#PULSECMD_LST[@]}" -ne 0 ]] && return
     # store current pulseaudio command
-    OLD_IFS="$IFS" IFS=$'\n'
-    PULSECMD_LST=( $(ps -C pulseaudio -o user,cmd --no-header) )
-    IFS="$OLD_IFS"
+    readarray -t PULSECMD_LST < <(ps -C pulseaudio -o user,cmd --no-header)
     [[ "${#PULSECMD_LST[@]}" -eq 0 ]] && return
     func_lib_check_sudo
     # get all running pulseaudio paths
-    PULSE_PATHS=( $(ps -C pulseaudio -o cmd --no-header | awk '{print $1}') )
+    readarray -t PULSE_PATHS < <(ps -C pulseaudio -o cmd --no-header | awk '{print $1}'|sort -u)
     for PA_PATH in "${PULSE_PATHS[@]}"
     do
         # rename pulseaudio before kill it
