@@ -30,15 +30,15 @@ func_pipeline_export()
     [[ "$ignore" ]] && opt="$opt -b '$ignore'"
     [[ "$SOFCARD" ]] && opt="$opt -s $SOFCARD"
 
+    local -a pipeline_lst
     local cmd="sof-tplgreader.py $tplg_path $opt -e" line=""
     dlogi "Run command to get pipeline parameters"
     dlogc "$cmd"
-    OLD_IFS="$IFS" IFS=$'\n'
-    for line in $(eval "$cmd");
+    readarray -t pipeline_lst < <(eval "$cmd")
+    for line in "${pipeline_lst[@]}"
     do
         eval "$line"
     done
-    IFS="$OLD_IFS"
     [[ ! "$PIPELINE_COUNT" ]] && dlogw "Failed to parse $tplg_path, please check topology parsing command" && exit 1
     [[ $PIPELINE_COUNT -eq 0 ]] && dlogw "No pipeline found with option: $opt, unable to run $SCRIPT_NAME" && exit 2
     return 0
