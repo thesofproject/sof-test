@@ -11,7 +11,7 @@
 # file type
 *.py                    @Bin-QA @aiChaoSONG @marc-hb
 *.sh                    @Bin-QA @marc-hb
-*.md                    @fredoh9 @stripes416 @marc-hb
+*.md                    @fredoh9 @marc-hb
 
 # tools and caselib
 case-lib/*              @Bin-QA @xiulipan @marc-hb
@@ -19,12 +19,12 @@ tools/*                 @Bin-QA @aiChaoSONG @marc-hb
 tools/kmod/*            @aiChaoSONG @plbossart @marc-hb
 
 # test case
-test-case/manual/*      @fredoh9 @stripes416 @marc-hb
+test-case/manual/*      @fredoh9 @marc-hb
 test-case/*playback*    @aiChaoSONG @marc-hb
 test-case/*capture*     @aiChaoSONG @marc-hb
-test-case/*kmod*        @stripes416 @marc-hb
+test-case/*kmod*        @Bin-QA @aiChaoSONG @marc-hb
 test-case/*pause*       @Bin-QA @marc-hb
-test-case/*runtime*     @stripes416 @marc-hb
+test-case/*runtime*     @Bin-QA @aiChaoSONG @marc-hb
 test-case/*logger*      @fredoh9 @marc-hb
 test-case/verify*       @aiChaoSONG @libinyang @marc-hb
 test-case/*ucm*         @libinyang @marc-hb
