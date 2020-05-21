@@ -13,7 +13,7 @@ func_opt_parse_option()
 
     # for example
     # OPT_OPT_lst['r']='remote'
-    # OPT_DESC_lst['r']='Run for the remote machine\nFor eample: 10.0.12.234' # please check with echo -e option for the output format
+    # OPT_DESC_lst['r']='Run for the remote machine'
     # OPT_PARM_lst['r']=1
     # OPT_VALUE_lst['r']='' ## if PARM=1, must be set, if PARM=0, can ignore
 
@@ -47,11 +47,11 @@ func_opt_parse_option()
             # option will accept parameter
             [ ${OPT_PARM_lst[$i]} -eq 1 ] && _short_opt=$_short_opt':' && _long_opt=$_long_opt':'
         done
-        if ! _op_temp_script=$(getopt -o "$_short_opt" --long "$_long_opt" -- "$@") ; then
+        if ! _op_temp_script=$(getopt -o "$_short_opt" --long "$_long_opt" -- "$@" 2>/dev/null) ; then
             # here output for the End-User who don't care about this function/option couldn't to run
-            echo "Error parsing option" >&2
+            printf 'Error parsing option\n'
             # For debug and fix the option problem, you need to open those code:
-            # printf 'Error parsing %s/%s/%s\n' "$i" "$_short_opt" "$_long_opt" >&2
+            # printf 'Error parsing %s/%s/%s\n' "$_short_opt" "$_long_opt" "$@" >&2
             # declare -p |grep 'OPT_[A-Z]*_lst'
             _func_opt_dump_help
         fi
@@ -60,35 +60,35 @@ func_opt_parse_option()
     _func_opt_dump_help()
     {
         local i
-        echo -e "Usage: $0 [OPTION]\n"
+        printf 'Usage: %s [OPTION]\n' "$0"
         for i in ${!OPT_DESC_lst[*]}
         do
                 [ "X$i" = "Xh" ] && continue
                 # display short option
-                [ "$i" ] && echo -ne '    -'"$i"
+                [ "$i" ] && printf '    -%s' "$i"
                 # have parameter
-                [ "X""${OPT_PARM_lst[$i]}" == "X1" ] && echo -ne " parameter"
+                [ "X${OPT_PARM_lst[$i]}" == "X1" ] && printf ' parameter'
                 # display long option
                 if [ "${OPT_OPT_lst[$i]}" ]; then
                     # whether display short option
-                    [ "$i" ] && echo -ne " |  " || echo -ne "    "
-                    echo -ne "--""${OPT_OPT_lst[$i]}"
-                    [ "X""${OPT_PARM_lst[$i]}" == "X1" ] && echo -ne " parameter"
+                    [ "$i" ] && printf ' |  ' || printf '    '
+                    printf '%s' "--${OPT_OPT_lst[$i]}"
+                    [ "X${OPT_PARM_lst[$i]}" == "X1" ] && printf ' parameter'
                 fi
-                echo -e "\n\t""${OPT_DESC_lst[$i]}"
+                printf '\n\t%s\n' "${OPT_DESC_lst[$i]}"
                 if [ "${OPT_VALUE_lst[$i]}" ]; then
                     if [ "${OPT_PARM_lst[$i]}" -eq 1 ]; then
-                        echo -e "\t""Default Value: ${OPT_VALUE_lst[$i]}"
+                        printf '\tDefault Value: %s' "${OPT_VALUE_lst[$i]}"
                     elif [ "${OPT_VALUE_lst[$i]}" -eq 0 ]; then
-                        echo -e "\t""Default Value: Off"
+                        printf '\tDefault Value: Off'
                     else
-                        echo -e "\t""Default Value: On"
+                        printf '\tDefault Value: On'
                     fi
                 fi
             done
 
-            echo -e '    -h |  --help'
-            echo -e "\tthis message"
+            printf '    -h |  --help\n'
+            printf '\tthis message\n'
             _func_case_dump_descption
             exit 2
         }
@@ -104,7 +104,7 @@ func_opt_parse_option()
         [ ! "$idx" ] && idx="${_op_long_lst[$1]}"
         if [ "$idx" ]; then
             if [ ${OPT_PARM_lst[$idx]} -eq 1 ]; then
-                [ ! "$2" ] && echo "option: $1 missing parameter, parsing error" && exit 1
+                [ ! "$2" ] && printf 'option: %s missing parameter, parsing error' "$1" && exit 2
                 OPT_VALUE_lst[$idx]="$2"
                 shift 2
             else
@@ -114,7 +114,7 @@ func_opt_parse_option()
         elif [ "X$1" == "X--" ]; then
             shift && break
         else
-            echo "option: $1 unknown, error!" && exit 2
+            printf 'option: %s unknown, error!' "$1" && exit 2
         fi
     done
     
@@ -122,12 +122,12 @@ func_opt_parse_option()
     # record the full parameter to the cmd
     if [[ ! -f "$LOG_ROOT/version.txt" ]] && [[ -f "$SCRIPT_HOME/.git/config" ]]; then
         {
-            echo "Command:"
-            [[ "$TPLG" ]] && echo -n "TPLG=$TPLG "
-            echo "$SCRIPT_NAME $SCRIPT_PRAM"
-            echo 'Branch:'
-            git -C "$SCRIPT_HOME" branch |sed 's/^/\t/g'
-            echo 'Commit:'
+            printf "Command:\n"
+            [[ "$TPLG" ]] && printf "TPLG=%s" "$TPLG "
+            printf '%s %s' "$SCRIPT_NAME" "$SCRIPT_PRAM"
+            printf 'Branch:\n'
+            git -C "$SCRIPT_HOME" branch
+            printf 'Commit:\n'
             git -C "$SCRIPT_HOME" log --branches --oneline -n 5
         } >> "$LOG_ROOT/version.txt"
     fi
