@@ -2,8 +2,9 @@
 
 SUDO_CMD=$(command -v sudo)
 
+trap 'func_exit_handler' EXIT
 # Overwrite other functions' exit to perform environment cleanup
-function exit()
+function func_exit_handler()
 {
     local exit_status=${1:-0}
 
