@@ -79,6 +79,7 @@ remove_module snd_soc_rt5660
 remove_module snd_soc_rt5670
 remove_module snd_soc_rt5677
 remove_module snd_soc_rt5677_spi
+remove_module snd_soc_rt5682_i2c
 remove_module snd_soc_rt5682_sdw
 remove_module snd_soc_rt5682
 remove_module snd_soc_rl6231
