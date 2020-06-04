@@ -1,6 +1,6 @@
 #!/bin/bash
 
-[[ $# -ne 1 ]] && echo "This script need parameter: pid/process-name to dump it's state" && builtin exit 2
+[[ $# -ne 1 ]] && echo "This script needs parameter: pid/process-name to dump its state" && builtin exit 2
 
 # catch from man ps: PROCESS STATE CODES
 declare -A PS_STATUS
@@ -17,7 +17,7 @@ process=$1
 # have value which is not the number
 [[ "${process//[0-9]/}" ]] && opt="-C" || opt="-p"
 exit_code=1
-# process not exist
+# process does not exist
 [[ ! "$(ps $opt $process -o state --no-header)" ]] && \
     builtin echo "process: $process status: process run finished/not run" && builtin exit 2
 
