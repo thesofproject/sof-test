@@ -49,7 +49,7 @@ fmt=$(func_pipeline_parse_value 0 fmt)
 dev=$(func_pipeline_parse_value 0 dev)
 
 dlogc "aplay -D $dev -c $channel -r $rate -f $fmt /dev/zero &"
-# play into back ground, this will wake up DSP and IPC. Need to clean after the test
+# play into background, this will wake up DSP and IPC. Need to clean after the test
 aplay -D $dev -c $channel -r $rate -f $fmt /dev/zero &
 
 sleep 1
