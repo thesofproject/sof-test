@@ -4,7 +4,7 @@ cmd_lst=("aplay" "arecord")
 
 for i in ${cmd_lst[@]}
 do
-    # Just kill UID to restrict process start by current user
+    # Just kill UID to restrict process started by current user
     pkill -9 -U $UID $i
     echo "pkill $i with return $?"
 done
