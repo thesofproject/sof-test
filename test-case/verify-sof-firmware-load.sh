@@ -3,11 +3,11 @@
 ##
 ## Case Name: verify-sof-firmware-load
 ## Description:
-##    Check if the SOF fw load success in dmesg
+##    Check if the SOF fw loaded successfully in dmesg
 ## Case step:
-##    Check demsg to search fw load info
+##    Check dmesg to search fw load info
 ## Expect result:
-##    Get fw version info in demsg
+##    Get fw version info in dmesg
 ##    sof-audio-pci 0000:00:0e.0: Firmware info: version 1:1:0-e5fe2
 ##    sof-audio-pci 0000:00:0e.0: Firmware: ABI 3:11:0 Kernel ABI 3:11:0
 ##
