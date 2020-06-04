@@ -5,12 +5,12 @@
 ## Preconditions:
 ##    N/A
 ## Description:
-##    check sof debug ipc function can success work
+##    check sof debug ipc function can successfully work
 ## Case step:
 ##    1. write target count to ipc_flood_count
 ##       echo 10000 > /sys/kernel/debug/sof/ipc_flood_count
 ## Expect result:
-##    without kernel log
+##    no error in kernel log
 ##
 
 source $(dirname ${BASH_SOURCE[0]})/../case-lib/lib.sh
@@ -49,7 +49,7 @@ do
     sudo bash -c "'echo $lpc_loop_cnt > $ipc_flood_dfs'"
 
     sof-kernel-log-check.sh 0 || {
-        dloge "Catch error in dmesg" && exit 1
+        dloge "Catched error in dmesg" && exit 1
     }
 
     dlogi "Dumping test logs!"
