@@ -1,9 +1,9 @@
 #!/bin/bash
 
 ##
-## Case Name: Run multiple pipeline for playback
+## Case Name: Run multiple pipelines for playback
 ## Preconditions:
-##    check-caputre-10sec pass
+##    check-playback-10sec pass
 ## Description:
 ##    Pick up pipelines from TPLG file for max count
 ##    Rule:
@@ -19,7 +19,7 @@
 ##    6. wait for sleep time
 ##    7. check process status & process count
 ## Expect result:
-##    all pipeline is alive and without kernel error
+##    all pipelines are alive and without kernel error
 ##
 
 source $(dirname ${BASH_SOURCE[0]})/../case-lib/lib.sh
