@@ -11,7 +11,7 @@ do
 done
 
 [[ ${#disk_lst} -eq 0 ]] && \
-    echo "disk usage check: health" && \
+    echo "disk usage check: healthy" && \
     exit 0
 
 echo -e "disk usage check: \e[31m\e[5mwarning\e[0m\e[25m"
