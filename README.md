@@ -14,9 +14,9 @@
 ## Environment set up
 ### requirements
 #### apt packages
-expect alsa-utils python3
+expect alsa-utils python3 python3-graphviz
 ```
-sudo apt install expect alsa-utils python3
+sudo apt install expect alsa-utils python3 python3-graphviz
 ```
 #### user group
 sudo adm audio
