@@ -3,7 +3,7 @@
 ##
 ## Case Name: verify PCM list with tplg file
 ## Preconditions:
-##    driver already to load
+##    driver already inserted with modprobe
 ## Description:
 ##    using /proc/asound/pcm to compare with tplg content
 ## Case step:
