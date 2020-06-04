@@ -53,10 +53,10 @@ pb_duration=${OPT_VALUE_lst['d']}
 func_pipeline_export $tplg "type:playback"
 
 func_lib_check_sudo
-# overwirte the subscript: test-case LOG_ROOT environment
-# so when load the test-case in current script
+# overwrite the subscript: test-case LOG_ROOT environment
+# so when loading the test-case in current script
 # the test-case will write the log to the store folder LOG_ROOT
-# which is current script log folder
+# which is the current script log folder
 log_root=$LOG_ROOT
 
 if [ ${OPT_VALUE_lst['p']} -eq 1 ];then
@@ -74,8 +74,8 @@ do
     dlogi "===== Starting iteration $counter of $loop_cnt ====="
 
     export LOG_ROOT=$log_root/round-$counter
-    # logic: if this case disable pulseaudio, the sub case don't need to disable pulseaudio
-    # if this case don't need to disable pulseaudio, the subcase also don't need to disable pluseaudio
+    # logic: if this case disables pulseaudio, the sub case does not need to disable pulseaudio
+    # if this case does not need to disable pulseaudio, the subcase also does not need to disable pluseaudio
     $(dirname ${BASH_SOURCE[0]})/check-kmod-load-unload.sh -l 1 -p
     ret=$?
     export LOG_ROOT=$log_root
