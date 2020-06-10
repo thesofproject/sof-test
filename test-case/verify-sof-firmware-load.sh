@@ -13,25 +13,28 @@
 ##
 
 # source from the relative path of current folder
-source $(dirname ${BASH_SOURCE[0]})/../case-lib/lib.sh
+# shellcheck disable=SC1090
+source "$(dirname "${BASH_SOURCE[0]}")/../case-lib/lib.sh"
 
 func_opt_parse_option "$@"
 
-if [ ! "$(alias |grep 'Sub-Test')" ];then
-    # hijack DMESG_LOG_START_LINE which refer dump kernel log in exit function
+if alias |grep -q 'Sub-Test' ;then
+    cmd="dmesg"
+else
+    # hijack CASE_KERNEL_START_TIME which refer dump kernel log in exit function
+    # shellcheck disable=SC2034
     DMESG_LOG_START_LINE=$(sof-get-kernel-line.sh|tail -n 1 |awk '{print $1;}')
     cmd="sof-kernel-dump.sh"
-else
-    cmd="dmesg"
 fi
 
 dlogi "Checking SOF Firmware load info in kernel log"
-if [[ $(eval $cmd | grep "] sof-audio.*version") ]]; then
+eval $cmd | grep -q "sof-audio.*Firmware.*version" && {
     # dump the version info and ABI info
     eval $cmd | grep "Firmware info" -A1
     # dump the debug info
     eval $cmd | grep "Firmware debug build" -A3
     exit 0
-else
-    dloge "Cannot find the sof audio version" && exit 1
-fi
+}
+
+dloge "Cannot find the sof audio version"
+exit 1
