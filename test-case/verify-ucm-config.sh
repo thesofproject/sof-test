@@ -42,8 +42,8 @@ func_get_verbs()
 {
     dlogc "alsaucm -c '$cardname' list _verbs"
     verbs=`alsaucm -c "$cardname" list _verbs 2>/dev/null`
-    [[ $? -ne 0 ]] && dloge "'$cardname' list _verbs failed!" && exit 1
-    [[ -z "$verbs" ]] && dloge "'$cardname' ucm has no verbs!" && exit 1
+    [[ $? -ne 0 ]] && die "'$cardname' list _verbs failed!"
+    [[ -z "$verbs" ]] && die "'$cardname' ucm has no verbs!"
 
     # save the verbs into array verb_array
     local OLD_IFS="$IFS"
@@ -151,13 +151,13 @@ cardname=$(sof-dump-status.py -s $sofcard)
 # 1. use alsaucm to open the card
 dlogc "alsaucm -c ${cardname} open ${cardname}"
 alsaucm -c "${cardname}" open "${cardname}" 2>/dev/null
-[[ $? -ne 0 ]] && dloge "open card '$cardname' failed!" && exit 1
+[[ $? -ne 0 ]] && die "open card '$cardname' failed!"
 
 # 2. try to reload the card to the initial settings.
 # These setting is defined in 'SectionDefaults' in UCM config file.
 dlogc "alsaucm -c "$cardname" reload"
 alsaucm -c "$cardname" reload 2>/dev/null
-[[ $? -ne 0 ]] && dloge "card '$cardname' reload failed." && exit 1
+[[ $? -ne 0 ]] && die "card '$cardname' reload failed."
 
 # 3. get all the verbs
 func_get_verbs
@@ -167,9 +167,9 @@ for verb in "${verb_array[@]}"; do
 	# 4.1 test setting verb works or not. In the upper example, it means to use 'HiFi' use case.
         dlogc "alsaucm -c '$cardname' set _verb $verb get _verb"
         ret=`alsaucm -c "$cardname" set _verb "$verb" get _verb 2>/dev/null`
-        [[ $? -ne 0 ]] && dloge "set verb: $verb failed!" && exit 1
+        [[ $? -ne 0 ]] && die "set verb: $verb failed!"
         ret=`echo $ret |grep "$verb" 2>/dev/null`
-        [[ -z "$ret" ]] && dloge "'$verb' is not the selected verb" && exit 1
+        [[ -z "$ret" ]] && die "'$verb' is not the selected verb"
 
 	# 4.2 Let's go through all the devices supported in the verb, e.g. "HiFi" use case.
         func_verify_verb_device "$cardname" "$verb"

@@ -49,8 +49,7 @@ func_check_dsp_status()
     done
 
     if [ $i -eq $iloop ]; then
-        dlogi "dsp is not suspended after $1s, end test"
-        exit 1
+        die "dsp is not suspended after $1s, end test"
     else
         dlogi "dsp suspended in $i try, ${i}00 msec"
     fi
@@ -104,8 +103,7 @@ do
         kill -0 $pid
         if [ $? -ne 0 ]; then
             func_lib_lsof_error_dump $snd
-            dloge "$cmd process for pcm $pcm is not alive"
-            exit 1
+            die "$cmd process for pcm $pcm is not alive"
         fi
 
         [[ -d /proc/$pid ]] && result=`sof-dump-status.py --dsp_status 0`
@@ -136,14 +134,11 @@ do
         $cmd -D $dev -r $rate -c $channel -f $fmt $dummy_file -d 1 -q
         if [[ $? -ne 0 ]]; then
             func_lib_lsof_error_dump $snd
-            dloge "playback/capture failed on $pcm, $dev at $i/$loop_cnt."
-            exit 1
+            die "playback/capture failed on $pcm, $dev at $i/$loop_cnt."
         fi
     done
 
-    sof-kernel-log-check.sh 0 || {
-        dloge "Catch error in dmesg" && exit 1
-    }
+    sof-kernel-log-check.sh 0 || die "Catch error in dmesg"
 done
 
 sof-kernel-log-check.sh $KERNEL_LAST_LINE

@@ -64,8 +64,7 @@ case $test_mode in
         dummy_file=/dev/null
     ;;
     *)
-        dloge "Invalid test mode: $test_mode (allow value : playback, capture)"
-        exit 1
+        die "Invalid test mode: $test_mode (allow value : playback, capture)"
     ;;
 esac
 
@@ -122,9 +121,7 @@ END
         exit $ret
     fi
     # sof-kernel-log-check script parameter number is 0/Non-Number will force check from dmesg
-    sof-kernel-log-check.sh 0 || {
-        dloge "Catch error in dmesg" && exit 1
-    }
+    sof-kernel-log-check.sh 0 || die "Catch error in dmesg"
 done
 
 sof-kernel-log-check.sh $KERNEL_LAST_LINE

@@ -33,5 +33,5 @@ if [[ $(eval $cmd | grep "] sof-audio.*version") ]]; then
     eval $cmd | grep "Firmware debug build" -A3
     exit 0
 else
-    dloge "Cannot find the sof audio version" && exit 1
+    die "Cannot find the sof audio version"
 fi

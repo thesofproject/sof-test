@@ -24,7 +24,7 @@ func_opt_parse_option "$@"
 tplg=${OPT_VALUE_lst['t']}
 
 tplg_path=`func_lib_get_tplg_path "$tplg"`
-[[ "$?" != "0" ]] && dloge "No available topology for this test case" && exit 1
+[[ "$?" != "0" ]] && die "No available topology for this test case"
 
 # hijack DMESG_LOG_START_LINE which refer dump kernel log in exit function
 DMESG_LOG_START_LINE=$(sof-get-kernel-line.sh|tail -n 1 |awk '{print $1;}')

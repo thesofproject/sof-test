@@ -92,8 +92,7 @@ do
         [[ $(sof-dump-status.py --dsp_status 0) == "suspended" ]] && break
         sleep 1
         if [ $i -eq 15 ]; then
-            dlogi "dsp is not suspended after 15s, end test"
-            exit 1
+            die "dsp is not suspended after 15s, end test"
         fi
     done
 

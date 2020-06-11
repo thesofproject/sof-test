@@ -23,12 +23,12 @@ func_opt_parse_option "$@"
 tplg=${OPT_VALUE_lst['t']}
 
 tplg_path=`func_lib_get_tplg_path "$tplg"`
-[[ "$?" != "0" ]] && dloge "No available topology for this test case" && exit 1
+[[ "$?" != "0" ]] && die "No available topology for this test case"
 
 dlogi "Checking topology file: $tplg_path"
 dlogi "Found file: $(md5sum $tplg_path|awk '{print $2, $1;}')"
 tplgData=$(sof-tplgreader.py $tplg_path 2>/dev/null)
-[[ -z "$tplgData" ]] && dloge "No valid pipeline(s) found in $tplg_path" && exit 1
+[[ -z "$tplgData" ]] && die "No valid pipeline(s) found in $tplg_path"
 dlogi "Valid pipeline(s) in this topology:"
 echo "===========================>>"
 echo "$tplgData"

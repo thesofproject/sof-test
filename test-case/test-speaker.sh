@@ -47,8 +47,7 @@ do
         grep -nr -E "error|failed" $LOG_ROOT/result_$idx.txt
         if [[ $? -eq 0 ]]; then
             func_lib_lsof_error_dump $snd
-            dloge "speaker test failed"
-            exit 1
+            die "speaker test failed"
         fi
     fi
 done

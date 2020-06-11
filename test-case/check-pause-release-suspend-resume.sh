@@ -99,8 +99,7 @@ case $test_mode in
         dummy_file=/dev/null
     ;;
     *)
-        dloge "Invalid test mode: $test_mode. Accepted test mode: playback; capture"
-        exit 1
+        die "Invalid test mode: $test_mode. Accepted test mode: playback; capture"
     ;;
 esac
 

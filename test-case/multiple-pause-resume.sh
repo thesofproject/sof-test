@@ -81,8 +81,7 @@ do
         cmd_idx_lst=(${cmd_idx_lst[*]} "arecord")
         file_idx_lst=(${file_idx_lst[*]} "/dev/null")
     else
-        dloge "Unknow pipeline type: $type"
-        exit 1
+        die "Unknow pipeline type: $type"
     fi
 done
 
@@ -183,12 +182,10 @@ do
         for pid in ${pid_lst[*]}
         do
             wait $pid
-            [[ $? -ne 0 ]] && dloge "pause resume is exit status error" && exit 1
+            [[ $? -ne 0 ]] && die "pause resume is exit status error"
         done
     done
-    sof-kernel-log-check.sh 0 || {
-        dloge "Catch error in dmesg" && exit 1
-    }
+    sof-kernel-log-check.sh 0 || die "Catch error in dmesg"
 done
 
 sof-kernel-log-check.sh $KERNEL_LAST_LINE

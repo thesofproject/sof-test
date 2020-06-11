@@ -106,8 +106,7 @@ func_lib_disable_pulseaudio()
         dlogi "Pulseaudio disabled"
     else
         # if failed to disable pulseaudio before running test case, fail the test case directly.
-        echo "Failed to disable pulseaudio"
-        exit 1
+        die "Failed to disable pulseaudio"
     fi
 }
 

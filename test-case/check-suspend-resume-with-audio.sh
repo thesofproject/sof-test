@@ -123,9 +123,7 @@ do
         exit 1
     fi
     kill -9 $process_id
-    sof-kernel-log-check.sh 0 || {
-        dloge "Catch error in dmesg" && exit 1
-    }
+    sof-kernel-log-check.sh 0 || die "Catch error in dmesg"
 done
 
 # check full log

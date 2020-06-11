@@ -41,7 +41,7 @@ loop_cnt=${OPT_VALUE_lst['l']}
 declare -A tmp_id_lst
 id_lst_str=""
 tplg_path=`func_lib_get_tplg_path "$tplg"`
-[[ "$?" -ne "0" ]] && dloge "No available topology for this test case" && exit 1
+[[ "$?" -ne "0" ]] && die "No available topology for this test case"
 for i in $(sof-tplgreader.py $tplg_path -d id -v)
 do
     if [ ! "${tmp_id_lst["$i"]}" ]; then  # this id is never used
@@ -112,9 +112,7 @@ do
         kill -9 $arecord_pid && wait $arecord_pid 2>/dev/null
 
     done
-    sof-kernel-log-check.sh 0 || {
-        dloge "Catch error in dmesg" && exit 1
-    }
+    sof-kernel-log-check.sh 0 || die "Catch error in dmesg"
 done
 
 sof-kernel-log-check.sh $KERNEL_LAST_LINE > /dev/null

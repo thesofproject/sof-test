@@ -4,13 +4,11 @@ func_pipeline_export()
 {
     # no parameter input the function
     if [ $# -lt 1 ]; then
-        dlogi "Topology file name is not specified, unable to run command: $SCRIPT_NAME"
-        exit 1
+        die "Topology file name is not specified, unable to run command: $SCRIPT_NAME"
     fi
     # got tplg_file, verify file exist
     tplg_path=$(func_lib_get_tplg_path "$1") || {
-        dloge "No available topology for pipeline export"
-        exit 1
+        die "No available topology for pipeline export"
     }
     dlogi "$SCRIPT_NAME will use topology $tplg_path to run the test case"
 
@@ -39,7 +37,7 @@ func_pipeline_export()
     do
         eval "$line"
     done
-    [[ ! "$PIPELINE_COUNT" ]] && dlogw "Failed to parse $tplg_path, please check topology parsing command" && exit 1
+    [[ ! "$PIPELINE_COUNT" ]] && die "Failed to parse $tplg_path, please check topology parsing command"
     [[ $PIPELINE_COUNT -eq 0 ]] && dlogw "No pipeline found with option: $opt, unable to run $SCRIPT_NAME" && exit 2
     return 0
 }
