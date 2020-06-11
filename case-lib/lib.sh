@@ -191,6 +191,12 @@ func_lib_get_tplg_path()
     return 0
 }
 
+die()
+{
+    dloge "$@"
+    exit 1
+}
+
 # force ask buffer data write into file system
 sudo sync -f
 # catch kern.log last line as current case start line
