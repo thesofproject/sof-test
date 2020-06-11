@@ -22,7 +22,7 @@ path=$(sof-dump-status.py -P)
 platform=$(sof-dump-status.py -p)
 fw="$path/sof-$platform.ri"
 dlogi "Checking file: $fw"
-[[ ! -f $fw ]] && dloge "File $fw is not found!" && exit 1
+[[ ! -f $fw ]] && die "File $fw is not found!"
 dlogi "Found file: $(md5sum $fw|awk '{print $2, $1;}')"
 
 exit 0

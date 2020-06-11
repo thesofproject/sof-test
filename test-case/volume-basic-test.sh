@@ -38,11 +38,11 @@ func_error_exit()
     exit 1
 }
 
-[[ -z $tplg ]] && dlogw "Missing tplg file needed to run" && exit 1
+[[ -z $tplg ]] && die "Missing tplg file needed to run"
 func_pipeline_export $tplg "type:playback"
 [[ ${OPT_VALUE_lst['s']} -eq 1 ]] && func_lib_start_log_collect
 
-[[ $PIPELINE_COUNT -eq 0 ]] && dlogw "Missing playback pipeline for aplay to run" && exit 1
+[[ $PIPELINE_COUNT -eq 0 ]] && die "Missing playback pipeline for aplay to run"
 channel=$(func_pipeline_parse_value 0 channel)
 rate=$(func_pipeline_parse_value 0 rate)
 fmt=$(func_pipeline_parse_value 0 fmt)
@@ -53,7 +53,7 @@ dlogc "aplay -D $dev -c $channel -r $rate -f $fmt /dev/zero &"
 aplay -D $dev -c $channel -r $rate -f $fmt /dev/zero &
 
 sleep 1
-[[ ! $(pidof aplay) ]] && dloge "$pid process is terminated too early" && exit 1
+[[ ! $(pidof aplay) ]] && die "$pid process is terminated too early"
 
 sofcard=${SOFCARD:-0}
 pgalist=($(amixer -c$sofcard controls | grep PGA | sed 's/ /_/g;' | awk -Fname= '{print $2}'))

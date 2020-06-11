@@ -43,8 +43,7 @@ func_check_dsp_status()
         [[ $(sof-dump-status.py --dsp_status 0) == "suspended" ]] && break
         sleep 1
         if [ $i -eq $1 ]; then
-            dlogi "dsp is not suspended after $1s, end test"
-            exit 1
+            die "dsp is not suspended after $1s, end test"
         fi
     done
     dlogi "dsp suspended in ${i}s"
@@ -53,7 +52,7 @@ func_check_dsp_status()
 func_opt_parse_option "$@"
 tplg=${OPT_VALUE_lst['t']}
 loop_count=${OPT_VALUE_lst['l']}
-[[ -z $tplg ]] && dloge "Miss tplg file to run" && exit 1
+[[ -z $tplg ]] && die "Miss tplg file to run"
 
 [[ $(sof-dump-status.py --dsp_status 0) == "unsupported" ]] &&
     dlogi "platform doesn't support runtime pm, skip test case" && exit 2
@@ -80,7 +79,7 @@ do
 
     cmd="${APP_LST[$type]}"
     dummy_file="${DEV_LST[$type]}"
-    [[ -z $cmd ]] && dloge "$type is not supported, $cmd, $dummy_file" && exit 1
+    [[ -z $cmd ]] && die "$type is not supported, $cmd, $dummy_file"
 
     for i in $(seq 1 $loop_count)
     do
@@ -96,8 +95,7 @@ do
         kill -0 $pid
         if [ $? -ne 0 ]; then
             func_lib_lsof_error_dump $snd
-            dloge "$cmd process for pcm $pcm is not alive"
-            exit 1
+            die "$cmd process for pcm $pcm is not alive"
         fi
 
         [[ -d /proc/$pid ]] && result=`sof-dump-status.py --dsp_status 0`
@@ -114,8 +112,7 @@ do
             dlogi "runtime status: $result"
             if [[ $result != suspended ]]; then
                 func_lib_lsof_error_dump $snd
-                dloge "$cmd process for pcm $pcm runtime status is not suspended as expected"
-                exit 1
+                die "$cmd process for pcm $pcm runtime status is not suspended as expected"
             fi
         else
             dloge "$cmd process for pcm $pcm runtime status is not active as expected"
@@ -127,9 +124,7 @@ do
         fi
     done
 
-    sof-kernel-log-check.sh 0 || {
-        dloge "Catch error in dmesg" && exit 1
-    }
+    sof-kernel-log-check.sh 0 || die "Catch error in dmesg"
 done
 
 sof-kernel-log-check.sh $KERNEL_LAST_LINE

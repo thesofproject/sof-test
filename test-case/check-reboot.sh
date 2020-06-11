@@ -43,8 +43,7 @@ cur_kern=$(uname -r)
 # compare kernel version
 if [ "$orig_kern" != "$cur_kern" ]; then
     sed -i '$s/$/ fail/' $status_log
-    dloge "Kernel version already been changed"
-    exit 1
+    die "Kernel version already been changed"
 fi
 
 # delay timeout for wait SOF load finish
@@ -57,8 +56,7 @@ do
     load_time=$[ $load_time + 1 ]
     # trigger timeout detect
     if [ $load_time -ge $timeout ];then
-        dloge "Wait too long for SOF load: $load_time s"
-        exit 1
+        die "Wait too long for SOF load: $load_time s"
     fi
     tplg=$(sof-get-default-tplg.sh)
 done
@@ -88,8 +86,7 @@ do
         sed -i '$s/$/ fail/' $status_log
         # record failed case:
         echo "$(dirname ${BASH_SOURCE[0]})/$i $(echo ${verify_opt_lst["$i"]})" >> $status_log
-        dloge "$i: fail"
-        exit 1
+        die "$i: fail"
     else
         # last line add pass keyword
         dlogi "$i: pass" 

@@ -52,8 +52,7 @@ case $test_mode in
         dummy_file=/dev/null
     ;;
     *)
-        dloge "Invalid test mode: $test_mode (allow value : playback, capture)"
-        exit 1
+        die "Invalid test mode: $test_mode (allow value : playback, capture)"
     ;;
 esac
 
@@ -107,8 +106,7 @@ do
     sleep 0.5
     if [[ ! -d /proc/$pid ]]; then
         lsof $snd
-        dloge "$cmd process[$pid] is terminated too early"
-        exit 1
+        die "$cmd process[$pid] is terminated too early"
     fi
 
     # do stop/start test

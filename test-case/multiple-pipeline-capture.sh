@@ -151,9 +151,7 @@ do
     pkill -9 arecord
     pkill -9 aplay
 
-    sof-kernel-log-check.sh 0 || {
-        dloge "Catch error in dmesg" && exit 1
-    }
+    sof-kernel-log-check.sh 0 || die "Catch error in dmesg"
 done
 
 sof-kernel-log-check.sh $KERNEL_LAST_LINE >/dev/null

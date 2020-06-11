@@ -69,16 +69,14 @@ func_test_filter()
     #       currently the test discards EQ pipelines except first one.
     Filterid=$(amixer -D hw:"$sofcard" controls | sed -n -e "/eq${testfilter}/I "'s/numid=\([0-9]*\),.*/\1/p' | head -1)
     if [ -z "$Filterid" ]; then
-        dloge "can't find $testfilter"
-        exit 1
+        die "can't find $testfilter"
     fi
 
     declare -a FilterList=($(ls -d "${my_dir}"/eqctl/eq_"${testfilter}"_*.txt))
     nFilterList=${#FilterList[@]}
     dlogi "$testfilter list, num= $nFilterList, coeff files= ${FilterList[*]}"
     if [ "$nFilterList" -eq  0 ]; then
-        dloge "$testfilter flter coeff list error!"
-        exit 1
+        die "$testfilter flter coeff list error!"
     fi
 
     for i in $(seq 1 $loop_cnt)

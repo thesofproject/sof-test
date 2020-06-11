@@ -66,21 +66,19 @@ do
         [[ $(sof-dump-status.py --dsp_status 0) == "suspended" ]] && break
         sleep 1
         if [ $i -eq 15 ]; then
-            dlogi "dsp is not suspended after 15s, end test"
-            exit 1
+            die "dsp is not suspended after 15s, end test"
         fi
     done
 
     dlogi "run kmod/sof-kmod-remove.sh"
     sudo sof_remove.sh
-    [[ $? -ne 0 ]] && dloge "remove modules error" && exit 1
+    [[ $? -ne 0 ]] && die "remove modules error"
 
     ## - 1a: check for errors after removal
     dlogi "checking for general errors after kmod unload with sof-kernel-log-check tool"
     sof-kernel-log-check.sh $KERNEL_LAST_LINE
     if [[ $? -ne 0 ]]; then
-        dloge "error found after kmod unload is real error, failing"
-        exit 1
+        die "error found after kmod unload is real error, failing"
     fi
 
     func_lib_setup_kernel_last_line
@@ -93,13 +91,12 @@ do
     dlogi "checking for general errors after kmod insert with sof-kernel-log-check tool"
     sof-kernel-log-check.sh $KERNEL_LAST_LINE
     if [[ $? -ne 0 ]]; then
-        dloge "Found error(s) in kernel log after module insertion"
-        exit 1
+        die "Found error(s) in kernel log after module insertion"
     fi
 
     dlogi "checking if firmware is loaded successfully"
     $(dirname ${BASH_SOURCE[0]})/verify-sof-firmware-load.sh > /dev/null
-    [[ $? -ne 0 ]] && dloge "Falied to load firmware after module insertion" && exit 1
+    [[ $? -ne 0 ]] && die "Failed to load firmware after module insertion"
 
     # successful remove/insert module pass
     dlogi "==== firmware boot complete: $idx of $loop_cnt ===="

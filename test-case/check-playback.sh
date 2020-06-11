@@ -94,8 +94,7 @@ do
                 aplay -D$dev -r $rate -c $channel -f $fmt_elem -d $duration $file -v -q
                 if [[ $? -ne 0 ]]; then
                     func_lib_lsof_error_dump $snd
-                    dloge "aplay on PCM $dev failed at $i/$loop_cnt."
-                    exit 1
+                    die "aplay on PCM $dev failed at $i/$loop_cnt."
                 fi
             done
         done

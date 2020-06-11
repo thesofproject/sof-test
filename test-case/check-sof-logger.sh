@@ -26,8 +26,7 @@ DMESG_LOG_START_LINE=$(sof-get-kernel-line.sh|tail -n 1 |awk '{print $1;}')
 
 # check sof-logger location
 if [ -z $(which sof-logger) ]; then
-    dloge "sof-logger Not Installed!"
-    exit 1
+    die "sof-logger Not Installed!"
 fi
 
 if [ $(which -a sof-logger|wc -l) -ne 1 ]; then
@@ -42,8 +41,7 @@ platform=$(sof-dump-status.py -p)
 ldcFile=/etc/sof/sof-$platform.ldc
 dlogi "Checking ldc File: $ldcFile ..."
 if [[ ! -f $ldcFile ]]; then
-    dloge "File ($ldcFile) Not Found!"
-    exit 1
+    die "File ($ldcFile) Not Found!"
 fi
 dlogi "Found file: $(md5sum $ldcFile|awk '{print $2, $1;}')"
 
