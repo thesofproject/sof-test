@@ -31,7 +31,7 @@ main()
         ftype=$(file --brief --mime-type "$fname")
         if  [ x'text/x-shellscript' = x"$ftype" ]; then
             printf '\n\n  ----- shellcheck %s ----\n\n' "$fname"
-            shellcheck "$@" "$fname"  || : $((failed_files++))
+            shellcheck -x "$@" "$fname"  || : $((failed_files++))
         fi
 
     done < <(git diff --name-only --diff-filter=d "$diffrange" -- )
