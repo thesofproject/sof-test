@@ -53,7 +53,12 @@ do
     }
 
     dlogi "Dumping test logs!"
-    dmesg | grep "IPC Flood count" -A 2
+    if dmesg | grep -q -i "IPC Flood count"; then
+        dmesg | grep "IPC Flood count" -A 2
+    else
+        # dmesg is cleared already, safe to dump dmesg again before exit
+        dloge "No IPC Flood count log in dmesg" && dmesg && exit 1
+    fi
 done
 
 sof-kernel-log-check.sh $KERNEL_LAST_LINE
