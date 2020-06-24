@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# enable dynamic debug logs for SOF modules
+DYNDBG="/etc/modprobe.d/sof-dyndbg.conf"
+
 # check for the system package
 out_str=""
 func_check_pkg(){
@@ -24,14 +27,25 @@ func_check_python_pkg(){
     fi
 }
 
+func_check_file(){
+    if [ -e "$1" ]; then
+        return
+    fi
+    out_str=$out_str"\nOptional: Enable dynamic debug logs on \e[31m $1 \e[0m file\n\tFor example,\n\toptions snd_sof dyndbg=+p\n\toptions snd_sof_pci dyndbg=+p"
+    check_res=1
+}
+
 check_res=0
 echo -ne "Check for the package:\t\t"
 func_check_pkg expect
 func_check_pkg aplay
 func_check_pkg python3
 func_check_python_pkg graphviz
+func_check_file "$DYNDBG"
 [[ $check_res -eq 0 ]] && echo "pass" || \
-    echo -e "\e[31mWarning\e[0m\nSolution:"$out_str
+    # We know exactly what $out_str is, it's not some random and unsanitized input
+    # shellcheck disable=SC2059
+    printf '\e[31mWarning\e[0m\nSolution:'"$out_str"'\n'
 
 # check for the tools folder
 old_path=$PWD
