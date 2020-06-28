@@ -106,8 +106,9 @@ func_lib_disable_pulseaudio()
         dlogi "Pulseaudio disabled"
     else
         # if failed to disable pulseaudio before running test case, fail the test case directly.
-        echo "Failed to disable pulseaudio"
-        exit 1
+        echo "Failed to disable pulseaudio, but ignore this error"
+        #TODO: currently SOF CI doesn't use pulseaudio. So ignore this error for now
+        #exit 1
     fi
 }
 
@@ -138,8 +139,9 @@ func_lib_restore_pulseaudio()
         sleep 1s
         [ -n "$(ps -C pulseaudio --no-header)" ] && break
         if [ "$wait_time" -eq $timeout ]; then
-             dlogi "Time out. Pulseaudio not restored in $timeout seconds"
-             return 1
+             dlogi "Time out. Pulseaudio not restored in $timeout seconds, but ignore this error"
+             #TODO: currently SOF CI doesn't use pulseaudio. So ignore this error for now
+             #return 1
         fi
     done
     dlogi "Restoring pulseaudio takes $wait_time seconds"
