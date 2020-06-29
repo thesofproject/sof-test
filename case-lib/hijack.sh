@@ -90,9 +90,9 @@ sudo()
     case $SUDO_LEVEL in
         '0')    cmd="$*" # as root
         ;;
-        '1')    cmd="$SUDO_CMD env 'PATH=$PATH' $*" # sudo without passwd
+        '1')    cmd="$SUDO_CMD --preserve-env=PATH $*" # sudo without passwd
         ;;
-        '2')    cmd="echo '$SUDO_PASSWD' | $SUDO_CMD -S env 'PATH=$PATH' $*" # sudo need passwd
+        '2')    cmd="echo '$SUDO_PASSWD' | $SUDO_CMD -S --preserve-env=PATH $*" # sudo need passwd
         ;;
         *)      # without sudo permission
             dlogw "Need root privilege to run $*"
