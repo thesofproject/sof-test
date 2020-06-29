@@ -3,8 +3,21 @@
 begin_line=${1:-1}
 declare err_str ignore_str project_key
 err_str="error|failed|timed out|panic|oops"
-ignore_str="error: debugfs write failed to idle -16|error: status|iteration [01]"
 project_key="sof-audio"
+
+# There will be debug logs at each failed initializaiton of DSP:
+#   sof-audio-pci 0000:00:1f.3: error: status = 0x00000000 panic = 0x00000000
+#   sof-audio-pci 0000:00:1f.3: error: Error code=0xffffffff: FW status=0xffffffff
+#   sof-audio-pci 0000:00:1f.3: error: iteration 0 of Core En/ROM load failed: -110
+# We will reinit DSP if it is failed to init, and retry 3 times, so the errors in
+# debug logs at the frist and second retry can be ignored.
+# Check https://github.com/thesofproject/linux/pull/1676 for more information.
+# TODO explain for "error: Error ..."
+ignore_str='error: iteration [01]'
+ignore_str="$ignore_str"'|error: status'
+
+# TODO explain
+ignore_str="$ignore_str"'|error: debugfs write failed to idle -16'
 
 [[ ! "$err_str" ]] && echo "Missing error keyword list" && exit 0
 # dmesg KB size buffer size
