@@ -685,6 +685,33 @@ class TplgFormatter:
         sys.exit(1)
         return None
 
+    @staticmethod
+    def recursive_search_comp(node, comp_type, comp_list, direction):
+        def comp_in_list(comp, comp_list):
+            for elem in comp_list:
+                if elem == comp["widget"]:
+                    return True
+            return False
+
+        if node is None:
+            return
+
+        if type(node) == list:
+            for elem in node:
+                TplgFormatter.recursive_search_comp(elem, comp_type, comp_list, direction)
+
+        if type(node) != list and direction == "forward":
+            if node["widget"]["name"].startswith(comp_type) or \
+                node["widget"]["sname"].startswith(comp_type):
+                if not comp_in_list(node, comp_list): comp_list.append(node["widget"])
+            TplgFormatter.recursive_search_comp(node["sink"], comp_type, comp_list, direction)
+
+        if type(node) != list and direction == "backward":
+            if node["widget"]["name"].startswith(comp_type) or \
+                node["widget"]["sname"].startswith(comp_type):
+                if not comp_in_list(node, comp_list): comp_list.append(node["widget"])
+            TplgFormatter.recursive_search_comp(node["source"], comp_type, comp_list, direction)
+
     # find specified type of components connected to ref_node
     @staticmethod
     def find_connected_comp(ref_node, comp_type):
@@ -693,20 +720,8 @@ class TplgFormatter:
         comp_type = comp_type.upper() # to upper case
         comp_list = []
         node = ref_node
-        # Currently, multiplex node is not supported, once met
-        # multiplex node, end while loop
-        while type(node) != list and node["source"] != None:
-            if node["widget"]["name"].startswith(comp_type) or \
-                node["widget"]["sname"].startswith(comp_type):
-                comp_list.append(node["widget"])
-            node = node["source"]
-
-        node = ref_node
-        while type(node) != list and node["sink"] != None:
-            if node["widget"]["name"].startswith(comp_type) or \
-                node["widget"]["sname"].startswith(comp_type):
-                comp_list.append(node["widget"])
-            node = node["sink"]
+        TplgFormatter.recursive_search_comp(node, comp_type, comp_list, "forward")
+        TplgFormatter.recursive_search_comp(node, comp_type, comp_list, "backward")
         return comp_list
 
     # find specified components for PCM
