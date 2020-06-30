@@ -37,6 +37,7 @@ class clsTPLGReader:
                     exit(1)
                 pgas = formatter.find_comp_for_pcm(pcm, 'PGA')
                 eqs = formatter.find_comp_for_pcm(pcm, 'EQ')
+                kwds = formatter.find_comp_for_pcm(pcm, 'KPBM')
                 pipeline_dict = {}
                 pipeline_dict['pcm'] = pcm["pcm_name"]
                 pipeline_dict['id'] = str(pcm["pcm_id"])
@@ -50,6 +51,10 @@ class clsTPLGReader:
                 if eq != []:
                     eq_names = [i['name'] for i in eq]
                     pipeline_dict['eq'] = " ".join(eq_names)
+                kwd = kwds[pcm['capture']]
+                if kwd != []:
+                    kwd_comp_names = [i['name'] for i in kwd]
+                    pipeline_dict['kwd'] = " ".join(kwd_comp_names)
                 # supported formats of playback pipeline in formats[0]
                 # supported formats of capture pipeline in formats[1]
                 formats = TplgFormatter.get_pcm_fmt(pcm)
@@ -292,20 +297,27 @@ PIPELINE_$ID['key']='value' ''')
     pipeline_lst = []
     tplg_root = ""
 
+    # default, we want every pipeline
+    filter_str = "type:any"
+    # As KWD pipeline is so special, and our current test case cannot deal with KWD pipeline,
+    # Let's hide the KWD pipeline from other pipelines, except user really want KWD pipeline
+    # with '-f kpbm"
     if ret_args['filter'] is not None and len(ret_args['filter']) > 0:
-        # parse filter string into two structures, one is dict list for each filter item,
-        # and another is logic operation list.
-        filter_lst = []
-        op_lst = []
-        for filter_elem in ret_args['filter'].split('|'):
-            for item in filter_elem.split('&'):
-                key, _, value = item.partition(':')
-                filter_lst.append({key.strip():value.strip().split(',')})
-        for char in ret_args['filter']:
-            if char == '|' or char == "&":
-                op_lst.append(char)
-        filter_dict['filter'] = filter_lst
-        filter_dict['op'] = op_lst
+        if "kpbm" in ret_args["filter"]: filter_str = ret_args['filter']
+        else: filter_str = ret_args['filter'] + "& ~kpbm"
+    # parse filter string into two structures, one is dict list for each filter item,
+    # and another is logic operation list.
+    filter_lst = []
+    op_lst = []
+    for filter_elem in filter_str.split('|'):
+        for item in filter_elem.split('&'):
+            key, _, value = item.partition(':')
+            filter_lst.append({key.strip():value.strip().split(',')})
+    for char in filter_str:
+        if char == '|' or char == "&":
+            op_lst.append(char)
+    filter_dict['filter'] = filter_lst
+    filter_dict['op'] = op_lst
 
     if ret_args['ignore'] is not None and len(ret_args['ignore']) > 0:
         for emStr in ret_args['ignore']:
