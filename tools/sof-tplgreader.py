@@ -45,6 +45,7 @@ class clsTPLGReader:
                 pgas = formatter.find_comp_for_pcm(pcm, 'PGA')
                 eqs = formatter.find_comp_for_pcm(pcm, 'EQ')
                 kwds = formatter.find_comp_for_pcm(pcm, 'KPBM')
+                asrcs = formatter.find_comp_for_pcm(pcm, 'ASRC')
                 pipeline_dict = {}
                 pipeline_dict['pcm'] = pcm["pcm_name"]
                 pipeline_dict['id'] = str(pcm["pcm_id"])
@@ -54,6 +55,7 @@ class clsTPLGReader:
                 clsTPLGReader.attach_comp_to_pipeline(pgas, pcm['capture'], "PGA", pipeline_dict)
                 clsTPLGReader.attach_comp_to_pipeline(eqs, pcm['capture'], "EQ", pipeline_dict)
                 clsTPLGReader.attach_comp_to_pipeline(kwds, pcm['capture'], "KPBM", pipeline_dict)
+                clsTPLGReader.attach_comp_to_pipeline(asrcs, pcm['capture'], "ASRC", pipeline_dict)
                 # supported formats of playback pipeline in formats[0]
                 # supported formats of capture pipeline in formats[1]
                 formats = TplgFormatter.get_pcm_fmt(pcm)
@@ -70,6 +72,7 @@ class clsTPLGReader:
                     cap = pcm["caps"][pcm['playback']]
                     clsTPLGReader.attach_comp_to_pipeline(pgas, 0, "PGA", pb_pipeline_dict)
                     clsTPLGReader.attach_comp_to_pipeline(eqs, 0, "EQ", pb_pipeline_dict)
+                    clsTPLGReader.attach_comp_to_pipeline(asrcs, 0, "ASRC", pb_pipeline_dict)
                     pb_pipeline_dict["fmts"] = " ".join(formats[pcm['playback']])
                     pb_pipeline_dict['fmt'] = pb_pipeline_dict['fmts'].split(' ')[0]
                     pb_pipeline_dict['rate_min'], pb_pipeline_dict['rate_max'] = self._key2str(cap, 'rate')
