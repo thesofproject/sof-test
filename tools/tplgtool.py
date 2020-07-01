@@ -701,14 +701,12 @@ class TplgFormatter:
                 TplgFormatter.recursive_search_comp(elem, comp_type, comp_list, direction)
 
         if type(node) != list and direction == "forward":
-            if node["widget"]["name"].startswith(comp_type) or \
-                node["widget"]["sname"].startswith(comp_type):
+            if node["widget"]["name"].startswith(comp_type):
                 if not comp_in_list(node, comp_list): comp_list.append(node["widget"])
             TplgFormatter.recursive_search_comp(node["sink"], comp_type, comp_list, direction)
 
         if type(node) != list and direction == "backward":
-            if node["widget"]["name"].startswith(comp_type) or \
-                node["widget"]["sname"].startswith(comp_type):
+            if node["widget"]["name"].startswith(comp_type):
                 if not comp_in_list(node, comp_list): comp_list.append(node["widget"])
             TplgFormatter.recursive_search_comp(node["source"], comp_type, comp_list, direction)
 
