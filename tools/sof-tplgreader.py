@@ -19,6 +19,13 @@ class clsTPLGReader:
     def _key2str(self, cap, key):
         return cap["%s_min" % (key)], cap["%s_max" % (key)]
 
+    @staticmethod
+    def attach_comp_to_pipeline(comps, comp_index, comp_name, pipeline_dict):
+        comp = comps[comp_index]
+        if comp != []:
+            comp_names = [i['name'] for i in comp]
+            pipeline_dict[comp_name.lower()] = " ".join(comp_names)
+
     # fork & split from TplgFormatter
     def loadFile(self, filename, sofcard=0):
         tplg_parser = TplgParser()
@@ -43,18 +50,10 @@ class clsTPLGReader:
                 pipeline_dict['id'] = str(pcm["pcm_id"])
                 pipeline_dict['type'] = TplgFormatter.get_pcm_type(pcm)
                 cap = pcm["caps"][pcm['capture']]
-                pga = pgas[pcm['capture']]
-                if pga != []:
-                    pga_names = [i['name'] for i in pga]
-                    pipeline_dict['pga'] = " ".join(pga_names)
-                eq = eqs[pcm['capture']]
-                if eq != []:
-                    eq_names = [i['name'] for i in eq]
-                    pipeline_dict['eq'] = " ".join(eq_names)
-                kwd = kwds[pcm['capture']]
-                if kwd != []:
-                    kwd_comp_names = [i['name'] for i in kwd]
-                    pipeline_dict['kwd'] = " ".join(kwd_comp_names)
+                # acquire component from pipeline graph, and add to pipeline dict
+                clsTPLGReader.attach_comp_to_pipeline(pgas, pcm['capture'], "PGA", pipeline_dict)
+                clsTPLGReader.attach_comp_to_pipeline(eqs, pcm['capture'], "EQ", pipeline_dict)
+                clsTPLGReader.attach_comp_to_pipeline(kwds, pcm['capture'], "KPBM", pipeline_dict)
                 # supported formats of playback pipeline in formats[0]
                 # supported formats of capture pipeline in formats[1]
                 formats = TplgFormatter.get_pcm_fmt(pcm)
@@ -69,14 +68,8 @@ class clsTPLGReader:
                     pb_pipeline_dict = pipeline_dict.copy()
                     pb_pipeline_dict["type"] = "playback"
                     cap = pcm["caps"][pcm['playback']]
-                    pga = pgas[0] # idx 0 is playback PGA
-                    if pga != []:
-                        pga_names = [i['name'] for i in pga]
-                        pb_pipeline_dict['pga'] = " ".join(pga_names)
-                    eq = eqs[0]
-                    if eq != []:
-                        eq_names = [i['name'] for i in eq]
-                        pb_pipeline_dict['eq'] = " ".join(eq_names)
+                    clsTPLGReader.attach_comp_to_pipeline(pgas, 0, "PGA", pb_pipeline_dict)
+                    clsTPLGReader.attach_comp_to_pipeline(eqs, 0, "EQ", pb_pipeline_dict)
                     pb_pipeline_dict["fmts"] = " ".join(formats[pcm['playback']])
                     pb_pipeline_dict['fmt'] = pb_pipeline_dict['fmts'].split(' ')[0]
                     pb_pipeline_dict['rate_min'], pb_pipeline_dict['rate_max'] = self._key2str(cap, 'rate')
