@@ -607,6 +607,10 @@ class TplgFormatter:
                 merged_pcm_list.append(pcm)
         return merged_pcm_list
 
+    # return the graph denoted by widget-control-widget array
+    def get_tplg_raw_graph_list(self):
+        return self._tplg["graph_list"]
+
     # graph node form: {"name":name, "widget":widget, "ctrl":ctrl, "source":source, "sink":sink}
     # return values:
     #   link_head_list: head node list of every graph
@@ -798,36 +802,37 @@ if __name__ == "__main__":
             tplg_paths.append(f)
         return tplg_paths
 
-    # connect nodes
-    def connect(graph, head):
-        assert(head is not None) # make sure head is not None
-        if head["sink"] != None and type(head["sink"]) != list:
-            graph.edge(head["name"], head["sink"]["name"])
-            connect(graph, head["sink"])
-        elif head["sink"] != None:
-            for node in head["sink"]:
-                graph.edge(head["name"], node["name"])
-                connect(graph, node)
+    def connect(graph, raw_graph_list, nodes_added):
+        for raw_graph in raw_graph_list:
+            for link in raw_graph:
+                if link[0] in nodes_added and link[2] in nodes_added:
+                    graph.edge(link[0], link[2])
 
     # traverse all nodes, and add them to graph
-    def init_node(graph, head):
+    def init_node(graph, head, nodes_added):
         # this function is used to deal with multiple connections.
-        def inner_init(graph, head):
+        def inner_init(graph, head, nodes_added):
             if head["sink"] != None and type(head) != list:
+                if head["name"] in nodes_added:
+                    return
                 graph.node(name=head["name"])
-                init_node(graph, head["sink"])
+                nodes_added.append(head["name"])
+                init_node(graph, head["sink"], nodes_added)
             elif head["sink"] != None:
                 for node in head["sink"]:
-                    init_node(graph, node)
+                    init_node(graph, node, nodes_added)
             else :
+                if head["name"] in nodes_added:
+                    return
                 graph.node(name=head["name"])
+                nodes_added.append(head["name"])
 
         assert(head is not None) # make sure head is not None
         if type(head) != list:
-            inner_init(graph, head)
+            inner_init(graph, head, nodes_added)
         else :
             for subhead in head:
-                inner_init(graph, subhead)
+                inner_init(graph, subhead, nodes_added)
 
     def dump_pcm_info(parsed_tplgs):
         for tplg in parsed_tplgs:
@@ -850,13 +855,16 @@ if __name__ == "__main__":
             outfile = tplg[-1].split(sep='/')[-1].split('.')[0]
             formatter = TplgFormatter(tplg)
             head_list, _ = formatter.link_graph()
+            # graph denoted by list of widget-control-widget list
+            raw_graph_list = formatter.get_tplg_raw_graph_list()
 
             graph = Digraph("Topology Graph", format=format)
             # Here we make every pipeline as a subgraph, this gives us more precise control
             for head in head_list:
                 subgraph = Digraph('Pipeline' + head['name'])
-                init_node(subgraph, head)
-                connect(subgraph,head)
+                nodes_added = []
+                init_node(subgraph, head, nodes_added)
+                connect(subgraph, raw_graph_list, nodes_added)
                 # add subgraph to the graph
                 graph.subgraph(graph=subgraph)
             # Developers may want to view graph without saving it.
