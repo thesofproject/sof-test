@@ -814,11 +814,11 @@ if __name__ == "__main__":
         # this function is used to deal with multiple connections.
         def inner_init(graph, head):
             if head["sink"] != None and type(head) != list:
-                graph.node(name=head["name"],)
+                graph.node(name=head["name"])
                 init_node(graph, head["sink"])
             elif head["sink"] != None:
                 for node in head["sink"]:
-                    init_node(graph, node,)
+                    init_node(graph, node)
             else :
                 graph.node(name=head["name"])
 
