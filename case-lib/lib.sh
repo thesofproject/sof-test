@@ -10,15 +10,15 @@ SCRIPT_NAME="$0"  # get test-case script load name
 SCRIPT_PRAM="$*"  # get test-case parameter
 
 # Source from the relative path of current folder
-# shellcheck disable=SC1091 source=./config.sh
+# shellcheck source=case-lib/config.sh
 source "$SCRIPT_HOME/case-lib/config.sh"
-# shellcheck disable=SC1091 source=./opt.sh
+# shellcheck source=case-lib/opt.sh
 source "$SCRIPT_HOME/case-lib/opt.sh"
-# shellcheck disable=SC1091 source=./logging_ctl.sh
+# shellcheck source=case-lib/logging_ctl.sh
 source "$SCRIPT_HOME/case-lib/logging_ctl.sh"
-# shellcheck disable=SC1091 source=./pipeline.sh
+# shellcheck source=case-lib/pipeline.sh
 source "$SCRIPT_HOME/case-lib/pipeline.sh"
-# shellcheck disable=SC1091 source=./hijack.sh
+# shellcheck source=case-lib/hijack.sh
 source "$SCRIPT_HOME/case-lib/hijack.sh"
 
 # restrict bash version for some bash feature
