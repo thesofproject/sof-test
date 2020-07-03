@@ -54,8 +54,7 @@ function func_exit_handler()
     # on exit check whether pulseaudio is disabled.
     ret=0
     if [[ $(declare -f func_lib_restore_pulseaudio) ]]; then
-        func_lib_restore_pulseaudio
-        ret=$?
+        func_lib_restore_pulseaudio || ret=$?
     fi
     # if failed to restore pulseaudio, even test caes passed, set exit status to ret
     # to make test case failed. this helps to dectect pulseaudio failures.
