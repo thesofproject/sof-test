@@ -197,7 +197,7 @@ die()
 }
 
 # force ask buffer data write into file system
-sudo sync -f
+sudo sync -f || true
 # catch kern.log last line as current case start line
 if [ ! "$DMESG_LOG_START_LINE" ]; then
     DMESG_LOG_START_LINE=$(wc -l /var/log/kern.log|awk '{print $1;}')
