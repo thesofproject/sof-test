@@ -84,7 +84,7 @@ SUDO_LEVEL=""
 # overwrite the sudo command, sudo in the script can direct using sudo command
 sudo()
 {
-    func_hijack_setup_sudo_level
+    func_hijack_setup_sudo_level || true
     local cmd
     case $SUDO_LEVEL in
         '0')    cmd="$*" # as root
