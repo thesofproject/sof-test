@@ -51,6 +51,7 @@ class clsTPLGReader:
                 pipeline_dict['id'] = str(pcm["pcm_id"])
                 pipeline_dict['type'] = TplgFormatter.get_pcm_type(pcm)
                 cap = pcm["caps"][pcm['capture']]
+                pipeline_dict['cap_name'] = cap['name']
                 # acquire component from pipeline graph, and add to pipeline dict
                 clsTPLGReader.attach_comp_to_pipeline(pgas, pcm['capture'], "PGA", pipeline_dict)
                 clsTPLGReader.attach_comp_to_pipeline(eqs, pcm['capture'], "EQ", pipeline_dict)
@@ -69,7 +70,8 @@ class clsTPLGReader:
                     # copy pipeline and change values
                     pb_pipeline_dict = pipeline_dict.copy()
                     pb_pipeline_dict["type"] = "playback"
-                    cap = pcm["caps"][pcm['playback']]
+                    cap = pcm["caps"][0]
+                    pb_pipeline_dict['cap_name'] = cap['name']
                     clsTPLGReader.attach_comp_to_pipeline(pgas, 0, "PGA", pb_pipeline_dict)
                     clsTPLGReader.attach_comp_to_pipeline(eqs, 0, "EQ", pb_pipeline_dict)
                     clsTPLGReader.attach_comp_to_pipeline(asrcs, 0, "ASRC", pb_pipeline_dict)
@@ -93,6 +95,16 @@ class clsTPLGReader:
                 pipeline['snd'] += 'p'
             else:
                 pipeline['snd'] += 'c'
+        # find interweaved pipelines
+        # echo: echo reference pipelines
+        # smart_amp: dsm pipelines
+        interweaved_comps = ['echo', 'smart_amp']
+        for comp in interweaved_comps:
+            interweaved_dict = formatter.find_interweaved_pipeline(comp)
+            if interweaved_dict:
+                for pipeline in self._pipeline_lst:
+                    if pipeline['cap_name'] in interweaved_dict['sname']:
+                        pipeline[comp] = interweaved_dict[comp]
         return 0
 
     @staticmethod
