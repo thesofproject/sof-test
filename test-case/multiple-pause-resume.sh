@@ -52,7 +52,7 @@ rnd_range=$[ $rnd_max - $rnd_min ]
 [[ $rnd_range -le 0 ]] && dlogw "Error random range scope [ min:$rnd_min - max:$rnd_max ]" && exit 2
 
 tplg=${OPT_VALUE_lst['t']}
-func_pipeline_export $tplg
+func_pipeline_export $tplg "type:any"
 
 [[ ${OPT_VALUE_lst['s']} -eq 1 ]] && func_lib_start_log_collect
 
