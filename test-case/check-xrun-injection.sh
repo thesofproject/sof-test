@@ -45,7 +45,6 @@ interval=${OPT_VALUE_lst['i']}
 
 func_lib_setup_kernel_last_line
 func_lib_check_sudo
-func_pipeline_export $tplg "type:playback,capture"
 
 case $test_mode in
     "playback")
