@@ -45,7 +45,6 @@ OPT_PARM_lst['l']=1         OPT_VALUE_lst['l']=1
 func_opt_parse_option "$@"
 loop_cnt=${OPT_VALUE_lst['l']}
 tplg=${OPT_VALUE_lst['t']}
-func_pipeline_export $tplg "type:any"
 [[ ${OPT_VALUE_lst['s']} -eq 1 ]] && func_lib_start_log_collect
 
 max_count=0
