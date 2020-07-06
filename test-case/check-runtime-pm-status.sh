@@ -64,7 +64,7 @@ APP_LST['capture']='arecord'
 DEV_LST['capture']='/dev/null'
 
 [[ ${OPT_VALUE_lst['s']} -eq 1 ]] && func_lib_start_log_collect
-func_pipeline_export $tplg
+func_pipeline_export $tplg "type:any"
 func_lib_setup_kernel_last_line
 
 for idx in $(seq 0 $(expr $PIPELINE_COUNT - 1))
