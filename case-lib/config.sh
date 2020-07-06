@@ -15,7 +15,7 @@ TPLG_ROOT=${TPLG_ROOT:-/lib/firmware/intel/sof-tplg}
 # example: ignore 'pcms that are HDA Digital & HDA Analog'
 # TPLG_IGNORE_LST['pcm']='HDA Digital,HDA Analog'
 declare -A TPLG_IGNORE_LST
-TPLG_IGNORE_LST['pcm']='HDA Digital,Media Playback,DMIC16k'
+TPLG_IGNORE_LST['pcm']='HDA Digital,Media Playback'
 
 # Will be set by the lib function, don't need to set
 # Catches the last line of /var/log/kern.log, which will be used by
