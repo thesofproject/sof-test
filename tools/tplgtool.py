@@ -854,11 +854,15 @@ if __name__ == "__main__":
             tplg_paths.append(f)
         return tplg_paths
 
-    def connect(graph, raw_graph_list, nodes_added):
+    def connect(graph, raw_graph_list, nodes_added, edges):
         for raw_graph in raw_graph_list:
             for link in raw_graph:
                 if link[0] in nodes_added and link[2] in nodes_added:
-                    graph.edge(link[0], link[2])
+                    new_edge = (link[0], link[2])
+                    if new_edge not in edges:
+                        graph.edge(*new_edge)
+                        edges.append(new_edge)
+
 
     # traverse all nodes, and add them to graph
     def init_node(graph, head, nodes_added):
@@ -911,12 +915,15 @@ if __name__ == "__main__":
             raw_graph_list = formatter.get_tplg_raw_graph_list()
 
             graph = Digraph("Topology Graph", format=format)
+            # There is no method in python-graphviz to detect if there is already an edge
+            # between two nodes, we need to record it manually
+            edges = []
             # Here we make every pipeline as a subgraph, this gives us more precise control
             for head in head_list:
                 subgraph = Digraph('Pipeline' + head['name'])
                 nodes_added = []
                 init_node(subgraph, head, nodes_added)
-                connect(subgraph, raw_graph_list, nodes_added)
+                connect(subgraph, raw_graph_list, nodes_added, edges)
                 # add subgraph to the graph
                 graph.subgraph(graph=subgraph)
             # Developers may want to view graph without saving it.
