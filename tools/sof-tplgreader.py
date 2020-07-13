@@ -14,7 +14,7 @@ class clsTPLGReader:
         self._ignore_lst = []
 
     def __comp_pipeline(self, pipeline):
-        return pipeline['id']
+        return int(pipeline['id'])
 
     def _key2str(self, cap, key):
         return cap["%s_min" % (key)], cap["%s_max" % (key)]
