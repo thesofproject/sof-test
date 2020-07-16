@@ -22,6 +22,10 @@ ignore_str="$ignore_str"'|error: debugfs write failed to idle -16'
 # Possible fix - https://github.com/thesofproject/linux/pull/1984
 ignore_str="$ignore_str"'|Parity error detected'
 
+# CML Helios known issue related with xhci_hcd
+# https://bugzilla.kernel.org/show_bug.cgi?id=202541
+ignore_str="$ignore_str"'|xhci_hcd 0000:00:14.0: WARN Set TR Deq Ptr cmd failed due to incorrect slot or ep state'
+
 [[ ! "$err_str" ]] && echo "Missing error keyword list" && exit 0
 # dmesg KB size buffer size
 #dmesg_config_define=$(awk -F '=' '/CONFIG_LOG_BUF_SHIFT/ {print $2;}' /boot/config-$(uname -r))
