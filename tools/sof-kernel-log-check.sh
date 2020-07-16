@@ -18,6 +18,10 @@ ignore_str="$ignore_str"'|error: status'
 # TODO explain
 ignore_str="$ignore_str"'|error: debugfs write failed to idle -16'
 
+# Realtek codecs thrown an error on startup, checking with Realtek
+# Possible fix - https://github.com/thesofproject/linux/pull/1984
+ignore_str="$ignore_str"'|Parity error detected'
+
 [[ ! "$err_str" ]] && echo "Missing error keyword list" && exit 0
 # dmesg KB size buffer size
 #dmesg_config_define=$(awk -F '=' '/CONFIG_LOG_BUF_SHIFT/ {print $2;}' /boot/config-$(uname -r))
