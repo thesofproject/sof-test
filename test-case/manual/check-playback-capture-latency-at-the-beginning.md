@@ -15,7 +15,7 @@ SOF is loaded successfully
 4. Check audio output without obvious delay, latency at the beginning is within 1s
 5. Press ctrl and c button to stop aplay
 6. Repeat step 2 to step 5 for other playback piplines, such headset/HDMI/DP
-7. Repeate step 2 to step 5 for capture piplines with `arecord -Dhw:0,0 -r 48000 -f s16_le -c2 1.wav -vv -i`, then play this recorded 1.wav file to check latency at the begining is within 1s
+7. Repeat step 2 to step 5 for capture pipelines with `arecord -Dhw:0,0 -r 48000 -f s16_le -c2 1.wav -vv -i`, then play this recorded 1.wav file to check latency at the beginning is within 1s
 
 
 ## Expected results
