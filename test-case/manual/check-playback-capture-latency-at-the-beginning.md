@@ -1,5 +1,5 @@
 # Latency test
-Check latency at the beginning is manual test for piplines which isn't setup loopback for alsabat test
+Check latency at the beginning is manual test for pipelines which isn't setup loopback for alsabat test
 
 # Preconditions
 SOF is loaded successfully
