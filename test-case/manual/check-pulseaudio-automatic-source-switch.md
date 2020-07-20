@@ -56,7 +56,7 @@ Ouput and input sources should be automatic changed once an external device is c
 8. Unplug HDMI, output source and input source isn't changed.
 9. Plug in HDMI again, output soruce is auto switched to HDMI/DP, Input source is DMIC
 10. `parecord 3.wav -vvvv`, DMIC is used for capturing. Say something then ctrl+c to stop
-11. `paplay 4.wav -vvvv`, HDMI is used for playback normally
+11. `paplay 3.wav -vvvv`, HDMI is used for playback normally
 12. Unplug HDMI/DP, output souce is auto switched
 13. `sudo reboot` with both  HDMI/DP and headset connection
 14. Open sound settting, check HDMI/DP is output source
@@ -64,4 +64,3 @@ Ouput and input sources should be automatic changed once an external device is c
 ## Expected results
 * Should automaticlly swith to headset once plug in heaset and swith back to internal speaker and DMIC once unplug headset
 * Should automaticlly switch to HDMI/DP once plug in HDMI /DP and switch back to headset /internal speaker once unplug HDMI/DP
-
