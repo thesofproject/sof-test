@@ -6,7 +6,7 @@ SOF is loaded successfully
 
 # Test Description
 * Check playback latency at the beginning
-* Check capture latency at the begining
+* Check capture latency at the beginning
 
 ## Test Case:
 1. `aplay -l` and `arecord -l` to check supported PCM
@@ -20,4 +20,3 @@ SOF is loaded successfully
 
 ## Expected results
 * Playback and capture latency at the beginning is within 1s
-
