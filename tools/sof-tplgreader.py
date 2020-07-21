@@ -10,8 +10,8 @@ class clsTPLGReader:
         self._pipeline_lst = []
         self._output_lst = []
         self._field_lst = []
-        self._filter_dict = {"filter":[], "op":[]}
-        self._ignore_lst = []
+        self._filter_dict = {}
+        self._block_lst = []
 
     def __comp_pipeline(self, pipeline):
         return int(pipeline['id'])
@@ -125,6 +125,15 @@ class clsTPLGReader:
                 output_lst.append(elem)
         return output_lst
 
+    @staticmethod
+    def list_diff(lst1, lst2):
+        assert(lst1 is not None and lst2 is not None)
+        output_lst = []
+        for elem in lst1:
+            if elem not in lst2:
+                output_lst.append(elem)
+        return output_lst
+
     def _setlist(self, orig_lst):
         tmp_lst = []
         if orig_lst is None:
@@ -137,17 +146,16 @@ class clsTPLGReader:
         return tmp_lst
 
     def setFilter(self, filter_dict=None):
-        self._filter_dict['filter'] = self._setlist(filter_dict['filter'])[:]
-        self._filter_dict['op'] = self._setlist(filter_dict['op'])
+        self._filter_dict = filter_dict
 
     def setField(self, field_lst):
         self._field_lst = self._setlist(field_lst)[:]
 
-    def setIgnore(self, ignore_lst=None):
-        self._ignore_lst = self._setlist(ignore_lst)[:]
+    def setBlock(self, block_lst=None):
+        self._block_lst = block_lst
 
     def _filterOutput(self, target_lst, filter_dict, bIn):
-        self._output_lst.clear()
+        filtered = []
         for line in target_lst[:]:
             check = False
             for key, value in filter_dict.items():
@@ -159,35 +167,36 @@ class clsTPLGReader:
                 if check is bIn:
                     break
             else:
-                self._output_lst.append(line)
+                filtered.append(line)
+        return filtered
 
-        return self._output_lst.copy()
-
-    def _filterKeyword(self):
-        if len(self._filter_dict['filter']) == 0:
-            return
-
-        full_list = self._output_lst[:]
+    def _filter_by_dict(self, filter_dict):
+        if filter_dict == {}:
+            return self._pipeline_lst
+        full_list = self._pipeline_lst
         filtered = None
         # pipelines filtered by the first filter item
-        for key, value in self._filter_dict['filter'][0].items():
+        for key, value in filter_dict['filter'][0].items():
             if key.startswith('~'):
                 filtered = self._filterOutput(full_list, {key[1:]:value}, True)
             else:
                 filtered = self._filterOutput(full_list, {key:value}, False)
         # do filtering by the rest filter items and logic operations
-        for idx in range(1, len(self._filter_dict['filter'])):
+        for idx in range(1, len(filter_dict['filter'])):
             new_filtered = None
-            for key, value in self._filter_dict['filter'][idx].items():
+            for key, value in filter_dict['filter'][idx].items():
                 if key.startswith("~"):
                     new_filtered = self._filterOutput(full_list, {key[1:]:value} , True)
                 else:
                     new_filtered = self._filterOutput(full_list, {key:value}, False)
-            if self._filter_dict['op'][idx-1] == '&':
+            if filter_dict['op'][idx-1] == '&':
                 filtered = self.list_and(filtered, new_filtered)
-            if self._filter_dict['op'][idx-1] == '|':
+            if filter_dict['op'][idx-1] == '|':
                 filtered = self.list_or(filtered, new_filtered)
-        self._output_lst = filtered # the final filtered pipeline list
+        return filtered
+
+    def _filterKeyword(self):
+        self._output_lst = self._filter_by_dict(self._filter_dict)
 
     def _filterField(self):
         if len(self._field_lst) == 0:
@@ -201,12 +210,13 @@ class clsTPLGReader:
                     tmp_dict[field]=pipeline[field]
             self._output_lst.append(tmp_dict)
 
-    def _ignoreKeyword(self):
-        if len(self._ignore_lst) == 0:
+    def _blockKeyword(self):
+        if len(self._block_lst) == 0:
             return
-        for ignore_dict in self._ignore_lst:
-            tmp_lst = self._output_lst[:]
-            self._filterOutput(tmp_lst, ignore_dict, True)
+        filtered = []
+        for block_dict in self._block_lst:
+            filtered.extend(self._filter_by_dict(block_dict))
+        self._output_lst = clsTPLGReader.list_diff(self._output_lst, filtered)
 
     def sortPipeline(self):
         if len(self._pipeline_lst) != 0:
@@ -217,7 +227,7 @@ class clsTPLGReader:
     def getPipeline(self, sort=False):
         self._output_lst = self._pipeline_lst[:]
         self._filterKeyword()
-        self._ignoreKeyword()
+        self._blockKeyword()
         self._filterField()
         if sort:
             self.sortPipeline()
@@ -258,6 +268,28 @@ if __name__ == "__main__":
             exit(1)
         return tplgObj.getPipeline(sort)
 
+    # parse filter string into two structures, one is dict list for each filter item,
+    # and another is logic operation list.
+    def parse_filter(filter_str):
+        filter_lst = []
+        op_lst = []
+        for filter_elem in filter_str.split('|'):
+            for item in filter_elem.split('&'):
+                key, _, value = item.partition(':')
+                filter_lst.append({key.strip():value.strip().split(',')})
+        for char in filter_str:
+            if char == '|' or char == "&":
+                op_lst.append(char)
+        return dict(zip(['filter', 'op'], [filter_lst, op_lst]))
+
+    def parse_and_set_block_keyword(block_str, tplgreader):
+        block_list = []
+        block_strs = block_str.split(';')
+        block_items = [item.strip() for item in block_strs if item != ""]
+        for item in block_items:
+            block_list.append(parse_filter(item))
+        tplgreader.setBlock(block_list)
+
     import argparse
 
     parser = argparse.ArgumentParser(description='Warp Tools to mapping tplgreader convert TPLG file.',
@@ -277,12 +309,8 @@ Example Usage:
 `-f "pga & eq"` -> pipelines with both EQ and PGA
 `-f "id:3"` -> pipeline whose id is 3
 ''')
-    parser.add_argument('-b', '--ignore', type=str, nargs='+',
-        help='''setup ignore list, this value is format value,
-string format is 'key':'value','value'
-for example: ignore "pcm" is "HDA Digital"
-pcm:HDA Digital
-''')
+    parser.add_argument('-b', '--block', type=str,
+        help='setup block filter, command line parameter format is the same as -f argument')
     parser.add_argument('-d', '--dump', type=str, nargs='+', help='Dump target field')
     parser.add_argument('-e', '--export', action='store_true',
         help='''export the pipeline to Bash declare -Ax Array
@@ -299,47 +327,34 @@ PIPELINE_$ID['key']='value' ''')
     ret_args = vars(parser.parse_args())
 
     tplgreader = clsTPLGReader()
-    filter_dict = {"filter":[], "op":[]}
     dump_lst = []
-    ignore_lst = []
     pipeline_lst = []
     tplg_root = ""
 
-    # default, we want every pipeline
-    filter_str = "type:any"
-    # As KWD pipeline is so special, and our current test case cannot deal with KWD pipeline,
-    # Let's hide the KWD pipeline from other pipelines, except user really want KWD pipeline
-    # with '-f kpbm"
+    # parse and set filter keyword
     if ret_args['filter'] is not None and len(ret_args['filter']) > 0:
-        if "kpbm" in ret_args["filter"]: filter_str = ret_args['filter']
-        else: filter_str = ret_args['filter'] + "& ~kpbm"
-    # parse filter string into two structures, one is dict list for each filter item,
-    # and another is logic operation list.
-    filter_lst = []
-    op_lst = []
-    for filter_elem in filter_str.split('|'):
-        for item in filter_elem.split('&'):
-            key, _, value = item.partition(':')
-            filter_lst.append({key.strip():value.strip().split(',')})
-    for char in filter_str:
-        if char == '|' or char == "&":
-            op_lst.append(char)
-    filter_dict['filter'] = filter_lst
-    filter_dict['op'] = op_lst
+        filter_dict = parse_filter(ret_args['filter'])
+        tplgreader.setFilter(filter_dict)
 
-    if ret_args['ignore'] is not None and len(ret_args['ignore']) > 0:
-        for emStr in ret_args['ignore']:
-            key, flag, value=emStr.partition(':')
-            ignore_lst.append({key.strip():value.strip().replace('[','').replace(']','').split(',')})
+    # If run general test case on WOV pipeline or ECHO REFERENCE capture pipeline, there will be error
+    # due to no feed data, and they should be blocked in general test case.
+    default_block_keyword = 'kpbm:any;type:capture & echo;'
+    # if no filter or block item is specified, the "block_none" here will help to
+    # block nothing
+    block_str = "block_none"
+    # if user specified what to block
+    if ret_args['block'] is not None and len(ret_args['block']) > 0:
+        block_str = default_block_keyword + ret_args['block'].strip()
+    # if user specified filter, and 'kpbm' or 'echo' not in filter, WOV pipeline and echo
+    # reference capture pipeline will be blocked to avoid failure in general test case.
+    elif ret_args['filter'] is not None and 'kpbm' not in ret_args['filter'] and 'echo' not in ret_args['filter']:
+        block_str = default_block_keyword
+
+    parse_and_set_block_keyword(block_str, tplgreader)
 
     if ret_args['dump'] is not None and len(ret_args['dump']) > 0:
         dump_lst = ret_args['dump']
 
-    if len(filter_dict['filter']) > 0:
-        tplgreader.setFilter(filter_dict)
-
-    if len(ignore_lst) > 0:
-        tplgreader.setIgnore(ignore_lst)
     if len(dump_lst) > 0:
         tplgreader.setField(dump_lst)
 
