@@ -4,6 +4,9 @@
 
 set -e
 
+printf 'TRAVIS_COMMIT_RANGE=%s\n' "${TRAVIS_COMMIT_RANGE}"
+printf 'TRAVIS_BRANCH=%s\n' "${TRAVIS_BRANCH}"
+
 # Sample usage:
 #
 #   $  shellcheck-gitrange.bash origin/master... [ -f gcc ]
@@ -20,7 +23,7 @@ main()
     local logrange=${diffrange/.../..}
     ( set -x
       # also a sanity check of the argument
-      git --no-pager log --oneline --graph --stat --max-count=40 "$logrange" --
+      git --no-pager log --oneline --decorate --graph --stat --max-count=40 "$logrange" --
     )
 
     local fname ftype failed_files=0
