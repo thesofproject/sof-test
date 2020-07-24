@@ -21,9 +21,11 @@ main()
     # Triple dot "git log A...B" includes commits not relevant to triple
     # dot "git diff A...B"
     local logrange=${diffrange/.../..}
-    ( set -x
+    ( set -x; set +e
       # also a sanity check of the argument
       git --no-pager log --oneline --decorate --graph --stat --max-count=40 "$logrange" --
+      git --no-pager log --oneline --decorate --graph --stat --max-count=40 HEAD master --
+      git --no-pager log --oneline --decorate --graph --stat --max-count=40 HEAD origin/master --
     )
 
     local fname ftype failed_files=0
