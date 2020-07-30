@@ -122,12 +122,10 @@ func_lib_restore_pulseaudio()
         fi
     done
     # start pulseaudio
-    local cmd="" user="" line=""
+    local line
     for line in "${PULSECMD_LST[@]}"
     do
-        user=${line%% *}
-        cmd=${line#* }
-        nohup sudo -u "$user" "$cmd" >/dev/null &
+        nohup sudo -u $line >/dev/null &
     done
     # now wait for the pulseaudio restore in the ps process
     timeout=10
