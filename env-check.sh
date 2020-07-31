@@ -9,7 +9,7 @@ func_check_pkg(){
     if command -v "$1" >/dev/null; then
         return
     else
-        out_str=$out_str"\nPlease install \e[31m $1 \e[0m package"
+        out_str="$out_str""\tPlease install the \e[31m $1 \e[0m package\n"
         check_res=1
     fi
 }
@@ -19,7 +19,7 @@ func_check_python_pkg(){
         if python3 -c "import $1" &> /dev/null; then
             return
         else
-            out_str=$out_str"\nPlease install \e[31m python3-$1 \e[0m package"
+            out_str="$out_str""\tPlease install the \e[31m python3-$1 \e[0m package\n"
             check_res=1
         fi
     else
@@ -31,19 +31,26 @@ func_check_file(){
     if [ -e "$1" ]; then
         return
     fi
-    out_str=$out_str"\nOptional: Enable dynamic debug logs on \e[31m $1 \e[0m file\n\tFor example,\n\toptions snd_sof dyndbg=+p\n\toptions snd_sof_pci dyndbg=+p"
+    out_str="$out_str""Optional: Enable dynamic debug logs in \e[31m $1 \e[0m file\n\tFor example,\n\toptions snd_sof dyndbg=+p\n\toptions snd_sof_pci dyndbg=+p\n"
     check_res=1
 }
 
 check_res=0
-echo -ne "Check for the package:\t\t"
+printf "Checking for some OS packages:\t\t"
 func_check_pkg expect
 func_check_pkg aplay
 func_check_pkg python3
 func_check_python_pkg graphviz
 func_check_file "$DYNDBG"
-[[ $check_res -eq 0 ]] && echo "pass" || \
-    echo -e "\e[31mWarning\e[0m\nSolution:"$out_str
+if [ $check_res -eq 0 ]; then
+    printf "pass\n"
+else
+    printf '\e[31mWarning\e[0m\n'
+# Need ANSI color characters to be the format string. This is not
+# unsanitized input.
+# shellcheck disable=SC2059
+    printf "$out_str"
+fi
 
 # check for the tools folder
 old_path=$PWD
