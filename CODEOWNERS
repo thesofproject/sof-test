@@ -2,29 +2,29 @@
 # Each line is a file pattern followed by one or more owners.
 
 # These owners will be the default owners for everything in the repo.
-*                       @xiulipan @Bin-QA
+*                       @xiulipan
 
 # Order is important. The last matching pattern has the most precedence.
 # So if a pull request only touches javascript files, only these owners
 # will be requested to review.
 
 # file type
-*.py                    @Bin-QA @aiChaoSONG @marc-hb
-*.sh                    @Bin-QA @marc-hb
+*.py                    @aiChaoSONG @marc-hb
+*.sh                    @marc-hb
 *.md                    @fredoh9 @marc-hb
 
 # tools and caselib
-case-lib/*              @Bin-QA @xiulipan @marc-hb
-tools/*                 @Bin-QA @aiChaoSONG @marc-hb
+case-lib/*              @xiulipan @marc-hb
+tools/*                 @aiChaoSONG @marc-hb
 tools/kmod/*            @aiChaoSONG @plbossart @marc-hb
 
 # test case
 test-case/manual/*      @fredoh9 @marc-hb
 test-case/*playback*    @aiChaoSONG @marc-hb
 test-case/*capture*     @aiChaoSONG @marc-hb
-test-case/*kmod*        @Bin-QA @aiChaoSONG @marc-hb
-test-case/*pause*       @Bin-QA @marc-hb
-test-case/*runtime*     @Bin-QA @aiChaoSONG @marc-hb
+test-case/*kmod*        @aiChaoSONG @marc-hb
+test-case/*pause*       @marc-hb
+test-case/*runtime*     @aiChaoSONG @marc-hb
 test-case/*logger*      @fredoh9 @marc-hb
 test-case/verify*       @aiChaoSONG @libinyang @marc-hb
 test-case/*ucm*         @libinyang @marc-hb
