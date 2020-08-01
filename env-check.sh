@@ -1,5 +1,7 @@
 #!/bin/bash
 
+mydir=$(cd "$(dirname "$0")"; pwd)
+
 # enable dynamic debug logs for SOF modules
 DYNDBG="/etc/modprobe.d/sof-dyndbg.conf"
 
@@ -55,7 +57,7 @@ echo -ne "Check for tools folder:\t\t"
 \tMissing execution permission of script/binary in tools folder\n
 \tWarning: you need to make sure the current user has execution permssion\n
 \tPlease use the following command to give execution permission:\n
-\t\e[31mcd $(dirname $0)\n
+\t\e[31mcd ${mydir}\n
 \tchmod a+x tools/*\e[0m"
 [[ $check_res -eq 0 ]] && echo "pass" || \
     echo -e "\e[31mWarning\e[0m\nSolution:"$out_str
@@ -68,7 +70,7 @@ echo -ne "Checking for case folder:\t\t"
 \tMissing execution permission of script/binary in test-case folder\n
 \tWarning: you need to make sure the current user has execution permssion\n
 \tPlease use the following command to give execution permission:\n
-\t\e[31mcd $(dirname $0)\n
+\t\e[31mcd ${mydir}\n
 \tchmod a+x test-case/*\e[0m"
 [[ $check_res -eq 0 ]] && echo "pass" || \
     echo -e "\e[31mWarning\e[0m\nSolution:"$out_str
@@ -112,13 +114,13 @@ check_res=1 && out_str=$out_str"\n
 out_str="" check_res=0
 echo -ne "Checking the config setup:\t\t"
 # shellcheck source=case-lib/config.sh
-source  "$(dirname "$0")/case-lib/config.sh"
+source  "${mydir}/case-lib/config.sh"
 # effect check
 case "$SUDO_LEVEL" in
     '0'|'1'|'2')
         if [[ "$SUDO_LEVEL" -eq 2 ]]; then
             [[ ! "$SUDO_PASSWD" ]] &&  check_res=1 && out_str=$out_str"\n
-\tPlease setup \e[31mSUDO_PASSWD\e[0min $(dirname $0)/case-lib/config.sh file\n
+\tPlease setup \e[31mSUDO_PASSWD\e[0min ${mydir}/case-lib/config.sh file\n
 \t\tIf you don't want modify to this value, you will need to export SUDO_PASSWD\n
 \t\tso our scripts can access debugfs, as some test cases need it.\n
 \t\tYou also can modify the SUDO_LEVEL to 1, using visudo to modify the permission"
