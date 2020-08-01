@@ -111,6 +111,7 @@ check_res=1 && out_str=$out_str"\n
 
 out_str="" check_res=0
 echo -ne "Checking the config setup:\t\t"
+# shellcheck source=case-lib/config.sh
 source  "$(dirname "$0")/case-lib/config.sh"
 # effect check
 case "$SUDO_LEVEL" in
