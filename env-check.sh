@@ -48,12 +48,12 @@ func_check_file "$DYNDBG"
     echo -e "\e[31mWarning\e[0m\nSolution:"$out_str
 
 # check for the tools folder
-old_path=$PWD
-cd "$(dirname "$0")/tools/"
 out_str="" check_res=0
 echo -ne "Check for tools folder:\t\t"
 
-[[ "$(stat -c "%A" * |grep -v 'x')" ]] && check_res=1 && out_str=$out_str"\n
+cd "$mydir"
+
+[[ "$(stat -c "%A" ./tools/* |grep -v 'x')" ]] && check_res=1 && out_str=$out_str"\n
 \tMissing execution permission of script/binary in tools folder\n
 \tWarning: you need to make sure the current user has execution permssion\n
 \tPlease use the following command to give execution permission:\n
@@ -63,10 +63,8 @@ echo -ne "Check for tools folder:\t\t"
     echo -e "\e[31mWarning\e[0m\nSolution:"$out_str
 
 out_str="" check_res=0
-cd "$old_path"
-cd "$(dirname "$0")/test-case/"
 echo -ne "Checking for case folder:\t\t"
-[[ "$(stat -c "%A" * |grep -v 'x')" ]] && check_res=1 && out_str="\n
+[[ "$(stat -c "%A" ./test-case/* |grep -v 'x')" ]] && check_res=1 && out_str="\n
 \tMissing execution permission of script/binary in test-case folder\n
 \tWarning: you need to make sure the current user has execution permssion\n
 \tPlease use the following command to give execution permission:\n
@@ -74,7 +72,6 @@ echo -ne "Checking for case folder:\t\t"
 \tchmod a+x test-case/*\e[0m"
 [[ $check_res -eq 0 ]] && echo "pass" || \
     echo -e "\e[31mWarning\e[0m\nSolution:"$out_str
-cd "$old_path"
 
 out_str="" check_res=0
 echo -ne "Checking the permission:\t\t"
