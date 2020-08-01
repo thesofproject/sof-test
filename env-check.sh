@@ -103,9 +103,10 @@ check_res=1 && out_str=$out_str"\n
 
 [[ "$user" ]] && [[ ! $(awk -F ':' '/^audio:/ {print $NF;}' /etc/group|grep "$user") ]] && \
 check_res=1 && out_str=$out_str"\n
-\tMissing permission to access sound card\n
-\t\tPlease use the following command to add current user to the audio group:\n
-\t\e[31msed -i '/^audio:/s:$:,$user:g' /etc/group\e[0m"
+\tMissing audio group membership to access /dev/snd/* devices\n
+\t\tPlease use the following command to add current user to the audio group, then log in again:\n
+\t\e[31msudo usermod --append --groups audio $user
+\e[0m"
 
 [[ ! -e "/var/log/kern.log" ]] && \
 check_res=1 && out_str=$out_str"\n
