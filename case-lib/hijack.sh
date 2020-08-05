@@ -16,7 +16,10 @@ function func_exit_handler()
             sleep 1s
         }
         local loggerBin; loggerBin=$(basename "$SOFLOGGER")
-        sudo pkill -9 "$loggerBin" 2>/dev/null
+        sudo pkill -9 "$loggerBin" 2>/dev/null || {
+            dloge "sof-logger was already dead"
+            exit_status=1
+        }
         sleep 1s
     fi
     # when case ends, store kernel log
