@@ -26,6 +26,11 @@ ignore_str="$ignore_str"'|Parity error detected'
 # https://bugzilla.kernel.org/show_bug.cgi?id=202541
 ignore_str="$ignore_str"'|xhci_hcd 0000:00:14.0: WARN Set TR Deq Ptr cmd failed due to incorrect slot or ep state'
 
+# CML Mantis occasionally throws Intel(R) Management Engine Interface(mei) errors
+# https://unix.stackexchange.com/questions/109294/mei-00000016-0-init-hw-failure
+ignore_str="$ignore_str"'|mei_me 0000:00:16.0: wait hw ready failed'
+ignore_str="$ignore_str"'|mei_me 0000:00:16.0: hw_start failed ret = -62'
+
 [[ ! "$err_str" ]] && echo "Missing error keyword list" && exit 0
 # dmesg KB size buffer size
 #dmesg_config_define=$(awk -F '=' '/CONFIG_LOG_BUF_SHIFT/ {print $2;}' /boot/config-$(uname -r))
