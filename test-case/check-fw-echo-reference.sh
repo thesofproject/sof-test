@@ -18,29 +18,17 @@
 rm -f /tmp/bat.wav.*
 
 # shellcheck source=case-lib/lib.sh
-# shellcheck disable=SC2016
-# shellcheck disable=SC1091
 source "$(dirname "${BASH_SOURCE[0]}")"/../case-lib/lib.sh
 
-# TPLG is assigned as env variable
-# shellcheck disable=SC2154
-# shellcheck disable=SC2016
-OPT_OPT_lst['t']='tplg'     OPT_DESC_lst['t']='tplg file, default value is env TPLG: $TPLG'
-# shellcheck disable=SC2153
+OPT_OPT_lst['t']='tplg'     OPT_DESC_lst['t']='tplg file, default value is env TPLG: $''TPLG'
 OPT_PARM_lst['t']=1         OPT_VALUE_lst['t']="$TPLG"
-# shellcheck disable=SC2154
 OPT_OPT_lst['s']='sof-logger'   OPT_DESC_lst['s']="Open sof-logger trace the data will store at $LOG_ROOT"
 OPT_PARM_lst['s']=0             OPT_VALUE_lst['s']=1
-# shellcheck disable=SC2154
 OPT_OPT_lst['l']='loop'     OPT_DESC_lst['l']='loop count'
 OPT_PARM_lst['l']=1         OPT_VALUE_lst['l']=1
-# shellcheck disable=SC2154
 OPT_OPT_lst['n']='frames'     OPT_DESC_lst['n']='test frames'
 OPT_PARM_lst['n']=1             OPT_VALUE_lst['n']=240000
-# shellcheck disable=SC2034
-# shellcheck disable=SC2154
 OPT_OPT_lst['f']='frequency'    OPT_DESC_lst['f']='target frequency'
-# shellcheck disable=SC2034
 OPT_PARM_lst['f']=1             OPT_VALUE_lst['f']=997
 
 func_opt_parse_option "$@"
@@ -60,7 +48,6 @@ function __upload_wav_file
     # upload the alsabat wav file
     for file in /tmp/bat.wav.*
     do
-    # shellcheck disable=SC2012
         size=$(ls -l "$file" | awk '{print $5}')
         if [[ $size -gt 0 ]]; then
             cp "$file" "$LOG_ROOT/"
@@ -104,7 +91,6 @@ do
         alsabat -C "$cp_dev" -c "$channel" -f "$fmt" -r "$rate" -F "$frequency"
 
         # upload failed wav file
-        # shellcheck disable=SC2181
         if [[ "$?" != "0" ]]; then
             __upload_wav_file
         exit 1
