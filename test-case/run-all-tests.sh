@@ -34,7 +34,9 @@ suspend-resume-with-capture"
 
 main()
 {
-	local failures=0
+	local failures=()
+	local passed=()
+
 	local time_delay=3
 
 	while getopts "hT:" OPTION; do
@@ -53,13 +55,18 @@ main()
 		printf "\033[40;32m ---------- \033[0m\n"
 		printf "\033[40;32m ---------- \033[0m\n"
 		printf "\033[40;32m starting test_%s \033[0m\n" "$t"
-		"test_$t" || : $((failures++))
+		if "test_$t"; then passed+=( "$t" ); else failures+=( "$t" ); fi
 		
 		sleep "$time_delay"
 	done
 
-	printf "\033[40;32m test end with %d failed\033[0m\n" "$failures"
-	exit "$failures"
+	printf "\n\nPASS:"; printf ' %s;' "${passed[@]}"
+	if [ "${#failures[@]}" -gt 0 ]; then
+	    printf "\nFAIL:"; printf ' %s;' "${failures[@]}"
+	fi
+
+	printf "\n\n\033[40;32m test end with %d failed tests\033[0m\n\n" "${#failures[@]}"
+	exit "${#failures[@]}"
 }
 
 test_firmware-presence()
