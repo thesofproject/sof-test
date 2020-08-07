@@ -34,6 +34,9 @@ suspend-resume-with-capture"
 
 main()
 {
+	local mydir
+	mydir=$(cd "$(dirname "${BASH_SOURCE[0]}")"; pwd)
+
 	local failures=()
 	local passed=()
 
@@ -71,119 +74,119 @@ main()
 
 test_firmware-presence()
 {
-	./verify-firmware-presence.sh
+	"$mydir"/verify-firmware-presence.sh
 }
 test_firmware-load()
 {
-	./verify-sof-firmware-load.sh
+	"$mydir"/verify-sof-firmware-load.sh
 }
 test_tplg-binary()
 {
-	./verify-tplg-binary.sh
+	"$mydir"/verify-tplg-binary.sh
 }
 test_pcm_list()
 {
-	./verify-pcm-list.sh
+	"$mydir"/verify-pcm-list.sh
 }
 test_sof-logger()
 {
-	./check-sof-logger.sh
+	"$mydir"/check-sof-logger.sh
 }
 test_ipc-flood()
 {
-	./check-ipc-flood.sh -l 10
+	"$mydir"/check-ipc-flood.sh -l 10
 }
 test_playback-d100l1r1()
 {
-	./check-playback.sh -d 100 -l 1 -r 1
+	"$mydir"/check-playback.sh -d 100 -l 1 -r 1
 }
 test_capture-d100l1r1()
 {
-	./check-capture.sh -d 100 -l 1 -r 1
+	"$mydir"/check-capture.sh -d 100 -l 1 -r 1
 }
 test_playback-d1l100r1()
 {
-	./check-playback.sh -d 1 -l 100 -r 1
+	"$mydir"/check-playback.sh -d 1 -l 100 -r 1
 }
 test_capture_d1l100r1()
 {
-	./check-capture.sh -d 1 -l 100 -r 1
+	"$mydir"/check-capture.sh -d 1 -l 100 -r 1
 }
 test_playback_d1l1r50()
 {
-	./check-playback.sh -d 1 -l 1 -r 50
+	"$mydir"/check-playback.sh -d 1 -l 1 -r 50
 }
 test_capture_d1l1r50()
 {
-	./check-capture.sh -d 1 -l 1 -r 50
+	"$mydir"/check-capture.sh -d 1 -l 1 -r 50
 }
 test_speaker()
 {
-	./test-speaker.sh -l 50
+	"$mydir"/test-speaker.sh -l 50
 }
 test_pause-resume-playback()
 {
-	./check-pause-resume.sh -c 100 -m playback
+	"$mydir"/check-pause-resume.sh -c 100 -m playback
 }
 test_pause-resume-capture()
 {
-	./check-pause-resume.sh -c 100 -m capture
+	"$mydir"/check-pause-resume.sh -c 100 -m capture
 }
 test_volume()
 {
-	./volume-basic-test.sh -l 100
+	"$mydir"/volume-basic-test.sh -l 100
 }
 test_signal-stop-start-playback()
 {
-	./check-signal-stop-start.sh -m playback -c 50
+	"$mydir"/check-signal-stop-start.sh -m playback -c 50
 }
 test_signal-stop-start-capture()
 {
-	./check-signal-stop-start.sh -m capture -c 50
+	"$mydir"/check-signal-stop-start.sh -m capture -c 50
 }
 test_xrun-injection-playback()
 {
-	./check-xrun-injection.sh -m playback -c 50
+	"$mydir"/check-xrun-injection.sh -m playback -c 50
 }
 test_xrun-injection-capture()
 {
-	./check-xrun-injection.sh -m capture -c 50
+	"$mydir"/check-xrun-injection.sh -m capture -c 50
 }
 test_simultaneous-playback-capture()
 {
-	./simultaneous-playback-capture.sh -l 50
+	"$mydir"/simultaneous-playback-capture.sh -l 50
 }
 test_multiple-pipeline-playback()
 {
-	./multiple-pipeline-playback.sh -l 50
+	"$mydir"/multiple-pipeline-playback.sh -l 50
 }
 test_multiple-pipeline-capture()
 {
-	./multiple-pipeline-capture.sh -l 50
+	"$mydir"/multiple-pipeline-capture.sh -l 50
 }
 test_multiple-pause-resume()
 {
-	./multiple-pause-resume.sh -r 25
+	"$mydir"/multiple-pause-resume.sh -r 25
 }
 test_kmod-load-unload()
 {
-	./check-kmod-load-unload.sh -l 50
+	"$mydir"/check-kmod-load-unload.sh -l 50
 }
 test_kmod-load-unload-after-playback()
 {
-	./check-kmod-load-unload-after-playback.sh -l 15
+	"$mydir"/check-kmod-load-unload-after-playback.sh -l 15
 }
 test_suspend-resume()
 {
-	./check-suspend-resume.sh -l 50
+	"$mydir"/check-suspend-resume.sh -l 50
 }
 test_suspend-resume-with-playback()
 {
-	./check-suspend-resume-with-audio.sh -l 15 -m playback
+	"$mydir"/check-suspend-resume-with-audio.sh -l 15 -m playback
 }
 test_suspend-resume-with-capture()
 {
-	./check-suspend-resume-with-audio.sh -l 15 -m capture
+	"$mydir"/check-suspend-resume-with-audio.sh -l 15 -m capture
 }
 
 usage()
@@ -192,7 +195,7 @@ usage()
 Wrapper script to run all test cases. Please use TPLG env to
 pass-through topology path to test caess.
 
-usage: run-all-tests.sh [options]
+usage: $0 [options]
 		-h Show script usage
 		-T time Delay between cases, default: 3s
 EOF
