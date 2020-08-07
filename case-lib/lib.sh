@@ -92,25 +92,36 @@ func_lib_start_log_collect()
         return 1
     }
 
-    local loggerBin="" logfile="" logopt="-t"
-    [[ "$SOFLOGGER" ]] && loggerBin=$SOFLOGGER || loggerBin=$(command -v sof-logger)
+    local logfile="" logopt="-t"
+
+    if [ -z "$SOFLOGGER" ]; then
+        SOFLOGGER=$(command -v sof-logger) || {
+            dlogw 'No sof-logger found in PATH'
+            return 1
+        }
+    fi
+
+    test -x "$SOFLOGGER" || {
+        dlogw "$SOFLOGGER not found or not executable"
+        return 2
+    }
+
     if [ "X$is_etrace" == "X0" ];then
         logfile=$LOG_ROOT/slogger.txt
     else
         logfile=$LOG_ROOT/etrace.txt
         logopt=""
     fi
-    [[ ! "$loggerBin" ]] && return
-    SOFLOGGER=$loggerBin
+
     if func_hijack_setup_sudo_level ;then
         # shellcheck disable=SC2034 # external script will use it
         SOF_LOG_COLLECT=1
     else
         >&2 dlogw "without sudo permission to run $SOFLOGGER command"
-        return
+        return 3
     fi
 
-    sudo "$loggerBin $logopt -l $ldcFile -o $logfile" 2>/dev/null &
+    sudo "$SOFLOGGER $logopt -l $ldcFile -o $logfile" 2>/dev/null &
 }
 
 func_lib_check_sudo()
