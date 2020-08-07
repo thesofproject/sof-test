@@ -8,6 +8,21 @@ function func_exit_handler()
 {
     local exit_status=${1:-0}
 
+    # call trace
+    if [ "$exit_status" -ne 0 ] ; then
+        dloge "Starting ${FUNCNAME[0]}(), exit status=$exit_status, FUNCNAME stack:"
+        local i line_no
+
+        for i in $(seq 1 $((${#FUNCNAME[@]}-1))); do
+
+            line_no=${BASH_LINENO[$((i-1))]} || true
+            # BASH_LINENO doesn't always work
+            if [ $line_no -gt 1 ]; then line_no=":$line_no"; else line_no=""; fi
+
+            dloge " ${FUNCNAME[i]}()  @  ${BASH_SOURCE[i]}${line_no}"
+        done
+    fi
+
     # when sof logger collect is open
     if [ "X$SOF_LOG_COLLECT" == "X1" ]; then
         # when error occurs, exit and catch etrace log
