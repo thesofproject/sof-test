@@ -49,9 +49,9 @@ func_opt_parse_option()
         done
         if ! _op_temp_script=$(getopt -o "$_short_opt" --long "$_long_opt" -- "$@" 2>/dev/null) ; then
             # here output for the End-User who don't care about this function/option couldn't to run
-            printf 'Error parsing option\n'
+            printf 'Error parsing options: %s\n' "$*"
             # For debug and fix the option problem, you need to open those code:
-            # printf 'Error parsing %s/%s/%s\n' "$_short_opt" "$_long_opt" "$@" >&2
+            # printf 'DEBUG parsing options: short_opt: %s / long_opt: %s / args: %s\n' "$_short_opt" "$_long_opt" "$*" >&2
             # declare -p |grep 'OPT_[A-Z]*_lst'
             _func_opt_dump_help
         fi
