@@ -1,8 +1,4 @@
 #!/bin/bash
-TPLG=$1
-Time=3
-export TPLG=/lib/firmware/intel/sof-tplg/$TPLG
-
 set -e
 
 testlist="
@@ -39,6 +35,18 @@ suspend-resume-with-capture"
 main()
 {
 	local failures=0
+	local time_delay=3
+
+	while getopts "hT:" OPTION; do
+	case "$OPTION" in
+		T) time_delay="$OPTARG" ;;
+		*) usage; exit 1 ;;
+		esac
+	done
+	if [ -z "$TPLG" ]; then
+		printf "Please specify topology path with TPLG env\n"
+		exit 1
+	fi
 
 	for t in $testlist;
 	do
@@ -46,8 +54,8 @@ main()
 		printf "\033[40;32m ---------- \033[0m\n"
 		printf "\033[40;32m starting test_%s \033[0m\n" "$t"
 		"test_$t" || : $((failures++))
-		sleep $Time
-
+		
+		sleep "$time_delay"
 	done
 
 	printf "\033[40;32m test end with %d failed\033[0m\n" "$failures"
@@ -169,6 +177,18 @@ test_suspend-resume-with-playback()
 test_suspend-resume-with-capture()
 {
 	./check-suspend-resume-with-audio.sh -l 15 -m capture
+}
+
+usage()
+{
+	cat <<EOF
+Wrapper script to run all test cases. Please use TPLG env to
+pass-through topology path to test caess.
+
+usage: run-all-tests.sh [options]
+		-h Show script usage
+		-T time Delay between cases, default: 3s
+EOF
 }
 
 main "$@"
