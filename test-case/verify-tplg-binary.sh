@@ -13,6 +13,8 @@
 ##    list topology files md5sum
 ##
 
+set -e
+
 # source from the relative path of current folder
 # shellcheck source=case-lib/lib.sh
 source "$(dirname "${BASH_SOURCE[0]}")"/../case-lib/lib.sh

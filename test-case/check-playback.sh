@@ -16,6 +16,8 @@
 ##    The return value of aplay is 0
 ##
 
+set -e
+
 # shellcheck source=case-lib/lib.sh
 source "$(dirname "${BASH_SOURCE[0]}")"/../case-lib/lib.sh
 
