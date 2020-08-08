@@ -1,6 +1,25 @@
 #!/bin/bash
 set -e
 
+# This entire script is a hack. We need to re-use some existing test
+# runner from some existing test framework eventually
+
+# These can also be overriden by the environment
+very_short_tests()
+{
+	small_loop=1
+	medium_loop=1
+	large_loop=1
+
+	medium_count=5
+	large_count=10
+
+	long_duration=3
+
+	large_round=3
+}
+
+
 testlist="
 firmware-presence
 firmware-load
@@ -32,18 +51,44 @@ suspend-resume
 suspend-resume-with-playback
 suspend-resume-with-capture"
 
+# To focus on some particular tests edit and rename this to
+# 'testlist'. Last definition wins.
+# shellcheck disable=SC2034
+shorter_testlist='
+firmware-presence
+speaker
+firmware-load
+playback-d100l1r1
+capture_d1l100r1
+tplg-binary
+sof-logger
+'
+
 main()
 {
+	# Default values overriden by the environment if any
+	: "${small_loop:=15}"
+	: "${medium_loop:=50}"
+	: "${large_loop:=100}"
+
+	: "${medium_count:=50}"
+	: "${large_count:=100}"
+
+	: "${long_duration:=100}"
+
+	: "${large_round:=50}"
+
 	local mydir
 	mydir=$(cd "$(dirname "${BASH_SOURCE[0]}")"; pwd)
 
 	local failures=()
 	local passed=()
 
-	local time_delay=3
+	local tests_length=10 time_delay=3
 
-	while getopts "hT:" OPTION; do
+	while getopts "l:T:h" OPTION; do
 	case "$OPTION" in
+		l) tests_length="$OPTARG" ;;
 		T) time_delay="$OPTARG" ;;
 		*) usage; exit 1 ;;
 		esac
@@ -53,13 +98,23 @@ main()
 		exit 1
 	fi
 
+	case "$tests_length" in
+	    1) very_short_tests ;;
+	    10) ;; # default
+	    *) usage; exit 1 ;;
+	esac
+
 	for t in $testlist;
 	do
 		printf "\033[40;32m ---------- \033[0m\n"
 		printf "\033[40;32m ---------- \033[0m\n"
 		printf "\033[40;32m starting test_%s \033[0m\n" "$t"
-		if "test_$t"; then passed+=( "$t" ); else failures+=( "$t" ); fi
-		
+		# set -x logs the test parameters
+		if ( set -x; "test_$t" ) ; then
+		    passed+=( "$t" )
+		else
+		    failures+=( "$t" )
+		fi
 		sleep "$time_delay"
 	done
 
@@ -94,75 +149,75 @@ test_sof-logger()
 }
 test_ipc-flood()
 {
-	"$mydir"/check-ipc-flood.sh -l 10
+	"$mydir"/check-ipc-flood.sh -l "$small_loop"
 }
 test_playback-d100l1r1()
 {
-	"$mydir"/check-playback.sh -d 100 -l 1 -r 1
+	"$mydir"/check-playback.sh -d "${long_duration}" -l 1 -r 1
 }
 test_capture-d100l1r1()
 {
-	"$mydir"/check-capture.sh -d 100 -l 1 -r 1
+	"$mydir"/check-capture.sh -d "${long_duration}" -l 1 -r 1
 }
 test_playback-d1l100r1()
 {
-	"$mydir"/check-playback.sh -d 1 -l 100 -r 1
+	"$mydir"/check-playback.sh -d 1 -l "$large_loop" -r 1
 }
 test_capture_d1l100r1()
 {
-	"$mydir"/check-capture.sh -d 1 -l 100 -r 1
+	"$mydir"/check-capture.sh -d 1 -l "$large_loop" -r 1
 }
 test_playback_d1l1r50()
 {
-	"$mydir"/check-playback.sh -d 1 -l 1 -r 50
+	"$mydir"/check-playback.sh -d 1 -l 1 -r "$large_round"
 }
 test_capture_d1l1r50()
 {
-	"$mydir"/check-capture.sh -d 1 -l 1 -r 50
+	"$mydir"/check-capture.sh -d 1 -l 1 -r "$large_round"
 }
 test_speaker()
 {
-	"$mydir"/test-speaker.sh -l 50
+	"$mydir"/test-speaker.sh -l "$medium_loop"
 }
 test_pause-resume-playback()
 {
-	"$mydir"/check-pause-resume.sh -c 100 -m playback
+	"$mydir"/check-pause-resume.sh -c "$large_count" -m playback
 }
 test_pause-resume-capture()
 {
-	"$mydir"/check-pause-resume.sh -c 100 -m capture
+	"$mydir"/check-pause-resume.sh -c "$large_count" -m capture
 }
 test_volume()
 {
-	"$mydir"/volume-basic-test.sh -l 100
+	"$mydir"/volume-basic-test.sh -l "$large_loop"
 }
 test_signal-stop-start-playback()
 {
-	"$mydir"/check-signal-stop-start.sh -m playback -c 50
+	"$mydir"/check-signal-stop-start.sh -m playback -c "$medium_count"
 }
 test_signal-stop-start-capture()
 {
-	"$mydir"/check-signal-stop-start.sh -m capture -c 50
+	"$mydir"/check-signal-stop-start.sh -m capture -c "$medium_count"
 }
 test_xrun-injection-playback()
 {
-	"$mydir"/check-xrun-injection.sh -m playback -c 50
+	"$mydir"/check-xrun-injection.sh -m playback -c "$medium_count"
 }
 test_xrun-injection-capture()
 {
-	"$mydir"/check-xrun-injection.sh -m capture -c 50
+	"$mydir"/check-xrun-injection.sh -m capture -c "$medium_count"
 }
 test_simultaneous-playback-capture()
 {
-	"$mydir"/simultaneous-playback-capture.sh -l 50
+	"$mydir"/simultaneous-playback-capture.sh -l "$medium_loop"
 }
 test_multiple-pipeline-playback()
 {
-	"$mydir"/multiple-pipeline-playback.sh -l 50
+	"$mydir"/multiple-pipeline-playback.sh -l "$medium_loop"
 }
 test_multiple-pipeline-capture()
 {
-	"$mydir"/multiple-pipeline-capture.sh -l 50
+	"$mydir"/multiple-pipeline-capture.sh -l "$medium_loop"
 }
 test_multiple-pause-resume()
 {
@@ -170,23 +225,23 @@ test_multiple-pause-resume()
 }
 test_kmod-load-unload()
 {
-	"$mydir"/check-kmod-load-unload.sh -l 50
+	"$mydir"/check-kmod-load-unload.sh -l "$medium_loop"
 }
 test_kmod-load-unload-after-playback()
 {
-	"$mydir"/check-kmod-load-unload-after-playback.sh -l 15
+	"$mydir"/check-kmod-load-unload-after-playback.sh -l "$small_loop"
 }
 test_suspend-resume()
 {
-	"$mydir"/check-suspend-resume.sh -l 50
+	"$mydir"/check-suspend-resume.sh -l "$medium_loop"
 }
 test_suspend-resume-with-playback()
 {
-	"$mydir"/check-suspend-resume-with-audio.sh -l 15 -m playback
+	"$mydir"/check-suspend-resume-with-audio.sh -l "$small_loop" -m playback
 }
 test_suspend-resume-with-capture()
 {
-	"$mydir"/check-suspend-resume-with-audio.sh -l 15 -m capture
+	"$mydir"/check-suspend-resume-with-audio.sh -l "$small_loop" -m capture
 }
 
 usage()
@@ -197,6 +252,7 @@ pass-through topology path to test caess.
 
 usage: $0 [options]
 		-h Show script usage
+		-l 1 Very small test counts/loops/rounds (< 20 min)
 		-T time Delay between cases, default: 3s
 EOF
 }
