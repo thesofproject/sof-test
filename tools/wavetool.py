@@ -50,37 +50,37 @@ def generate_sinusoids(**p):
     data = p['amp'] * func(2 * np.pi * p['freq'] * time + p['phase'])
     return np.reshape(np.repeat(data, p['chan']),[len(data), p['chan']])
 
-def generate_wav(**cmd):
-    if cmd['generate'] in ['sine', 'cosine']:
+def generate_wav():
+    if cmd.generate in ['sine', 'cosine']:
         wave_param = {
-            'type': cmd['generate'], 'amp': cmd['amp'][0], 'freq': cmd['freq'][0],
-            'phase': cmd['phase'][0], 'chan': cmd['channel'], 'sample_rate': cmd['sample_rate'],
-            'duration': cmd['duration'][0]
+            'type': cmd.generate, 'amp': cmd.amp[0], 'freq': cmd.freq[0],
+            'phase': cmd.phase[0], 'chan': cmd.channel, 'sample_rate': cmd.sample_rate,
+            'duration': cmd.duration[0]
         }
         wave_data = generate_sinusoids(**wave_param)
     else:
         raise Exception('invalid generate function, will generate nothing')
     return wave_data
 
-def save_wave(wave_data, **cmd):
-    wave_path = cmd['output']
+def save_wave(wave_data):
+    wave_path = cmd.output
     if wave_path == '.' or not wave_path.endswith('wav'):
         wave_path = wave_path + '/tmp.wav'
-    sample_bits = cmd['bits']
+    sample_bits = cmd.bits
     np_types = {'S8': np.int8, 'S16': np.int16, 'S32': np.int32}
     if sample_bits in np_types.keys():
         # range of wave_data is floating point [-1.0, 1.0]. When saving to any integer format use its full range.
         wave_data = (np.iinfo(np_types[sample_bits]).max * wave_data).astype(np_types[sample_bits])
-    wavefile.write(wave_path, cmd['sample_rate'], wave_data)
+    wavefile.write(wave_path, cmd.sample_rate, wave_data)
 
-def do_wave_analysis(**cmd):
-    fs_wav, wave = wavefile.read(cmd['recorded_wave'])
-    fs_ref, ref_wave = wavefile.read(cmd['reference_wave'])
+def do_wave_analysis():
+    fs_wav, wave = wavefile.read(cmd.recorded_wave)
+    fs_ref, ref_wave = wavefile.read(cmd.reference_wave)
     if fs_wav != fs_ref:
         print('Can not compare wave with different sample rate')
         sys.exit(1)
-    if cmd['analyze'] == 'smart_amp':
-        analyze_wav_smart_amp(wave, ref_wave, fs_wav, cmd['zero_threshold'])
+    if cmd.analyze == 'smart_amp':
+        analyze_wav_smart_amp(wave, ref_wave, fs_wav, cmd.zero_threshold)
 
 # remove digital zeros in two sides
 def trim_wave(wave, zero_threshold):
@@ -144,17 +144,18 @@ def parse_cmdline():
     parser.add_argument('-R', '--recorded_wave', type=str, help='path of recorded wave')
     parser.add_argument('-r', '--reference_wave', type=str, help='path of reference wave')
     parser.add_argument('-Z', '--zero_threshold', type=float, default=-50.3, help='zero threshold in dBFS')
-    return vars(parser.parse_args())
+    return parser.parse_args()
 
 def main():
-    cmd_args = parse_cmdline()
+    global cmd
+    cmd = parse_cmdline()
 
-    if cmd_args['generate'] is not None:
-        wave_data = generate_wav(**cmd_args)
-        save_wave(wave_data, **cmd_args)
+    if cmd.generate is not None:
+        wave_data = generate_wav()
+        save_wave(wave_data)
 
-    if cmd_args['analyze'] is not None:
-        do_wave_analysis(**cmd_args)
+    if cmd.analyze is not None:
+        do_wave_analysis()
 
 if __name__ == '__main__':
     main()
