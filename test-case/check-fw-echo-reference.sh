@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 ##
 ## Case Name: check_echo_reference
 ## Preconditions:
@@ -18,15 +20,16 @@
 rm -f /tmp/bat.wav.*
 
 # shellcheck source=case-lib/lib.sh
-source "$(dirname "${BASH_SOURCE[0]}")"/../case-lib/lib.sh
+libdir=$(dirname "${BASH_SOURCE[0]}")
+source "$libdir"/../case-lib/lib.sh
 
-OPT_OPT_lst['t']='tplg'     OPT_DESC_lst['t']='tplg file, default value is env TPLG: $''TPLG'
-OPT_PARM_lst['t']=1         OPT_VALUE_lst['t']="$TPLG"
+OPT_OPT_lst['t']='tplg'         OPT_DESC_lst['t']='tplg file, default value is env TPLG: $''TPLG'
+OPT_PARM_lst['t']=1             OPT_VALUE_lst['t']="$TPLG"
 OPT_OPT_lst['s']='sof-logger'   OPT_DESC_lst['s']="Open sof-logger trace the data will store at $LOG_ROOT"
 OPT_PARM_lst['s']=0             OPT_VALUE_lst['s']=1
-OPT_OPT_lst['l']='loop'     OPT_DESC_lst['l']='loop count'
-OPT_PARM_lst['l']=1         OPT_VALUE_lst['l']=1
-OPT_OPT_lst['n']='frames'     OPT_DESC_lst['n']='test frames'
+OPT_OPT_lst['l']='loop'         OPT_DESC_lst['l']='loop count'
+OPT_PARM_lst['l']=1             OPT_VALUE_lst['l']=1
+OPT_OPT_lst['n']='frames'       OPT_DESC_lst['n']='test frames'
 OPT_PARM_lst['n']=1             OPT_VALUE_lst['n']=240000
 OPT_OPT_lst['f']='frequency'    OPT_DESC_lst['f']='target frequency'
 OPT_PARM_lst['f']=1             OPT_VALUE_lst['f']=997
@@ -43,23 +46,11 @@ frequency=${OPT_VALUE_lst['f']}
 func_pipeline_export $tplg "echo:any"
 func_lib_setup_kernel_last_line
 
-function __upload_wav_file
-{
-    # upload the alsabat wav file
-    for file in /tmp/bat.wav.*
-    do
-        size=$(ls -l "$file" | awk '{print $5}')
-        if [[ $size -gt 0 ]]; then
-            cp "$file" "$LOG_ROOT/"
-        fi
-    done
-}
-
 if [ "$PIPELINE_COUNT" != "2" ]; then
     die "Only detect $PIPELINE_COUNT pipeline(s) from topology, but two are needed"
 fi
 
-for idx in $(seq 0 $(("$PIPELINE_COUNT" - 1)))
+for idx in $(seq 0 $((PIPELINE_COUNT - 1)))
 do
     type=$(func_pipeline_parse_value "$idx" type)
     if [ "$type" == "playback" ]; then
@@ -80,21 +71,24 @@ do
     printf "Testing: iteration %d of %d with %s format\n" "$i" "$loop_cnt" "$fmt"
         # S24_LE format is not supported
         if [ "$fmt" == "S24_LE" ]; then
+            dlogi "S24_LE is not supported, skip to test this format"
             continue
         fi
         # run echo reference test
         dlogc "alsabat -P $pb_dev --standalone -c $channel -f $fmt -r $rate -n $frames -F $frequency"
-        alsabat -P "$pb_dev" --standalone -c "$channel" -f "$fmt" -r "$rate" -n "$frames" -F "$frequency" &
-        # playback may have low latency, add 0.5 second delay to aviod recording zero at beginning.
+        timeout -k 2 6 alsabat -P "$pb_dev" --standalone -c "$channel" -f "$fmt" -r "$rate" -n "$frames" \
+		-F "$frequency" & alsabatPID=$!
+        # playback may have low latency, add 1 second delay to aviod recording zero at beginning.
         sleep 1
         dlogc "alsabat -C $cp_dev -c $channel -f $fmt -r $rate -F $frequency"
-        alsabat -C "$cp_dev" -c "$channel" -f "$fmt" -r "$rate" -F "$frequency"
+        alsabat -C "$cp_dev" -c "$channel" -f "$fmt" -r "$rate" -F "$frequency" || {
+            # upload failed wav files
+            find /tmp -maxdepth 1 -type f -name "bat.wav.*" -size +0 -exec cp {} "$LOG_ROOT/" \;
+            die "alsabat test failed on pcm: $cp_dev"
+        }
 
-        # upload failed wav file
-        if [[ "$?" != "0" ]]; then
-            __upload_wav_file
-        exit 1
-        fi
+        wait $alsabatPID || die "Failed to stop alsabat playback"
+
     sleep 2 # 2 seconds interval for next run
     done
 done
