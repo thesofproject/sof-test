@@ -16,9 +16,10 @@
 ##    The return value of arecord is 0
 ##
 
-source $(dirname ${BASH_SOURCE[0]})/../case-lib/lib.sh
+# shellcheck source=case-lib/lib.sh
+source "$(dirname "${BASH_SOURCE[0]}")"/../case-lib/lib.sh
 
-OPT_OPT_lst['t']='tplg'     OPT_DESC_lst['t']='tplg file, default value is env TPLG: $TPLG'
+OPT_OPT_lst['t']='tplg'     OPT_DESC_lst['t']='tplg file, default value is env TPLG: $''TPLG'
 OPT_PARM_lst['t']=1         OPT_VALUE_lst['t']="$TPLG"
 
 OPT_OPT_lst['r']='round'     OPT_DESC_lst['r']='round count'
