@@ -80,14 +80,14 @@ def do_wave_analysis():
         print('Can not compare wave with different sample rate')
         sys.exit(1)
     if cmd.analyze == 'smart_amp':
-        analyze_wav_smart_amp(wave, ref_wave, fs_wav, cmd.zero_threshold)
+        analyze_wav_smart_amp(wave, ref_wave, fs_wav)
 
 # remove digital zeros in two sides
-def trim_wave(wave, zero_threshold):
+def trim_wave(wave):
     # once waves go through DAC/ADC, zero will become small value close to zero,
     # here we set the digital zero threshold to 100, and cut samples below 100
     # of two sides, this has no negative impact to processing.
-    ZERO_THRESHOLD_LEVEL = np.power(10, zero_threshold / 20.) * np.iinfo(wave.dtype).max
+    ZERO_THRESHOLD_LEVEL = np.power(10, cmd.zero_threshold / 20.) * np.iinfo(wave.dtype).max
     wave_mono = wave[:,0]
     left_idx = 0
     right_idx = wave_mono.shape[0] - 1
@@ -103,14 +103,14 @@ def trim_wave(wave, zero_threshold):
 
 # float point binary comparison is not supported, and will not be supported
 # check recorded wave through smart amplifier component
-def analyze_wav_smart_amp(wave, ref_wave, fs, zero_threshold):
-    trimed_ref_wave, _ = trim_wave(ref_wave, zero_threshold)
+def analyze_wav_smart_amp(wave, ref_wave, fs):
+    trimed_ref_wave, _ = trim_wave(ref_wave)
     # compare the first two channel
-    trimed_wave_ch_0_1, delay1 = trim_wave(wave[:,0:2], zero_threshold)
+    trimed_wave_ch_0_1, delay1 = trim_wave(wave[:,0:2])
     trimed_ref_wave = trimed_ref_wave[0:trimed_wave_ch_0_1.shape[0],:]
     compare_result0_1 = np.array_equal(trimed_ref_wave, trimed_wave_ch_0_1)
     # compare the second two channel
-    trimed_wave_ch_2_3, delay2 = trim_wave(wave[:,2:4], zero_threshold)
+    trimed_wave_ch_2_3, delay2 = trim_wave(wave[:,2:4])
     trimed_ref_wave = trimed_ref_wave[0:trimed_wave_ch_2_3.shape[0],:]
     compare_result2_3 = np.array_equal(trimed_ref_wave, trimed_wave_ch_2_3)
 
