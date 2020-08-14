@@ -50,6 +50,37 @@ def generate_sinusoids(**p):
     data = p['amp'] * func(2 * np.pi * p['freq'] * time + p['phase'])
     return np.reshape(np.repeat(data, p['chan']),[len(data), p['chan']])
 
+def generate_wov():
+    """
+    Generate wave used in WoV test. This wave contains three parts:
+    1. a low volume sine wave with default freq = 997.0 Hz which will not trigger WoV
+    2. zero marker of 50ms
+    3. a high volume sine wave with default freq = 997.0 Hz, which will trigger WoV
+    """
+    # a fixed 50ms zero marker
+    zero_marker_time = 0.05
+    amp = [cmd.amp[0], cmd.amp[0]] if len(cmd.amp) == 1 else cmd.amp
+    freq = [cmd.freq[0], cmd.freq[0]] if len(cmd.freq) == 1 else cmd.freq
+    phase = [cmd.phase[0], cmd.phase[0]] if len(cmd.phase) == 1 else cmd.phase
+    duration = [cmd.duration[0], cmd.duration[0]] if len(cmd.duration) == 1 else cmd.duration
+    wave_samples = int((zero_marker_time + sum(duration)) * cmd.sample_rate)
+    sine_param1 = {
+        'type': 'sine', 'amp':amp[0], 'freq': freq[0],
+        'phase': phase[0], 'chan': cmd.channel, 'sample_rate': cmd.sample_rate,
+        'duration': duration[0]
+    }
+    sine_data1 = generate_sinusoids(**sine_param1)
+    sine_param2 = {
+        'type': 'sine', 'amp':amp[1], 'freq': freq[1],
+        'phase': phase[1], 'chan': cmd.channel, 'sample_rate': cmd.sample_rate,
+        'duration': duration[1]
+    }
+    sine_data2 = generate_sinusoids(**sine_param2)
+    data = np.zeros((wave_samples, cmd.channel))
+    data[:][0:sine_data1.shape[0]] = sine_data1
+    data[:][data.shape[0] - sine_data2.shape[0]:data.shape[0]] = sine_data2
+    return data
+
 def generate_wav():
     if cmd.generate in ['sine', 'cosine']:
         wave_param = {
@@ -58,6 +89,8 @@ def generate_wav():
             'duration': cmd.duration[0]
         }
         wave_data = generate_sinusoids(**wave_param)
+    elif cmd.generate == 'wov':
+        wave_data = generate_wov()
     else:
         raise Exception('invalid generate function, will generate nothing')
     return wave_data
@@ -75,28 +108,34 @@ def save_wave(wave_data):
 
 def do_wave_analysis():
     fs_wav, wave = wavefile.read(cmd.recorded_wave)
-    fs_ref, ref_wave = wavefile.read(cmd.reference_wave)
+    # we may not always need reference wave
+    fs_ref, ref_wave = wavefile.read(cmd.reference_wave) if cmd.reference_wave is not None else fs_wav, None
     if fs_wav != fs_ref:
         print('Can not compare wave with different sample rate')
         sys.exit(1)
     if cmd.analyze == 'smart_amp':
         analyze_wav_smart_amp(wave, ref_wave, fs_wav)
+    if cmd.analyze == 'wov':
+        analyze_wav_wov(wave, fs_wav)
 
 # remove digital zeros in two sides
 def trim_wave(wave):
     # once waves go through DAC/ADC, zero will become small value close to zero,
     # here we set the digital zero threshold to 100, and cut samples below 100
     # of two sides, this has no negative impact to processing.
-    ZERO_THRESHOLD_LEVEL = np.power(10, cmd.zero_threshold / 20.) * np.iinfo(wave.dtype).max
+    zero_threshold_level = np.power(10, cmd.zero_threshold / 20.) * np.iinfo(wave.dtype).max
     wave_mono = wave[:,0]
     left_idx = 0
     right_idx = wave_mono.shape[0] - 1
     while True:
-        if abs(wave_mono[left_idx]) > ZERO_THRESHOLD_LEVEL:
+        if abs(wave_mono[left_idx]) > zero_threshold_level:
             break
         left_idx = left_idx + 1
+        # the left index goes to the rightmost, then we may only have 0 in the recorded wave
+        if left_idx == wave.shape[0] - 1:
+            raise Exception("Recorded wave: volume too low or only contains zero")
     while True:
-        if abs(wave_mono[right_idx]) > ZERO_THRESHOLD_LEVEL:
+        if abs(wave_mono[right_idx]) > zero_threshold_level:
             break
         right_idx = right_idx - 1
     return wave[left_idx:right_idx,:], left_idx
@@ -124,12 +163,71 @@ def analyze_wav_smart_amp(wave, ref_wave, fs):
         print('Wave comparison result: FAILED')
         sys.exit(1001)
 
+def find_zero_marker(wave, start, backward=False):
+    # use a window of size 100 to find a rough zero marker index
+    step = 100
+    if backward:
+        step = -step
+    zero_threshold_level = np.power(10, cmd.zero_threshold / 20.) * np.iinfo(wave.dtype).max
+    win = zero_threshold_level * np.ones(abs(step), dtype=wave.dtype)
+    while not np.all(np.abs(wave[start:start + abs(step)]) < win):
+        start = start + 2 * step # a jump of 200 samples will not jump over zero marker
+        if (not backward and start > wave.shape[0] - 2 * abs(step)) or (backward and start < 2 * abs(step)):
+            raise Exception('Zero marker not found')
+    end = start
+    while np.all(np.abs(wave[start:start + abs(step)]) < win) and start > 0:
+        start = start - 1
+    while np.all(np.abs(wave[end:end + abs(step)]) < win) and end + abs(step) < wave.shape[0]:
+        end = end + 1
+    return start, end + abs(step) - 1
+
+def stdnotch(wave, fn, fs):
+    target_q = 2.1;
+    b, a = signal.iirnotch(fn, target_q, fs)
+    return signal.lfilter(b, a, wave, axis=0)
+
+def normalize(data):
+    max_val = np.iinfo(data.dtype).max
+    return data / max_val
+
+def analyze_wav_wov(wave, fs):
+    """
+    Specially designed wave are used in WoV test, see documentation of ``generate_wov``.
+    We will filter out target freq and calculate THD+N value of low volume and high volume
+    sine wave.
+    """
+    trimmed_wave, _ = trim_wave(wave)
+    marker_start, marker_end = find_zero_marker(trimmed_wave[:,0], 0)
+    if marker_end / fs > cmd.hb_time: # zero marker has to be in history buffer
+        print('Zero marker not in history buffer')
+        sys.exit(1002)
+    x = normalize(trimmed_wave)
+    # jump over 20ms to skip the pulse due to filtering
+    time_skip = 0.02
+    sample_skip = int(time_skip * fs)
+    low_vol_sine = x[0:marker_start,:]
+    high_vol_sine = x[marker_end:,:]
+    notch_freq = [cmd.freq[0], cmd.freq[0]] if len(cmd.freq) == 1 else cmd.freq
+    low_vol_notched = stdnotch(low_vol_sine, notch_freq[0], fs)
+    high_vol_notched = stdnotch(high_vol_sine, notch_freq[1], fs)
+    low_vol_notched_cut = low_vol_notched[sample_skip:,:]
+    high_vol_notched_cut = high_vol_notched[sample_skip:,:]
+    low_vol_thdn = 10 * np.log10(np.mean(np.power(low_vol_notched_cut, 2), axis=0))
+    high_vol_thdn = 10 * np.log10(np.mean(np.power(high_vol_notched_cut, 2), axis=0))
+    print('THD+N of low volume sine wave: L%0.5fdB R%0.5fdB' % (low_vol_thdn[0], low_vol_thdn[1]))
+    print('THD+N of high volume sine wave: L%0.5fdB R%0.5fdB' % (high_vol_thdn[0], high_vol_thdn[1]))
+    thdn_pass = np.all(low_vol_thdn < cmd.threshold) and np.all(high_vol_thdn < cmd.threshold)
+    if not thdn_pass:
+        print('THD+N too high, wave analysis result: FAILED')
+        sys.exit(1002)
+    print('wave analysis result: PASSED')
+
 def parse_cmdline():
     parser = argparse.ArgumentParser(add_help=True, formatter_class=argparse.RawTextHelpFormatter,
         description='A Tool to Generate and Manipulate Wave Files.')
     parser.add_argument('-v', '--version', action='version', version='%(prog)s 1.0')
     # wave parameters
-    parser.add_argument('-g', '--generate', type=str, choices=['sine','cosine'], help='generate specified types of wave')
+    parser.add_argument('-g', '--generate', type=str, choices=['sine', 'cosine', 'wov'], help='generate specified types of wave')
     parser.add_argument('-A', '--amp', type=float, nargs='+', default=[1.0], help='amplitude of generated wave')
     parser.add_argument('-F', '--freq', type=float, nargs='+', default=[997.0], help='frequency of generated wave')
     parser.add_argument('-P', '--phase', type=float, nargs='+', default=[0.0], help='phase of generated wave')
@@ -140,10 +238,12 @@ def parse_cmdline():
     help='sample bits of generated wave')
     parser.add_argument('-o', '--output', type=str, help='path to store generated files', default='.')
     # wave comparison arguments
-    parser.add_argument('-a', '--analyze', type=str, choices=['smart_amp'], help='analyze reocrded wave to give case verdict')
+    parser.add_argument('-a', '--analyze', type=str, choices=['smart_amp', 'wov'], help='analyze reocrded wave to give case verdict')
     parser.add_argument('-R', '--recorded_wave', type=str, help='path of recorded wave')
     parser.add_argument('-r', '--reference_wave', type=str, help='path of reference wave')
     parser.add_argument('-Z', '--zero_threshold', type=float, default=-50.3, help='zero threshold in dBFS')
+    parser.add_argument('-H', '--hb_time', type=float, default=2.1, help='history buffer size')
+    parser.add_argument('-T', '--threshold', type=float, default=-72.0, help='expected threshold')
     return parser.parse_args()
 
 def main():
