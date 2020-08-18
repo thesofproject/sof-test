@@ -342,13 +342,13 @@ PIPELINE_$ID['key']='value' ''')
     # if no filter or block item is specified, the "block_none" here will help to
     # block nothing
     block_str = "block_none"
-    # if user specified what to block
-    if ret_args['block'] is not None and len(ret_args['block']) > 0:
-        block_str = default_block_keyword + ret_args['block'].strip()
-    # if user specified filter, and 'kpbm' or 'echo' not in filter, WOV pipeline and echo
-    # reference capture pipeline will be blocked to avoid failure in general test case.
-    elif ret_args['filter'] is not None and 'kpbm' not in ret_args['filter'] and 'echo' not in ret_args['filter']:
-        block_str = default_block_keyword
+    # user specified block items from command line
+    cmd_block_str = ret_args['block'].strip() if ret_args['block'] is not None else ''
+
+    if ret_args['filter'] is not None and 'kpbm' not in ret_args['filter'] and 'echo' not in ret_args['filter']:
+        block_str = default_block_keyword + cmd_block_str
+    else:
+        block_str = cmd_block_str if cmd_block_str != '' else block_str
 
     parse_and_set_block_keyword(block_str, tplgreader)
 
