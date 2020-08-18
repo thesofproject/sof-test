@@ -106,6 +106,7 @@ do
         wavetool.py -a"smart_amp" -R"$recorded_file" -r"$file" || die "wavetool.py exit with $?"
         # clean up generated wave files
         rm -rf "$file" "$recorded_file"
+        sleep 2
     done
 done
 
