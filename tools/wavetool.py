@@ -109,7 +109,7 @@ def save_wave(wave_data):
 def do_wave_analysis():
     fs_wav, wave = wavefile.read(cmd.recorded_wave)
     # we may not always need reference wave
-    fs_ref, ref_wave = wavefile.read(cmd.reference_wave) if cmd.reference_wave is not None else fs_wav, None
+    fs_ref, ref_wave = wavefile.read(cmd.reference_wave) if cmd.reference_wave is not None else (fs_wav, None)
     if fs_wav != fs_ref:
         print('Can not compare wave with different sample rate')
         sys.exit(1)
