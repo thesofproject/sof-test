@@ -20,7 +20,7 @@ import scipy.io.wavfile as wavefile
 # The acceptable threshold of smart amplifier delay, unit: ms.
 # If the dealy is longer, then DSP is overloaded or something
 # is wrong with firmware scheduler.
-SMART_AMP_DELAY_THRESHOLD = 5
+SMART_AMP_DELAY_THRESHOLD = 8
 
 def generate_sinusoids(**p):
     """
