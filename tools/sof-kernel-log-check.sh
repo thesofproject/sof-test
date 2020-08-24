@@ -36,6 +36,10 @@ ignore_str="$ignore_str"'|i2c_designware i2c_designware.0: controller timed out'
 ignore_str="$ignore_str"'|i2c_hid i2c-DELL0955:00: failed to change power setting'
 ignore_str="$ignore_str"'|PM: Device i2c-DELL0955:00 failed to resume async: error -110'
 
+# GLK i2c SRM failed to lock, found while running check-playback-all-formats.sh
+# https://github.com/thesofproject/sof-test/issues/348
+ignore_str="$ignore_str"'|da7219 i2c-DLGS7219:00: SRM failed to lock'
+
 [[ ! "$err_str" ]] && echo "Missing error keyword list" && exit 0
 # dmesg KB size buffer size
 #dmesg_config_define=$(awk -F '=' '/CONFIG_LOG_BUF_SHIFT/ {print $2;}' /boot/config-$(uname -r))
