@@ -19,9 +19,10 @@ set -e
 ##
 
 libdir=$(dirname "${BASH_SOURCE[0]}")
+# shellcheck source=case-lib/lib.sh
 source "$libdir"/../case-lib/lib.sh
 
-OPT_OPT_lst['t']='tplg'              OPT_DESC_lst['t']='tplg file, default value is env TPLG: $TPLG'
+OPT_OPT_lst['t']='tplg'              OPT_DESC_lst['t']='tplg file, default value is env TPLG: $''TPLG'
 OPT_PARM_lst['t']=1                  OPT_VALUE_lst['t']="$TPLG"
 
 OPT_OPT_lst['s']='sof-logger'        OPT_DESC_lst['s']="Open sof-logger trace the data will store at $LOG_ROOT"
