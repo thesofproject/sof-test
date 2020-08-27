@@ -8,10 +8,6 @@ err_str="error|failed|timed out|panic|oops"
 # The first string cannot start by |
 ignore_str='error: debugfs write failed to idle -16'
 
-# Realtek codecs thrown an error on startup, checking with Realtek
-# Possible fix - https://github.com/thesofproject/linux/pull/1984
-ignore_str="$ignore_str"'|Parity error detected'
-
 # CML Helios known issue related with xhci_hcd
 # https://bugzilla.kernel.org/show_bug.cgi?id=202541
 ignore_str="$ignore_str"'|xhci_hcd 0000:00:14.0: WARN Set TR Deq Ptr cmd failed due to incorrect slot or ep state'
