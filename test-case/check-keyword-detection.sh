@@ -113,7 +113,8 @@ _update_blob(){
     [ $preamble_time -ge $history_depth ] || {
         die "Warning: invalid arguments, preamble_time must be greater than or equal to history_depth"
     }
-    awk -F "," '{if ( $4 == '"$def_pt"' && $7 == '"$def_hd"' ) $4='"$preamble_time"'; $7='"$history_depth"'}1' "$def_blob" > "$new_blob"
+    awk -F, -v OFS=, '{if ( $4 == '"$def_pt"' && $7 == '"$def_hd"' ) $4='"$preamble_time"'; $7='"$history_depth"'}1' \
+        "$def_blob" > "$new_blob"
     dlogi "kwd config blob is updated to:"
     cat "$new_blob"
     dlogi "write back the new kwd config blob"
