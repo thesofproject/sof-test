@@ -51,13 +51,6 @@ ignore_str="$ignore_str"'|iwlwifi 0000:00:14\.3: Microcode SW error detected\. R
 ignore_str="$ignore_str"'|wlo1: authentication with f4:f5:e8:6b:45:bb timed out'
 
 [[ ! "$err_str" ]] && echo "Missing error keyword list" && exit 0
-# dmesg KB size buffer size
-#dmesg_config_define=$(awk -F '=' '/CONFIG_LOG_BUF_SHIFT/ {print $2;}' /boot/config-$(uname -r))
-#dmesg_buffer_size=$( echo $(( (1<<$dmesg_config_define) / 1024 )) )
-# kernel file log buffer size
-#kernel_buffer_size=$(du -k /var/log/kern.log |awk '{print $1;}')
-# now decide using which to catch the kernel log
-#[[ $kernel_buffer_size -lt $dmesg ]] && cmd="dmesg" || cmd="sed -n '$begin_line,\$p' /var/log/kern.log"
 
 # confirm begin_line is number, if it is not the number, direct using dmesg
 [[ "${begin_line//[0-9]/}" ]] && begin_line=0
