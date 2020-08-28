@@ -37,9 +37,6 @@ OPT_PARM_lst['s']=1                  OPT_VALUE_lst['s']=2100
 OPT_OPT_lst['b']='buffer'            OPT_DESC_lst['b']='buffer size'
 OPT_PARM_lst['b']=1                  OPT_VALUE_lst['b']=67200
 
-OPT_OPT_lst['f']='frequency'         OPT_DESC_lst['f']='target frequency of sine wav'
-OPT_PARM_lst['f']=1                  OPT_VALUE_lst['f']=997
-
 OPT_OPT_lst['l']='loop'              OPT_DESC_lst['l']='loop count'
 OPT_PARM_lst['l']=1                  OPT_VALUE_lst['l']=1
 
@@ -51,7 +48,6 @@ func_opt_parse_option "$@"
 tplg=${OPT_VALUE_lst['t']}
 loop_cnt=${OPT_VALUE_lst['l']}
 buffer_size=${OPT_VALUE_lst['b']}
-frequency=${OPT_VALUE_lst['f']}
 history_depth=${OPT_VALUE_lst['s']}
 preamble_time=${OPT_VALUE_lst['p']}
 duration=${OPT_VALUE_lst['d']}
