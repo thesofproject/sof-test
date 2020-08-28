@@ -14,7 +14,7 @@
 ## Expect result:
 ##    command line check with $? without error
 ##    runtime pm status must be suspended
-##    no error in dmesg
+##    no error in journalctl -k
 ##
 
 source $(dirname ${BASH_SOURCE[0]})/../case-lib/lib.sh
@@ -65,7 +65,7 @@ DEV_LST['capture']='/dev/null'
 
 [[ ${OPT_VALUE_lst['s']} -eq 1 ]] && func_lib_start_log_collect
 func_pipeline_export $tplg "type:any"
-func_lib_setup_kernel_last_line
+func_lib_setup_kernel_last_timestamp
 
 for idx in $(seq 0 $(expr $PIPELINE_COUNT - 1))
 do
@@ -124,8 +124,8 @@ do
         fi
     done
 
-    sof-kernel-log-check.sh 0 || die "Catch error in dmesg"
+    sof-kernel-log-check.sh "$KERNEL_LAST_TIMESTAMP" || die "Catch error in journalctl -k"
 done
 
-sof-kernel-log-check.sh $KERNEL_LAST_LINE
+sof-kernel-log-check.sh "$KERNEL_LAST_TIMESTAMP"
 exit $?

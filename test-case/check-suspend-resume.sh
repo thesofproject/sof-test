@@ -10,7 +10,7 @@
 ##    1. switch suspend/resume operation
 ##    2. use rtcwake -m mem command to do suspend/resume
 ##    3. check command return value
-##    4. check dmesg errors
+##    4. check journalctl -k errors
 ##    5. check wakeup increase
 ## Expect result:
 ##    suspend/resume recover
@@ -39,7 +39,7 @@ OPT_PARM_lst['r']=0         OPT_VALUE_lst['r']=0
 
 func_opt_parse_option "$@"
 func_lib_check_sudo
-func_lib_setup_kernel_last_line
+func_lib_setup_kernel_last_timestamp
 
 type=${OPT_VALUE_lst['T']}
 # switch type
@@ -72,8 +72,9 @@ fi
 for i in $(seq 1 $loop_count)
 do
     dlogi "===== Round($i/$loop_count) ====="
-    # cleanup dmesg befor run case
-    sudo dmesg --clear
+    # discard old kernel logs
+    func_lib_setup_kernel_last_timestamp
+
     sleep_count=$(cat /sys/power/wakeup_count)
     dlogc "Run the command: rtcwake -m mem -s ${sleep_lst[$i]}"
     sudo rtcwake -m mem -s ${sleep_lst[$i]}
@@ -82,12 +83,11 @@ do
     sleep ${wait_lst[$i]}
     dlogi "Check for the kernel log status"
     wake_count=$(cat /sys/power/wakeup_count)
-    # sof-kernel-log-check script parameter number is 0/Non-Number will force check from dmesg
-    sof-kernel-log-check.sh 0 || die "Catch error in dmesg"
+    sof-kernel-log-check.sh "$KERNEL_LAST_TIMESTAMP" || die "Catch error in journalctl -k"
     # check wakeup count correct
     [[ $wake_count -le $sleep_count ]] && die "suspend/resume didn't happen, because /sys/power/wakeup_count does not increase"
 done
 
 # check full log
-sof-kernel-log-check.sh $KERNEL_LAST_LINE
+sof-kernel-log-check.sh "$KERNEL_LAST_TIMESTAMP"
 exit $?

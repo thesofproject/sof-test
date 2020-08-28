@@ -31,7 +31,7 @@ DisplayPort Multi-Stream Transport is a manual test.
    aplay -D $dev(jack2) -r $rate -c 2 -f $fmt -d 3 resource/raw/test<specified>.raw
    ```
 4. Connected monitors should both show display and play audio.
-5. Check dmesg for any unexpected errors.
+5. Check journalctl -k for any unexpected errors.
 * If monitors have USB-C / HDMI input as well, test can also be run with:
   * DP hub -> DP cable + DP-USB-C adapters -> monitors
   * DP hub -> DP cable + DP-HDMI adapters -> monitors
@@ -59,7 +59,7 @@ DisplayPort Multi-Stream Transport is a manual test.
    aplay -D $dev(jack2) -r $rate -c 2 -f $fmt -d 3 resource/raw/test<specified>.raw
    ```
 4. Connected monitors should both show display and play audio.
-5. Check dmesg for any unexpected errors.
+5. Check journalctl -k for any unexpected errors.
 * If monitors have USB-C / HDMI input as well, test can also be run with:
   * test unit -> DP cable + DP-USB-C adapter -> monitor1 -> DP cable + DP-USB-C
   adapter -> monitor2
@@ -68,4 +68,4 @@ DisplayPort Multi-Stream Transport is a manual test.
 
 # Expect result (both cases)
 * Display and audio to monitors is as expected.
-* No unexpected dmesg errors on testing unit.
+* No unexpected journalctl -k errors on testing unit.

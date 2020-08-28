@@ -20,14 +20,14 @@ tests.
     ```
     - Jack information for headset should indicate **ON**.
 4. Check system sound settings for any updates to output options.
-5. Check dmesg for any unexpected errors.
+5. Check journalctl -k for any unexpected errors.
 6. Power off system.
 7. Unplug headset.
 8. Power on system.
 9. Again check amixer contents.
    - Jack information for headset should indicate **OFF**.
 10. Again check system sound settings for any updates to output options.
-11. Check dmesg for any unexpected errors.
+11. Check journalctl -k for any unexpected errors.
 12. Repeat as necessary.
 
 ## HDMI / DP
@@ -39,7 +39,7 @@ available
   after device is powered on:
     * Status is **ON** if inserted during power down cycle
     * Status is **OFF** if removed during power down cycle
-* No unexpected errors should be present in dmesg during or after test
+* No unexpected errors should be present in journalctl -k during or after test
   completion.
 
 ### Notes

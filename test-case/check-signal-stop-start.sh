@@ -56,7 +56,7 @@ case $test_mode in
     ;;
 esac
 
-func_lib_setup_kernel_last_line
+func_lib_setup_kernel_last_timestamp
 
 func_stop_start_pipeline()
 {
@@ -116,5 +116,5 @@ do
     kill -9 $pid && wait $pid 2>/dev/null
 done
 
-sof-kernel-log-check.sh $KERNEL_LAST_LINE
+sof-kernel-log-check.sh "$KERNEL_LAST_TIMESTAMP"
 exit $?

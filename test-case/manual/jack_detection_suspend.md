@@ -23,7 +23,7 @@ tests.
 6. Watch amixer contents for update:
    - Jack information for headset should indicate **OFF**.
 7. Check system sound settings for any updates to output options.
-8. Check dmesg for any unexpected errors.
+8. Check journalctl -k for any unexpected errors.
 9. Repeat as necessary.
 
 ## HDMI / DP
@@ -32,7 +32,7 @@ available.
 
 ## Expect result
 * Data value for jack plug event should flip between off and on.
-* No unexpected errors should be present in dmesg during or after test
+* No unexpected errors should be present in journalctl -k during or after test
 completion.
 
 ### Notes

@@ -50,7 +50,7 @@ tplg=${OPT_VALUE_lst['t']}
 max_count=0
 # get the min value of TPLG:'pipeline count' with Case:'pipeline count'
 [[ $PIPELINE_COUNT -gt ${OPT_VALUE_lst['c']} ]] && max_count=${OPT_VALUE_lst['c']} || max_count=$PIPELINE_COUNT
-func_lib_setup_kernel_last_line
+func_lib_setup_kernel_last_timestamp
 
 # now small function define
 declare -A APP_LST DEV_LST
@@ -102,8 +102,8 @@ func_error_exit()
 for i in $(seq 1 $loop_cnt)
 do
     dlogi "===== Testing: (Loop: $i/$loop_cnt) ====="
-    # clean up dmesg
-    sudo dmesg -C
+    # discard old kernel logs
+    func_lib_setup_kernel_last_timestamp
 
     # start capture:
     func_run_pipeline_with_type "capture"
@@ -150,8 +150,8 @@ do
     pkill -9 arecord
     pkill -9 aplay
 
-    sof-kernel-log-check.sh 0 || die "Catch error in dmesg"
+    sof-kernel-log-check.sh "$KERNEL_LAST_TIMESTAMP" || die "Catch error in journalctl -k"
 done
 
-sof-kernel-log-check.sh $KERNEL_LAST_LINE >/dev/null
+sof-kernel-log-check.sh "$KERNEL_LAST_TIMESTAMP" >/dev/null
 exit $?

@@ -16,7 +16,7 @@
 ##    command line check with $? without error
 ##    runtime pm status must be suspended
 ##    playback/capture must always work in right after runtime pm is suspended
-##    no error in dmesg
+##    no error in journalctl -k
 ##
 
 source $(dirname ${BASH_SOURCE[0]})/../case-lib/lib.sh
@@ -71,7 +71,7 @@ DEV_LST['capture']='/dev/null'
 
 [[ ${OPT_VALUE_lst['s']} -eq 1 ]] && func_lib_start_log_collect
 func_pipeline_export $tplg "type:any"
-func_lib_setup_kernel_last_line
+func_lib_setup_kernel_last_timestamp
 
 for idx in $(seq 0 $(expr $PIPELINE_COUNT - 1))
 do
@@ -87,8 +87,9 @@ do
     dummy_file="${DEV_LST[$type]}"
     [[ -z $cmd ]] && dloge "$type is not supported, $cmd, $dummy_file" && exit 2
 
-    # clean up dmesg before the test
-    sudo dmesg -C
+    # discard old kernel logs
+    func_lib_setup_kernel_last_timestamp
+    
     for i in $(seq 1 $loop_count)
     do
         dlogi "===== Iteration $i of $loop_count for $pcm ====="
@@ -138,8 +139,8 @@ do
         fi
     done
 
-    sof-kernel-log-check.sh 0 || die "Catch error in dmesg"
+    sof-kernel-log-check.sh "$KERNEL_LAST_TIMESTAMP" || die "Catch error in journalctl -k"
 done
 
-sof-kernel-log-check.sh $KERNEL_LAST_LINE
+sof-kernel-log-check.sh "$KERNEL_LAST_TIMESTAMP"
 exit $?

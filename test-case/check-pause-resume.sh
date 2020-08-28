@@ -73,7 +73,7 @@ esac
 [[ -z $file_name ]] && file_name=$dummy_file
 
 func_pipeline_export $tplg "type:$test_mode & ${OPT_VALUE_lst['S']}"
-func_lib_setup_kernel_last_line
+func_lib_setup_kernel_last_timestamp
 for idx in $(seq 0 $(expr $PIPELINE_COUNT - 1))
 do
     channel=$(func_pipeline_parse_value $idx channel)
@@ -120,9 +120,8 @@ END
         [[ $? -ne 0 ]] && dlogw "Kill process catch error"
         exit $ret
     fi
-    # sof-kernel-log-check script parameter number is 0/Non-Number will force check from dmesg
-    sof-kernel-log-check.sh 0 || die "Catch error in dmesg"
+    sof-kernel-log-check.sh "$KERNEL_LAST_TIMESTAMP" || die "Catch error in journalctl -k"
 done
 
-sof-kernel-log-check.sh $KERNEL_LAST_LINE
+sof-kernel-log-check.sh "$KERNEL_LAST_TIMESTAMP"
 exit $?

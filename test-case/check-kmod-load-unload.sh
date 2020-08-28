@@ -10,10 +10,10 @@
 ##    1. enter loop through the module remove / insert process
 ##    2. remove all loaded modules listed in sof_remove.sh
 ##    3. check for rmmod errors
-##    4. check for dmesg errors
+##    4. check for journalctl -k errors
 ##    5. insert all in-tree modules listed in sof_insert.sh
 ##    6. check for successful sof-firmware boot
-##    7. check for dmesg errors
+##    7. check for journalctl -k errors
 ##    8. loop to beginning (max OPT_VALUE_lst['r'])
 ## Expect result:
 ##    kernel module removal / insert process is successful
@@ -30,7 +30,7 @@ OPT_OPT_lst['p']='pulseaudio'   OPT_DESC_lst['p']='disable pulseaudio on the tes
 OPT_PARM_lst['p']=0             OPT_VALUE_lst['p']=1
 
 func_opt_parse_option "$@"
-func_lib_setup_kernel_last_line
+func_lib_setup_kernel_last_timestamp
 
 loop_cnt=${OPT_VALUE_lst['l']}
 usb_audio_module="snd_usb_audio"
@@ -48,7 +48,7 @@ for idx in $(seq 1 $loop_cnt)
 do
     dlogi "===== Starting iteration $idx of $loop_cnt ====="
     ## - 1: remove module section
-    func_lib_setup_kernel_last_line
+    func_lib_setup_kernel_last_timestamp
 
     # After module removal, it takes about 10s for "aplay -l" to show
     # device list, within this 10s, it shows "no soundcard found". Here
@@ -76,12 +76,12 @@ do
 
     ## - 1a: check for errors after removal
     dlogi "checking for general errors after kmod unload with sof-kernel-log-check tool"
-    sof-kernel-log-check.sh $KERNEL_LAST_LINE
+    sof-kernel-log-check.sh "$KERNEL_LAST_TIMESTAMP"
     if [[ $? -ne 0 ]]; then
         die "error found after kmod unload is real error, failing"
     fi
 
-    func_lib_setup_kernel_last_line
+    func_lib_setup_kernel_last_timestamp
     dlogi "run kmod/sof_insert.sh"
     sudo sof_insert.sh
     [[ $? -ne 0 ]] && dloge "insert modules error" && exit
@@ -89,7 +89,7 @@ do
 
     ## - 2a: check for errors after insertion
     dlogi "checking for general errors after kmod insert with sof-kernel-log-check tool"
-    sof-kernel-log-check.sh $KERNEL_LAST_LINE
+    sof-kernel-log-check.sh "$KERNEL_LAST_TIMESTAMP"
     if [[ $? -ne 0 ]]; then
         die "Found error(s) in kernel log after module insertion"
     fi

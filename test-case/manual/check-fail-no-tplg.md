@@ -9,7 +9,7 @@ PulseAudio should be enabled
 
 ## Test Case:
 1. Rename sof-tplg directory, via `sudo mv /lib/firmware/intel/sof-tplg /lib/firmware/intel/sof-tplg_backup`
-2. Reboot system -> System not hang and report missing sof-tplg error in dmesg
+2. Reboot system -> System not hang and report missing sof-tplg error in journalctl -k
 3. Let system enter suspend & wakeup via `sudo rtcwake -m mem -s 10` -> System should not hang during or after suspend / resume cycle
 4. Restore sof-tplg directory via `sudo mv /lib/firmware/intel/sof-tplg_backup /lib/firmware/intel/sof-tplg`
 5. Reboot system -> SOF is loaded sucessfully

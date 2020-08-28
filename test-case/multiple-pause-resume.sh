@@ -56,7 +56,7 @@ func_pipeline_export $tplg "type:any"
 
 [[ ${OPT_VALUE_lst['s']} -eq 1 ]] && func_lib_start_log_collect
 
-func_lib_setup_kernel_last_line
+func_lib_setup_kernel_last_timestamp
 
 declare -a pipeline_idx_lst
 declare -a cmd_idx_lst
@@ -143,7 +143,10 @@ max_wait_time=$[ 10 * $repeat_count ]
 for i in $(seq 1 $loop_count)
 do
     dlogi "===== Loop count( $i / $loop_count ) ====="
-    sudo dmesg -c >/dev/null
+
+    # discard old kernel logs
+    func_lib_setup_kernel_last_timestamp
+
     for pipeline_combine_str in "${pipeline_combine_lst[@]}"
     do
         unset pid_lst
@@ -185,8 +188,8 @@ do
             [[ $? -ne 0 ]] && die "pause resume is exit status error"
         done
     done
-    sof-kernel-log-check.sh 0 || die "Catch error in dmesg"
+    sof-kernel-log-check.sh "$KERNEL_LAST_TIMESTAMP" || die "Catch error in journalctl -k"
 done
 
-sof-kernel-log-check.sh $KERNEL_LAST_LINE
+sof-kernel-log-check.sh "$KERNEL_LAST_TIMESTAMP"
 exit $?

@@ -67,7 +67,7 @@ else
     dlogi "using $file as playback source"
 fi
 
-func_lib_setup_kernel_last_line
+func_lib_setup_kernel_last_timestamp
 func_lib_check_sudo
 func_pipeline_export $tplg "type:playback & ${OPT_VALUE_lst['S']}"
 
@@ -86,8 +86,9 @@ do
         if [ ${OPT_VALUE_lst['F']} = '1' ]; then
             fmt=$(func_pipeline_parse_value $idx fmts)
         fi
-        # clean up dmesg
-        sudo dmesg -C
+        # discard old kernel logs
+	func_lib_setup_kernel_last_timestamp
+
         for fmt_elem in $(echo $fmt)
         do
             for i in $(seq 1 $loop_cnt)
@@ -104,5 +105,5 @@ do
     done
 done
 
-sof-kernel-log-check.sh $KERNEL_LAST_LINE
+sof-kernel-log-check.sh "$KERNEL_LAST_TIMESTAMP"
 exit $?

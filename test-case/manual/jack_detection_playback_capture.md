@@ -30,7 +30,7 @@ status is updated as expected.
 7. Watch amixer contents for update:
    - Jack information for headset should indicate **OFF**.
 8. Again check system sound settings for any updates to output options.
-9. Check dmesg for any unexpected errors.
+9. Check journalctl -k for any unexpected errors.
 10. Repeat as necessary.
 
 ## HDMI / DP
@@ -40,7 +40,7 @@ available
 ## Expect result
 * While aplay/arecord is running, data value for inserted / removed jack
 should flip between off and on.
-* No unexpected errors should be present in dmesg during or after test
+* No unexpected errors should be present in journalctl -k during or after test
 completion.
 
 ### Notes

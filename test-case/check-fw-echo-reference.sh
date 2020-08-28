@@ -44,7 +44,7 @@ frequency=${OPT_VALUE_lst['f']}
 [[ ${OPT_VALUE_lst['s']} -eq 1 ]] && func_lib_start_log_collect
 
 func_pipeline_export $tplg "echo:any"
-func_lib_setup_kernel_last_line
+func_lib_setup_kernel_last_timestamp
 
 if [ "$PIPELINE_COUNT" != "2" ]; then
     die "Only detect $PIPELINE_COUNT pipeline(s) from topology, but two are needed"
@@ -93,4 +93,4 @@ do
     done
 done
 
-sof-kernel-log-check.sh "$KERNEL_LAST_LINE"
+sof-kernel-log-check.sh "$KERNEL_LAST_TIMESTAMP"

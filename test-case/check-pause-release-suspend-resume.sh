@@ -42,11 +42,11 @@
 ##     5. Once device has resumed, press spacebar in terminal 1 to release audio
 ##         playback from paused state.
 ##     6. Playback should resume normally.
-##     7. Check dmesg for any unexpected errors.
+##     7. Check journalctl -k for any unexpected errors.
 ##     8. Repeat as necessary.
 ## Expect result:
 ##  * aplay process should continue to be active after suspend / resume cycle.
-##  * No unexpected errors should be present in dmesg during or after test
+##  * No unexpected errors should be present in journalctl -k during or after test
 ##      completion.
 
 source $(dirname ${BASH_SOURCE[0]})/../case-lib/lib.sh
@@ -108,7 +108,7 @@ esac
 
 [[ ${OPT_VALUE_lst['s']} -eq 1 ]] && func_lib_start_log_collect
 
-func_lib_setup_kernel_last_line
+func_lib_setup_kernel_last_timestamp
 
 dlogi "Entering audio stream expect script with: $cmd -D $pcm -r $rate -c $channel -f $fmt -vv -i $dummy_file -q"
 dlogi "Will enter suspend-resume cycle during paused period of audio stream process"
@@ -178,5 +178,5 @@ if [ $ret -ne 0 ]; then
     [[ $? -ne 0 ]] && dlogw "Kill process catch error"
     exit $ret
 fi
-sof-kernel-log-check.sh $KERNEL_LAST_LINE
+sof-kernel-log-check.sh "$KERNEL_LAST_TIMESTAMP"
 exit $?

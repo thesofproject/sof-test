@@ -14,11 +14,11 @@
 ##    4. remove all loaded modules listed in sof_remove.sh
 ##       (only once, not per PCM)
 ##    5. check for rmmod errors
-##    6. check for dmesg errors
+##    6. check for journalctl -k errors
 ##    7. insert all in-tree modules listed in sof_insert.sh
 ##       (only once, not per PCM)
 ##    8. check for successful sof-firmware boot
-##    9. check for dmesg errors
+##    9. check for journalctl -k errors
 ##    10. for each pcm type == playback:
 ##        start playback of duration OPT_VALUE_lst['d]'
 ##    11. check for playback errors

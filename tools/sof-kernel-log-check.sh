@@ -1,6 +1,6 @@
 #!/bin/bash
 
-begin_line=${1:-1}
+begin_timestamp=${1:-0}
 declare err_str ignore_str project_key
 err_str="error|failed|timed out|panic|oops"
 
@@ -52,22 +52,34 @@ ignore_str="$ignore_str"'|wlo1: authentication with f4:f5:e8:6b:45:bb timed out'
 
 [[ ! "$err_str" ]] && echo "Missing error keyword list" && exit 0
 
-# confirm begin_line is number, if it is not the number, direct using dmesg
-[[ "${begin_line//[0-9]/}" ]] && begin_line=0
-[[ "$begin_line" -eq 0 ]] && cmd="dmesg" || cmd="sed -n '$begin_line,\$p' /var/log/kern.log"
-
-#echo "run $0 with parameter '$*' for check kernel message error"
-
-if [ "$ignore_str" ]; then
-    err=$(eval $cmd|grep 'Call Trace' -A5 -B3)$(eval $cmd | grep -E "$err_str"|grep -vE "$ignore_str")
+# confirm begin_timestamp is valid, if it is not the number, search full log
+re='^[0-9]+$'
+if [[ $begin_timestamp =~ $re ]] ; then
+    cmd="journalctl -k"
 else
-    err=$(eval $cmd|grep 'Call Trace' -A5 -B3)$(eval $cmd | grep -E "$err_str")
+    cmd="journalctl -k --since='$begin_timestamp'"
 fi
 
+# Handle warnings first
+if [ "$ignore_str" ]; then
+    err=$(eval $cmd --priority=warning | grep -E "$err_str" | grep -vE "$ignore_str")
+else
+    err=$(eval $cmd --priority=warning | grep -E "$err_str")
+fi
 if [ "$err" ]; then
-    echo `date -u '+%Y-%m-%d %T %Z'` "[ERROR]" "Caught dmesg error"
+    echo `date -u '+%Y-%m-%d %T %Z'` "[ERROR]" "Caught journalctl -k error"
     echo "===========================>>"
     echo "$err"
+    echo "<<==========================="
+    builtin exit 1
+fi
+
+# Handle Call Trace separately
+err_trace=$(eval $cmd | grep 'Call Trace' -A5 -B3)
+if [ "$err_trace" ]; then
+    echo `date -u '+%Y-%m-%d %T %Z'` "[ERROR]" "Caught trace call"
+    echo "===========================>>"
+    echo "$err_trace"
     echo "<<==========================="
     builtin exit 1
 fi

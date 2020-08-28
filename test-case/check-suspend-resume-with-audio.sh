@@ -11,10 +11,10 @@
 ##    2. run the audio command to the background
 ##    3. use rtcwake -m mem command to do suspend/resume
 ##    4. check command return value
-##    5. check dmesg errors
+##    5. check journalctl -k errors
 ##    6. check wakeup increase
 ##    7. kill audio command
-##    8. check dmesg errors
+##    8. check journalctl -k errors
 ## Expect result:
 ##    suspend/resume recover
 ##    check kernel log and find no errors
@@ -51,7 +51,7 @@ OPT_PARM_lst['f']=1         OPT_VALUE_lst['f']=''
 
 func_opt_parse_option "$@"
 func_lib_check_sudo
-func_lib_setup_kernel_last_line
+func_lib_setup_kernel_last_timestamp
 
 tplg=${OPT_VALUE_lst['t']}
 [[ ${OPT_VALUE_lst['s']} -eq 1 ]] && func_lib_start_log_collect
@@ -123,9 +123,9 @@ do
         exit 1
     fi
     kill -9 $process_id
-    sof-kernel-log-check.sh 0 || die "Catch error in dmesg"
+    sof-kernel-log-check.sh "$KERNEL_LAST_TIMESTAMP" || die "Catch error in journalctl -k"
 done
 
 # check full log
-sof-kernel-log-check.sh $KERNEL_LAST_LINE
+sof-kernel-log-check.sh "$KERNEL_LAST_TIMESTAMP"
 exit $?

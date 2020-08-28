@@ -62,7 +62,7 @@ dlogi "pgalist number = ${#pgalist[@]}"
 
 for i in $(seq 1 $maxloop)
 do
-    func_lib_setup_kernel_last_line
+    func_lib_setup_kernel_last_timestamp
     dlogi "===== Round($i/$maxloop) ====="
     # TODO: need to check command effect
     for i in "${pgalist[@]}"
@@ -79,9 +79,9 @@ do
 
     sleep 1
 
-    dlogi "check dmesg for error"
-    sof-kernel-log-check.sh $KERNEL_LAST_LINE
-    [[ $? -ne 0 ]] && func_error_exit "dmesg has errors!"
+    dlogi "check journalctl -k for error"
+    sof-kernel-log-check.sh "$KERNEL_LAST_TIMESTAMP"
+    [[ $? -ne 0 ]] && func_error_exit "journalctl -k has errors!"
 done
 
 #clean up background aplay

@@ -32,15 +32,15 @@ loop_cnt=${OPT_VALUE_lst['l']}
 
 [[ ! "$(sof-kernel-dump.sh|grep 'sof-audio'|grep 'Firmware debug build')" ]] && dlogw "${BASH_SOURCE[0]} need debug version firmware" && exit 2
 
-func_lib_setup_kernel_last_line
+func_lib_setup_kernel_last_timestamp
 func_lib_check_sudo
 
 dlogi "Check sof debug fs environment"
 [[ "$(sudo file $ipc_flood_dfs|grep 'No such file')" ]] && dlogw "${BASH_SOURCE[0]} need $ipc_flood_dfs to run the test case" && exit 2
 dlogi "Checking ipc flood test!"
 
-# cleanup dmesg buffer before test
-sudo dmesg -c > /dev/null
+# discard old kernel logs
+func_lib_setup_kernel_last_timestamp
 
 for i in $(seq 1 $loop_cnt)
 do
@@ -48,11 +48,12 @@ do
     dlogc "sudo bash -c 'echo $lpc_loop_cnt > $ipc_flood_dfs'"
     sudo bash -c "'echo $lpc_loop_cnt > $ipc_flood_dfs'"
 
-    sof-kernel-log-check.sh 0 || die "Catched error in dmesg"
+    sof-kernel-log-check.sh "$KERNEL_LAST_TIMESTAMP" || die "Catched error in journalctl"
 
     dlogi "Dumping test logs!"
-    dmesg | grep "IPC Flood count" -A 2
+    journalctl -k --since="$KERNEL_LAST_TIMESTAMP" | grep "IPC Flood count" -A 2
 done
 
-sof-kernel-log-check.sh $KERNEL_LAST_LINE
+sof-kernel-log-check.sh "$KERNEL_LAST_TIMESTAMP"
+
 exit 0
