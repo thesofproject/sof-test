@@ -10,15 +10,15 @@ ignore_str='error: debugfs write failed to idle -16'
 
 # CML Helios known issue related with xhci_hcd
 # https://bugzilla.kernel.org/show_bug.cgi?id=202541
-ignore_str="$ignore_str"'|xhci_hcd 0000:00:14.0: WARN Set TR Deq Ptr cmd failed due to incorrect slot or ep state'
+ignore_str="$ignore_str"'|xhci_hcd 0000:00:14\.0: WARN Set TR Deq Ptr cmd failed due to incorrect slot or ep state'
 
 # CML Mantis occasionally throws Intel(R) Management Engine Interface(mei) errors
 # https://unix.stackexchange.com/questions/109294/mei-00000016-0-init-hw-failure
-ignore_str="$ignore_str"'|mei_me 0000:00:16.0: wait hw ready failed'
-ignore_str="$ignore_str"'|mei_me 0000:00:16.0: hw_start failed ret = -62'
+ignore_str="$ignore_str"'|mei_me 0000:00:16\.0: wait hw ready failed'
+ignore_str="$ignore_str"'|mei_me 0000:00:16\.0: hw_start failed ret = -62'
 
 # CML Mantis has DELL touchpad i2c error on suspend/resume
-ignore_str="$ignore_str"'|i2c_designware i2c_designware.0: controller timed out'
+ignore_str="$ignore_str"'|i2c_designware i2c_designware\.0: controller timed out'
 ignore_str="$ignore_str"'|i2c_hid i2c-DELL0955:00: failed to change power setting'
 ignore_str="$ignore_str"'|PM: Device i2c-DELL0955:00 failed to resume async: error -110'
 
