@@ -43,6 +43,8 @@ func_check_pkg expect
 func_check_pkg aplay
 func_check_pkg python3
 func_check_python_pkg graphviz
+func_check_python_pkg numpy
+func_check_python_pkg scipy
 func_check_file "$DYNDBG"
 if [ $check_res -eq 0 ]; then
     printf "pass\n"
