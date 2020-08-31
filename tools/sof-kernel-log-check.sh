@@ -8,9 +8,38 @@ err_str="error|failed|timed out|panic|oops"
 # The first string cannot start by |
 ignore_str='error: debugfs write failed to idle -16'
 
+# Generic systemd error
+# https://sof-ci.01.org/softestpr/PR354/build123/devicetest/
+ignore_str="$ignore_str"'|systemd\[.*\]: Dependency failed .*'
+
+# Generic initramfs error
+# https://sof-ci.01.org/softestpr/PR354/build123/devicetest/
+ignore_str="$ignore_str"'|Initramfs unpacking failed: Decoding failed'
+
+# Generic ACPI errors
+# https://sof-ci.01.org/softestpr/PR354/build123/devicetest/
+ignore_str="$ignore_str"'|ACPI Error: Aborting method .* due to previous error'
+ignore_str="$ignore_str"'|ACPI: \\: failed to evaluate .*'
+
+# Generic sdhci-apci errors
+# https://sof-ci.01.org/softestpr/PR354/build123/devicetest/
+ignore_str="$ignore_str"'|sdhci-acpi 80860F16:00: failed to setup card detect gpio'
+
+# Generic sdhci-pci errors
+# https://sof-ci.01.org/softestpr/PR354/build123/devicetest/
+ignore_str="$ignore_str"'|sdhci-pci 0000:00:..\.0: failed to setup card detect gpio'
+
+# Generic ATA errors
+# https://sof-ci.01.org/softestpr/PR354/build123/devicetest/
+ignore_str="$ignore_str"'|ata3: COMRESET failed \(errno=-16\)'
+
 # CML Helios known issue related with xhci_hcd
 # https://bugzilla.kernel.org/show_bug.cgi?id=202541
 ignore_str="$ignore_str"'|xhci_hcd 0000:00:14\.0: WARN Set TR Deq Ptr cmd failed due to incorrect slot or ep state'
+
+# CML Helios / CML Mantis known issue related to MSR access
+# https://sof-ci.01.org/softestpr/PR354/build136/devicetest/
+ignore_str="$ignore_str"'|unchecked MSR access error: .*'
 
 # CML Mantis occasionally throws Intel(R) Management Engine Interface(mei) errors
 # https://unix.stackexchange.com/questions/109294/mei-00000016-0-init-hw-failure
