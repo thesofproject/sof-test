@@ -72,7 +72,7 @@ do
 
     dlogi "run kmod/sof-kmod-remove.sh"
     sudo sof_remove.sh
-    [[ $? -ne 0 ]] && die "remove modules error"
+    [[ $? -ne 0 ]] && sudo sof_insert.sh && die "remove modules error"
 
     ## - 1a: check for errors after removal
     dlogi "checking for general errors after kmod unload with sof-kernel-log-check tool"
