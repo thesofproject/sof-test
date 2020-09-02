@@ -13,11 +13,12 @@
 ##
 
 # source from the relative path of current folder
-source $(dirname ${BASH_SOURCE[0]})/../case-lib/lib.sh
+# shellcheck source=case-lib/lib.sh
+source "$(dirname "${BASH_SOURCE[0]}")"/../case-lib/lib.sh
 
 func_opt_parse_option "$@"
 
-if [ ! "$(alias |grep 'Sub-Test')" ];then
+if ! alias | grep -q 'Sub-Test'; then
     # hijack DMESG_LOG_START_LINE which refer dump kernel log in exit function
     DMESG_LOG_START_LINE=$(sof-get-kernel-line.sh|tail -n 1 |awk '{print $1;}')
     cmd="sof-kernel-dump.sh"
