@@ -47,11 +47,20 @@ func_lib_setup_kernel_last_line()
 SOF_LOG_COLLECT=0
 func_lib_start_log_collect()
 {
-    local is_etrace=${1:-0} ldcFile
-    ldcFile=/etc/sof/sof-$(sof-dump-status.py -p).ldc || {
-        >&2 dlogw "sof-dump-status.py -p to query platform failed"
-        return
+    local is_etrace=${1:-0} ldcFile="$SOFLDC"
+    # if user doesn't specify file path of sof-*.ldc, fall back to
+    # /etc/sof/sof-PLATFORM.ldc, which is the default path used by CI.
+    [[ -n "$ldcFile" ]] || {
+        ldcFile=/etc/sof/sof-$(sof-dump-status.py -p).ldc || {
+            >&2 dloge "Failed to query platform with sof-dump-status.py"
+            return 1
+        }
     }
+    [[ -e "$ldcFile" ]] || {
+        dloge "LDC file $ldcFile not found, check the SOFLDC environment variable or put your sof-*.ldc to /etc/sof"
+        return 1
+    }
+
     local loggerBin="" logfile="" logopt="-t"
     [[ "$SOFLOGGER" ]] && loggerBin=$SOFLOGGER || loggerBin=$(command -v sof-logger)
     if [ "X$is_etrace" == "X0" ];then
