@@ -8,7 +8,7 @@ func_pipeline_export()
     fi
     # got tplg_file, verify file exist
     tplg_path=$(func_lib_get_tplg_path "$1") || {
-        die "No available topology for pipeline export"
+        die "Topology $1 not found, check the TPLG environment variable or specify topology path with -t"
     }
     dlogi "$SCRIPT_NAME will use topology $tplg_path to run the test case"
 
