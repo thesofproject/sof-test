@@ -27,7 +27,7 @@ else
 fi
 
 dlogi "Checking SOF Firmware load info in kernel log"
-if $cmd | grep -q " sof-audio.*version"; then
+if $cmd | grep -q " sof-audio.*Firmware.*version"; then
     # dump the version info and ABI info
     $cmd | grep "Firmware info" -A1 | head -n 12
     # dump the debug info
