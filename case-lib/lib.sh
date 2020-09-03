@@ -125,6 +125,8 @@ func_lib_restore_pulseaudio()
     local line
     for line in "${PULSECMD_LST[@]}"
     do
+        # Both the user and the command are the same $line var :-(
+        # shellcheck disable=SC2086
         nohup sudo -u $line >/dev/null &
     done
     # now wait for the pulseaudio restore in the ps process
