@@ -44,6 +44,37 @@ func_lib_setup_kernel_last_line()
     KERNEL_LAST_LINE=$(wc -l /var/log/kern.log|awk '{print $1;}')
 }
 
+# This function adds a fake error to dmesg (which is always saved by
+# journald). It also adds it to kern.log, see why in comment below.
+#
+# It is surprisingly easy to write a test that always succeeds,
+# especially in shell script and it has already happened a number of
+# times. Temporarily add this function to a test under development to
+# make sure it can actually report failures. Using this function is even
+# more critical for testing changes to the test framework and especially
+# error handling code.
+#
+# Sample usage: fake_kern_error "FAKE error $0 PID $$ $round"
+fake_kern_error()
+{
+    local k_msg d boot_secs kern_log_prefix
+
+    k_msg="sof-audio-pci 0000:66:66.6: $1"
+    d=$(date '+%b %d %R:%S') # TODO: is this locale dependent?
+    boot_secs=$(awk '{ print $1 }' < /proc/uptime)
+    kern_log_prefix="$d $(hostname) kernel: [$boot_secs]"
+
+    printf '<0>%s >/dev/kmsg' "$k_msg"  | sudo tee -a /dev/kmsg >/dev/null
+
+    # From https://www.kernel.org/doc/Documentation/ABI/testing/dev-kmsg
+    # It is not possible to inject to /dev/kmesg with the facility
+    # number LOG_KERN (0), to make sure that the origin of the messages
+    # can always be reliably determined.
+    printf '%s %s >> kern.log\n' "$kern_log_prefix" \
+           "$k_msg" | sudo tee -a /var/log/kern.log >/dev/null
+
+}
+
 SOF_LOG_COLLECT=0
 func_lib_start_log_collect()
 {
