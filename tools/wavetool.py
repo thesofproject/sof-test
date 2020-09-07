@@ -202,25 +202,39 @@ def analyze_wav_wov(wave, fs):
         print('Zero marker not in history buffer')
         sys.exit(1002)
     x = normalize(trimmed_wave)
-    # jump over 20ms to skip the pulse due to filtering
-    time_skip = 0.02
-    sample_skip = int(time_skip * fs)
     low_vol_sine = x[0:marker_start,:]
     high_vol_sine = x[marker_end:,:]
     notch_freq = [cmd.freq[0], cmd.freq[0]] if len(cmd.freq) == 1 else cmd.freq
-    low_vol_notched = stdnotch(low_vol_sine, notch_freq[0], fs)
-    high_vol_notched = stdnotch(high_vol_sine, notch_freq[1], fs)
-    low_vol_notched_cut = low_vol_notched[sample_skip:,:]
-    high_vol_notched_cut = high_vol_notched[sample_skip:,:]
-    low_vol_thdn = 10 * np.log10(np.mean(np.power(low_vol_notched_cut, 2), axis=0))
-    high_vol_thdn = 10 * np.log10(np.mean(np.power(high_vol_notched_cut, 2), axis=0))
-    print('THD+N of low volume sine wave: L%0.5fdB R%0.5fdB' % (low_vol_thdn[0], low_vol_thdn[1]))
-    print('THD+N of high volume sine wave: L%0.5fdB R%0.5fdB' % (high_vol_thdn[0], high_vol_thdn[1]))
+    low_vol_thdn = calc_thdn(low_vol_sine, fs, notch_freq[0])
+    high_vol_thdn = calc_thdn(high_vol_sine, fs, notch_freq[1])
+    print('THD+N of low volume sine wave: %s dB' % low_vol_thdn)
+    print('THD+N of high volume sine wave: %s dB' % high_vol_thdn)
     thdn_pass = np.all(low_vol_thdn < cmd.threshold) and np.all(high_vol_thdn < cmd.threshold)
     if not thdn_pass:
         print('THD+N too high, wave analysis result: FAILED')
         sys.exit(1002)
     print('wave analysis result: PASSED')
+
+def calc_thdn(wave, fs, freq):
+    """
+    This function calculates Total Harmonic Distortion plus Noise (THD+N) of a wave.
+
+    Parameters
+    ----------
+    wave: Wave data from which THD+N will be calculated.
+    fs: Sample rate of wave data
+    freq: Frequency that will be removed before calculating THD+N
+
+    Returns
+    ----------
+    A list of THD+N values for each channel
+    """
+    # skip 20ms to avoid the pulse due to filtering
+    time_skip = 0.02
+    samples_skip = int(time_skip * fs)
+    filtered = stdnotch(wave, freq, fs)
+    filtered_cut = filtered[samples_skip:,:]
+    return 10 * np.log10(np.mean(np.power(filtered_cut, 2), axis=0))
 
 def parse_cmdline():
     parser = argparse.ArgumentParser(add_help=True, formatter_class=argparse.RawTextHelpFormatter,
