@@ -103,7 +103,7 @@ do
         dlogc "arecord -D$cp_dev -r $cp_rate -c $cp_chan -f $fmt -d $duration -q $recorded_file"
         arecord -D"$cp_dev" -r "$cp_rate" -c "$cp_chan" -f "$fmt" -d "$duration" -v -q "$recorded_file"
         dlogi "Comparing recorded wave and reference wave"
-        wavetool.py -a"smart_amp" -R"$recorded_file" -r"$file" || die "wavetool.py exit with $?"
+        wavetool.py -a"smart_amp" -R"$recorded_file" || die "wavetool.py exit with $?"
         # clean up generated wave files
         rm -rf "$file" "$recorded_file"
         sleep 2
