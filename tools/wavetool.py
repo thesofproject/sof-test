@@ -7,7 +7,7 @@ A Tool to Generate and Manipulate Wave Files
 
 Supported features:
 - generate sinusoids
-- give verdict in check-smart-amplifier test case by binay wave comparison
+- give verdict in check-smart-amplifier test case by binary wave comparison
 """
 
 import os
@@ -18,7 +18,7 @@ import scipy.signal as signal
 import scipy.io.wavfile as wavefile
 
 # The acceptable threshold of smart amplifier delay, unit: ms.
-# If the dealy is longer, then DSP is overloaded or something
+# If the delay is longer, then DSP is overloaded or something
 # is wrong with firmware scheduler.
 SMART_AMP_DELAY_THRESHOLD = 8
 
@@ -32,13 +32,13 @@ def generate_sinusoids(**p):
 
     Parameters
     ----------
-    dict of sinusiod parameters:
+    dict of sinusoid parameters:
     p['type']: Wave type, ``sine`` or ``cosine``
     p['amp']: Amplitude, range: 0.0 ~ 1.0
-    p['freq']: Frequency, unit: Herz
+    p['freq']: Frequency, unit: Hertz
     p['phase']: Phase, unit: Radian
     p['chan']: Channels
-    p['sample_rate']: Sample rate, unit: Herz
+    p['sample_rate']: Sample rate, unit: Hertz
     p['duration']: Duration, unit: Second
 
     Returns
@@ -242,7 +242,7 @@ def parse_cmdline():
     help='sample bits of generated wave')
     parser.add_argument('-o', '--output', type=str, help='path to store generated files', default='.')
     # wave comparison arguments
-    parser.add_argument('-a', '--analyze', type=str, choices=['smart_amp', 'wov'], help='analyze reocrded wave to give case verdict')
+    parser.add_argument('-a', '--analyze', type=str, choices=['smart_amp', 'wov'], help='analyze recorded wave to give case verdict')
     parser.add_argument('-R', '--recorded_wave', type=str, help='path of recorded wave')
     parser.add_argument('-Z', '--zero_threshold', type=float, default=-50.3, help='zero threshold in dBFS')
     parser.add_argument('-H', '--hb_time', type=float, default=2.1, help='history buffer size')
