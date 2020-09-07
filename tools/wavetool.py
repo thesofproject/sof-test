@@ -108,13 +108,8 @@ def save_wave(wave_data):
 
 def do_wave_analysis():
     fs_wav, wave = wavefile.read(cmd.recorded_wave)
-    # we may not always need reference wave
-    fs_ref, ref_wave = wavefile.read(cmd.reference_wave) if cmd.reference_wave is not None else (fs_wav, None)
-    if fs_wav != fs_ref:
-        print('Can not compare wave with different sample rate')
-        sys.exit(1)
     if cmd.analyze == 'smart_amp':
-        analyze_wav_smart_amp(wave, ref_wave, fs_wav)
+        analyze_wav_smart_amp(wave, fs_wav)
     if cmd.analyze == 'wov':
         analyze_wav_wov(wave, fs_wav)
 
@@ -142,24 +137,19 @@ def trim_wave(wave):
 
 # float point binary comparison is not supported, and will not be supported
 # check recorded wave through smart amplifier component
-def analyze_wav_smart_amp(wave, ref_wave, fs):
-    trimed_ref_wave, _ = trim_wave(ref_wave)
-    # compare the first two channel
-    trimed_wave_ch_0_1, delay1 = trim_wave(wave[:,0:2])
-    trimed_ref_wave = trimed_ref_wave[0:trimed_wave_ch_0_1.shape[0],:]
-    compare_result0_1 = np.array_equal(trimed_ref_wave, trimed_wave_ch_0_1)
-    # compare the second two channel
-    trimed_wave_ch_2_3, delay2 = trim_wave(wave[:,2:4])
-    trimed_ref_wave = trimed_ref_wave[0:trimed_wave_ch_2_3.shape[0],:]
-    compare_result2_3 = np.array_equal(trimed_ref_wave, trimed_wave_ch_2_3)
-
+def analyze_wav_smart_amp(wave, fs):
+    trimed_ch_0_1, delay1 = trim_wave(wave[:,0:2])
+    trimed_ch_2_3, delay2 = trim_wave(wave[:,2:4])
+    samples_compare = min(trimed_ch_0_1.shape[0], trimed_ch_2_3.shape[0])
+    is_bin_same = np.array_equal(trimed_ch_0_1[0:samples_compare,:], trimed_ch_2_3[0:samples_compare,:])
     smart_amp_delay = ((delay2 - delay1) / fs * 1000)
+
     print('Delay of smart amplifier is %0.3fms' % smart_amp_delay)
-    if compare_result0_1 and compare_result2_3 and smart_amp_delay < SMART_AMP_DELAY_THRESHOLD:
-        print('Recorded wave is binary same as reference wave')
+    if is_bin_same and smart_amp_delay < SMART_AMP_DELAY_THRESHOLD:
+        print('Data of channel 0/1 is binary same as data of channel 2/3')
         print('Wave comparison result: PASSED')
     else:
-        print('Recorded wave is not binary same as reference wave')
+        print('Data of channel 0/1 is not binary same as data of channel 2/3')
         print('Wave comparison result: FAILED')
         sys.exit(1001)
 
@@ -254,7 +244,6 @@ def parse_cmdline():
     # wave comparison arguments
     parser.add_argument('-a', '--analyze', type=str, choices=['smart_amp', 'wov'], help='analyze reocrded wave to give case verdict')
     parser.add_argument('-R', '--recorded_wave', type=str, help='path of recorded wave')
-    parser.add_argument('-r', '--reference_wave', type=str, help='path of reference wave')
     parser.add_argument('-Z', '--zero_threshold', type=float, default=-50.3, help='zero threshold in dBFS')
     parser.add_argument('-H', '--hb_time', type=float, default=2.1, help='history buffer size')
     parser.add_argument('-T', '--threshold', type=float, default=-72.0, help='expected threshold')
