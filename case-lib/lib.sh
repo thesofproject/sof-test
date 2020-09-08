@@ -127,11 +127,19 @@ func_lib_start_log_collect()
     sudo "$loggerCmd" &
 }
 
+# Calling this function is often a mistake because the error message
+# from the actual sudo() function in hijack.sh is better: it is
+# guaranteed to print the command that needs sudo and give more
+# information. func_lib_check_sudo() is useful only when sudo is
+# optional and when its warning can be ignored (with '|| true') but in
+# the past it has been used to abort the test immediately and lose the
+# better error message from sudo().
 func_lib_check_sudo()
 {
+    local cmd="${1:-Unknown command}"
     func_hijack_setup_sudo_level || {
-        dlogw "Command needs root privilege to run, please configure SUDO_PASSWD in case-lib/config.sh"
-        exit 2
+        dlogw "$cmd needs root privilege to run, please use NOPASSWD or cached credentials"
+        return 2
     }
 }
 
@@ -144,7 +152,7 @@ func_lib_disable_pulseaudio()
     # store current pulseaudio command
     readarray -t PULSECMD_LST < <(ps -C pulseaudio -o user,cmd --no-header)
     [[ "${#PULSECMD_LST[@]}" -eq 0 ]] && return
-    func_lib_check_sudo
+    func_lib_check_sudo 'disabling pulseaudio'
     # get all running pulseaudio paths
     readarray -t PULSE_PATHS < <(ps -C pulseaudio -o cmd --no-header | awk '{print $1}'|sort -u)
     for PA_PATH in "${PULSE_PATHS[@]}"
@@ -167,7 +175,7 @@ func_lib_disable_pulseaudio()
 func_lib_restore_pulseaudio()
 {
     [[ "${#PULSECMD_LST[@]}" -eq 0 ]] && return
-    func_lib_check_sudo
+    func_lib_check_sudo 're-enabling pulseaudio'
     # restore pulseaudio
     for PA_PATH in "${PULSE_PATHS[@]}"
     do
