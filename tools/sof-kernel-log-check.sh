@@ -1,6 +1,8 @@
 #!/bin/bash
 
-begin_line=${1:-1}
+last_line=${1:-0}
+begin_line=$((last_line+1))
+
 declare err_str ignore_str project_key
 err_str="error|failed|timed out|panic|oops"
 
