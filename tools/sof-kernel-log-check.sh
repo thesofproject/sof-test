@@ -50,6 +50,13 @@ ignore_str="$ignore_str"'|thermal thermal_zone.*: failed to read out thermal zon
 ignore_str="$ignore_str"'|iwlwifi 0000:00:14\.3: Microcode SW error detected\. Restarting 0x0\.'
 ignore_str="$ignore_str"'|wlo1: authentication with f4:f5:e8:6b:45:bb timed out'
 
+# Test cases on some platforms fail because the false error message:
+#    sof-audio-pci 0000:00:1f.3: status = 0x00000000 panic = 0x00000000
+# Note that different platform may have different PCI ID, and the panic code
+# may not be 0x00000000.
+# Buglink: https://github.com/thesofproject/sof/issues/3395
+ignore_str="$ignore_str"'|sof-audio-pci 0000:[0-9a-f]{2}:[0-9a-f]{2}\.[0-9a-f]: status = 0x[0-9a-f]{8} panic = 0x[0-9a-f]{8}'
+
 [[ ! "$err_str" ]] && echo "Missing error keyword list" && exit 0
 # dmesg KB size buffer size
 #dmesg_config_define=$(awk -F '=' '/CONFIG_LOG_BUF_SHIFT/ {print $2;}' /boot/config-$(uname -r))
