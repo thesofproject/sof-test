@@ -20,7 +20,8 @@
 ##    check kernel log and find no errors
 ##
 
-source $(dirname ${BASH_SOURCE[0]})/../case-lib/lib.sh
+# shellcheck source=case-lib/lib.sh
+source "$(dirname "${BASH_SOURCE[0]}")"/../case-lib/lib.sh
 
 OPT_OPT_lst['l']='loop_cnt'
 OPT_DESC_lst['l']='remove / insert module loop count -- per device'
@@ -33,12 +34,9 @@ func_opt_parse_option "$@"
 func_lib_setup_kernel_last_line
 
 loop_cnt=${OPT_VALUE_lst['l']}
-usb_audio_module="snd_usb_audio"
-kern_log="/var/log/kern.log"
-keyword_info=""
 
 PATH="${PATH%%:*}/kmod:$PATH"
-func_lib_check_sudo
+func_lib_check_sudo 'unloading modules'
 
 if [ ${OPT_VALUE_lst['p']} -eq 1 ];then
     func_lib_disable_pulseaudio
@@ -65,38 +63,34 @@ do
         fi
         [[ $(sof-dump-status.py --dsp_status 0) == "suspended" ]] && break
         sleep 1
-        if [ $i -eq 15 ]; then
+        if [ "$i" -eq 15 ]; then
             die "dsp is not suspended after 15s, end test"
         fi
     done
 
     dlogi "run kmod/sof-kmod-remove.sh"
-    sudo sof_remove.sh
-    [[ $? -ne 0 ]] && die "remove modules error"
+    sudo sof_remove.sh || die "remove modules error"
 
     ## - 1a: check for errors after removal
     dlogi "checking for general errors after kmod unload with sof-kernel-log-check tool"
-    sof-kernel-log-check.sh $KERNEL_LAST_LINE
-    if [[ $? -ne 0 ]]; then
+    sof-kernel-log-check.sh "$KERNEL_LAST_LINE" ||
         die "error found after kmod unload is real error, failing"
-    fi
 
     func_lib_setup_kernel_last_line
     dlogi "run kmod/sof_insert.sh"
-    sudo sof_insert.sh
-    [[ $? -ne 0 ]] && dloge "insert modules error" && exit
-    sleep 1
+    sudo sof_insert.sh || {
+        # FIXME: don't exit the status of dloge(). Use die()
+        dloge "insert modules error" && exit
+    }
 
     ## - 2a: check for errors after insertion
     dlogi "checking for general errors after kmod insert with sof-kernel-log-check tool"
-    sof-kernel-log-check.sh $KERNEL_LAST_LINE
-    if [[ $? -ne 0 ]]; then
+    sof-kernel-log-check.sh "$KERNEL_LAST_LINE" ||
         die "Found error(s) in kernel log after module insertion"
-    fi
 
     dlogi "checking if firmware is loaded successfully"
-    $(dirname ${BASH_SOURCE[0]})/verify-sof-firmware-load.sh > /dev/null
-    [[ $? -ne 0 ]] && die "Failed to load firmware after module insertion"
+    "$(dirname "${BASH_SOURCE[0]}")"/verify-sof-firmware-load.sh > /dev/null ||
+         die "Failed to load firmware after module insertion"
 
     # successful remove/insert module pass
     dlogi "==== firmware boot complete: $idx of $loop_cnt ===="
