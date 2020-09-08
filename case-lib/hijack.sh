@@ -123,16 +123,9 @@ func_hijack_setup_sudo_level()
     [[ "$SUDO_LEVEL" ]] && return 0
     # root permission, don't need to check
     [[ $UID -eq 0 ]] && SUDO_LEVEL=0 && return 0
-    # now check whether we need sudo passwd using expect
-    if expect >/dev/null <<END
-spawn $SUDO_CMD ls
-expect {
-    "password" {
-        exit 1
-    }
-exit 0
-}
-END
+
+    # Test for either cached credentials or NOPASSWD
+    if $SUDO_CMD --non-interactive true
     then
         SUDO_LEVEL=1 && return 0
     fi
