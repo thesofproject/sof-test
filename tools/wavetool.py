@@ -46,7 +46,7 @@ def generate_sinusoids(**p):
     Real n-D Array with shape ``(duration * sample_rate, channel)``
     """
     func = np.sin if p['type'] == 'sine' else np.cos
-    time = np.arange(0, p['duration'], 1.0 / p['sample_rate'], dtype=np.float32)
+    time = np.arange(0, p['duration'], 1.0 / p['sample_rate'])
     data = p['amp'] * func(2 * np.pi * p['freq'] * time + p['phase'])
     return np.reshape(np.repeat(data, p['chan']),[len(data), p['chan']])
 
