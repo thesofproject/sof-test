@@ -2,6 +2,9 @@
 
 begin_line=${1:-1}
 declare err_str ignore_str project_key
+
+platform=$(sof-dump-status.py -p)
+
 err_str="error|failed|timed out|panic|oops"
 
 # TODO explain
