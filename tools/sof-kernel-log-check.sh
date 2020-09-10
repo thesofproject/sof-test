@@ -53,12 +53,29 @@ ignore_str="$ignore_str"'|thermal thermal_zone.*: failed to read out thermal zon
 ignore_str="$ignore_str"'|iwlwifi 0000:00:14\.3: Microcode SW error detected\. Restarting 0x0\.'
 ignore_str="$ignore_str"'|wlo1: authentication with f4:f5:e8:6b:45:bb timed out'
 
-# Test cases on some platforms fail because the false error message:
+# Test cases on some platforms fail because the boot retry message:
+#
 #    sof-audio-pci 0000:00:1f.3: status = 0x00000000 panic = 0x00000000
-# Note that different platform may have different PCI ID, and the panic code
-# may not be 0x00000000.
+#    ...
+#    Attempting iteration 1 of Core En/ROM load...
+#
+# Despite the real boot failure the retry message is not at the error
+# level until after the last try. However we still use kern.log for now
+# and it has no log levels, so this may unfortunately hide this same
+# message at the 'error' level until we switch to journalctl
+# --priority. Hopefully other issues will cause the test to fail in that
+# case.
+#
+# For now the codes seem to be 0x00000000 and affected platforms have
+# PCI ID 1f.3. Before adding other values make sure you update the list
+# of affected systems in bug 3395 below.
+#
 # Buglink: https://github.com/thesofproject/sof/issues/3395
-ignore_str="$ignore_str"'|sof-audio-pci 0000:[0-9a-f]{2}:[0-9a-f]{2}\.[0-9a-f]: status = 0x[0-9a-f]{8} panic = 0x[0-9a-f]{8}'
+case "$platform" in
+    icl|cml)
+        ignore_str="$ignore_str"'|sof-audio-pci 0000:00:1f\.3: status = 0x[0]{8} panic = 0x[0]{8}'
+        ;;
+esac
 
 [[ ! "$err_str" ]] && echo "Missing error keyword list" && exit 0
 # dmesg KB size buffer size
