@@ -92,7 +92,7 @@ func_lib_start_log_collect()
         return 1
     }
 
-    local logfile="" logopt="-t"
+    local logopt="-t"
 
     if [ -z "$SOFLOGGER" ]; then
         SOFLOGGER=$(command -v sof-logger) || {
@@ -121,7 +121,10 @@ func_lib_start_log_collect()
         return 3
     fi
 
-    sudo "$SOFLOGGER $logopt -l $ldcFile -o $logfile" 2>/dev/null &
+    local loggerCmd="$SOFLOGGER $logopt -l $ldcFile -o $logfile"
+    dlogi "Starting $loggerCmd"
+    # Cleaned up by func_exit_handler() in hijack.sh
+    sudo "$loggerCmd" &
 }
 
 func_lib_check_sudo()
