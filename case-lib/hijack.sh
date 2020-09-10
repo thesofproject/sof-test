@@ -30,12 +30,23 @@ function func_exit_handler()
             func_lib_start_log_collect 1
             sleep 1s
         }
-        local loggerBin; loggerBin=$(basename "$SOFLOGGER")
-        sudo pkill -9 "$loggerBin" 2>/dev/null || {
+
+        local loggerBin wcLog; loggerBin=$(basename "$SOFLOGGER")
+        # INT doesn't print any "Killed" message in non-interactive mode
+        sudo pkill -INT "$loggerBin" || {
             dloge "sof-logger was already dead"
             exit_status=1
         }
         sleep 1s
+        if pgrep "$loggerBin"; then
+            dloge "$loggerBin resisted pkill -INT, using -KILL"
+            sudo pkill -KILL "$loggerBin"
+            exit_status=2
+        fi
+        # logfile is set in a different file: lib.sh
+        # shellcheck disable=SC2154
+        wcLog=$(wc -l "$logfile")
+        dlogi "nlines=$wcLog"
     fi
     # when case ends, store kernel log
     # /var/log/kern.log format:
