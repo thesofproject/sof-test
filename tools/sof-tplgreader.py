@@ -62,11 +62,16 @@ class clsTPLGReader:
                 # supported formats of playback pipeline in formats[0]
                 # supported formats of capture pipeline in formats[1]
                 formats = TplgFormatter.get_pcm_fmt(pcm)
+                # if capture is present, pcm['capture'] = 1, otherwise, pcm['capture'] = 0,
+                # same thing for pcm['playback']
                 pipeline_dict['fmts'] = " ".join(formats[pcm['capture']])
                 # use the first supported format for test
                 pipeline_dict['fmt'] = pipeline_dict['fmts'].split(' ')[0]
                 pipeline_dict['rate_min'], pipeline_dict['rate_max'] = self._key2str(cap, 'rate')
                 pipeline_dict['ch_min'], pipeline_dict['ch_max'] = self._key2str(cap, 'channels')
+                # for pcm with both playback and capture capabilities, we can extract two pipelines.
+                # the paramters for capture pipeline is filled above, and the parameters for playback
+                # pipeline is filled below.
                 if pcm_type == "both":
                     pipeline_dict["type"] = "capture"
                     # copy pipeline and change values
@@ -74,11 +79,12 @@ class clsTPLGReader:
                     pb_pipeline_dict["type"] = "playback"
                     cap = pcm["caps"][0]
                     pb_pipeline_dict['cap_name'] = cap['name']
+                    # with index = 0, we get parameters from playback pipeline
                     clsTPLGReader.attach_comp_to_pipeline(pgas, 0, "PGA", pb_pipeline_dict)
                     clsTPLGReader.attach_comp_to_pipeline(eqs, 0, "EQ", pb_pipeline_dict)
                     clsTPLGReader.attach_comp_to_pipeline(asrcs, 0, "ASRC", pb_pipeline_dict)
                     clsTPLGReader.attach_comp_to_pipeline(codec_adapters, 0, "CODEC_ADAPTER", pb_pipeline_dict)
-                    pb_pipeline_dict["fmts"] = " ".join(formats[pcm['playback']])
+                    pb_pipeline_dict["fmts"] = " ".join(formats[0])
                     pb_pipeline_dict['fmt'] = pb_pipeline_dict['fmts'].split(' ')[0]
                     pb_pipeline_dict['rate_min'], pb_pipeline_dict['rate_max'] = self._key2str(cap, 'rate')
                     pb_pipeline_dict['ch_min'], pb_pipeline_dict['ch_max'] = self._key2str(cap, 'channels')
