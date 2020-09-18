@@ -39,9 +39,10 @@ function func_exit_handler()
         }
         sleep 1s
         if pgrep "$loggerBin"; then
-            dloge "$loggerBin resisted pkill -INT, using -KILL"
+            # FIXME: https://github.com/thesofproject/sof/issues/3433
+            dlogw "$loggerBin resisted pkill -INT, using -KILL"
             sudo pkill -KILL "$loggerBin"
-            exit_status=2
+            # exit_status=1
         fi
         # logfile is set in a different file: lib.sh
         # shellcheck disable=SC2154
