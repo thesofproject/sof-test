@@ -32,17 +32,18 @@ function func_exit_handler()
         }
 
         local loggerBin wcLog; loggerBin=$(basename "$SOFLOGGER")
-        # INT doesn't print any "Killed" message in non-interactive mode
-        sudo pkill -INT "$loggerBin" || {
+        # We need this to avoid the confusion of a "Terminated" message
+        # without context.
+        dlogi "pkill -TERM $loggerBin"
+        sudo pkill -TERM "$loggerBin" || {
             dloge "sof-logger was already dead"
             exit_status=1
         }
         sleep 1s
         if pgrep "$loggerBin"; then
-            # FIXME: https://github.com/thesofproject/sof/issues/3433
-            dlogw "$loggerBin resisted pkill -INT, using -KILL"
+            dloge "$loggerBin resisted pkill -TERM, using -KILL"
             sudo pkill -KILL "$loggerBin"
-            # exit_status=1
+            exit_status=1
         fi
         # logfile is set in a different file: lib.sh
         # shellcheck disable=SC2154
