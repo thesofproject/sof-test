@@ -48,6 +48,12 @@ function func_exit_handler()
         # shellcheck disable=SC2154
         wcLog=$(wc -l "$logfile")
         dlogi "nlines=$wcLog"
+        local nlines; nlines=$(wc -l < "$logfile")
+        # Line 1 is the header
+        if [ "$nlines" -le 1 ]; then
+            dloge "Empty logger trace"
+            exit_status=1
+        fi
     fi
     # when case ends, store kernel log
     # /var/log/kern.log format:
