@@ -25,11 +25,6 @@ function func_exit_handler()
 
     # when sof logger collect is open
     if [ "X$SOF_LOG_COLLECT" == "X1" ]; then
-        # when error occurs, exit and catch etrace log
-        [[ $exit_status -eq 1 ]] && {
-            func_lib_start_log_collect 1
-            sleep 1s
-        }
 
         local loggerBin wcLog; loggerBin=$(basename "$SOFLOGGER")
         # INT doesn't print any "Killed" message in non-interactive mode
