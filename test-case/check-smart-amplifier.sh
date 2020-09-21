@@ -98,9 +98,9 @@ do
         file="$tmp_dir/smart_amp_test_${fmt%_*}.wav"
         recorded_file="$tmp_dir/smart_amp_recorded_${fmt%_*}.wav"
         wavetool.py -gsine -A0.8 -B"${fmt%_*}" -o"$file"
-        dlogc "aplay -D$pb_dev -r $pb_rate -c $pb_chan -f $fmt -d $duration -q $file &"
+        dlogc "aplay -D$pb_dev -r $pb_rate -c $pb_chan -f $fmt -d $duration -v -q $file &"
         aplay -D"$pb_dev" -r "$pb_rate" -c "$pb_chan" -f "$fmt" -d "$duration" -v -q "$file" &
-        dlogc "arecord -D$cp_dev -r $cp_rate -c $cp_chan -f $fmt -d $duration -q $recorded_file"
+        dlogc "arecord -D$cp_dev -r $cp_rate -c $cp_chan -f $fmt -d $duration -v -q $recorded_file"
         arecord -D"$cp_dev" -r "$cp_rate" -c "$cp_chan" -f "$fmt" -d "$duration" -v -q "$recorded_file"
         dlogi "Comparing recorded wave and reference wave"
         wavetool.py -a"smart_amp" -R"$recorded_file" || {
