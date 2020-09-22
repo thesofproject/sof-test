@@ -292,7 +292,7 @@ def parse_cmdline():
     parser.add_argument('-R', '--recorded_wave', type=str, help='path of recorded wave')
     parser.add_argument('-Z', '--zero_threshold', type=float, default=-50.3, help='zero threshold in dBFS')
     parser.add_argument('-H', '--hb_time', type=float, default=2.1, help='history buffer size')
-    parser.add_argument('-T', '--threshold', type=float, default=-72.0, help='expected threshold')
+    parser.add_argument('-T', '--threshold', type=float, default=-65.0, help='expected threshold')
     return parser.parse_args()
 
 def main():
