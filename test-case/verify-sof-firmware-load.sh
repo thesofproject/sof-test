@@ -34,8 +34,10 @@ if $cmd | grep -q " sof-audio.*Firmware.*version"; then
     $cmd | grep "Firmware debug build" -A3 | head -n 12
     exit 0
 else
+    $cmd | tail -n 500
+    printf ' ------\n $cmd was %s, DMESG_LOG_START_LINE was %s  \n ---- \n' \
+            "$cmd" "$DMESG_LOG_START_LINE"
     journalctl --dmesg --lines 50
-    journalctl --dmesg | grep -C 1 -i version
-    printf '$cmd was %s\n' "$cmd"
+    journalctl --dmesg | grep -C 1 " sof-audio.*Firmware.*version" || true
     die "Cannot find the sof audio version"
 fi
