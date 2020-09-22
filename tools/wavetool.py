@@ -212,6 +212,13 @@ def analyze_wav_wov(wave, fs):
 
 def analyze_wav_thdn(wave, fs_wav):
     wave = normalize(wave)
+    dbfs = calc_rms(wave)
+    print('RMS of specified wave is %s dB' % dbfs)
+    dbfs_result = dbfs > cmd.zero_threshold
+    if not np.all(dbfs_result):
+        print("Volume too low or only contains zero")
+        print("Valid volume level should be bigger than %f dBFS" % cmd.zero_threshold)
+        sys.exit(1003)
     thdn = calc_thdn(wave, fs_wav, cmd.freq[0])
     result = thdn < cmd.threshold
     print('THD+N of specified wave is %s dB' % thdn)
@@ -240,6 +247,22 @@ def calc_thdn(wave, fs, freq):
     filtered = stdnotch(wave, freq, fs)
     filtered_cut = filtered[samples_skip:]
     return 10 * np.log10(np.mean(np.power(filtered_cut, 2), axis=0) + eps)
+
+def calc_rms(wave):
+    """
+    This function calculates Root Mean Square (RMS) value of a wave, the value is used
+    to identify wave level.
+
+    Parameters
+    ----------
+    wave: input wave data
+
+    Returns
+    ----------
+    A list of RMS values for each channel, unit: dBFS
+    """
+    return 10 * np.log10(np.mean(np.power(wave,2), axis=0) + eps)
+
 
 def parse_cmdline():
     parser = argparse.ArgumentParser(add_help=True, formatter_class=argparse.RawTextHelpFormatter,
