@@ -117,6 +117,8 @@ def do_wave_analysis():
         analyze_wav_wov(wave, fs_wav)
     if cmd.analyze == 'thdn':
         analyze_wav_thdn(wave, fs_wav)
+    if cmd.analyze == 'alsabat':
+        analyze_wav_alsabat(wave, fs_wav)
 
 # remove digital zeros in two sides
 def trim_wave(wave):
@@ -210,6 +212,12 @@ def analyze_wav_wov(wave, fs):
         sys.exit(1002)
     print('wave analysis result: PASSED')
 
+def analyze_wav_alsabat(wave, fs_wav):
+    # Drop the ramp up data in unstable state
+    time_skip = 0.25
+    samples_skip = int(fs_wav * 0.5)
+    analyze_wav_thdn(wave[samples_skip:], fs_wav)
+
 def analyze_wav_thdn(wave, fs_wav):
     wave = normalize(wave)
     dbfs = calc_rms(wave)
@@ -280,7 +288,7 @@ def parse_cmdline():
     help='sample bits of generated wave')
     parser.add_argument('-o', '--output', type=str, help='path to store generated files', default='.')
     # wave comparison arguments
-    parser.add_argument('-a', '--analyze', type=str, choices=['smart_amp', 'wov', 'thdn'], help='analyze recorded wave to give case verdict')
+    parser.add_argument('-a', '--analyze', type=str, choices=['smart_amp', 'wov', 'thdn', 'alsabat'], help='analyze recorded wave to give case verdict')
     parser.add_argument('-R', '--recorded_wave', type=str, help='path of recorded wave')
     parser.add_argument('-Z', '--zero_threshold', type=float, default=-50.3, help='zero threshold in dBFS')
     parser.add_argument('-H', '--hb_time', type=float, default=2.1, help='history buffer size')
