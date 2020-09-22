@@ -81,6 +81,22 @@ def generate_wov():
     data[:][data.shape[0] - sine_data2.shape[0]:data.shape[0]] = sine_data2
     return data
 
+def generate_chirp():
+    """
+    Generate chirp wave.
+    ``y(t) = A * sin(2 * pi * f(t) * t + phi)``, where
+    ``f(t) = f_start + chirp_rate * time``,
+    ``chirp_rate = (f_end - f_start) / duration``
+
+    Returns
+    ----------
+    Real n-D Array with shape ``(duration * sample_rate, channel)``
+    """
+    time = np.arange(0, cmd.duration[0], 1.0 / cmd.sample_rate)
+    freq = cmd.freq[0] + np.arange(len(time)) * (cmd.freq[1] - cmd.freq[0]) / len(time)
+    data = cmd.amp[0] * np.sin(2 * np.pi * freq * time + cmd.phase[0])
+    return np.reshape(np.repeat(data, cmd.channel),[len(data), cmd.channel])
+
 def generate_wav():
     if cmd.generate in ['sine', 'cosine']:
         wave_param = {
@@ -91,6 +107,8 @@ def generate_wav():
         wave_data = generate_sinusoids(**wave_param)
     elif cmd.generate == 'wov':
         wave_data = generate_wov()
+    elif cmd.generate == 'chirp':
+        wave_data = generate_chirp()
     else:
         raise Exception('invalid generate function, will generate nothing')
     return wave_data
@@ -231,7 +249,7 @@ def parse_cmdline():
         description='A Tool to Generate and Manipulate Wave Files.')
     parser.add_argument('-v', '--version', action='version', version='%(prog)s 1.0')
     # wave parameters
-    parser.add_argument('-g', '--generate', type=str, choices=['sine', 'cosine', 'wov'], help='generate specified types of wave')
+    parser.add_argument('-g', '--generate', type=str, choices=['sine', 'cosine', 'wov', 'chirp'], help='generate specified types of wave')
     parser.add_argument('-A', '--amp', type=float, nargs='+', default=[1.0], help='amplitude of generated wave')
     parser.add_argument('-F', '--freq', type=float, nargs='+', default=[997.0], help='frequency of generated wave')
     parser.add_argument('-P', '--phase', type=float, nargs='+', default=[0.0], help='phase of generated wave')
