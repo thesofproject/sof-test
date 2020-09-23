@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 ##
 ## Case Name: Run multiple pipeline for pause resume
 ## Preconditions:

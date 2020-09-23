@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 ##
 ## Case Name: test reboot
 ## Preconditions:
