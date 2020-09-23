@@ -182,7 +182,11 @@ class clsSYSCardInfo():
                 self.sys_power['run_status'].append({'map_id': pci_info['device_id'], 'status': 'unsupported'})
             exit_code, output=subprocess.getstatusoutput("cat /sys/bus/pci/devices/0000:%s/power/runtime_status" % (pci_info['pci_id']))
             if exit_code != 0:
-                continue
+                # The above code cannot acquire PCI infomation on one CHT device, retry with below code
+                # https://github.com/thesofproject/sof-test/issues/288
+                exit_code, output=subprocess.getstatusoutput("cat /sys/bus/pci/devices/%s/power/runtime_status" % (pci_info['pci_id']))
+                if exit_code != 0:
+                    continue
             self.sys_power['run_status'].append({'map_id': pci_info['pci_id'], 'status': output})
 
     def loadDAPM(self, filter = "all"):
