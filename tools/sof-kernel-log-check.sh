@@ -74,6 +74,18 @@ ignore_str="$ignore_str"'|wlo1: authentication with f4:f5:e8:6b:45:bb timed out'
 case "$platform" in
     icl|cml)
         ignore_str="$ignore_str"'|sof-audio-pci 0000:00:1f\.3: status = 0x[0]{8} panic = 0x[0]{8}'
+        # There will be debug logs at each failed initializaiton of DSP before Linux 5.9
+        #   sof-audio-pci 0000:00:1f.3: error: cl_dsp_init: timeout HDA_DSP_SRAM_REG_ROM_STATUS read
+        #   sof-audio-pci 0000:00:1f.3: error: status = 0x00000000 panic = 0x00000000
+        #   sof-audio-pci 0000:00:1f.3: error: Error code=0xffffffff: FW status=0xffffffff
+        #   sof-audio-pci 0000:00:1f.3: error: iteration 0 of Core En/ROM load failed: -110
+        # We will reinit DSP if it is failed to init, and retry 3 times, so the errors in
+        # debug logs at the frist and second retry can be ignored.
+        # Check https://github.com/thesofproject/linux/pull/1676 for more information.
+        # Fixed by https://github.com/thesofproject/linux/pull/2382
+        ignore_str="$ignore_str"'|error: iteration [01]'
+        ignore_str="$ignore_str"'|error: status'
+        ignore_str="$ignore_str"'|error: cl_dsp_init: timeout HDA_DSP_SRAM_REG_ROM_STATUS read'
         ;;
 esac
 
