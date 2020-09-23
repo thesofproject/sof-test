@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 ##
 ## Case Name: verify-kernel-module-load-probe
 ## Description:
