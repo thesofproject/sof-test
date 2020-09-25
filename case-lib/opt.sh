@@ -90,6 +90,7 @@ func_opt_parse_option()
             printf '    -h |  --help\n'
             printf '\tthis message\n'
             _func_case_dump_descption
+            trap - EXIT
             exit 2
         }
 
