@@ -252,6 +252,19 @@ func_lib_get_tplg_path()
     return 0
 }
 
+func_nocodec_mode()
+{
+    uname -r |grep -q "nocodec"
+}
+
+func_upload_wav_file()
+{
+    local dir=$1
+    local file=$2
+
+    find "$dir" -maxdepth 1 -type f -name "$file" -size +0 -exec cp {} "$LOG_ROOT/" \;
+}
+
 die()
 {
     dloge "$@"
