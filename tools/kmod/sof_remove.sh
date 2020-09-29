@@ -14,14 +14,21 @@ remove_module() {
     fi
 }
 
+# SOF CI has a dependency on usb audio
 remove_module snd_usb_audio
 
+#-------------------------------------------
+# Top level devices
+#-------------------------------------------
 remove_module snd_hda_intel
 remove_module sof_pci_dev
 remove_module sof_acpi_dev
 remove_module snd_sof_pci
 remove_module snd_sof_acpi
 
+#-------------------------------------------
+# Machine drivers
+#-------------------------------------------
 remove_module snd_sof_intel_byt
 remove_module snd_sof_intel_bdw
 remove_module snd_sof_intel_hda_common
@@ -61,6 +68,9 @@ remove_module snd_sof_client
 remove_module snd_sof
 remove_module snd_sof_nocodec
 
+#-------------------------------------------
+# Codec drivers
+#-------------------------------------------
 remove_module snd_soc_da7213
 remove_module snd_soc_da7219
 remove_module snd_soc_pcm512x_i2c
@@ -108,6 +118,9 @@ remove_module snd_soc_dmic
 remove_module snd_hda_codec_realtek
 remove_module snd_hda_codec_generic
 
+#-------------------------------------------
+# Remaining core SOF parts
+#-------------------------------------------
 remove_module snd_soc_acpi
 remove_module snd_hda_ext_core
 
