@@ -55,7 +55,7 @@ ignore_str="$ignore_str"'|thermal thermal_zone.*: failed to read out thermal zon
 # Dell CML-U laptop with SoundWire, issues reported by sof-test
 # BugLink: https://github.com/thesofproject/sof-test/issues/307
 ignore_str="$ignore_str"'|iwlwifi 0000:00:14\.3: Microcode SW error detected\. Restarting 0x0\.'
-ignore_str="$ignore_str"'|wlo1: authentication with f4:f5:e8:6b:45:bb timed out'
+ignore_str="$ignore_str"'|: authentication with ..:..:..:..:..:.. timed out'
 
 # Test cases on some platforms fail because the boot retry message:
 #
