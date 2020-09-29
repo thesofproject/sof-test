@@ -87,8 +87,8 @@ function func_exit_handler()
     if [[ $(declare -f func_lib_restore_pulseaudio) ]]; then
         func_lib_restore_pulseaudio || ret=$?
     fi
-    # if failed to restore pulseaudio, even test caes passed, set exit status to ret
-    # to make test case failed. this helps to dectect pulseaudio failures.
+    # if failed to restore pulseaudio, even if test case passed, set exit status
+    # to ret to make test case failed. this helps to dectect pulseaudio failures.
     if [ "$exit_status" -eq 0 ] && [ $ret -ne 0 ]; then
         exit_status=$ret
     fi
