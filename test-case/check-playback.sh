@@ -73,36 +73,35 @@ func_pipeline_export $tplg "type:playback & ${OPT_VALUE_lst['S']}"
 
 for round in $(seq 1 $round_cnt)
 do
-    for idx in $(seq 0 $(expr $PIPELINE_COUNT - 1))
+    for idx in $(seq 0 $((PIPELINE_COUNT - 1)))
     do
-        channel=$(func_pipeline_parse_value $idx channel)
-        rate=$(func_pipeline_parse_value $idx rate)
-        fmt=$(func_pipeline_parse_value $idx fmt)
-        dev=$(func_pipeline_parse_value $idx dev)
-        pcm=$(func_pipeline_parse_value $idx pcm)
-        type=$(func_pipeline_parse_value $idx type)
-        snd=$(func_pipeline_parse_value $idx snd)
+        channel=$(func_pipeline_parse_value "$idx" channel)
+        rate=$(func_pipeline_parse_value "$idx" rate)
+        fmts=$(func_pipeline_parse_value "$idx" fmt)
+        dev=$(func_pipeline_parse_value "$idx" dev)
+        pcm=$(func_pipeline_parse_value "$idx" pcm)
+        type=$(func_pipeline_parse_value "$idx" type)
+        snd=$(func_pipeline_parse_value "$idx" snd)
 
         if [ ${OPT_VALUE_lst['F']} = '1' ]; then
-            fmt=$(func_pipeline_parse_value $idx fmts)
+            fmts=$(func_pipeline_parse_value "$idx" fmts)
         fi
         # clean up dmesg
         sudo dmesg -C
-        for fmt_elem in $(echo $fmt)
+        for fmt_elem in $fmts
         do
             for i in $(seq 1 $loop_cnt)
             do
                 dlogi "===== Testing: (Round: $round/$round_cnt) (PCM: $pcm [$dev]<$type>) (Loop: $i/$loop_cnt) ====="
                 dlogc "aplay -D$dev -r $rate -c $channel -f $fmt_elem -d $duration $file -v -q"
-                aplay -D$dev -r $rate -c $channel -f $fmt_elem -d $duration $file -v -q
-                if [[ $? -ne 0 ]]; then
-                    func_lib_lsof_error_dump $snd
+                aplay -D"$dev" -r "$rate" -c "$channel" -f "$fmt_elem" \
+                      -d "$duration" "$file" -v -q || {
+                    func_lib_lsof_error_dump "$snd"
                     die "aplay on PCM $dev failed at $i/$loop_cnt."
-                fi
+                }
             done
         done
     done
 done
 
-sof-kernel-log-check.sh $KERNEL_LAST_LINE
-exit $?
+sof-kernel-log-check.sh "$KERNEL_LAST_LINE"
