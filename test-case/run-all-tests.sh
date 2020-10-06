@@ -64,6 +64,9 @@ tplg-binary
 sof-logger
 '
 
+# Requires Octave
+# testlist="$testlist volume_levels"
+
 main()
 {
 	# Default values overriden by the environment if any
@@ -190,6 +193,10 @@ test_pause-resume-capture()
 test_volume()
 {
 	"$mydir"/volume-basic-test.sh -l "$large_loop"
+}
+test_volume_levels()
+{
+	"$mydir"/check-volume-levels.sh
 }
 test_signal-stop-start-playback()
 {
