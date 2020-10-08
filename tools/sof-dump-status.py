@@ -7,6 +7,7 @@ class clsSYSCardInfo():
     def __init__(self):
         self.dmi={}
         self.pci_lst=[]
+        self.acpi_lst=[]
         self.proc_card={}
         # https://github.com/thesofproject/linux/blob/topic/sof-dev/sound/soc/sof/sof-pci-dev.c
         self._pci_ids={"0x119a":"tng","0x5a98":"apl", "0x1a98":"apl", "0x3198":"glk",
@@ -73,7 +74,6 @@ class clsSYSCardInfo():
         # grep exit 1 means nothing matched
         if exit_code != 0:
             return
-        apci_key_lst = self._acpi_ids.keys()
         for line in output.splitlines():
             pci_info = {}
             pci_info['pci_id'] = line.split(' ')[0]
@@ -87,9 +87,32 @@ class clsSYSCardInfo():
                     break
             pci_info['hw_id']="0x" + tmp_line[2] + tmp_line[1] + " 0x" + tmp_line[4] + tmp_line[3]
             pci_info['hw_name'] = self._pci_ids["0x" + tmp_line[4] + tmp_line[3]]
-            if pci_info['hw_name'] in apci_key_lst:
-                pci_info['device_id'] = self._acpi_ids[pci_info['hw_name']]
             self.pci_lst.append(pci_info)
+
+    def loadACPI(self):
+        self.acpi_lst.clear()
+
+        for mach in self._acpi_ids.keys():
+            acpi_info = {}
+
+            # On devices such as MinnowBoard the ACPI subsystem
+            # creates devices 80860F28:00 and 80860F28:01. We first
+            # need to loop to find out which of the two is enabled.
+            device_index = -1
+            for i in range(0, 2):
+                # make sure the ACPI status is 15 (indicates device presence)
+                exit_code, output=subprocess.getstatusoutput(
+                    "cat /sys/bus/acpi/devices/%s:0%d/status" %
+                    (self._acpi_ids[mach], i))
+                if exit_code == 0 and output == "15":
+                    device_index = i
+                    break
+
+            if device_index != -1:
+                acpi_info['hw_name'] = mach
+                acpi_info['acpi_id'] = self._acpi_ids[mach]
+                acpi_info['acpi_id_suffix'] = device_index
+                self.acpi_lst.append(acpi_info)
 
     def loadProcSound(self):
         self.proc_card.clear()
@@ -174,12 +197,25 @@ class clsSYSCardInfo():
             return
         self.sys_power['wakeup_count']=output
         self.sys_power['run_status'] = []
+
+        # ACPI devices need to be added first since the other scripts using the dsp_status
+        # assume the device we care about has the index 0 in the sys_power.['run_status']
+        # list
+        if len(self.acpi_lst) == 0:
+            self.loadACPI()
+
+        for acpi_info in self.acpi_lst:
+            exit_code, output=subprocess.getstatusoutput(
+                "cat /sys/bus/acpi/devices/%s:0%d/power/runtime_status" %
+                (acpi_info['acpi_id'], acpi_info['acpi_id_suffix']))
+            if exit_code != 0:
+                continue
+            self.sys_power['run_status'].append({'map_id': acpi_info['acpi_id'], 'status': output})
+
         if len(self.pci_lst) == 0:
             self.loadPCI()
 
         for pci_info in self.pci_lst:
-            if 'device_id' in pci_info:
-                self.sys_power['run_status'].append({'map_id': pci_info['device_id'], 'status': 'unsupported'})
             exit_code, output=subprocess.getstatusoutput("cat /sys/bus/pci/devices/0000:%s/power/runtime_status" % (pci_info['pci_id']))
             if exit_code != 0:
                 continue
@@ -190,6 +226,10 @@ class clsSYSCardInfo():
 
         if len(self.pci_lst) == 0:
             self.loadPCI()
+
+        if len(self.acpi_lst) == 0:
+            self.loadACPI()
+
         self.dapm['ctrl_lst'].clear()
         self.dapm['dapm_lst'].clear()
         self.dapm['name_lst'].clear()
@@ -199,6 +239,12 @@ class clsSYSCardInfo():
             if exit_code != 0:
                 continue
             self.dapm['ctrl_lst'].append({'id': pci_info['pci_id'], 'status':output})
+
+        for acpi_info in self.acpi_lst:
+            exit_code, output=subprocess.getstatusoutput("cat /sys/bus/acpi/devices/%s:00/power/control" % (acpi_info['acpi_id']))
+            if exit_code != 0:
+                continue
+            self.dapm['ctrl_lst'].append({'id': acpi_info['acpi_id'], 'status':output})
 
         exit_code, output = subprocess.getstatusoutput("find %s -name dapm" % (sound_path))
         if exit_code != 0:
@@ -245,17 +291,25 @@ if __name__ == "__main__":
     def dump_pci(pci_lst):
         # dump pci information
         if len(pci_lst) == 0 :
-            print("Couldn't detect for PCI device for audio")
+            print("Couldn't detect for PCI device for audio\n")
             return
         for pci_info in pci_lst:
             print("PCI ID:\t\t\t" +  pci_info['pci_id'])
-            if 'device_id' in pci_info:
-                print("\tDevice ID:\t" + pci_info['device_id'])
             print("\tName:\t\t" + pci_info['name'])
             print("\tHex:\t\t" + pci_info['hw_id'])
             print("\tchipset:\t" + pci_info['hw_name'])
             if pci_info.get('module') is not None:
                 print("\tmodule:\t\t" + pci_info['module'])
+        print("")
+
+    def dump_acpi(acpi_lst):
+        # dump acpi information
+        if len(acpi_lst) == 0 :
+            print("Couldn't detect for ACPI device for audio\n")
+            return
+        for acpi_info in acpi_lst:
+            print("ACPI ID:\t\t\t" +  acpi_info['acpi_id'])
+            print("\tchipset:\t" + acpi_info['hw_name'])
         print("")
 
     def dump_proc_sound(proc_card):
@@ -366,8 +420,15 @@ if __name__ == "__main__":
     sysinfo = clsSYSCardInfo()
     if ret_args['platform'] is True:
         sysinfo.loadPCI()
+        mach_name = None
         for pci_info in sysinfo.pci_lst:
-            print(pci_info['hw_name'])
+            mach_name = pci_info['hw_name']
+        if (mach_name is None):
+            sysinfo.loadACPI()
+            for acpi_info in sysinfo.acpi_lst:
+                mach_name = acpi_info['hw_name']
+        if (mach_name is not None):
+            print(mach_name)
         exit(0)
 
     if ret_args['power'] is True:
@@ -469,6 +530,7 @@ if __name__ == "__main__":
     sysinfo.loadPower()
     dump_dmi(sysinfo.dmi)
     dump_pci(sysinfo.pci_lst)
+    dump_acpi(sysinfo.acpi_lst)
     dump_proc_sound(sysinfo.proc_card)
     dump_power(sysinfo.sys_power)
 
