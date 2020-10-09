@@ -44,15 +44,17 @@ func_opt_parse_option()
                 _long_opt=$_long_opt"${OPT_OPT_lst[$i]}"
                 _op_long_lst["--${OPT_OPT_lst[$i]}"]="$i"
             fi
-            # option will accept parameter
+            # append ':' if the option accepts an argument
             [ ${OPT_PARM_lst[$i]} -eq 1 ] && _short_opt=$_short_opt':' && _long_opt=$_long_opt':'
         done
-        if ! _op_temp_script=$(getopt -o "$_short_opt" --long "$_long_opt" -- "$@" 2>/dev/null) ; then
+
+        if  ! _op_temp_script=$(
+                getopt -o "$_short_opt" --long "$_long_opt" -- "$@"); then
             # here output for the End-User who don't care about this function/option couldn't to run
             printf 'Error parsing options: %s\n' "$*"
-            # For debug and fix the option problem, you need to open those code:
+            # To debug uncomment these lines:
             # printf 'DEBUG parsing options: short_opt: %s / long_opt: %s / args: %s\n' "$_short_opt" "$_long_opt" "$*" >&2
-            # declare -p |grep 'OPT_[A-Z]*_lst'
+            # declare -p |grep -E 'OPT_[A-Z]*_lst|_op_'
             _func_opt_dump_help
         fi
     }
