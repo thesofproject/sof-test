@@ -250,7 +250,7 @@ if __name__ == "__main__":
                 output += str(value) + " "
             else:
                 output += key + "=" + str(value) + ";"
-        return output
+        return output.strip()
 
     def func_export_pipeline(pipeline_lst):
         length = len(pipeline_lst)
