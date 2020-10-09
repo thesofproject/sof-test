@@ -1,15 +1,18 @@
 #!/bin/bash
 
-# Before using, please setup these options for the function
+# Before using this, you must define these option arrays in your test
+# script. They must all be indexed by some unique, one-character
+# codename for each of your option.
 declare -A OPT_DESC_lst OPT_OPT_lst OPT_PARM_lst OPT_VALUE_lst
 
 # option setup && parse function
 func_opt_parse_option()
 {
-    # OPT_OPT_lst Used to define the parameter name
-    # OPT_DESC_lst Used to define a short parameter description
-    # OPT_PARM_lst set to 1 (default is 0, just a switch)
-    # OPT_VALUE_lst Used to store the argument value
+    # OPT_OPT_lst     (long) option name
+    # OPT_DESC_lst    short sentence describing the option
+    # OPT_PARM_lst    0 or 1: number of argument required
+    # OPT_VALUE_lst   default value overwritten by command line
+    #                 input if any. Set to 0 or 1 when PARM=0
 
     # for example
     # OPT_OPT_lst['r']='remote'
@@ -31,10 +34,20 @@ func_opt_parse_option()
          grep '^##' "$SCRIPT_NAME"|sed 's/^##//g'
     }
 
+    # Asks getopt to validate command line input and generate $_op_temp_script
+    #
+    # Also initialize the global _op_short_list and _op_long_list
+    # "reversed maps" (reversed compared to the user's OPT_ maps) that
+    # map valid command line input to the corresponding
+    # one-character option code name. Example:
+    #   _op_short_lst=
+    #        ( [-t]="t" [-d]="d" [-l]="l" [-h]="h" )
+    #   _op_long_lst=
+    #        ( [--help]="h" [--duration]="d" [--tplg]="t" [--loop]="l" )
     _func_create_tmpbash()
     {
+         # options in getopt format
         local i _short_opt _long_opt
-        # loop to combine option which will be loaded by getopt
         for i in ${!OPT_DESC_lst[*]}
         do
             _short_opt=$_short_opt"$i"
@@ -94,13 +107,19 @@ func_opt_parse_option()
             exit 2
         }
 
-    # generate the command to load 'getopt'
+    # Asks getopt to validate input and generate _op_temp_script.
+    # Initialize reverse maps _op_short_lst and _opt_long_lst used next.
     _func_create_tmpbash "$@"
+
+    # FIXME: what is this supposed to do!?
     eval set -- "$_op_temp_script"
 
-    # option function mapping
+    # Iterate over command line input and overwrite OPT_VALUE_lst
+    # default values.
+    # declare -p OPT_OPT_lst OPT_VALUE_lst
     local idx
     while true ; do
+        # idx is our internal one-character code name unique for each option
         idx="${_op_short_lst[$1]}"
         [ ! "$idx" ] && idx="${_op_long_lst[$1]}"
         if [ "$idx" ]; then
@@ -114,10 +133,11 @@ func_opt_parse_option()
             fi
         elif [ "X$1" == "X--" ]; then
             shift && break
-        else
+        else # this should never happen if getopt does a good validation job
             printf 'option: %s unknown, error!' "$1" && exit 2
         fi
     done
+    # declare -p OPT_VALUE_lst
     
     [ "${OPT_VALUE_lst['h']}" -eq 1 ] && _func_opt_dump_help
     # record the full parameter to the cmd
