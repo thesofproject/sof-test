@@ -108,8 +108,8 @@ func_opt_parse_option()
                 [ ! "$2" ] && printf 'option: %s missing parameter, parsing error' "$1" && exit 2
                 OPT_VALUE_lst[$idx]="$2"
                 shift 2
-            else
-                OPT_VALUE_lst[$idx]=$(echo '!'"${OPT_VALUE_lst[$idx]}"|bc)
+            else # boolean flag: reverse the default value
+                OPT_VALUE_lst[$idx]=$((!${OPT_VALUE_lst[$idx]}))
                 shift
             fi
         elif [ "X$1" == "X--" ]; then
