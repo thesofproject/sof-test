@@ -25,7 +25,7 @@ if ! alias | grep -q 'Sub-Test'; then
     DMESG_LOG_START_LINE=$(sof-get-kernel-line.sh|tail -n 1 |awk '{print $1;}')
     cmd="sof-kernel-dump.sh"
 else
-    cmd="journalctl --dmesg"
+    cmd="journalctl --dmesg --no-pager"
 fi
 
 dlogi "Checking SOF Firmware load info in kernel log"
@@ -37,9 +37,9 @@ if $cmd | grep -q " sof-audio.*Firmware.*version"; then
     exit 0
 else
     $cmd | tail -n 500
-    printf ' ------\n $cmd was %s, DMESG_LOG_START_LINE was %s  \n ---- \n' \
+    printf ' ------\n  cmd was %s, DMESG_LOG_START_LINE was %s  \n ---- \n' \
             "$cmd" "$DMESG_LOG_START_LINE"
-    journalctl --dmesg --lines 50
+    journalctl --dmesg --lines 50 --no-pager
     journalctl --dmesg | grep -C 1 " sof-audio.*Firmware.*version" || true
     die "Cannot find the sof audio version"
 fi
