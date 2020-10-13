@@ -76,7 +76,9 @@ ignore_str="$ignore_str"'|: authentication with ..:..:..:..:..:.. timed out'
 #
 # Buglink: https://github.com/thesofproject/sof/issues/3395
 case "$platform" in
-    icl|cml)
+    # Audio PCI ID on CML Mantis is [8086:9dc8], which is defined as CNL in linux kernel.
+    # https://github.com/thesofproject/linux/blob/topic/sof-dev/sound/soc/sof/sof-pci-dev.c
+    icl|cml|cnl)
         ignore_str="$ignore_str"'|sof-audio-pci 0000:00:1f\.3: status = 0x[0]{8} panic = 0x[0]{8}'
         # There will be debug logs at each failed initializaiton of DSP before Linux 5.9
         #   sof-audio-pci 0000:00:1f.3: error: cl_dsp_init: timeout HDA_DSP_SRAM_REG_ROM_STATUS read
