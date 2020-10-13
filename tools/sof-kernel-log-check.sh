@@ -65,6 +65,10 @@ ignore_str="$ignore_str"'|: authentication with ..:..:..:..:..:.. timed out'
 # BugLink: https://github.com/thesofproject/sof-test/issues/374
 ignore_str="$ignore_str"'|i915 0000:00:02\.0: \[drm\] ERROR TC cold unblock failed'
 ignore_str="$ignore_str"'|i915 0000:00:02\.0: \[drm\] ERROR TC cold block failed'
+# CHT devices with USB hub, issues reported by sof-test
+# BugLink: https://github.com/thesofproject/sof-test/issues/431
+ignore_str="$ignore_str"'|hub 2-.: .'
+ignore_str="$ignore_str"'|usb 2-.: .'
 
 # Test cases on some platforms fail because the boot retry message:
 #
