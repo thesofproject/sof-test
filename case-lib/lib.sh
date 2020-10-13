@@ -252,6 +252,14 @@ func_lib_get_tplg_path()
     return 0
 }
 
+func_lib_check_pa()
+{
+    pactl stat &>/dev/null || {
+        dloge "pactl stat failed"
+        return 1
+    }
+}
+
 die()
 {
     dloge "$@"
