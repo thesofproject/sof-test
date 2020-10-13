@@ -61,6 +61,11 @@ ignore_str="$ignore_str"'|thermal thermal_zone.*: failed to read out thermal zon
 ignore_str="$ignore_str"'|iwlwifi 0000:00:14\.3: Microcode SW error detected\. Restarting 0x0\.'
 ignore_str="$ignore_str"'|: authentication with ..:..:..:..:..:.. timed out'
 
+# I915, issues reported by sof-test
+# BugLink: https://github.com/thesofproject/sof-test/issues/374
+ignore_str="$ignore_str"'|i915 0000:00:02\.0: \[drm\] ERROR TC cold unblock failed'
+ignore_str="$ignore_str"'|i915 0000:00:02\.0: \[drm\] ERROR TC cold block failed'
+
 # Test cases on some platforms fail because the boot retry message:
 #
 #    sof-audio-pci 0000:00:1f.3: status = 0x00000000 panic = 0x00000000
