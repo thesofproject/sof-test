@@ -27,6 +27,14 @@ remove_module snd_sof_pci
 remove_module snd_sof_acpi
 
 #-------------------------------------------
+# legacy drivers (not used but loaded)
+#-------------------------------------------
+remove_module snd_soc_catpt
+remove_module snd_intel_sst_acpi
+remove_module snd_intel_sst_core
+remove_module snd_soc_sst_atom_hifi2_platform
+
+#-------------------------------------------
 # Machine drivers
 #-------------------------------------------
 remove_module snd_sof_intel_byt
