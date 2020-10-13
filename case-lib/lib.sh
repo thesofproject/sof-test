@@ -253,6 +253,14 @@ func_lib_get_tplg_path()
     return 0
 }
 
+func_lib_check_pa()
+{
+    pactl stat || {
+        dloge "pactl stat failed"
+        return 1
+    }
+}
+
 # We must not quote SOF_ALSA_OPTS and disable SC2086 below for two reasons:
 #
 # 1. We want to support multiple parameters in a single variable, in
