@@ -20,10 +20,6 @@ ignore_str="$ignore_str"'|xhci_hcd 0000:00:14\.0: WARN Set TR Deq Ptr cmd failed
 ignore_str="$ignore_str"'|mei_me 0000:00:16\.0: wait hw ready failed'
 ignore_str="$ignore_str"'|mei_me 0000:00:16\.0: hw_start failed ret = -62'
 
-# On CML_RVP_SDW, suspend-resume test case failed due to "mei_me 0000:00:16.4: hw_reset failed ret = -62".
-# https://github.com/thesofproject/sof-test/issues/389
-ignore_str="$ignore_str"'|mei_me 0000:00:16\.4: hw_reset failed ret = -62'
-
 # CML Mantis has DELL touchpad i2c error on suspend/resume
 ignore_str="$ignore_str"'|i2c_designware i2c_designware\.0: controller timed out'
 ignore_str="$ignore_str"'|i2c_hid i2c-DELL0955:00: failed to change power setting'
@@ -101,6 +97,10 @@ case "$platform" in
         ignore_str="$ignore_str"'|error: iteration [01]'
         ignore_str="$ignore_str"'|error: status'
         ignore_str="$ignore_str"'|error: cl_dsp_init: timeout HDA_DSP_SRAM_REG_ROM_STATUS read'
+
+        # On CML_RVP_SDW, suspend-resume test case failed due to "mei_me 0000:00:16.4: hw_reset failed ret = -62".
+        # https://github.com/thesofproject/sof-test/issues/389
+        ignore_str="$ignore_str"'|mei_me 0000:00:16\..: hw_reset failed ret = -62'
         ;;
 esac
 
