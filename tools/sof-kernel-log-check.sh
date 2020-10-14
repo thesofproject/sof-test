@@ -1,7 +1,7 @@
 #!/bin/bash
 
 begin_line=${1:-1}
-declare err_str ignore_str project_key
+declare err_str ignore_str
 
 platform=$(sof-dump-status.py -p)
 
@@ -131,11 +131,9 @@ else
 fi
 
 if [ "$err" ]; then
-    echo `date -u '+%Y-%m-%d %T %Z'` "[ERROR]" "Caught dmesg error"
+    echo "$(date -u '+%Y-%m-%d %T %Z')" "[ERROR]" "Caught dmesg error"
     echo "===========================>>"
     echo "$err"
     echo "<<==========================="
     builtin exit 1
 fi
-
-builtin exit 0
