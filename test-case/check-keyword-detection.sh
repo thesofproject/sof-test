@@ -77,7 +77,7 @@ wov_kctl_id=$(amixer controls |grep "Detector" |awk -F= '{print $2}' |cut -d"," 
 wov_kctl_pga=$(amixer controls |grep "KWD Capture Volume" |awk -F= '{print $4}')
 
 # adjust wov PGA volume
-amixer cset name="$wov_kctl_pga" 45
+amixer cset name="$wov_kctl_pga" 40
 
 # store the default config blob
 _store_default_wov_config_bolb()
