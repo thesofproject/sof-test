@@ -37,6 +37,13 @@ func_check_file(){
     check_res=1
 }
 
+func_check_exec_binary() {
+    if ! type "$1" &> /dev/null; then
+        out_str="$out_str""\tExecutable \e[31m $1 \e[0m not found, please put $1 in PATH\n"
+        check_res=1
+    fi
+}
+
 check_res=0
 printf "Checking for some OS packages:\t\t"
 func_check_pkg expect
@@ -46,6 +53,8 @@ func_check_python_pkg graphviz
 func_check_python_pkg numpy
 func_check_python_pkg scipy
 func_check_file "$DYNDBG"
+func_check_exec_binary sof-logger
+func_check_exec_binary sof-ctl
 if [ $check_res -eq 0 ]; then
     printf "pass\n"
 else
