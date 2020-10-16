@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 mydir=$(cd "$(dirname "$0")"; pwd)
 
 # enable dynamic debug logs for SOF modules
@@ -78,7 +80,7 @@ cd "$mydir"
 \t\e[31mcd ${mydir}\n
 \tchmod a+x tools/*\e[0m"
 [[ $check_res -eq 0 ]] && echo "pass" || \
-    echo -e "\e[31mWarning\e[0m\nSolution:"$out_str
+    echo -e "\e[31mWarning\e[0m\nSolution:$out_str"
 
 out_str="" check_res=0
 echo -ne "Checking for case folder:\t\t"
@@ -89,7 +91,7 @@ echo -ne "Checking for case folder:\t\t"
 \t\e[31mcd ${mydir}\n
 \tchmod a+x test-case/*\e[0m"
 [[ $check_res -eq 0 ]] && echo "pass" || \
-    echo -e "\e[31mWarning\e[0m\nSolution:"$out_str
+    echo -e "\e[31mWarning\e[0m\nSolution:$out_str"
 
 out_str="" check_res=0
 echo -ne "Checking the permission:\t\t"
@@ -125,7 +127,7 @@ check_res=1 && out_str=$out_str"\n
 \t\tPlease create the \e[31mlink\e[0m of your distribution kernel log file at \e[31m/var/log/kern.log\e[0m"
 
 [[ $check_res -eq 0 ]] && echo "pass" || \
-    echo -e "\e[31mWarning\e[0m\nSolution:"$out_str
+    echo -e "\e[31mWarning\e[0m\nSolution:$out_str"
 
 out_str="" check_res=0
 echo -ne "Checking the config setup:\t\t"
@@ -159,4 +161,4 @@ esac
 \t\tthe permissions are properly set up according to instructions."
 
 [[ $check_res -eq 0 ]] && echo "pass" || \
-    echo -e "\e[31mWarning\e[0m\nSolution:"$out_str
+    echo -e "\e[31mWarning\e[0m\nSolution:$out_str"
