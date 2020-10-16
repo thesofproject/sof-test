@@ -36,7 +36,9 @@ if $cmd | grep -q " sof-audio.*Firmware.*version"; then
     $cmd | grep "Firmware debug build" -A3 | head -n 12
     exit 0
 else
-    $cmd | tail -n 500
+    printf ' ------\n  debuging with /var/log/kern.log  \n ---- \n'
+    ls -alht /var/log/kern.log
+    grep -na "Linux version" /var/log/kern.log || true
     printf ' ------\n  cmd was %s, DMESG_LOG_START_LINE was %s  \n ---- \n' \
             "$cmd" "$DMESG_LOG_START_LINE"
     journalctl --dmesg --lines 50 --no-pager
