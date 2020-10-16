@@ -1,7 +1,5 @@
 #!/bin/bash
 
-set -e
-
 ##
 ## Case Name: check alsabat
 ## Preconditions:
