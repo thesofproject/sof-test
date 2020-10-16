@@ -84,29 +84,26 @@ ignore_str="$ignore_str"'|usb 2-.: .'
 # --priority. Hopefully other issues will cause the test to fail in that
 # case.
 #
-# For now the codes seem to be 0x00000000 and affected platforms have
-# PCI ID 1f.3. Before adding other values make sure you update the list
-# of affected systems in bug 3395 below.
-#
 # Buglink: https://github.com/thesofproject/sof/issues/3395
+
+ignore_str="$ignore_str"'|sof-audio-pci 0000:00:..\..: status = 0x[0]{8} panic = 0x[0]{8}'
+# There will be debug logs at each failed initializaiton of DSP before Linux 5.9
+#   sof-audio-pci 0000:00:1f.3: error: cl_dsp_init: timeout HDA_DSP_SRAM_REG_ROM_STATUS read
+#   sof-audio-pci 0000:00:1f.3: error: status = 0x00000000 panic = 0x00000000
+#   sof-audio-pci 0000:00:1f.3: error: Error code=0xffffffff: FW status=0xffffffff
+#   sof-audio-pci 0000:00:1f.3: error: iteration 0 of Core En/ROM load failed: -110
+# We will reinit DSP if it is failed to init, and retry 3 times, so the errors in
+# debug logs at the frist and second retry can be ignored.
+# Check https://github.com/thesofproject/linux/pull/1676 for more information.
+# Fixed by https://github.com/thesofproject/linux/pull/2382
+ignore_str="$ignore_str"'|error: iteration [01]'
+ignore_str="$ignore_str"'|error: status'
+ignore_str="$ignore_str"'|error: cl_dsp_init: timeout HDA_DSP_SRAM_REG_ROM_STATUS read'
+
 case "$platform" in
     # Audio PCI ID on CML Mantis is [8086:9dc8], which is defined as CNL in linux kernel.
     # https://github.com/thesofproject/linux/blob/topic/sof-dev/sound/soc/sof/sof-pci-dev.c
     icl|cml|cnl)
-        ignore_str="$ignore_str"'|sof-audio-pci 0000:00:1f\.3: status = 0x[0]{8} panic = 0x[0]{8}'
-        # There will be debug logs at each failed initializaiton of DSP before Linux 5.9
-        #   sof-audio-pci 0000:00:1f.3: error: cl_dsp_init: timeout HDA_DSP_SRAM_REG_ROM_STATUS read
-        #   sof-audio-pci 0000:00:1f.3: error: status = 0x00000000 panic = 0x00000000
-        #   sof-audio-pci 0000:00:1f.3: error: Error code=0xffffffff: FW status=0xffffffff
-        #   sof-audio-pci 0000:00:1f.3: error: iteration 0 of Core En/ROM load failed: -110
-        # We will reinit DSP if it is failed to init, and retry 3 times, so the errors in
-        # debug logs at the frist and second retry can be ignored.
-        # Check https://github.com/thesofproject/linux/pull/1676 for more information.
-        # Fixed by https://github.com/thesofproject/linux/pull/2382
-        ignore_str="$ignore_str"'|error: iteration [01]'
-        ignore_str="$ignore_str"'|error: status'
-        ignore_str="$ignore_str"'|error: cl_dsp_init: timeout HDA_DSP_SRAM_REG_ROM_STATUS read'
-
         # On CML_RVP_SDW, suspend-resume test case failed due to "mei_me 0000:00:16.4: hw_reset failed ret = -62".
         # https://github.com/thesofproject/sof-test/issues/389
         ignore_str="$ignore_str"'|mei_me 0000:00:16\..: hw_reset failed ret = -62'
