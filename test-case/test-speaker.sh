@@ -1,6 +1,5 @@
 #!/bin/bash
 
-# TODO: case & descrption step need to confirm
 ##
 ## Case Name: test speaker test
 ## Preconditions:
