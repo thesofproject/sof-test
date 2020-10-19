@@ -1,16 +1,18 @@
 #!/bin/bash
 
-# TODO: case & descrption step need to confirm
 ##
-## Case Name: test speaker test
+## Case Name: test-speaker
 ## Preconditions:
-##    N/A
+##    Wave file for each channel should be in /usr/share/sounds/alsa,
+##    eg, Front_Left.wav, Front_Right.wav, etc.
 ## Description:
-##    using speaker-test to do playback test
+##    Test playback pipelines with speaker-test
 ## Case step:
-##    speaker-test on each playback pipelines
+##    Iteratively run speaker-test on each playback pipeline
 ## Expect result:
-##    speaker-test end without error
+##    1. speaker-test returns without error.
+##    2. Waves are played through corresponding speaker, eg, you should only
+##       hear "front left" from the front left speaker.
 ##
 
 source $(dirname ${BASH_SOURCE[0]})/../case-lib/lib.sh
