@@ -69,27 +69,29 @@ fi
 
 # check for the tools folder
 out_str="" check_res=0
-echo -ne "Check for tools folder:\t\t"
+echo -ne "Checking exec permissions in tools/ directory:\t\t"
 
 cd "$mydir"
 
-[[ "$(stat -c "%A" ./tools/* |grep -v 'x')" ]] && check_res=1 && out_str=$out_str"\n
-\tMissing execution permission of script/binary in tools folder\n
+if stat -c "%n %A" ./tools/* | grep -v 'x$'; then
+    check_res=1; out_str=$out_str"\n
+\tMissing execution permission for some script/binary in tools/ directory\n
 \tWarning: you need to make sure the current user has execution permssion\n
 \tPlease use the following command to give execution permission:\n
-\t\e[31mcd ${mydir}\n
-\tchmod a+x tools/*\e[0m"
+\tchmod a+x ${mydir}/tools/*\e[0m"
+fi
 [[ $check_res -eq 0 ]] && echo "pass" || \
     echo -e "\e[31mWarning\e[0m\nSolution:$out_str"
 
 out_str="" check_res=0
-echo -ne "Checking for case folder:\t\t"
-[[ "$(stat -c "%A" ./test-case/* |grep -v 'x')" ]] && check_res=1 && out_str="\n
-\tMissing execution permission of script/binary in test-case folder\n
+echo -ne "Checking exec permissions in test-case/ directory:\t\t"
+if stat -c "%n %A" ./test-case/* |grep -v 'x$';then
+   check_res=1; out_str="\n
+\tMissing execution permission for some script/binary in test-case/ directory\n
 \tWarning: you need to make sure the current user has execution permssion\n
 \tPlease use the following command to give execution permission:\n
-\t\e[31mcd ${mydir}\n
-\tchmod a+x test-case/*\e[0m"
+\tchmod a+x ${mydir}/test-case/*\e[0m"
+fi
 [[ $check_res -eq 0 ]] && echo "pass" || \
     echo -e "\e[31mWarning\e[0m\nSolution:$out_str"
 
