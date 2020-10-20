@@ -94,7 +94,8 @@ echo -ne "Checking for case folder:\t\t"
     echo -e "\e[31mWarning\e[0m\nSolution:$out_str"
 
 out_str="" check_res=0
-echo -ne "Checking the permission:\t\t"
+echo -ne "Checking group memberships:\t\t"
+
 if [[ "$SUDO_USER" ]]; then
     user="$SUDO_USER"
 elif [[ "$UID" -ne 0 ]]; then
@@ -102,24 +103,23 @@ elif [[ "$UID" -ne 0 ]]; then
 else
     user=""
 fi
-[[ "$user" ]] && [[ ! $(awk -F ':' '/^adm:/ {print $NF;}' /etc/group|grep "$user") ]] && \
-check_res=1 && out_str=$out_str"\n
-\tMissing permission to access /var/log/kern.log\n
-\t\tPlease use the following command to add current user to the adm group:\n
-\t\e[31msed -i '/^adm:/s:$:,$user:g' /etc/group\e[0m"
 
-[[ "$user" ]] && [[ ! $(awk -F ':' '/^sudo:/ {print $NF;}' /etc/group|grep "$user") ]] && \
-check_res=1 && out_str=$out_str"\n
-\tMissing permission to run command as sudo\n
-\t\tPlease use the following command to add current user to the sudo group:\n
-\t\e[31msed -i '/^sudo:/s:$:,$user:g' /etc/group\e[0m"
+check_group()
+{
+    local grp="$1" errmsg="$2"
+    if getent group "$grp" | grep -q "$user"; then return 0; fi
 
-[[ "$user" ]] && [[ ! $(awk -F ':' '/^audio:/ {print $NF;}' /etc/group|grep "$user") ]] && \
-check_res=1 && out_str=$out_str"\n
-\tMissing audio group membership to access /dev/snd/* devices\n
-\t\tPlease use the following command to add current user to the audio group, then log in again:\n
-\t\e[31msudo usermod --append --groups audio $user
-\e[0m"
+    check_res=1
+    out_str=$out_str"\n
+${errmsg}
+\t\tPlease use the following command to add current user to the group $grp:\n
+\t\e[31m sudo usermod --append --groups $grp $user\e[0m
+"
+}
+
+check_group adm '\tMissing permission to access /var/log/kern.log\n'
+check_group sudo '\tMissing permission to run command as sudo\n'
+check_group audio '\tMissing audio group membership to access /dev/snd/* devices\n'
 
 [[ ! -e "/var/log/kern.log" ]] && \
 check_res=1 && out_str=$out_str"\n
