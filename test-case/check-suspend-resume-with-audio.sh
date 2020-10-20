@@ -95,8 +95,9 @@ do
     pcm=$(func_pipeline_parse_value $idx pcm)
     snd=$(func_pipeline_parse_value $idx snd)
     dlogi "Run $TYPE command for the background"
-    dlogc "$cmd -D$dev -r $rate -c $channel -f $fmt $file_name -q"
-    $cmd -D$dev -r $rate -c $channel -f $fmt $file_name -q 2>/dev/null & process_id=$!
+    cmd_args="$cmd -D$dev -r $rate -c $channel -f $fmt $file_name -q"
+    dlogc "$cmd_args"
+    $cmd -D$dev -r $rate -c $channel -f $fmt $file_name -q  & process_id=$!
     # delay for process run
     sleep 1
     # check process status is correct
@@ -124,10 +125,10 @@ do
         ps --ppid $$ -f
         exit 1
     fi
+    dlogi "Killing $cmd_args"
     kill -9 $process_id
     sof-kernel-log-check.sh 0 || die "Catch error in dmesg"
 done
 
 # check full log
 sof-kernel-log-check.sh $KERNEL_LAST_LINE
-exit $?
