@@ -15,6 +15,8 @@ TPLG_ROOT=${TPLG_ROOT:-/lib/firmware/intel/sof-tplg}
 # example: ignore 'pcms that are HDA Digital & HDA Analog'
 # TPLG_IGNORE_LST['pcm']='HDA Digital,HDA Analog'
 declare -A TPLG_IGNORE_LST
+# Used in case-lib/pipeline.sh as of October 2020
+# shellcheck disable=SC2034
 TPLG_IGNORE_LST['pcm']='HDA Digital'
 
 # Will be set by the lib function, don't need to set
