@@ -264,3 +264,8 @@ sudo sync -f || true
 if [ ! "$DMESG_LOG_START_LINE" ]; then
     DMESG_LOG_START_LINE=$(wc -l /var/log/kern.log|awk '{print $1;}')
 fi
+
+is_sof_used()
+{
+    grep -q "sof" /proc/asound/cards;
+}
