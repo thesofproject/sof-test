@@ -33,6 +33,7 @@ remove_module snd_soc_catpt
 remove_module snd_intel_sst_acpi
 remove_module snd_intel_sst_core
 remove_module snd_soc_sst_atom_hifi2_platform
+remove_module snd_soc_skl
 
 #-------------------------------------------
 # Machine drivers
