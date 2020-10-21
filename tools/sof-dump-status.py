@@ -2,6 +2,7 @@
 
 import subprocess
 import os
+from common import format_pipeline, export_pipeline
 
 class clsSYSCardInfo():
     def __init__(self):
@@ -364,12 +365,8 @@ if __name__ == "__main__":
             return
 
     def dump_cardinfo_pcm(card_info):
-        pcm_lst = card_info.get('pcm')
-        def _getStr(tmp_dict, key):
-            return '%s=%s'%(key, tmp_dict.get(key))
-        for pcm in pcm_lst:
-            print('%s;%s;%s;' % (_getStr(pcm, 'id'), _getStr(pcm, 'pcm'), _getStr(pcm, 'type')))
-        return 0
+        for pipeline in card_info.get('pcm'):
+            print(format_pipeline(pipeline))
 
     def dump_dapm(dapm, filter = "all"):
         if filter == "all" and len(dapm['dapm_lst']) == 0:
@@ -413,6 +410,7 @@ if __name__ == "__main__":
     parser.add_argument('-P', '--fwpath', action='store_true', help='get firmware path according to DMI info')
     parser.add_argument('-S', '--dsp_status', type=int, help='get current dsp power status, should specify sof card number')
     parser.add_argument('-d', '--dapm', choices=['all', 'on', 'off', 'standby'], help='get current dapm status, this option need root permission to access debugfs')
+    parser.add_argument('-e', '--export', action='store_true', help='export pipeline parameters from proc file system')
     parser.add_argument('--version', action='version', version='%(prog)s 1.0')
 
     ret_args = vars(parser.parse_args())
@@ -435,6 +433,22 @@ if __name__ == "__main__":
         sysinfo.loadPower()
         for run_status in sysinfo.sys_power['run_status']:
             print(run_status['status'])
+        exit(0)
+
+    if ret_args['export'] is True:
+        sysinfo.loadProcSound()
+        pipeline_lst = []
+        for (card_id, card_info) in sysinfo.proc_card.items():
+            for pcm in card_info['pcm']:
+                # There are limited pipeline parameters in the proc file system,
+                # add some default parameters to make use of sof-test for legacy HDA test
+                pcm['fmt'] = 'S16_LE'
+                pcm['fmts'] = 'S16_LE S24_LE S32_LE'
+                pcm['rate'] = '48000'
+                pcm['channel'] = '2'
+                pcm['dev'] = 'hw:{},{}'.format(card_id, pcm['id'])
+            pipeline_lst.extend(card_info['pcm'])
+        export_pipeline(pipeline_lst)
         exit(0)
 
     if ret_args.get('id') is not None:
