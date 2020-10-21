@@ -4,6 +4,7 @@ import subprocess
 import os
 import re
 from tplgtool import TplgParser, TplgFormatter
+from common import func_dump_pipeline, func_export_pipeline
 
 class clsTPLGReader:
     def __init__(self):
@@ -243,33 +244,6 @@ class clsTPLGReader:
         return self._output_lst
 
 if __name__ == "__main__":
-    def func_dump_pipeline(pipeline, noKey=False):
-        output = ""
-        for key, value in pipeline.items():
-            if noKey is True:
-                output += str(value) + " "
-            else:
-                output += key + "=" + str(value) + ";"
-        return output.strip()
-
-    def func_export_pipeline(pipeline_lst):
-        length = len(pipeline_lst)
-        keyword = 'PIPELINE'
-        # clear up the older define
-        print('unset %s_COUNT' % (keyword))
-        print('unset %s_LST' % (keyword))
-        print('declare -g %s_COUNT' % (keyword))
-        print('declare -ag %s_LST' % (keyword))
-        print('%s_COUNT=%d' % (keyword, length))
-        for idx in range(0, length):
-            # store pipeline
-            print('%s_LST[%d]="%s"' % (keyword, idx, func_dump_pipeline(pipeline_lst[idx])))
-            # store pipeline to each list
-            print('unset %s_%d' % (keyword, idx))
-            print('declare -Ag %s_%d' % (keyword, idx))
-            for key, value in pipeline_lst[idx].items():
-                print('%s_%d["%s"]="%s"' % (keyword, idx, key, value))
-        return 0
 
     def func_getPipeline(tplgObj, tplgName, sdcard_id, sort):
         if tplgObj.loadFile(tplgName, sdcard_id) != 0:
