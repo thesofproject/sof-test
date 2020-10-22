@@ -410,7 +410,11 @@ if __name__ == "__main__":
     parser.add_argument('-P', '--fwpath', action='store_true', help='get firmware path according to DMI info')
     parser.add_argument('-S', '--dsp_status', type=int, help='get current dsp power status, should specify sof card number')
     parser.add_argument('-d', '--dapm', choices=['all', 'on', 'off', 'standby'], help='get current dapm status, this option need root permission to access debugfs')
-    parser.add_argument('-e', '--export', action='store_true', help='export pipeline parameters from proc file system')
+    # The filter string here is compatible with the filter string for pipeline from topology,
+    # and takes the form of 'type:playback & pga:any & ~asrc:any | id:5'.
+    parser.add_argument('-e', '--export', type=str, help='export pipeline parameters of specified type from proc file system,\n'
+    'to specify pipeline type, use "-e type:playback", complex string like\n'
+    '"type:playback & pga:any" can be used, but only "type" is processed')
     parser.add_argument('--version', action='version', version='%(prog)s 1.0')
 
     ret_args = vars(parser.parse_args())
@@ -435,7 +439,7 @@ if __name__ == "__main__":
             print(run_status['status'])
         exit(0)
 
-    if ret_args['export'] is True:
+    if ret_args['export'] is not None:
         sysinfo.loadProcSound()
         pipeline_lst = []
         for (card_id, card_info) in sysinfo.proc_card.items():
@@ -448,7 +452,26 @@ if __name__ == "__main__":
                 pcm['channel'] = '2'
                 pcm['dev'] = 'hw:{},{}'.format(card_id, pcm['id'])
             pipeline_lst.extend(card_info['pcm'])
-        export_pipeline(pipeline_lst)
+        # The filter string may be very complex due to the compatibility with topology pipeline
+        # filter string, but we only implement a simple type filter here.
+        try:
+            # ret_args['export'] contains filter string, and it may looks like 'type:capture & pga:any | id:3'
+            # extract filter elements, and drop logic operator
+            filter_elements = [elem for elem in ret_args['export'].split(' ') if ':' in elem]
+            # extract requested pipeline type from filter elements, and ignore others.
+            requested_type = [f.split(':')[1] for f in filter_elements if f.strip().startswith('type')][0]
+        except:
+            print('Invalid filter string')
+            exit(1)
+        # requested_type may take one of the values: playback, capture, any
+        if requested_type in ['playback', 'capture']:
+            export_pipeline([p for p in pipeline_lst if p['type'] == requested_type])
+        elif requested_type == 'any':
+            export_pipeline(pipeline_lst)
+        else:
+            print('Unknown requested pipeline type: %s' % requested_type)
+            print('Available requested pipeline types are: playback, capture, any')
+            exit(1)
         exit(0)
 
     if ret_args.get('id') is not None:
