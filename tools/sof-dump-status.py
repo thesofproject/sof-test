@@ -70,7 +70,7 @@ class clsSYSCardInfo():
 
     def loadPCI(self):
         self.pci_lst.clear()
-        exit_code, output=subprocess.getstatusoutput("lspci |grep audio -i|grep intel -i")
+        exit_code, output=subprocess.getstatusoutput("lspci -D |grep audio -i|grep intel -i")
         # grep exit 1 means nothing matched
         if exit_code != 0:
             return
@@ -216,7 +216,7 @@ class clsSYSCardInfo():
             self.loadPCI()
 
         for pci_info in self.pci_lst:
-            exit_code, output=subprocess.getstatusoutput("cat /sys/bus/pci/devices/0000:%s/power/runtime_status" % (pci_info['pci_id']))
+            exit_code, output=subprocess.getstatusoutput("cat /sys/bus/pci/devices/%s/power/runtime_status" % (pci_info['pci_id']))
             if exit_code != 0:
                 continue
             self.sys_power['run_status'].append({'map_id': pci_info['pci_id'], 'status': output})
@@ -235,7 +235,7 @@ class clsSYSCardInfo():
         self.dapm['name_lst'].clear()
 
         for pci_info in self.pci_lst:
-            exit_code, output=subprocess.getstatusoutput("cat /sys/bus/pci/devices/0000:%s/power/control" % (pci_info['pci_id']))
+            exit_code, output=subprocess.getstatusoutput("cat /sys/bus/pci/devices/%s/power/control" % (pci_info['pci_id']))
             if exit_code != 0:
                 continue
             self.dapm['ctrl_lst'].append({'id': pci_info['pci_id'], 'status':output})
