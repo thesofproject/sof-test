@@ -93,11 +93,11 @@ func_opt_parse_option()
                 printf '\n\t%s\n' "${OPT_DESC_lst[$i]}"
                 if [ "${OPT_VALUE_lst[$i]}" ]; then
                     if [ "${OPT_PARM_lst[$i]}" -eq 1 ]; then
-                        printf '\tDefault Value: %s' "${OPT_VALUE_lst[$i]}"
+                        printf '\tDefault Value: %s\n' "${OPT_VALUE_lst[$i]}"
                     elif [ "${OPT_VALUE_lst[$i]}" -eq 0 ]; then
-                        printf '\tDefault Value: Off'
+                        printf '\tDefault Value: Off\n'
                     else
-                        printf '\tDefault Value: On'
+                        printf '\tDefault Value: On\n'
                     fi
                 fi
             done
