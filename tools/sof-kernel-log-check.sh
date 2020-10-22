@@ -15,11 +15,6 @@ ignore_str='error: debugfs write failed to idle -16'
 # https://bugzilla.kernel.org/show_bug.cgi?id=202541
 ignore_str="$ignore_str"'|xhci_hcd 0000:00:14\.0: WARN Set TR Deq Ptr cmd failed due to incorrect slot or ep state'
 
-# CML Mantis occasionally throws Intel(R) Management Engine Interface(mei) errors
-# https://unix.stackexchange.com/questions/109294/mei-00000016-0-init-hw-failure
-ignore_str="$ignore_str"'|mei_me 0000:00:16\.0: wait hw ready failed'
-ignore_str="$ignore_str"'|mei_me 0000:00:16\.0: hw_start failed ret = -62'
-
 # CML Mantis has DELL touchpad i2c error on suspend/resume
 ignore_str="$ignore_str"'|i2c_designware i2c_designware\.0: controller timed out'
 ignore_str="$ignore_str"'|i2c_hid i2c-DELL0955:00: failed to change power setting'
@@ -104,9 +99,14 @@ case "$platform" in
     # Audio PCI ID on CML Mantis is [8086:9dc8], which is defined as CNL in linux kernel.
     # https://github.com/thesofproject/linux/blob/topic/sof-dev/sound/soc/sof/sof-pci-dev.c
     icl|cml|cnl)
-        # On CML_RVP_SDW, suspend-resume test case failed due to "mei_me 0000:00:16.4: hw_reset failed ret = -62".
+        # On CML_RVP_SDW, suspend-resume test case failed due to "mei_me 0000:00:16.4: hw_reset failed ret = -62" or with "hw_start" with same error code.
         # https://github.com/thesofproject/sof-test/issues/389
         ignore_str="$ignore_str"'|mei_me 0000:00:16\..: hw_reset failed ret = -62'
+        ignore_str="$ignore_str"'|mei_me 0000:00:16\..: hw_start failed ret = -62'
+
+        # CML Mantis occasionally throws Intel(R) Management Engine Interface(mei) errors
+        # https://unix.stackexchange.com/questions/109294/mei-00000016-0-init-hw-failure
+        ignore_str="$ignore_str"'|mei_me 0000:00:16\..: wait hw ready failed'
         ;;
 esac
 
