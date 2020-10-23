@@ -20,13 +20,11 @@ source "$(dirname "${BASH_SOURCE[0]}")"/../case-lib/lib.sh
 
 func_opt_parse_option "$@"
 
-if ! alias | grep -q 'Sub-Test'; then
-    # hijack DMESG_LOG_START_LINE which refer dump kernel log in exit function
-    DMESG_LOG_START_LINE=$(sof-get-kernel-line.sh|tail -n 1 |awk '{print $1;}')
-    cmd="sof-kernel-dump.sh"
-else
-    cmd="journalctl --dmesg --no-pager"
-fi
+# hijack DMESG_LOG_START_LINE to dump kernel from file start is not Sub-Test
+# TODO: clean up Sub-Test feature
+alias | grep -q 'Sub-Test' || DMESG_LOG_START_LINE=$(sof-get-kernel-line.sh | tail -n 1 | awk '{print $1;}' )
+
+cmd="journalctl -k -q --no-pager --utc --output=short-monotonic --no-hostname"
 
 dlogi "Checking SOF Firmware load info in kernel log"
 if $cmd | grep -q " sof-audio.*Firmware.*version"; then
@@ -36,12 +34,8 @@ if $cmd | grep -q " sof-audio.*Firmware.*version"; then
     $cmd | grep "Firmware debug build" -A3 | head -n 12
     exit 0
 else
-    printf ' ------\n  debuging with /var/log/kern.log  \n ---- \n'
-    ls -alht /var/log/kern.log
-    grep -na "Linux version" /var/log/kern.log || true
-    printf ' ------\n  cmd was %s, DMESG_LOG_START_LINE was %s  \n ---- \n' \
-            "$cmd" "$DMESG_LOG_START_LINE"
-    journalctl --dmesg --lines 50 --no-pager
-    journalctl --dmesg | grep -C 1 " sof-audio.*Firmware.*version" || true
+    journalctl -k -q --no-pager --utc --output=short-monotonic --no-hostname --lines 50 || true
+    printf ' ------\n  debugging with systemd journalctl  \n ---- \n'
+    systemctl status systemd-journald* || true
     die "Cannot find the sof audio version"
 fi
