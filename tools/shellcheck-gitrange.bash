@@ -10,6 +10,10 @@ set -e
 
 main()
 {
+    # git outputs relative paths
+    local git_top; git_top=$(git rev-parse --show-toplevel)
+    cd "$git_top"
+
     # The rest of args is passed as is to shellcheck
     local diffrange="$1"; shift
 
