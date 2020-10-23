@@ -38,10 +38,10 @@ if [ ! "$SOFCARD" ]; then
     SOFCARD=$(grep 'sof-[a-z]' /proc/asound/cards|awk '{print $1;}')
 fi
 
-func_lib_setup_kernel_last_line()
+func_lib_setup_kernel_last_timestamp()
 {
     # shellcheck disable=SC2034 # external script will use it
-    KERNEL_LAST_LINE=$(wc -l /var/log/kern.log|awk '{print $1;}')
+    KERNEL_LAST_TIMESTAMP=$(date +%s)
 }
 
 # This function adds a fake error to dmesg (which is always saved by

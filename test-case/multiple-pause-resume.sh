@@ -58,7 +58,7 @@ func_pipeline_export $tplg "type:any"
 
 [[ ${OPT_VALUE_lst['s']} -eq 1 ]] && func_lib_start_log_collect
 
-func_lib_setup_kernel_last_line
+func_lib_setup_kernel_last_timestamp
 
 declare -a pipeline_idx_lst
 declare -a cmd_idx_lst
@@ -190,5 +190,5 @@ do
     sof-kernel-log-check.sh 0 || die "Catch error in dmesg"
 done
 
-sof-kernel-log-check.sh $KERNEL_LAST_LINE
+sof-kernel-log-check.sh $KERNEL_LAST_TIMESTAMP
 exit $?

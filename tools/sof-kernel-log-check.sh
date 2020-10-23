@@ -126,13 +126,10 @@
 # Append some garbage to an ignore pattern to turn it off. Much easier
 # than deleting it.
 
-
-begin_line=${1:-1}
-declare err_str ignore_str
+begin_timestamp=${1:-0}
+declare ignore_str
 
 platform=$($(dirname "$0")/sof-dump-status.py -p)
-
-err_str="error|failed|timed out|panic|oops"
 
 # TODO explain
 # The first string cannot start by |
@@ -241,32 +238,18 @@ case "$platform" in
         ;;
 esac
 
-[[ ! "$err_str" ]] && echo "Missing error keyword list" && exit 0
-# dmesg KB size buffer size
-#dmesg_config_define=$(awk -F '=' '/CONFIG_LOG_BUF_SHIFT/ {print $2;}' /boot/config-$(uname -r))
-#dmesg_buffer_size=$( echo $(( (1<<$dmesg_config_define) / 1024 )) )
-# kernel file log buffer size
-#kernel_buffer_size=$(du -k /var/log/kern.log |awk '{print $1;}')
-# now decide using which to catch the kernel log
-#[[ $kernel_buffer_size -lt $dmesg ]] && cmd="dmesg" || cmd="tail -n  +${begin_line}  /var/log/kern.log"
+# confirm begin_timestamp is in UNIX timestamp format, otherwise search full log
+journalctlflag="-k -q --no-pager --utc --output=short-iso --no-hostname"
+[[ $begin_timestamp =~ ^[0-9]{10} ]] && cmd="journalctl $journalctlflag --since=@$begin_timestamp" || cmd="journalctl $journalctlflag"
 
-# confirm begin_line is number, if it is not the number, direct using dmesg
-[[ "${begin_line//[0-9]/}" ]] && begin_line=0
-[[ "$begin_line" -eq 0 ]] && cmd="dmesg" || cmd="tail -n  +${begin_line}  /var/log/kern.log"
+declare -p cmd
+# check priority err for error message
+[[ "$ignore_str" ]] && err=$($cmd --priority=err | grep -vE "$ignore_str") || $($cmd --priority=err)
 
-#echo "run $0 with parameter '$*' for check kernel message error"
-
-# declare -p cmd
-if [ "$ignore_str" ]; then
-    err=$(   $cmd | grep 'Call Trace' -A5 -B3)$(     $cmd | grep -E "$err_str"|grep -vE "$ignore_str")
-else
-    err=$(   $cmd | grep 'Call Trace' -A5 -B3)$(     $cmd | grep -E "$err_str")
-fi
-
-if [ "$err" ]; then
-    echo "$(date -u '+%Y-%m-%d %T %Z')" "[ERROR]" "Caught dmesg error"
+[[ -z "$err" ]] || {
+    echo "$(date -u '+%Y-%m-%d %T %Z')" "[ERROR]" "Caught kernel log error"
     echo "===========================>>"
     echo "$err"
     echo "<<==========================="
     builtin exit 1
-fi
+}
