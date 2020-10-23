@@ -130,7 +130,7 @@
 begin_line=${1:-1}
 declare err_str ignore_str
 
-platform=$(sof-dump-status.py -p)
+platform=$($(dirname "$0")/sof-dump-status.py -p)
 
 err_str="error|failed|timed out|panic|oops"
 
