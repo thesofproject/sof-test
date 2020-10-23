@@ -28,6 +28,9 @@ main()
     # https://mywiki.wooledge.org/BashFAQ/001
     while IFS=  read -r fname; do
 
+         # "file" can fail and return 0. This prints "No such file or
+         # directory".
+        stat "$fname" > /dev/null
         ftype=$(file --brief --mime-type "$fname")
         if  [ x'text/x-shellscript' = x"$ftype" ]; then
             printf '\n\n  ----- shellcheck %s ----\n\n' "$fname"
