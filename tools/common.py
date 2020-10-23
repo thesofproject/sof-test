@@ -1,4 +1,4 @@
-def func_dump_pipeline(pipeline, noKey=False):
+def format_pipeline(pipeline, noKey=False):
     output = ""
     for key, value in pipeline.items():
         if noKey is True:
@@ -10,7 +10,7 @@ def func_dump_pipeline(pipeline, noKey=False):
 # This function will generate shell code according to pipeline parameters,
 # then pipeline parameters can be accessed from test case by sourcing or
 # executing the generated code.
-def func_export_pipeline(pipeline_lst):
+def export_pipeline(pipeline_lst):
     length = len(pipeline_lst)
     keyword = 'PIPELINE'
     # clear up the older define
@@ -21,7 +21,7 @@ def func_export_pipeline(pipeline_lst):
     print('%s_COUNT=%d' % (keyword, length))
     for idx in range(0, length):
         # store pipeline
-        print('%s_LST[%d]="%s"' % (keyword, idx, func_dump_pipeline(pipeline_lst[idx])))
+        print('%s_LST[%d]="%s"' % (keyword, idx, format_pipeline(pipeline_lst[idx])))
         # store pipeline to each list
         print('unset %s_%d' % (keyword, idx))
         print('declare -Ag %s_%d' % (keyword, idx))
