@@ -23,4 +23,4 @@ jobs:
 
     - name: "shellcheck"
       # Triple-dotted 'origin/master...HEAD'
-      script: ./tools/shellcheck-gitrange.bash "${TRAVIS_COMMIT_RANGE}"
+      script: ./tools/CI/check-gitrange.bash "${TRAVIS_COMMIT_RANGE}"
