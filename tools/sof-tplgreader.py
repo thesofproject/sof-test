@@ -4,7 +4,7 @@ import subprocess
 import os
 import re
 from tplgtool import TplgParser, TplgFormatter
-from common import func_dump_pipeline, func_export_pipeline
+from common import format_pipeline, export_pipeline
 
 class clsTPLGReader:
     def __init__(self):
@@ -350,7 +350,7 @@ PIPELINE_$ID['key']='value' ''')
         pipeline_lst += func_getPipeline(tplgreader, f, ret_args['sofcard'], ret_args['sort'])[:]
 
     if ret_args['export'] is True:
-        exit(func_export_pipeline(pipeline_lst))
+        exit(export_pipeline(pipeline_lst))
 
     if ret_args['count'] is True:
         if ret_args['value'] is True:
@@ -358,7 +358,7 @@ PIPELINE_$ID['key']='value' ''')
         else:
             print("Pipeline Count: %d" % (len(pipeline_lst)))
     elif ret_args['index'] is not None and ret_args['index'] < len(pipeline_lst):
-        print(func_dump_pipeline(pipeline_lst[ret_args['index']], ret_args['value']))
+        print(format_pipeline(pipeline_lst[ret_args['index']], ret_args['value']))
     else:
         for pipeline in pipeline_lst:
-            print(func_dump_pipeline(pipeline, ret_args['value']))
+            print(format_pipeline(pipeline, ret_args['value']))
