@@ -4,9 +4,19 @@
 
 set -e
 
-# Sample usage:
-#
-#   $  shellcheck-gitrange.bash origin/master... [ -f gcc ]
+usage()
+{
+    cat <<EOFUSAGE
+Sample usage:
+
+    $0 origin/master... text/x-shellscript   shellcheck  -x -f gcc
+
+    $0 origin/master... text/x-python        pylint  --disable=C
+
+EOFUSAGE
+
+    exit 1
+}
 
 main()
 {
@@ -14,10 +24,16 @@ main()
     local git_top; git_top=$(git rev-parse --show-toplevel)
     cd "$git_top"
 
-    # The rest of args is passed as is to shellcheck
-    local diffrange="$1"; shift
+    local diffrange="$1"; shift || usage
 
     printf '%s checking diff range: %s\n\n' "$0" "$diffrange"
+
+    local checked_ftype="$1"; shift || usage
+    file --list | grep -qF "$checked_ftype" ||
+        die 'The file command does not know what %s is\n' "$checked_ftype"
+
+    local checker="$1"; shift || usage
+    type "$checker" || die 'Checker %s not found\n' "$checker"
 
     # Triple dot "git log A...B" includes commits not relevant to triple
     # dot "git diff A...B"
@@ -36,14 +52,26 @@ main()
          # directory".
         stat "$fname" > /dev/null
         ftype=$(file --brief --mime-type "$fname")
-        if  [ x'text/x-shellscript' = x"$ftype" ]; then
-            printf '\n\n  ----- shellcheck %s ----\n\n' "$fname"
-            shellcheck -x "$@" "$fname"  || : $((failed_files++))
+        if  [ x"$checked_ftype" = x"$ftype" ]; then
+            printf '\n\n  ----- %s' "$checker"
+            printf ' %s' "$@"
+            printf ' %s ----\n\n' "$fname"
+            "$checker" "$@" "$fname"  || : $((failed_files++))
         fi
 
     done < <(git diff --name-only --diff-filter=d "$diffrange" -- )
 
     return $failed_files
+}
+
+
+die()
+{
+    >&2 printf '%s ERROR: ' "$0"
+    # We want die() to be usable exactly like printf
+    # shellcheck disable=SC2059
+    >&2 printf "$@"
+    exit 1
 }
 
 main "$@"
