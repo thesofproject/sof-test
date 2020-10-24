@@ -1,5 +1,132 @@
 #!/bin/bash
 
+# This file is a (crude) database of well-known error messages that we
+# don't want to be reported as failures for various reasons.
+#
+# It is the equivalent of the (tightly controlled) passlist in this
+# file:
+# https://gitlab.freedesktop.org/drm/igt-gpu-tools/-/blob/64f3a4c4351/runner/resultgen.c#L776
+#
+# Ignoring errors is very dangerous for reasons detailed below so please
+# read this and think twice before making changes in this file.
+
+# Error types
+# -----------
+#
+# This "database" gathers different sorts of error messages:
+
+# 1. Audio or audio-related errors
+#
+# We want to ignore some audio errors when they are already tracked in a
+# bug tracker and after careful review we are confident that they do not
+# affect other, unrelated tests. The purpose of CI is to detect new bugs
+# and regressions, not to duplicate bug tracking. When test results are
+# red most of the time for the same old reasons then most users stop
+# paying attention and they miss new errors.
+
+# 2. Non-audio / 3rd party / partner errors
+#
+# Same rationale as above except we have less interest and less control
+# on bug tracking and resolution. Note the Linux kernel is monolithic
+# with no internal protection, so any corruption in any subsystem can
+# have totally unexpected, non-deterministic and extremely
+# time-consuming side-effects in any other subsystem including
+# audio. Errors frequently cause corruption because error handling paths
+# are almost never tested in any software (buggy error handling is where
+# many security bugs lie)
+
+# 3. "False" errors
+#
+# Messages that look like errors but are not errors. Seem to be fairly
+# rare but they do exist. Typically: some debug messages.
+#
+# Work in progress: fix this code to rely on message _severity_ to get
+# fewer false errors (and maybe more actual errors!)
+#
+# Also known as "false positive" where "positive" confusingly refers to
+# finding an error. Errors are negative but finding them is
+# positive... let's avoid the term "positive"?
+
+# Basic guidelines
+# ----------------
+#
+# - Errors can come and go and they can also change categories as new
+# information is discovered, little is static. Important rule: every
+# ignored message must have a link to some other place (typically: a
+# bug) where more the latest information can be found and discussed. It
+# would be very impractical to use this file itself as a discussion
+# space, especially for non-audio discussions. This being said, a
+# one-line comment in this file does not hurt and mentioning the error
+# type above is useful.
+#
+# - Patterns ignored should be as long and as specific as possible to
+# minimize the risk of ignoring unknown errors. Ignoring unknown kernel
+# errors is very dangerous because the Linux kernel is monolithic with
+# no internal protection so corruption of any subsystem can have totally
+# unexpected, non-deterministic and extremely time-consuming
+# side-effects in any other subsystem including audio.
+#
+# - Platform-specific errors should preferably be ignored by affected
+# platforms only for the following reasons:
+#
+# * Ignoring kernel errors is risky as just described above. The fewer
+#   platforms and the smaller the risk to ignore real issues.
+#
+# * Most platform-specific errors affect _our_ platforms and products so
+#   we want to collect as much information as possible to help our
+#   partners fix them and especially let them know which platform(s)
+#   they can be reproduced on.
+#
+# * Once the error is fixed, the fewer the platforms and the easier it
+#   is to re-test and clean up this file. See cleanup section below.
+#
+# * If observed on more platforms than initially expected, adding new
+#   platforms (or any platform) is a very quick and simple change.
+
+# Cleanup
+# -------
+#
+# We must stop ignoring errors when bugs get fixed. This is of course
+# extremely important when _audio_ errors get fixed: otherwise running
+# these tests would be pointless! Someone submitting an audio bug fix
+# without trying to remove any corresponding error filter in this file
+# would be demonstrating an unprofessional lack of bug reproduction and
+# testing.
+#
+# Cleanup is good practice for non-audio errors too to confirm partner
+# fixes and to avoid this file growing out of control.
+#
+# HOWEVER: make sure the fix for a removed error has been cherry-picked
+# in _all currently supported versions and releases_! Ask the validation
+# team for advice.
+
+# Regular expressions
+# -------------------
+#
+# The use of regular expression is required to catch variations. For
+# instance we don't want to have one string per possible PCI ID. HOWEVER
+# regular expressions should be kept very basic to they can be easily
+# read and searched in the file. For instance if the same message can
+# appear with either "hw_start" or "hw_reset" then prefer (some)
+# duplication. Who knows, these two messages could prove to be caused by
+# two different bugs eventually. Regular expressions are error-prone so
+# keep them simple. What is especially error-prone: the slightly
+# different and mutually incompatible "flavors" of regular expressions.
+#
+# This file uses the 'grep -E' regex flavor.
+
+# Test tips
+# ---------
+#
+# Regular expressions are error-prone so they must be tested well. For
+# testing changes to this file invoke (temporarily) fake_kern_error() in
+# relevant test code. See more info in case-lib/lib.sh.
+# fake_kern_error() is useful to test the test code in general.
+#
+# Append some garbage to an ignore pattern to turn it off. Much easier
+# than deleting it.
+
+
 begin_line=${1:-1}
 declare err_str ignore_str
 
