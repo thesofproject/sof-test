@@ -35,7 +35,7 @@ fi
 
 # setup SOFCARD id
 if [ ! "$SOFCARD" ]; then
-    SOFCARD=$(grep 'sof-[a-z]' /proc/asound/cards|awk '{print $1;}')
+    SOFCARD=$(grep -v 'sof-probes' /proc/asound/cards | grep 'sof-[a-z]' | awk '{print $1;}')
 fi
 
 func_lib_setup_kernel_last_line()
