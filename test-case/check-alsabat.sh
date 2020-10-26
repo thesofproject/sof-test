@@ -67,8 +67,8 @@ fmts=$(func_pipeline_parse_value 0 fmts)
 
 # check the PCMs before alsabat test
 dlogi "check the PCMs before alsabat test"
-[[ $(aplay -Dplug$pcm_p -d 1 /dev/zero -q) ]] && die "Failed to play on PCM: $pcm_p"
-[[ $(arecord -Dplug$pcm_c -d 1 /dev/null -q) ]] && die "Failed to capture on PCM: $pcm_c"
+aplay -Dplug"$pcm_p" -d 1 /dev/zero -q || die "Failed to play on PCM: $pcm_p"
+arecord -Dplug"$pcm_c" -d 1 /dev/null -q || die "Failed to capture on PCM: $pcm_c"
 
 # alsabat test
 for format in $fmts
