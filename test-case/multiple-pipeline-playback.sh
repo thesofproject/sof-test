@@ -48,7 +48,7 @@ tplg=${OPT_VALUE_lst['t']}
 [[ ${OPT_VALUE_lst['s']} -eq 1 ]] && func_lib_start_log_collect
 
 max_count=0
-func_pipeline_export $tplg "type:any" # this line will help to get $PIPELINE_COUNT
+func_pipeline_export "$tplg" "type:any" # this line will help to get $PIPELINE_COUNT
 # get the min value of TPLG:'pipeline count' with Case:'pipeline count'
 [[ $PIPELINE_COUNT -gt ${OPT_VALUE_lst['c']} ]] && max_count=${OPT_VALUE_lst['c']} || max_count=$PIPELINE_COUNT
 func_lib_setup_kernel_last_line
@@ -66,7 +66,7 @@ tmp_count=$max_count
 func_run_pipeline_with_type()
 {
     [[ $tmp_count -le 0 ]] && return
-    func_pipeline_export $tplg "type:$1"
+    func_pipeline_export "$tplg" "type:$1"
     local -a idx_lst
     if [ ${OPT_VALUE_lst['r']} -eq 0 ]; then
         idx_lst=( $(seq 0 $(expr $PIPELINE_COUNT - 1)) )

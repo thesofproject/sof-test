@@ -54,7 +54,7 @@ duration=${OPT_VALUE_lst['d']}
 
 [[ ${OPT_VALUE_lst['s']} -eq 1 ]] && func_lib_start_log_collect
 
-func_pipeline_export $tplg "kpbm:any"
+func_pipeline_export "$tplg" "kpbm:any"
 func_lib_setup_kernel_last_line
 
 if test "$PIPELINE_COUNT" != "1"; then

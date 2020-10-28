@@ -73,7 +73,7 @@ else
 fi
 [[ -z $file_name ]] && file_name=$dummy_file
 
-func_pipeline_export $tplg "type:${OPT_VALUE_lst['m']}"
+func_pipeline_export "$tplg" "type:${OPT_VALUE_lst['m']}"
 
 if [ "${OPT_VALUE_lst['T']}" ]; then
     opt="-l ${OPT_VALUE_lst['l']} -T ${OPT_VALUE_lst['T']}"

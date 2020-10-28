@@ -38,7 +38,7 @@ duration=${OPT_VALUE_lst['d']}
 loop_cnt=${OPT_VALUE_lst['l']}
 
 # import only EQ pipeline from topology
-func_pipeline_export $tplg "eq:any"
+func_pipeline_export "$tplg" "eq:any"
 sofcard=${SOFCARD:-0}
 
 # Test equalizer
