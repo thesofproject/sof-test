@@ -24,6 +24,9 @@ func_opt_parse_option "$@"
 # TODO: clean up Sub-Test feature
 alias | grep -q 'Sub-Test' || DMESG_LOG_START_LINE=$(sof-get-kernel-line.sh | tail -n 1 | awk '{print $1;}' )
 
+# flush and sync journalctl logs
+sudo journalctl --sync --flush || true
+
 cmd="journalctl -k -q --no-pager --utc --output=short-monotonic --no-hostname"
 
 dlogi "Checking SOF Firmware load info in kernel log"
