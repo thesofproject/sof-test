@@ -57,7 +57,6 @@ id_lst_str=${id_lst_str/,/} # remove 1st, which is not used
 [[ ${#id_lst_str} -eq 0 ]] && dlogw "no pipeline with both playback and capture capabilities found in $tplg" && exit 2
 func_pipeline_export "$tplg" "id:$id_lst_str"
 [[ ${OPT_VALUE_lst['s']} -eq 1 ]] && func_lib_start_log_collect
-func_lib_setup_kernel_checkpoint
 
 func_error_exit()
 {
@@ -69,9 +68,9 @@ func_error_exit()
 
 for i in $(seq 1 $loop_cnt)
 do
+    # set up checkpoint for each iteration
+    func_lib_setup_kernel_checkpoint
     dlogi "===== Testing: (Loop: $i/$loop_cnt) ====="
-    # clean up dmesg
-    sudo dmesg -C
     # following sof-tplgreader, split 'both' pipelines into separate playback & capture pipelines, with playback occurring first
     for order in $(seq 0 2 $(expr $PIPELINE_COUNT - 1))
     do
@@ -112,8 +111,6 @@ do
         kill -9 $arecord_pid && wait $arecord_pid 2>/dev/null
 
     done
-    sof-kernel-log-check.sh 0 || die "Catch error in dmesg"
+    # check kernel log for each iteration to catch issues
+    sof-kernel-log-check.sh "$KERNEL_CHECKPOINT" || die "Caught error in kernel log"
 done
-
-sof-kernel-log-check.sh "$KERNEL_CHECKPOINT" > /dev/null
-exit $?
