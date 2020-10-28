@@ -75,9 +75,10 @@ esac
 [[ -z $file_name ]] && file_name=$dummy_file
 
 func_pipeline_export "$tplg" "type:$test_mode & ${OPT_VALUE_lst['S']}"
-func_lib_setup_kernel_checkpoint
 for idx in $(seq 0 $(expr $PIPELINE_COUNT - 1))
 do
+    # set up checkpoint for each iteration
+    func_lib_setup_kernel_checkpoint
     channel=$(func_pipeline_parse_value $idx channel)
     rate=$(func_pipeline_parse_value $idx rate)
     fmt=$(func_pipeline_parse_value $idx fmt)
@@ -122,9 +123,6 @@ END
         [[ $? -ne 0 ]] && dlogw "Kill process catch error"
         exit $ret
     fi
-    # sof-kernel-log-check script parameter number is 0/Non-Number will force check from dmesg
-    sof-kernel-log-check.sh 0 || die "Catch error in dmesg"
+    # check kernel log for each iteration to catch issues
+    sof-kernel-log-check.sh "$KERNEL_CHECKPOINT" || die "Caught error in kernel log"
 done
-
-sof-kernel-log-check.sh "$KERNEL_CHECKPOINT"
-exit $?
