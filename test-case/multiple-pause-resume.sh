@@ -12,7 +12,7 @@ set -e
 ##    expect sleep for sleep time then mocks spacebar keypresses ' ' to
 ##    cause resume action
 ## Case step:
-##    1. run 1st pipeline 
+##    1. run 1st pipeline
 ##    2. pickup any other pipeline
 ##    3. use expect to fake pause/resume in each pipeline
 ##    4. go through with tplg file
@@ -91,7 +91,7 @@ done
 [[ ${#pipeline_idx_lst[*]} -gt ${OPT_VALUE_lst['c']} ]] && max_count=${OPT_VALUE_lst['c']} || max_count=${#pipeline_idx_lst[*]}
 [[ $max_count -eq 1 ]] && dlogw "pipeline count is 1, don't need to run this case" && exit 2
 
-# create combination list 
+# create combination list
 declare -a pipeline_combine_lst
 for i in $(sof-combinatoric.py -n ${#pipeline_idx_lst[*]} -p $max_count)
 do
@@ -145,7 +145,8 @@ max_wait_time=$[ 10 * $repeat_count ]
 for i in $(seq 1 $loop_count)
 do
     dlogi "===== Loop count( $i / $loop_count ) ====="
-    sudo dmesg -c >/dev/null
+    # set up timestamp for each iteration
+    func_lib_setup_kernel_last_timestamp
     for pipeline_combine_str in "${pipeline_combine_lst[@]}"
     do
         unset pid_lst
@@ -165,7 +166,7 @@ do
             [[ ! "$(pidof expect)" ]] && break
         done
         # fix aplay/arecord last output
-        echo 
+        echo
         if [ "$(pidof expect)" ]; then
             dloge "Still have expect process not finished after wait for $max_wait_time"
             # now dump process
@@ -187,8 +188,7 @@ do
             [[ $? -ne 0 ]] && die "pause resume is exit status error"
         done
     done
-    sof-kernel-log-check.sh 0 || die "Catch error in dmesg"
+    # check kernel log for each iteration to catch issues
+    sof-kernel-log-check.sh $KERNEL_LAST_TIMESTAMP || die "Catch error in kernel log"
 done
 
-sof-kernel-log-check.sh $KERNEL_LAST_TIMESTAMP
-exit $?
