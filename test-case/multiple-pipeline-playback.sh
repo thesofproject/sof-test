@@ -51,7 +51,6 @@ max_count=0
 func_pipeline_export $tplg "type:any" # this line will help to get $PIPELINE_COUNT
 # get the min value of TPLG:'pipeline count' with Case:'pipeline count'
 [[ $PIPELINE_COUNT -gt ${OPT_VALUE_lst['c']} ]] && max_count=${OPT_VALUE_lst['c']} || max_count=$PIPELINE_COUNT
-func_lib_setup_kernel_last_timestamp
 
 # now small function define
 declare -A APP_LST DEV_LST
@@ -102,6 +101,8 @@ func_error_exit()
 
 for i in $(seq 1 $loop_cnt)
 do
+    # set up timestamp for each iteration
+    func_lib_setup_kernel_last_timestamp
     dlogi "===== Testing: (Loop: $i/$loop_cnt) ====="
     # clean up dmesg
     sudo dmesg -C
@@ -146,13 +147,11 @@ do
     sof-process-state.sh arecord >/dev/null
     [[ $? -eq 1 ]] && func_error_exit "Catch the abnormal process status of arecord"
 
-
     # kill all arecord
     pkill -9 aplay
     pkill -9 arecord
 
-    sof-kernel-log-check.sh 0 || die "Catch error in dmesg"
+    # check kernel log for each iteration to catch issues
+    sof-kernel-log-check.sh $KERNEL_LAST_TIMESTAMP || die "Catch error in kernel log"
 done
 
-sof-kernel-log-check.sh $KERNEL_LAST_TIMESTAMP >/dev/null
-exit $?
