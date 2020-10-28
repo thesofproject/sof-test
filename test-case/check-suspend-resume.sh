@@ -74,8 +74,8 @@ fi
 for i in $(seq 1 $loop_count)
 do
     dlogi "===== Round($i/$loop_count) ====="
-    # cleanup dmesg befor run case
-    sudo dmesg --clear
+    # set up timestamp for each iteration
+    func_lib_setup_kernel_last_timestamp
     sleep_count=$(cat /sys/power/wakeup_count)
     dlogc "Run the command: rtcwake -m mem -s ${sleep_lst[$i]}"
     sudo rtcwake -m mem -s ${sleep_lst[$i]}
@@ -83,13 +83,11 @@ do
     dlogc "sleep for ${wait_lst[$i]}"
     sleep ${wait_lst[$i]}
     dlogi "Check for the kernel log status"
-    wake_count=$(cat /sys/power/wakeup_count)
-    # sof-kernel-log-check script parameter number is 0/Non-Number will force check from dmesg
-    sof-kernel-log-check.sh 0 || die "Catch error in dmesg"
+    # check kernel log for each iteration to catch issues
+    sof-kernel-log-check.sh "$KERNEL_LAST_TIMESTAMP" || die "Catch error in kernel log"
     # check wakeup count correct
-    [[ $wake_count -le $sleep_count ]] && die "suspend/resume didn't happen, because /sys/power/wakeup_count does not increase"
+    wake_count=$(cat /sys/power/wakeup_count)
+    dlogi "Check for the wakeup_count"
+    [[ $wake_count -gt $sleep_count ]] || die "suspend/resume didn't happen, because /sys/power/wakeup_count does not increase"
 done
 
-# check full log
-sof-kernel-log-check.sh $KERNEL_LAST_TIMESTAMP
-exit $?
