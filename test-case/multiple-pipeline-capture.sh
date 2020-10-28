@@ -102,9 +102,9 @@ func_error_exit()
 
 for i in $(seq 1 $loop_cnt)
 do
+    # set up timestamp for each iteration
+    func_lib_setup_kernel_last_timestamp
     dlogi "===== Testing: (Loop: $i/$loop_cnt) ====="
-    # clean up dmesg
-    sudo dmesg -C
 
     # start capture:
     func_run_pipeline_with_type "capture"
@@ -146,13 +146,11 @@ do
     sof-process-state.sh aplay >/dev/null
     [[ $? -eq 1 ]] && func_error_exit "Catch the abnormal process status of aplay"
 
-
     # kill all arecord
     pkill -9 arecord
     pkill -9 aplay
 
-    sof-kernel-log-check.sh 0 || die "Catch error in dmesg"
+    # check kernel log for each iteration to catch issues
+    sof-kernel-log-check.sh $KERNEL_LAST_TIMESTAMP || die "Catch error in kernel log"
 done
 
-sof-kernel-log-check.sh $KERNEL_LAST_TIMESTAMP >/dev/null
-exit $?
