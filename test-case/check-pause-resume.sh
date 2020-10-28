@@ -74,7 +74,7 @@ esac
 
 [[ -z $file_name ]] && file_name=$dummy_file
 
-func_pipeline_export $tplg "type:$test_mode & ${OPT_VALUE_lst['S']}"
+func_pipeline_export "$tplg" "type:$test_mode & ${OPT_VALUE_lst['S']}"
 func_lib_setup_kernel_last_line
 for idx in $(seq 0 $(expr $PIPELINE_COUNT - 1))
 do

@@ -39,7 +39,7 @@ func_error_exit()
 }
 
 [[ -z $tplg ]] && die "Missing tplg file needed to run"
-func_pipeline_export $tplg "type:playback"
+func_pipeline_export "$tplg" "type:playback"
 [[ ${OPT_VALUE_lst['s']} -eq 1 ]] && func_lib_start_log_collect
 
 [[ $PIPELINE_COUNT -eq 0 ]] && die "Missing playback pipeline for aplay to run"

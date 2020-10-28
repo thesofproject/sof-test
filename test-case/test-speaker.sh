@@ -30,7 +30,7 @@ func_opt_parse_option "$@"
 tplg=${OPT_VALUE_lst['t']}
 [[ ${OPT_VALUE_lst['s']} -eq 1 ]] && func_lib_start_log_collect
 
-func_pipeline_export $tplg "type:playback"
+func_pipeline_export "$tplg" "type:playback"
 tcnt=${OPT_VALUE_lst['l']}
 func_lib_setup_kernel_last_line
 for idx in $(seq 0 $(expr $PIPELINE_COUNT - 1))

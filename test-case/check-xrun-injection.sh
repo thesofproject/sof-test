@@ -81,7 +81,7 @@ func_xrun_injection()
     done
 }
 
-func_pipeline_export $tplg "type:$test_mode"
+func_pipeline_export "$tplg" "type:$test_mode"
 for idx in $(seq 0 $(expr $PIPELINE_COUNT - 1))
 do
     channel=$(func_pipeline_parse_value $idx channel)

@@ -52,7 +52,7 @@ tplg=${OPT_VALUE_lst['t']}
 loop_cnt=${OPT_VALUE_lst['l']}
 pb_duration=${OPT_VALUE_lst['d']}
 
-func_pipeline_export $tplg "type:playback"
+func_pipeline_export "$tplg" "type:playback"
 
 func_lib_check_sudo
 # overwrite the subscript: test-case LOG_ROOT environment

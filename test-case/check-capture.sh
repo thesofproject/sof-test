@@ -61,7 +61,7 @@ file_prefix=${OPT_VALUE_lst['f']}
 
 func_lib_setup_kernel_last_line
 func_lib_check_sudo
-func_pipeline_export $tplg "type:capture & ${OPT_VALUE_lst['S']}"
+func_pipeline_export "$tplg" "type:capture & ${OPT_VALUE_lst['S']}"
 
 for round in $(seq 1 $round_cnt)
 do
