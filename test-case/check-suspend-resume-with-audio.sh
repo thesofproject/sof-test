@@ -53,7 +53,6 @@ OPT_PARM_lst['f']=1         OPT_VALUE_lst['f']=''
 
 func_opt_parse_option "$@"
 func_lib_check_sudo
-func_lib_setup_kernel_checkpoint
 
 tplg=${OPT_VALUE_lst['t']}
 [[ ${OPT_VALUE_lst['s']} -eq 1 ]] && func_lib_start_log_collect
@@ -88,6 +87,10 @@ fi
 
 for idx in $(seq 0 $(expr $PIPELINE_COUNT - 1))
 do
+    # set up checkpoint for each iteration
+    func_lib_setup_kernel_checkpoint
+    # store local checkpoint as we have sub-test
+    LOCAL_CHECK_POINT="$KERNEL_CHECKPOINT"
     channel=$(func_pipeline_parse_value $idx channel)
     rate=$(func_pipeline_parse_value $idx rate)
     fmt=$(func_pipeline_parse_value $idx fmt)
@@ -111,12 +114,13 @@ do
         ps --ppid $$ -f
         exit 1
     fi
-    $(dirname ${BASH_SOURCE[0]})/check-suspend-resume.sh $(echo $opt)
-    ret=$?
-    [[ $ret -ne 0 ]] && dloge "suspend resume failed" && exit $ret
+    $(dirname ${BASH_SOURCE[0]})/check-suspend-resume.sh $(echo $opt) || die "suspend resume failed"
+
+    # check kernel log for each iteration to catch issues
+    sof-kernel-log-check.sh "$LOCAL_CHECK_POINT" || die "Caught error in kernel log"
+
     # check process status is correct
-    sof-process-state.sh $process_id
-    if [ $? -ne 0 ]; then
+    sof-process-state.sh $process_id || {
         func_lib_lsof_error_dump $snd
         dloge "process status is abnormal"
         dlogi "dump ps for aplay & arecord"
@@ -124,11 +128,8 @@ do
         dlogi "dump ps for child process"
         ps --ppid $$ -f
         exit 1
-    fi
+    }
     dlogi "Killing $cmd_args"
-    kill -9 $process_id
-    sof-kernel-log-check.sh 0 || die "Catch error in dmesg"
+    kill -9 $process_id || true
 done
 
-# check full log
-sof-kernel-log-check.sh "$KERNEL_CHECKPOINT"
