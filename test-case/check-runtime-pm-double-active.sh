@@ -71,7 +71,6 @@ DEV_LST['capture']='/dev/null'
 
 [[ ${OPT_VALUE_lst['s']} -eq 1 ]] && func_lib_start_log_collect
 func_pipeline_export "$tplg" "type:any"
-func_lib_setup_kernel_checkpoint
 
 for idx in $(seq 0 $(expr $PIPELINE_COUNT - 1))
 do
@@ -87,10 +86,10 @@ do
     dummy_file="${DEV_LST[$type]}"
     [[ -z $cmd ]] && dloge "$type is not supported, $cmd, $dummy_file" && exit 2
 
-    # clean up dmesg before the test
-    sudo dmesg -C
     for i in $(seq 1 $loop_count)
     do
+        # set up checkpoint for each iteration
+        func_lib_setup_kernel_checkpoint
         dlogi "===== Iteration $i of $loop_count for $pcm ====="
         # playback or capture device - check status
         dlogc "$cmd -D $dev -r $rate -c $channel -f $fmt $dummy_file -q"
@@ -136,10 +135,7 @@ do
             func_lib_lsof_error_dump $snd
             die "playback/capture failed on $pcm, $dev at $i/$loop_cnt."
         fi
+        # check kernel log for each iteration to catch issues
+        sof-kernel-log-check.sh "$KERNEL_CHECKPOINT" || die "Caught error in kernel log"
     done
-
-    sof-kernel-log-check.sh 0 || die "Catch error in dmesg"
 done
-
-sof-kernel-log-check.sh "$KERNEL_CHECKPOINT"
-exit $?
