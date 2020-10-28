@@ -249,6 +249,66 @@ case "$platform" in
         ;;
 esac
 
+# below are new error level kernel logs from journalctl --priority=err
+# that did not influence system and can be ignored
+
+# systemd issues can be ignored
+# seen on mutiple platforms
+# systemd[1]: Failed to mount Mount unit for core.
+# systemd[1]: Failed to mount Mount unit for gnome-calculator.
+# systemd[1]: Failed to mount Mount unit for [UNIT].
+ignore_str="$ignore_str"'|systemd\[.\]: Failed to mount Mount unit for'
+
+# initramfs issues can be ignored
+ignore_str="$ignore_str"'|Initramfs unpacking failed'
+
+# keyboard issues can be ignored
+ignore_str="$ignore_str"'|atkbd serio0: Failed to deactivate keyboard on isa0060/serio0'
+ignore_str="$ignore_str"'|atkbd serio0: Failed to enable keyboard on isa0060/serio0'
+
+# smbus issues can be ignored
+ignore_str="$ignore_str"'|i801_smbus 0000:00:..\..: Transaction timeout'
+ignore_str="$ignore_str"'|i801_smbus 0000:00:..\..: Failed terminating the transaction'
+ignore_str="$ignore_str""|i801_smbus 0000:00:..\..: SMBus is busy, can't use it!"
+ignore_str="$ignore_str"'|i801_smbus 0000:00:..\..: Failed to allocate irq .: -16'
+
+# SATA related issue can be ignored is it did not break device
+ignore_str="$ignore_str"'|ata3: COMRESET failed \(errno=-16\)'
+
+# genirq issues can be ignored
+# origin logs seen on GLK platforms
+# genirq: Flags mismatch irq 0. 00000080 (i801_smbus) vs. 00015a00 (timer)
+ignore_str="$ignore_str"'|genirq: Flags mismatch irq .'
+
+# DMAR warnings can be ignored
+# origin logs seen on BDW platforms
+# DMAR: [Firmware Bug]: No firmware reserved region can cover this RMRR [0x00000000ad000000-0x00000000af7fffff], contact BIOS vendor for fixes
+ignore_str="$ignore_str"'|DMAR: \[Firmware Bug\]: No firmware reserved region can cover this RMRR .'
+
+# dw_dmac logs can be ignored
+# origin logs seen on BDW/BYT/CHT platforms
+# dw_dmac INTL9C60:00: Missing DT data
+# dw_dmac INTL9C60:01: Missing DT data
+ignore_str="$ignore_str"'|dw_dmac INTL9C60:..: Missing DT data'
+
+# proc_thermal logs can be ignored
+# origin logs seen on CHT platforms
+# proc_thermal 0000:00:0b.0: No auxiliary DTSs enabled
+ignore_str="$ignore_str"'|proc_thermal 0000:00:..\..: No auxiliary DTSs enabled'
+
+# touch pad logs can be ignored
+# origin logs seen on GLK platforms
+# elan_i2c i2c-ELAN0000:00: invalid report id data (ff)
+ignore_str="$ignore_str"'|elan_i2c i2c-ELAN0000:.*: invalid report id data'
+
+#
+# SDW related logs
+#
+
+# origin logs seen on CML with RT700 platforms
+# rt700 sdw:1:25d:700:0: Bus clash detected
+ignore_str="$ignore_str"'|rt700 sdw:.:.*:700:.: Bus clash detected'
+
 # confirm begin_timestamp is in UNIX timestamp format, otherwise search full log
 journalctlflag="-k -q --no-pager --utc --output=short-monotonic --no-hostname"
 [[ $begin_timestamp =~ ^[0-9]{10} ]] && cmd="journalctl $journalctlflag --since=@$begin_timestamp" || cmd="journalctl $journalctlflag"
