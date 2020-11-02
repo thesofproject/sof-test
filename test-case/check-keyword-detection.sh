@@ -55,7 +55,7 @@ duration=${OPT_VALUE_lst['d']}
 [[ ${OPT_VALUE_lst['s']} -eq 1 ]] && func_lib_start_log_collect
 
 func_pipeline_export "$tplg" "kpbm:any"
-func_lib_setup_kernel_last_line
+func_lib_setup_kernel_last_timestamp
 
 if test "$PIPELINE_COUNT" != "1"; then
     die "detected $PIPELINE_COUNT wov pipeline(s) from topology, but 1 is needed"
@@ -154,4 +154,4 @@ do
     done
 done
 
-sof-kernel-log-check.sh "$KERNEL_LAST_LINE"
+sof-kernel-log-check.sh "$KERNEL_LAST_TIMESTAMP"

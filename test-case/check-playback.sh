@@ -67,7 +67,7 @@ else
     dlogi "using $file as playback source"
 fi
 
-func_lib_setup_kernel_last_line
+func_lib_setup_kernel_last_timestamp
 func_lib_check_sudo
 func_pipeline_export "$tplg" "type:playback & ${OPT_VALUE_lst['S']}"
 
@@ -104,4 +104,4 @@ do
     done
 done
 
-sof-kernel-log-check.sh "$KERNEL_LAST_LINE"
+sof-kernel-log-check.sh "$KERNEL_LAST_TIMESTAMP"

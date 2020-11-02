@@ -20,9 +20,9 @@ declare -A TPLG_IGNORE_LST
 TPLG_IGNORE_LST['pcm']='HDA Digital'
 
 # Will be set by the lib function, don't need to set
-# Catches the last line of /var/log/kern.log, which will be used by
-#   sof-kernel-log-check.
-# KERNEL_LAST_LINE
+# Catches the timestamp for a test case start used by
+# sof-kernel-log-check with journalctl
+# KERNEL_LAST_TIMESTAMP
 
 # If not set will be automatically set by logging_ctl function
 # Test case log root
