@@ -197,6 +197,11 @@ ignore_str="$ignore_str"'|\[drm:drm_dp_send_link_address \[drm_kms_helper\]\] \*
 ignore_str="$ignore_str"'|hub 2-.: .'
 ignore_str="$ignore_str"'|usb 2-.: .'
 
+# TGL devices with USB 3.1 devices, issues reported by sof-test
+# BugLink: https://github.com/thesofproject/sof-test/issues/482
+ignore_str="$ignore_str"'|usb 3-.: device descriptor read/64, error .'
+ignore_str="$ignore_str"'|usb 3-.: device not accepting address ., error .'
+
 # Test cases on some platforms fail because the boot retry message:
 #
 #    sof-audio-pci 0000:00:1f.3: status = 0x00000000 panic = 0x00000000
