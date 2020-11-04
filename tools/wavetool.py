@@ -22,9 +22,9 @@ import scipy.io.wavfile as wavefile
 # is wrong with firmware scheduler.
 SMART_AMP_DELAY_THRESHOLD = 8
 
-def generate_sinusoids(amp, freq, phase, fs, duration):
+def generate_sine_mono(amp, freq, phase, fs, duration):
     """
-    Generate sinusoids.
+    Generate mono sine wave.
 
     ``y(t) = A * sin(2 * pi * f * t + phi)``
 
@@ -59,12 +59,12 @@ def generate_wov():
     wave_samples = int((zero_marker_time + sum(duration)) * cmd.sample_rate)
 
     sine_param1 = (amp[0], freq[0], phase[0], cmd.sample_rate, duration[0])
-    mono_data1 = generate_sinusoids(*sine_param1)
+    mono_data1 = generate_sine_mono(*sine_param1)
     # extend channel
     sine_data1 = np.reshape(np.repeat(mono_data1, cmd.channel),[len(mono_data1), cmd.channel])
 
     sine_param2 = (amp[1], freq[1], phase[1], cmd.sample_rate, duration[1])
-    mono_data2 = generate_sinusoids(*sine_param2)
+    mono_data2 = generate_sine_mono(*sine_param2)
     sine_data2 = np.reshape(np.repeat(mono_data2, cmd.channel),[len(mono_data2), cmd.channel])
 
     data = np.zeros((wave_samples, cmd.channel))
@@ -75,7 +75,7 @@ def generate_wov():
 def generate_wav():
     if cmd.generate == 'sine':
         wave_param = (cmd.amp[0], cmd.freq[0],cmd.phase[0], cmd.sample_rate, cmd.duration[0])
-        mono_data = generate_sinusoids(*wave_param)
+        mono_data = generate_sine_mono(*wave_param)
         wave_data = np.reshape(np.repeat(mono_data, cmd.channel),[len(mono_data), cmd.channel])
     elif cmd.generate == 'wov':
         wave_data = generate_wov()
