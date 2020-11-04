@@ -22,7 +22,7 @@ import scipy.io.wavfile as wavefile
 # is wrong with firmware scheduler.
 SMART_AMP_DELAY_THRESHOLD = 8
 
-def generate_sinusoids(**p):
+def generate_sinusoids(amp, freq, phase, fs, duration):
     """
     Generate sinusoids.
 
@@ -30,21 +30,18 @@ def generate_sinusoids(**p):
 
     Parameters
     ----------
-    dict of sinusoid parameters:
-    p['amp']: Amplitude, range: 0.0 ~ 1.0
-    p['freq']: Frequency, unit: Hertz
-    p['phase']: Phase, unit: Radian
-    p['chan']: Channels
-    p['sample_rate']: Sample rate, unit: Hertz
-    p['duration']: Duration, unit: Second
+    amp: Amplitude, range: 0.0 ~ 1.0
+    freq: Frequency, unit: Hertz
+    phase: Initial Phase, unit: Radian
+    fs: Sample rate, unit: Hertz
+    duration: Duration, unit: Second
 
     Returns
     ----------
-    Real n-D Array with shape ``(duration * sample_rate, channel)``
+    Real 1-D Array
     """
-    time = np.arange(0, p['duration'], 1.0 / p['sample_rate'])
-    data = p['amp'] * np.sin(2 * np.pi * p['freq'] * time + p['phase'])
-    return np.reshape(np.repeat(data, p['chan']),[len(data), p['chan']])
+    time = np.arange(0, duration, 1.0 / fs)
+    return amp * np.sin(2 * np.pi * freq * time + phase)
 
 def generate_wov():
     """
@@ -60,18 +57,16 @@ def generate_wov():
     phase = [cmd.phase[0], cmd.phase[0]] if len(cmd.phase) == 1 else cmd.phase
     duration = [cmd.duration[0], cmd.duration[0]] if len(cmd.duration) == 1 else cmd.duration
     wave_samples = int((zero_marker_time + sum(duration)) * cmd.sample_rate)
-    sine_param1 = {
-        'type': 'sine', 'amp':amp[0], 'freq': freq[0],
-        'phase': phase[0], 'chan': cmd.channel, 'sample_rate': cmd.sample_rate,
-        'duration': duration[0]
-    }
-    sine_data1 = generate_sinusoids(**sine_param1)
-    sine_param2 = {
-        'type': 'sine', 'amp':amp[1], 'freq': freq[1],
-        'phase': phase[1], 'chan': cmd.channel, 'sample_rate': cmd.sample_rate,
-        'duration': duration[1]
-    }
-    sine_data2 = generate_sinusoids(**sine_param2)
+
+    sine_param1 = (amp[0], freq[0], phase[0], cmd.sample_rate, duration[0])
+    mono_data1 = generate_sinusoids(*sine_param1)
+    # extend channel
+    sine_data1 = np.reshape(np.repeat(mono_data1, cmd.channel),[len(mono_data1), cmd.channel])
+
+    sine_param2 = (amp[1], freq[1], phase[1], cmd.sample_rate, duration[1])
+    mono_data2 = generate_sinusoids(*sine_param2)
+    sine_data2 = np.reshape(np.repeat(mono_data2, cmd.channel),[len(mono_data2), cmd.channel])
+
     data = np.zeros((wave_samples, cmd.channel))
     data[:][0:sine_data1.shape[0]] = sine_data1
     data[:][data.shape[0] - sine_data2.shape[0]:data.shape[0]] = sine_data2
@@ -79,12 +74,9 @@ def generate_wov():
 
 def generate_wav():
     if cmd.generate == 'sine':
-        wave_param = {
-            'type': cmd.generate, 'amp': cmd.amp[0], 'freq': cmd.freq[0],
-            'phase': cmd.phase[0], 'chan': cmd.channel, 'sample_rate': cmd.sample_rate,
-            'duration': cmd.duration[0]
-        }
-        wave_data = generate_sinusoids(**wave_param)
+        wave_param = (cmd.amp[0], cmd.freq[0],cmd.phase[0], cmd.sample_rate, cmd.duration[0])
+        mono_data = generate_sinusoids(*wave_param)
+        wave_data = np.reshape(np.repeat(mono_data, cmd.channel),[len(mono_data), cmd.channel])
     elif cmd.generate == 'wov':
         wave_data = generate_wov()
     else:
