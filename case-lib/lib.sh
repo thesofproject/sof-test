@@ -228,10 +228,11 @@ func_lib_get_random()
 func_lib_lsof_error_dump()
 {
     local file="$1" ret
+    # lsof exits the same '1' whether the file is missing or not open :-(
     [[ ! -c "$file" ]] && return
-    ret=$(lsof "$file")
+    ret=$(lsof "$file") || true
     if [ "$ret" ];then
-        dloge "Sound device file is in use:"
+        dloge "Sound device $file is in use:"
         echo "$ret"
     fi
 }
