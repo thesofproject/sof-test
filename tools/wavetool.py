@@ -72,11 +72,21 @@ def generate_wov():
     data[:][data.shape[0] - sine_data2.shape[0]:data.shape[0]] = sine_data2
     return data
 
+def generate_sinusoid():
+    assert len(cmd.duration) == 1, "Each channel should have the same duration"
+    wave_samples = int(cmd.duration[0] * cmd.sample_rate)
+    wave_data = np.zeros((wave_samples, cmd.channel))
+    for ch in range(cmd.channel):
+        amp = cmd.amp[ch] if len(cmd.amp) == cmd.channel else cmd.amp[0]
+        freq = cmd.freq[ch] if len(cmd.freq) == cmd.channel else cmd.freq[0]
+        phase = cmd.phase[ch] if len(cmd.phase) == cmd.channel else cmd.phase[0]
+        duration = cmd.duration[ch] if len(cmd.duration) == cmd.channel else cmd.duration[0]
+        wave_data[:,ch] = generate_sine_mono(amp, freq, phase, cmd.sample_rate, duration)
+    return wave_data
+
 def generate_wav():
-    if cmd.generate == 'sine':
-        wave_param = (cmd.amp[0], cmd.freq[0],cmd.phase[0], cmd.sample_rate, cmd.duration[0])
-        mono_data = generate_sine_mono(*wave_param)
-        wave_data = np.reshape(np.repeat(mono_data, cmd.channel),[len(mono_data), cmd.channel])
+    if cmd.generate == 'sinusoid':
+        wave_data = generate_sinusoid()
     elif cmd.generate == 'wov':
         wave_data = generate_wov()
     else:
@@ -219,7 +229,7 @@ def parse_cmdline():
         description='A Tool to Generate and Manipulate Wave Files.')
     parser.add_argument('-v', '--version', action='version', version='%(prog)s 1.0')
     # wave parameters
-    parser.add_argument('-g', '--generate', type=str, choices=['sine', 'wov'], help='generate specified types of wave')
+    parser.add_argument('-g', '--generate', type=str, choices=['sinusoid', 'wov'], help='generate specified types of wave')
     parser.add_argument('-A', '--amp', type=float, nargs='+', default=[1.0], help='amplitude of generated wave')
     parser.add_argument('-F', '--freq', type=float, nargs='+', default=[997.0], help='frequency of generated wave')
     parser.add_argument('-P', '--phase', type=float, nargs='+', default=[0.0], help='phase of generated wave')
