@@ -24,16 +24,13 @@ SMART_AMP_DELAY_THRESHOLD = 8
 
 def generate_sinusoids(**p):
     """
-    Generate sine or cosine wave.
+    Generate sinusoids.
 
     ``y(t) = A * sin(2 * pi * f * t + phi)``
-
-    ``y(t) = A * cos(2 * pi * f * t + phi)``
 
     Parameters
     ----------
     dict of sinusoid parameters:
-    p['type']: Wave type, ``sine`` or ``cosine``
     p['amp']: Amplitude, range: 0.0 ~ 1.0
     p['freq']: Frequency, unit: Hertz
     p['phase']: Phase, unit: Radian
@@ -45,9 +42,8 @@ def generate_sinusoids(**p):
     ----------
     Real n-D Array with shape ``(duration * sample_rate, channel)``
     """
-    func = np.sin if p['type'] == 'sine' else np.cos
     time = np.arange(0, p['duration'], 1.0 / p['sample_rate'])
-    data = p['amp'] * func(2 * np.pi * p['freq'] * time + p['phase'])
+    data = p['amp'] * np.sin(2 * np.pi * p['freq'] * time + p['phase'])
     return np.reshape(np.repeat(data, p['chan']),[len(data), p['chan']])
 
 def generate_wov():
@@ -82,7 +78,7 @@ def generate_wov():
     return data
 
 def generate_wav():
-    if cmd.generate in ['sine', 'cosine']:
+    if cmd.generate == 'sine':
         wave_param = {
             'type': cmd.generate, 'amp': cmd.amp[0], 'freq': cmd.freq[0],
             'phase': cmd.phase[0], 'chan': cmd.channel, 'sample_rate': cmd.sample_rate,
@@ -231,7 +227,7 @@ def parse_cmdline():
         description='A Tool to Generate and Manipulate Wave Files.')
     parser.add_argument('-v', '--version', action='version', version='%(prog)s 1.0')
     # wave parameters
-    parser.add_argument('-g', '--generate', type=str, choices=['sine', 'cosine', 'wov'], help='generate specified types of wave')
+    parser.add_argument('-g', '--generate', type=str, choices=['sine', 'wov'], help='generate specified types of wave')
     parser.add_argument('-A', '--amp', type=float, nargs='+', default=[1.0], help='amplitude of generated wave')
     parser.add_argument('-F', '--freq', type=float, nargs='+', default=[997.0], help='frequency of generated wave')
     parser.add_argument('-P', '--phase', type=float, nargs='+', default=[0.0], help='phase of generated wave')
