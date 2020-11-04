@@ -86,7 +86,7 @@ ignore_str="$ignore_str"'|usb 2-.: .'
 #
 # Buglink: https://github.com/thesofproject/sof/issues/3395
 
-ignore_str="$ignore_str"'|sof-audio-pci 0000:00:..\..: status = 0x[0]{8} panic = 0x[0]{8}'
+ignore_str="$ignore_str"'|sof-audio-pci 0000:00:..\..: status = 0x[0-f]{8} panic = 0x[0-f]{8}'
 # There will be debug logs at each failed initializaiton of DSP before Linux 5.9
 #   sof-audio-pci 0000:00:1f.3: error: cl_dsp_init: timeout HDA_DSP_SRAM_REG_ROM_STATUS read
 #   sof-audio-pci 0000:00:1f.3: error: status = 0x00000000 panic = 0x00000000
