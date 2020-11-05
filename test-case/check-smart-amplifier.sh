@@ -105,7 +105,7 @@ do
         dlogi "Comparing recorded wave and reference wave"
         wavetool.py -a"smart_amp" -R"$recorded_file" || {
             # upload the failed wav file, and die
-            find /tmp -maxdepth 1 -type f -name $(basename "$recorded_file") -size +0 -exec cp {} "$LOG_ROOT/" \;
+            find /tmp -maxdepth 1 -type f -name "$(basename "$recorded_file")" -size +0 -exec cp {} "$LOG_ROOT/" \;
             die "wavetool.py exit with failure"
         }
         # clean up generated wave files
