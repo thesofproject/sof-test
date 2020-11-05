@@ -32,6 +32,8 @@ main()
     file --list | grep -qF "$checked_ftype" ||
         die 'The file command does not know what %s is\n' "$checked_ftype"
 
+    set -x
+
     local checker="$1"; shift || usage
     type "$checker" || die 'Checker %s not found\n' "$checker"
 
