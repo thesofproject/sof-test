@@ -10,7 +10,6 @@ Supported features:
 - give verdict in check-smart-amplifier test case by binary wave comparison
 """
 
-import os
 import sys
 import argparse
 import numpy as np
@@ -21,6 +20,9 @@ import scipy.io.wavfile as wavefile
 # If the delay is longer, then DSP is overloaded or something
 # is wrong with firmware scheduler.
 SMART_AMP_DELAY_THRESHOLD = 8
+
+# Module level global variable which will store command line parameters later
+cmd = None
 
 def generate_sine_mono(amp, freq, phase, fs, duration):
     """
@@ -68,8 +70,8 @@ def generate_wov():
     sine_data2 = np.reshape(np.repeat(mono_data2, cmd.channel),[len(mono_data2), cmd.channel])
 
     data = np.zeros((wave_samples, cmd.channel))
-    data[:][0:sine_data1.shape[0]] = sine_data1
-    data[:][data.shape[0] - sine_data2.shape[0]:data.shape[0]] = sine_data2
+    data[0:sine_data1.shape[0]] = sine_data1
+    data[wave_samples - sine_data2.shape[0]:wave_samples] = sine_data2
     return data
 
 def generate_sinusoid():
@@ -170,7 +172,7 @@ def find_zero_marker(wave, start, backward=False):
     return start, end + abs(step) - 1
 
 def stdnotch(wave, fn, fs):
-    target_q = 2.1;
+    target_q = 2.1
     b, a = signal.iirnotch(fn, target_q, fs)
     return signal.lfilter(b, a, wave, axis=0)
 
@@ -248,6 +250,8 @@ def parse_cmdline():
     return parser.parse_args()
 
 def main():
+    # Pylint discourage this usage, but we have to update global cmd in main()
+    # pylint: disable=W0603
     global cmd
     cmd = parse_cmdline()
 
