@@ -41,7 +41,7 @@ OPT_PARM_lst['r']=0         OPT_VALUE_lst['r']=0
 
 func_opt_parse_option "$@"
 func_lib_check_sudo
-func_lib_setup_kernel_last_line
+func_lib_setup_kernel_checkpoint
 
 type=${OPT_VALUE_lst['T']}
 # switch type
@@ -91,5 +91,5 @@ do
 done
 
 # check full log
-sof-kernel-log-check.sh $KERNEL_LAST_LINE
+sof-kernel-log-check.sh "$KERNEL_CHECKPOINT"
 exit $?

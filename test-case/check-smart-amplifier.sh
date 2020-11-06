@@ -59,7 +59,7 @@ tplg=${OPT_VALUE_lst['t']}
 [[ ${OPT_VALUE_lst['s']} -eq 1 ]] && func_lib_start_log_collect
 
 func_pipeline_export "$tplg" "smart_amp:any"
-func_lib_setup_kernel_last_line
+func_lib_setup_kernel_checkpoint
 
 [ "$PIPELINE_COUNT" == "2" ] || die "Only detect $PIPELINE_COUNT pipeline(s) from topology, but two are needed"
 
@@ -114,4 +114,4 @@ do
     done
 done
 
-sof-kernel-log-check.sh "$KERNEL_LAST_LINE"
+sof-kernel-log-check.sh "$KERNEL_CHECKPOINT"
