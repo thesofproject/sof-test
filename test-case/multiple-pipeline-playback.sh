@@ -51,7 +51,7 @@ max_count=0
 func_pipeline_export "$tplg" "type:any" # this line will help to get $PIPELINE_COUNT
 # get the min value of TPLG:'pipeline count' with Case:'pipeline count'
 [[ $PIPELINE_COUNT -gt ${OPT_VALUE_lst['c']} ]] && max_count=${OPT_VALUE_lst['c']} || max_count=$PIPELINE_COUNT
-func_lib_setup_kernel_last_line
+func_lib_setup_kernel_checkpoint
 
 # now small function define
 declare -A APP_LST DEV_LST
@@ -154,5 +154,5 @@ do
     sof-kernel-log-check.sh 0 || die "Catch error in dmesg"
 done
 
-sof-kernel-log-check.sh $KERNEL_LAST_LINE >/dev/null
+sof-kernel-log-check.sh "$KERNEL_CHECKPOINT" >/dev/null
 exit $?

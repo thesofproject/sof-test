@@ -33,7 +33,7 @@ OPT_OPT_lst['p']='pulseaudio'   OPT_DESC_lst['p']='disable pulseaudio on the tes
 OPT_PARM_lst['p']=0             OPT_VALUE_lst['p']=1
 
 func_opt_parse_option "$@"
-func_lib_setup_kernel_last_line
+func_lib_setup_kernel_checkpoint
 
 loop_cnt=${OPT_VALUE_lst['l']}
 
@@ -48,7 +48,7 @@ for idx in $(seq 1 $loop_cnt)
 do
     dlogi "===== Starting iteration $idx of $loop_cnt ====="
     ## - 1: remove module section
-    func_lib_setup_kernel_last_line
+    func_lib_setup_kernel_checkpoint
 
     # After module removal, it takes about 10s for "aplay -l" to show
     # device list, within this 10s, it shows "no soundcard found". Here
@@ -75,10 +75,10 @@ do
 
     ## - 1a: check for errors after removal
     dlogi "checking for general errors after kmod unload with sof-kernel-log-check tool"
-    sof-kernel-log-check.sh "$KERNEL_LAST_LINE" ||
+    sof-kernel-log-check.sh "$KERNEL_CHECKPOINT" ||
         die "error found after kmod unload is real error, failing"
 
-    func_lib_setup_kernel_last_line
+    func_lib_setup_kernel_checkpoint
     dlogi "run kmod/sof_insert.sh"
     sudo sof_insert.sh || {
         # FIXME: don't exit the status of dloge(). Use die()
@@ -87,7 +87,7 @@ do
 
     ## - 2a: check for errors after insertion
     dlogi "checking for general errors after kmod insert with sof-kernel-log-check tool"
-    sof-kernel-log-check.sh "$KERNEL_LAST_LINE" ||
+    sof-kernel-log-check.sh "$KERNEL_CHECKPOINT" ||
         die "Found error(s) in kernel log after module insertion"
 
     dlogi "checking if firmware is loaded successfully"

@@ -32,7 +32,7 @@ tplg=${OPT_VALUE_lst['t']}
 
 func_pipeline_export "$tplg" "type:playback"
 tcnt=${OPT_VALUE_lst['l']}
-func_lib_setup_kernel_last_line
+func_lib_setup_kernel_checkpoint
 for idx in $(seq 0 $(expr $PIPELINE_COUNT - 1))
 do
     channel=$(func_pipeline_parse_value $idx channel)
@@ -54,5 +54,5 @@ do
     fi
 done
 
-sof-kernel-log-check.sh $KERNEL_LAST_LINE
+sof-kernel-log-check.sh "$KERNEL_CHECKPOINT"
 exit $?

@@ -71,7 +71,7 @@ DEV_LST['capture']='/dev/null'
 
 [[ ${OPT_VALUE_lst['s']} -eq 1 ]] && func_lib_start_log_collect
 func_pipeline_export "$tplg" "type:any"
-func_lib_setup_kernel_last_line
+func_lib_setup_kernel_checkpoint
 
 for idx in $(seq 0 $(expr $PIPELINE_COUNT - 1))
 do
@@ -141,5 +141,5 @@ do
     sof-kernel-log-check.sh 0 || die "Catch error in dmesg"
 done
 
-sof-kernel-log-check.sh $KERNEL_LAST_LINE
+sof-kernel-log-check.sh "$KERNEL_CHECKPOINT"
 exit $?
