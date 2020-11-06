@@ -31,7 +31,7 @@ To run a test, call the scripts directly
 
 Example:
 ```
-~/sof-test/test-case$ ./check-playback.sh -h
+~/sof-test/test-case$ SOF_ALSA_OPTS='-q --fatal-errors' ./check-playback.sh -h
 Usage: ./check-playback.sh [OPTION]
 
     -F |  --fmts
@@ -49,8 +49,25 @@ Usage: ./check-playback.sh [OPTION]
 2020-03-19 22:13:32 UTC [INFO] Catch block option from TPLG_BLOCK_LST will block 'pcm=HDA Digital,Media Playback,DMIC16k' for /lib/firmware/intel/sof-tplg/sof-apl-pcm512x.tplg
 2020-03-19 22:13:32 UTC [INFO] Run command: 'sof-tplgreader.py /lib/firmware/intel/sof-tplg/sof-apl-pcm512x.tplg -f type:playback,both -b pcm:'HDA Digital,Media Playback,DMIC16k' -s 0 -e' to get BASH Array
 2020-03-19 22:13:32 UTC [INFO] Testing: (Round: 1/1) (PCM: Port5 [hw:0,0]<both>) (Loop: 1/3)
+2020-03-19 22:13:32 UTC [COMMAND] aplay -q --fatal-errors  -Dhw:0,0 -r 48000 -c 2 -f S16_LE -d 4 /dev/zero -v -q
     ...
 ```
+
+Some tests support SOF_ALSA_OPTS, SOF_APLAY_OPTS and SOF_ARECORD_OPTS,
+work in progress. Where supported, optional parameters in SOF_APLAY_OPTS
+and SOF_ARECORD_OPTS are passed to all aplay and arecord
+invocations. SOF_ALSA_OPTS parameters are passed to both aplay and
+arecord. Warning these environments variables do NOT support parameters
+with whitespace or globbing characters, in other words this does NOT
+work:
+
+   SOF_ALSA_OPTS='--foo --bar="spaces do not work"'
+
+For the up-to-date list of tests supporting these environment variables
+run:
+
+    git grep -l 'a[[:alnum:]]*_opts'
+
 ### tools
 To use tool script, call the scripts directly
  * `-h` will show the usage for the tool

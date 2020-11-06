@@ -95,8 +95,7 @@ do
                     dlogi "using $file as capture output"
                 fi
 
-                dlogc "arecord -D$dev -r $rate -c $channel -f $fmt_elem -d $duration $file -v -q"
-                arecord -D$dev -r $rate -c $channel -f $fmt_elem -d $duration $file -v -q
+                arecord_opts -D$dev -r $rate -c $channel -f $fmt_elem -d $duration $file -v -q
                 if [[ $? -ne 0 ]]; then
                     func_lib_lsof_error_dump $snd
                     die "arecord on PCM $dev failed at $i/$loop_cnt."
