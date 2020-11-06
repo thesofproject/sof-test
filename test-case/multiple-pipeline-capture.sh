@@ -22,6 +22,9 @@
 ##    all pipelines are alive and without kernel error
 ##
 
+set -e
+
+# shellcheck source=case-lib/lib.sh
 source $(dirname ${BASH_SOURCE[0]})/../case-lib/lib.sh
 
 OPT_OPT_lst['t']='tplg'     OPT_DESC_lst['t']='tplg file, default value is env TPLG: $TPLG'
@@ -87,8 +90,8 @@ func_run_pipeline_with_type()
         dlogc "${APP_LST[$1]} -D $dev -c $channel -r $rate -f $fmt ${DEV_LST[$1]} -q"
         "${APP_LST[$1]}" -D $dev -c $channel -r $rate -f $fmt "${DEV_LST[$1]}" -q &
 
-        tmp_count=$(expr $tmp_count - 1 )
-        [[ $tmp_count -le 0 ]] && return
+        : $((tmp_count--))
+        if [ "$tmp_count" -le 0 ]; then return 0; fi
     done
 }
 
@@ -118,17 +121,17 @@ do
     # check all refer capture pipeline status
     # 1. check process count:
     pcount=$(pidof arecord|wc -w)
-    tmp_count=$(expr $tmp_count + $pcount)
+    tmp_count=$((tmp_count + pcount))
     pcount=$(pidof aplay|wc -w)
-    tmp_count=$(expr $tmp_count + $pcount)
+    tmp_count=$((tmp_count + pcount))
     [[ $tmp_count -ne $max_count ]] && func_error_exit "Target pipeline count: $max_count, current process count: $tmp_count"
 
     # 2. check arecord process status
     dlogi "checking pipeline status"
-    sof-process-state.sh arecord >/dev/null
-    [[ $? -eq 1 ]] && func_error_exit "Catch the abnormal process status of arecord"
-    sof-process-state.sh aplay >/dev/null
-    [[ $? -eq 1 ]] && func_error_exit "Catch the abnormal process status of aplay"
+    sof-process-state.sh arecord >/dev/null ||
+        func_error_exit "Catch the abnormal process status of arecord"
+    sof-process-state.sh aplay >/dev/null ||
+        func_error_exit "Catch the abnormal process status of aplay"
 
     dlogi "preparing sleep ${OPT_VALUE_lst['w']}"
     sleep ${OPT_VALUE_lst['w']}
@@ -136,20 +139,20 @@ do
     # 3. check process count again:
     tmp_count=0
     pcount=$(pidof arecord|wc -w)
-    tmp_count=$(expr $tmp_count + $pcount)
+    tmp_count=$((tmp_count + pcount))
     pcount=$(pidof aplay|wc -w)
-    tmp_count=$(expr $tmp_count + $pcount)
+    tmp_count=$((tmp_count + pcount))
     [[ $tmp_count -ne $max_count ]] && func_error_exit "Target pipeline count: $max_count, current process count: $tmp_count"
 
     # 4. check arecord process status
     dlogi "checking pipeline status again"
-    sof-process-state.sh arecord >/dev/null
-    [[ $? -eq 1 ]] && func_error_exit "Catch the abnormal process status of arecord"
-    sof-process-state.sh aplay >/dev/null
-    [[ $? -eq 1 ]] && func_error_exit "Catch the abnormal process status of aplay"
+    sof-process-state.sh arecord >/dev/null ||
+        func_error_exit "Catch the abnormal process status of arecord"
+    sof-process-state.sh aplay >/dev/null ||
+        func_error_exit "Catch the abnormal process status of aplay"
 
 
-    # kill all arecord
+    dlogc 'pkill -9 aplay arecord'
     pkill -9 arecord
     pkill -9 aplay
 
