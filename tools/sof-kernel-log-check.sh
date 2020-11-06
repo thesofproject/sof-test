@@ -186,8 +186,8 @@ ignore_str="$ignore_str"'|acpi device:00: Failed to change power state to D3hot'
 
 # I915, issues reported by sof-test
 # BugLink: https://github.com/thesofproject/sof-test/issues/374
-ignore_str="$ignore_str"'|i915 0000:00:02\.0: \[drm\] ERROR TC cold unblock failed'
-ignore_str="$ignore_str"'|i915 0000:00:02\.0: \[drm\] ERROR TC cold block failed'
+ignore_str="$ignore_str"'|i915 0000:00:02\.0: \[drm\] \*ERROR\* TC cold unblock failed'
+ignore_str="$ignore_str"'|i915 0000:00:02\.0: \[drm\] \*ERROR\* TC cold block failed'
 
 # DRM issues with kernel v5.10-rc1 https://github.com/thesofproject/linux/pull/2538
 ignore_str="$ignore_str"'|\[drm:drm_dp_send_link_address \[drm_kms_helper\]\] \*ERROR\* Sending link address failed with -5'
