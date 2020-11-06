@@ -55,9 +55,9 @@ func_lib_setup_kernel_last_line
 
 # now small function define
 declare -A APP_LST DEV_LST
-APP_LST['playback']='aplay'
+APP_LST['playback']='aplay_opts'
 DEV_LST['playback']='/dev/zero'
-APP_LST['capture']='arecord'
+APP_LST['capture']='arecord_opts'
 DEV_LST['capture']='/dev/null'
 
 tmp_count=$max_count
@@ -84,7 +84,6 @@ func_run_pipeline_with_type()
 
         dlogi "Testing: $pcm [$dev]"
 
-        dlogc "${APP_LST[$1]} -D $dev -c $channel -r $rate -f $fmt ${DEV_LST[$1]} -q"
         "${APP_LST[$1]}" -D $dev -c $channel -r $rate -f $fmt "${DEV_LST[$1]}" -q &
 
         tmp_count=$(expr $tmp_count - 1 )

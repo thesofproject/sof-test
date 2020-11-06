@@ -93,8 +93,7 @@ do
             for i in $(seq 1 $loop_cnt)
             do
                 dlogi "===== Testing: (Round: $round/$round_cnt) (PCM: $pcm [$dev]<$type>) (Loop: $i/$loop_cnt) ====="
-                dlogc "aplay -D$dev -r $rate -c $channel -f $fmt_elem -d $duration $file -v -q"
-                aplay -D"$dev" -r "$rate" -c "$channel" -f "$fmt_elem" \
+                aplay_opts -D"$dev" -r "$rate" -c "$channel" -f "$fmt_elem" \
                       -d "$duration" "$file" -v -q || {
                     func_lib_lsof_error_dump "$snd"
                     die "aplay on PCM $dev failed at $i/$loop_cnt."

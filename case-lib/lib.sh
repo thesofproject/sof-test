@@ -253,6 +253,47 @@ func_lib_get_tplg_path()
     return 0
 }
 
+# We must not quote SOF_ALSA_OPTS and disable SC2086 below for two reasons:
+#
+# 1. We want to support multiple parameters in a single variable, in
+#    other words we want to support this:
+#
+#      SOF_ALSA_OPTS="--foo --bar"
+#      aplay $SOF_ALSA_OPTS ...
+#
+# 2. aplay does not ignore empty arguments anyway, in other words this
+#    does not work anyway:
+#
+#      SOF_ALSA_OPTS=""
+#      aplay "$SOF_ALSA_OPTS" ...
+#
+# This is technically incorrect because it means our SOF_ALSA_OPTS
+# cannot support whitespace, for instance this would be split in two
+# options: --bar="aaaa and bbbb"
+#
+#      SOF_ALSA_OPTS='--foo --bar="aaaa bbbb"'
+#
+# To do this "correctly" SOF_ALSA_OPTS etc. should be arrays.
+# From https://mywiki.wooledge.org/BashGuide/Arrays "The only safe way
+# to represent multiple string elements in Bash is through the use of
+# arrays."
+#
+# However, 1. arrays would complicate the user interface 2. ALSA does not
+# seem to need arguments with whitespace or globbing characters.
+
+aplay_opts()
+{
+    dlogc "aplay $SOF_ALSA_OPTS $SOF_APLAY_OPTS $*"
+    # shellcheck disable=SC2086
+    aplay $SOF_ALSA_OPTS $SOF_APLAY_OPTS "$@"
+}
+arecord_opts()
+{
+    dlogc "arecord $SOF_ALSA_OPTS $SOF_ARECORD_OPTS $*"
+    # shellcheck disable=SC2086
+    arecord $SOF_ALSA_OPTS $SOF_ARECORD_OPTS "$@"
+}
+
 die()
 {
     dloge "$@"
