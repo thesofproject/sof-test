@@ -13,7 +13,7 @@ class clsSYSCardInfo():
         # https://github.com/thesofproject/linux/blob/topic/sof-dev/sound/soc/sof/sof-pci-dev.c
         self._pci_ids={"0x119a":"tng","0x5a98":"apl", "0x1a98":"apl", "0x3198":"glk",
             "0x9dc8":"cnl", "0xa348":"cfl", "0x9d71":"kbl", "0x9d70":"skl", "0x34c8":"icl", "0x38c8":"jsl", "0x4dc8":"jsl",
-            "0x02c8":"cml", "0x06c8":"cml", "0xa0c8":"tgl", "0x43c8":"tgl-h", "0x4b55":"ehl", "0x4b58":"ehl",
+            "0x02c8":"cml", "0x06c8":"cml", "0xa0c8":"tgl", "0x43c8":"tgl-h", "0x4b55":"ehl", "0x4b58":"ehl", "0x7ad0": "adl-s",
             # https://github.com/thesofproject/linux/blob/topic/sof-dev/sound/soc/sof/sof-acpi-dev.c
             "0x3438":"bdw", "0x33c8":"hsw", "0x0f04":"byt", "0x2284":"cht",
             # https://github.com/thesofproject/linux/blob/topic/sof-dev/sound/pci/hda/hda_intel.c
