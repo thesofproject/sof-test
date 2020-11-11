@@ -91,7 +91,7 @@ do
         die "Found error(s) in kernel log after module insertion"
 
     dlogi "checking if firmware is loaded successfully"
-    "$(dirname "${BASH_SOURCE[0]}")"/verify-sof-firmware-load.sh > /dev/null ||
+    "$(dirname "${BASH_SOURCE[0]}")"/verify-sof-firmware-load.sh ||
          die "Failed to load firmware after module insertion"
 
     # successful remove/insert module pass
