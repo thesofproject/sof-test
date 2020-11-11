@@ -41,7 +41,7 @@ fi
 func_lib_setup_kernel_checkpoint()
 {
     # shellcheck disable=SC2034 # external script will use it
-    KERNEL_CHECKPOINT=$(wc -l /var/log/kern.log|awk '{print $1;}')
+    KERNEL_CHECKPOINT=$(date +%s)
 }
 
 # This function adds a fake error to dmesg (which is always saved by
