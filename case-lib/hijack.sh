@@ -93,6 +93,8 @@ function func_exit_handler()
         exit_status=$ret
     fi
 
+    # We must always print some 'Test Result' otherwise some callers
+    # will time out
     case $exit_status in
         0)
             dlogi "Test Result: PASS!"
@@ -105,6 +107,7 @@ function func_exit_handler()
         ;;
         *)
             dlogi "Unknown exit code: $exit_status"
+            dlogi "Test Result: FAIL!"
         ;;
     esac
 
