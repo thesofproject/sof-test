@@ -18,7 +18,8 @@
 # remove the existing alsabat wav files
 rm -f /tmp/bat.wav.*
 
-source $(dirname ${BASH_SOURCE[0]})/../case-lib/lib.sh
+# shellcheck source=case-lib/lib.sh
+source "$(dirname "${BASH_SOURCE[0]}")"/../case-lib/lib.sh
 
 OPT_OPT_lst['p']='pcm_p'     	OPT_DESC_lst['p']='pcm for playback. Example: hw:0,0'
 OPT_PARM_lst['p']=1          	OPT_VALUE_lst['p']=''
@@ -76,12 +77,9 @@ alsabat -Pplug$pcm_p --standalone -n $frames -F $frequency &
 # playback may have low latency, add one second delay to aviod recording zero at beginning.
 sleep 1
 dlogc "alsabat -Cplug$pcm_c -F $frequency"
-alsabat -Cplug$pcm_c -F $frequency
-
+alsabat -Cplug$pcm_c -F $frequency || {
 # upload failed wav file
-if [[ $? != 0 ]]; then
 	__upload_wav_file
 	exit 1
-fi
+}
 
-exit 0
