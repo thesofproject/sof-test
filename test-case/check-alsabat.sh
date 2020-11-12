@@ -73,7 +73,8 @@ dlogi "check the PCMs before alsabat test"
 # different PCMs may support different audio formats(like samplerate, channel-counting, etc.).
 # use plughw to do the audio format conversions. So we don't need to specify them for each PCM.
 dlogc "alsabat -Pplug$pcm_p --standalone -n $frames -F $frequency"
-alsabat -Pplug$pcm_p --standalone -n $frames -F $frequency &
+alsabat -Pplug$pcm_p --standalone -n $frames -F $frequency & playPID=$!
+
 # playback may have low latency, add one second delay to aviod recording zero at beginning.
 sleep 1
 dlogc "alsabat -Cplug$pcm_c -F $frequency"
@@ -83,3 +84,4 @@ alsabat -Cplug$pcm_c -F $frequency || {
 	exit 1
 }
 
+wait $playPID
