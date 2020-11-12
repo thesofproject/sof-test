@@ -55,10 +55,11 @@ function __upload_wav_file
     # upload the alsabat wav file
     for file in /tmp/bat.wav.*
     do
-	    size=`ls -l $file | awk '{print $5}'`
-	    if [[ $size -gt 0 ]]; then
-		    cp $file $LOG_ROOT/
-	    fi
+	# alsabat has a bug where it creates an empty record in playback
+	# mode
+	if test -s "$file"; then
+	    cp "$file" "$LOG_ROOT/"
+	fi
     done
 }
 
