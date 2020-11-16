@@ -240,6 +240,10 @@ case "$platform" in
         ignore_str="$ignore_str"'|mei_me 0000:00:16\..: hw_reset failed ret = -62'
         ignore_str="$ignore_str"'|mei_me 0000:00:16\..: hw_start failed ret = -62'
 
+        # On CML_RVP_SDW, NOHZ tick-stop error causes a false failure
+        # https://github.com/thesofproject/sof-test/issues/505
+        ignore_str="$ignore_str"'|NOHZ tick-stop error: Non-RCU local softirq work is pending, handler #80!!!'
+
         # CML Mantis occasionally throws Intel(R) Management Engine Interface(mei) errors
         # https://unix.stackexchange.com/questions/109294/mei-00000016-0-init-hw-failure
         ignore_str="$ignore_str"'|mei_me 0000:00:16\..: wait hw ready failed'
