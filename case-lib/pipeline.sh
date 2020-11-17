@@ -25,6 +25,7 @@ func_pipeline_export()
         # shellcheck disable=SC1090
         source "$tmp_pipeline_params" || return 1
         rm "$tmp_pipeline_params"
+        [ "$PIPELINE_COUNT" -ne 0 ] || die "No pipeline found from proc file system"
         return 0
     }
 
