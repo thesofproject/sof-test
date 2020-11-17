@@ -55,32 +55,23 @@ pb_duration=${OPT_VALUE_lst['d']}
 func_pipeline_export "$tplg" "type:playback"
 
 func_lib_check_sudo
-# overwrite the subscript: test-case LOG_ROOT environment
-# so when loading the test-case in current script
-# the test-case will write the log to the store folder LOG_ROOT
-# which is the current script log folder
-log_root=$LOG_ROOT
 
 if [ ${OPT_VALUE_lst['p']} -eq 1 ];then
     func_lib_disable_pulseaudio
 fi
 
-export LOG_ROOT=$log_root/round-0
 $(dirname ${BASH_SOURCE[0]})/check-playback.sh -l 1 -t $tplg -d $pb_duration
 ret=$?
-export LOG_ROOT=$log_root
 [[ $ret -ne 0 ]] && dloge "aplay check failed" && exit $ret
 
 for counter in $(seq 1 $loop_cnt)
 do
     dlogi "===== Starting iteration $counter of $loop_cnt ====="
 
-    export LOG_ROOT=$log_root/round-$counter
     # logic: if this case disables pulseaudio, the sub case does not need to disable pulseaudio
     # if this case does not need to disable pulseaudio, the subcase also does not need to disable pluseaudio
     $(dirname ${BASH_SOURCE[0]})/check-kmod-load-unload.sh -l 1 -p
     ret=$?
-    export LOG_ROOT=$log_root
     [[ $ret -ne 0 ]] && dloge "kmod reload failed" && exit $ret
 
     dlogi "wait dsp power status to become suspended"
@@ -98,10 +89,8 @@ do
         fi
     done
 
-    export LOG_ROOT=$log_root/round-$counter
     $(dirname ${BASH_SOURCE[0]})/check-playback.sh -l 1 -t $tplg -d $pb_duration
     ret=$?
-    export LOG_ROOT=$log_root
     [[ $ret -ne 0 ]] && dloge "aplay check failed" && exit $ret
 done
 
