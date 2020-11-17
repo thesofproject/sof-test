@@ -33,6 +33,7 @@ set -e
 ##
 
 source $(dirname ${BASH_SOURCE[0]})/../case-lib/lib.sh
+case_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")"; pwd)
 
 OPT_OPT_lst['t']='tplg'     OPT_DESC_lst['t']='tplg file, default value is env TPLG: $TPLG'
 OPT_PARM_lst['t']=1         OPT_VALUE_lst['t']="$TPLG"
@@ -60,9 +61,8 @@ if [ ${OPT_VALUE_lst['p']} -eq 1 ];then
     func_lib_disable_pulseaudio
 fi
 
-$(dirname ${BASH_SOURCE[0]})/check-playback.sh -l 1 -t $tplg -d $pb_duration
-ret=$?
-[[ $ret -ne 0 ]] && dloge "aplay check failed" && exit $ret
+"$case_dir"/check-playback.sh -l 1 -t $tplg -d $pb_duration ||
+    die "aplay check failed"
 
 for counter in $(seq 1 $loop_cnt)
 do
@@ -70,9 +70,8 @@ do
 
     # logic: if this case disables pulseaudio, the sub case does not need to disable pulseaudio
     # if this case does not need to disable pulseaudio, the subcase also does not need to disable pluseaudio
-    $(dirname ${BASH_SOURCE[0]})/check-kmod-load-unload.sh -l 1 -p
-    ret=$?
-    [[ $ret -ne 0 ]] && dloge "kmod reload failed" && exit $ret
+    "$case_dir"/check-kmod-load-unload.sh -l 1 -p ||
+        die "kmod reload failed"
 
     dlogi "wait dsp power status to become suspended"
     for i in $(seq 1 15)
@@ -89,10 +88,6 @@ do
         fi
     done
 
-    $(dirname ${BASH_SOURCE[0]})/check-playback.sh -l 1 -t $tplg -d $pb_duration
-    ret=$?
-    [[ $ret -ne 0 ]] && dloge "aplay check failed" && exit $ret
+    "$case_dir"/check-playback.sh -l 1 -t $tplg -d $pb_duration ||
+        die "aplay check failed"
 done
-
-# successful exit
-exit 0
