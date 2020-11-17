@@ -48,7 +48,7 @@ do
     dlogc "sudo bash -c 'echo $lpc_loop_cnt > $ipc_flood_dfs'"
     sudo bash -c "'echo $lpc_loop_cnt > $ipc_flood_dfs'"
 
-    sof-kernel-log-check.sh 0 || die "Catched error in dmesg"
+    sof-kernel-log-check.sh 0 || die "Caught error in dmesg"
 
     dlogi "Dumping test logs!"
     dmesg | grep "IPC Flood count" -A 2
