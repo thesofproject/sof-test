@@ -1,6 +1,17 @@
 #!/bin/bash
 
-[[ $# -ne 1 ]] && echo "This script needs parameter: pid/process-name to dump its state" && builtin exit 2
+# This script uses ps to inspect the state of either:
+#
+# - a single process specified by its PID number, or
+# - all running instances of a given command like "aplay" or "arecord"
+#
+# Exit status
+# 0  if at least one process was found and they're _all_ OK
+# 1  if at least one process was found at least one of them is abnormal
+# 2  if no process match, or
+#       wrong number of arguments given
+
+[[ $# -ne 1 ]] && >&2 echo "This script needs parameter: pid/process-name to dump its state" && builtin exit 2
 
 # catch from man ps: PROCESS STATE CODES
 declare -A PS_STATUS
@@ -19,7 +30,7 @@ process=$1
 exit_code=1
 # process does not exist
 [[ ! "$(ps $opt $process -o state --no-header)" ]] && \
-    builtin echo "process: $process status: process run finished/not run" && builtin exit 2
+    >&2 builtin echo "process: $process, status: not found" && builtin exit 2
 
 abnormal_status=0
 # process status detect
