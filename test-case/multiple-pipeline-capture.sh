@@ -97,10 +97,12 @@ func_run_pipeline_with_type()
 func_error_exit()
 {
     dloge "$*"
-    pgrep -a aplay
-    pgrep -a arecord
-    pkill -9 aplay
-    pkill -9 arecord
+    ( set +e
+      pgrep -a aplay
+      pgrep -a arecord
+      pkill -9 aplay
+      pkill -9 arecord
+    )
     exit 1
 }
 
@@ -119,17 +121,17 @@ do
 
     # check all refer capture pipeline status
     # 1. check process count:
-    pcount=$(pidof arecord|wc -w)
-    tmp_count=$((tmp_count + pcount))
-    pcount=$(pidof aplay|wc -w)
-    tmp_count=$((tmp_count + pcount))
+    rec_count=$(pidof arecord|wc -w)
+    tmp_count=$((tmp_count + rec_count))
+    play_count=$(pidof aplay|wc -w)
+    tmp_count=$((tmp_count + play_count))
     [[ $tmp_count -ne $max_count ]] && func_error_exit "Target pipeline count: $max_count, current process count: $tmp_count"
 
     # 2. check arecord process status
     dlogi "checking pipeline status"
-    sof-process-state.sh arecord >/dev/null ||
+    [ "$rec_count" = 0 ] || sof-process-state.sh arecord >/dev/null ||
         func_error_exit "Catch the abnormal process status of arecord"
-    sof-process-state.sh aplay >/dev/null ||
+    [ "$play_count" = 0 ] || sof-process-state.sh aplay >/dev/null ||
         func_error_exit "Catch the abnormal process status of aplay"
 
     dlogi "preparing sleep ${OPT_VALUE_lst['w']}"
@@ -137,23 +139,23 @@ do
 
     # 3. check process count again:
     tmp_count=0
-    pcount=$(pidof arecord|wc -w)
-    tmp_count=$((tmp_count + pcount))
-    pcount=$(pidof aplay|wc -w)
-    tmp_count=$((tmp_count + pcount))
+    rec_count=$(pidof arecord|wc -w)
+    tmp_count=$((tmp_count + rec_count))
+    play_count=$(pidof aplay|wc -w)
+    tmp_count=$((tmp_count + play_count))
     [[ $tmp_count -ne $max_count ]] && func_error_exit "Target pipeline count: $max_count, current process count: $tmp_count"
 
     # 4. check arecord process status
     dlogi "checking pipeline status again"
-    sof-process-state.sh arecord >/dev/null ||
+    [ "$rec_count" = 0 ] || sof-process-state.sh arecord >/dev/null ||
         func_error_exit "Catch the abnormal process status of arecord"
-    sof-process-state.sh aplay >/dev/null ||
+    [ "$play_count" = 0 ] || sof-process-state.sh aplay >/dev/null ||
         func_error_exit "Catch the abnormal process status of aplay"
 
 
     dlogc 'pkill -9 aplay arecord'
-    pkill -9 arecord
-    pkill -9 aplay
+    [ "$rec_count" = 0 ] || pkill -9 arecord
+    [ "$play_count" = 0 ] || pkill -9 aplay
 
     sof-kernel-log-check.sh 0 || die "Catch error in dmesg"
 done
