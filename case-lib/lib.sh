@@ -311,3 +311,10 @@ is_sof_used()
 {
     grep -q "sof" /proc/asound/cards;
 }
+
+# a wrapper to journalctl with required style
+journalctl_cmd()
+{
+   journalctl -k -q --no-pager --utc --output=short-monotonic \
+     --no-hostname  "$@"
+}
