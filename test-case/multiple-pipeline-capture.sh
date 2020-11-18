@@ -93,16 +93,6 @@ func_run_pipeline_with_type()
     done
 }
 
-func_error_exit()
-{
-    dloge "$*"
-    pgrep -a aplay
-    pgrep -a arecord
-    pkill -9 aplay
-    pkill -9 arecord
-    exit 1
-}
-
 check_running_pipeline_count()
 {
     arecord_count=$(pidof arecord | wc -w)

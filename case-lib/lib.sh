@@ -270,3 +270,13 @@ is_sof_used()
 {
     grep -q "sof" /proc/asound/cards;
 }
+
+func_error_exit()
+{
+    dloge "$*"
+    pgrep -a aplay
+    pgrep -a arecord
+    pkill -9 aplay
+    pkill -9 arecord
+    exit 1
+}
