@@ -1,5 +1,7 @@
 #!/bin/bash
 
+### WARNING: this file is 99% COPY/PASTE from multiple-pipeline-playback.sh! ###
+
 ##
 ## Case Name: Run multiple pipelines for capture
 ## Preconditions:
