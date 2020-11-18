@@ -1,5 +1,7 @@
 #!/bin/bash
 
+### WARNING: this file is 99% COPY/PASTE from multiple-pipeline-capture.sh! ###
+
 ##
 ## Case Name: Run multiple pipelines for playback
 ## Preconditions:
@@ -22,6 +24,9 @@
 ##    all pipelines are alive and without kernel error
 ##
 
+set -e
+
+# shellcheck source=case-lib/lib.sh
 source $(dirname ${BASH_SOURCE[0]})/../case-lib/lib.sh
 
 OPT_OPT_lst['t']='tplg'     OPT_DESC_lst['t']='tplg file, default value is env TPLG: $TPLG'
@@ -30,7 +35,7 @@ OPT_PARM_lst['t']=1         OPT_VALUE_lst['t']="$TPLG"
 OPT_OPT_lst['c']='count'    OPT_DESC_lst['c']='test pipeline count'
 OPT_PARM_lst['c']=1         OPT_VALUE_lst['c']=4
 
-OPT_OPT_lst['w']='wait'    OPT_DESC_lst['w']='perpare sleep time'
+OPT_OPT_lst['w']='wait'     OPT_DESC_lst['w']='perpare wait time by sleep'
 OPT_PARM_lst['w']=1         OPT_VALUE_lst['w']=5
 
 OPT_OPT_lst['r']='random'   OPT_DESC_lst['r']='random load pipeline'
@@ -55,9 +60,9 @@ func_lib_setup_kernel_checkpoint
 
 # now small function define
 declare -A APP_LST DEV_LST
-APP_LST['playback']='aplay'
+APP_LST['playback']='aplay_opts'
 DEV_LST['playback']='/dev/zero'
-APP_LST['capture']='arecord'
+APP_LST['capture']='arecord_opts'
 DEV_LST['capture']='/dev/null'
 
 tmp_count=$max_count
@@ -84,21 +89,20 @@ func_run_pipeline_with_type()
 
         dlogi "Testing: $pcm [$dev]"
 
-        dlogc "${APP_LST[$1]} -D $dev -c $channel -r $rate -f $fmt ${DEV_LST[$1]} -q"
         "${APP_LST[$1]}" -D $dev -c $channel -r $rate -f $fmt "${DEV_LST[$1]}" -q &
 
-        tmp_count=$(expr $tmp_count - 1 )
-        [[ $tmp_count -le 0 ]] && return
+        : $((tmp_count--))
+        if [ "$tmp_count" -le 0 ]; then return 0; fi
     done
 }
 
 func_error_exit()
 {
     dloge "$*"
-    pgrep -a aplay
-    pgrep -a arecord
-    pkill -9 aplay
-    pkill -9 arecord
+
+    pgrep -a aplay   &&  pkill -9 aplay
+    pgrep -a arecord &&  pkill -9 arecord
+
     exit 1
 }
 
@@ -117,44 +121,43 @@ do
 
     # check all refer capture pipeline status
     # 1. check process count:
-    pcount=$(pidof arecord|wc -w)
-    tmp_count=$(expr $tmp_count + $pcount)
-    pcount=$(pidof aplay|wc -w)
-    tmp_count=$(expr $tmp_count + $pcount)
+    rec_count=$(pidof arecord|wc -w)
+    tmp_count=$((tmp_count + rec_count))
+    play_count=$(pidof aplay|wc -w)
+    tmp_count=$((tmp_count + play_count))
     [[ $tmp_count -ne $max_count ]] && func_error_exit "Target pipeline count: $max_count, current process count: $tmp_count"
 
     # 2. check arecord process status
     dlogi "checking pipeline status"
-    sof-process-state.sh aplay >/dev/null
-    [[ $? -eq 1 ]] && func_error_exit "Catch the abnormal process status of aplay"
-    sof-process-state.sh arecord >/dev/null
-    [[ $? -eq 1 ]] && func_error_exit "Catch the abnormal process status of arecord"
+    [ "$rec_count" = 0 ] || sof-process-state.sh arecord >/dev/null ||
+        func_error_exit "Catch the abnormal process status of arecord"
+    [ "$play_count" = 0 ] || sof-process-state.sh aplay >/dev/null ||
+        func_error_exit "Catch the abnormal process status of aplay"
 
     dlogi "preparing sleep ${OPT_VALUE_lst['w']}"
     sleep ${OPT_VALUE_lst['w']}
 
     # 3. check process count again:
     tmp_count=0
-    pcount=$(pidof arecord|wc -w)
-    tmp_count=$(expr $tmp_count + $pcount)
-    pcount=$(pidof aplay|wc -w)
-    tmp_count=$(expr $tmp_count + $pcount)
+    rec_count=$(pidof arecord|wc -w)
+    tmp_count=$((tmp_count + rec_count))
+    play_count=$(pidof aplay|wc -w)
+    tmp_count=$((tmp_count + play_count))
     [[ $tmp_count -ne $max_count ]] && func_error_exit "Target pipeline count: $max_count, current process count: $tmp_count"
 
     # 4. check arecord process status
-    dlogi "checking pipeline again"
-    sof-process-state.sh aplay >/dev/null
-    [[ $? -eq 1 ]] && func_error_exit "Catch the abnormal process status of aplay"
-    sof-process-state.sh arecord >/dev/null
-    [[ $? -eq 1 ]] && func_error_exit "Catch the abnormal process status of arecord"
+    dlogi "checking pipeline status again"
+    [ "$rec_count" = 0 ] || sof-process-state.sh arecord >/dev/null ||
+        func_error_exit "Catch the abnormal process status of arecord"
+    [ "$play_count" = 0 ] || sof-process-state.sh aplay >/dev/null ||
+        func_error_exit "Catch the abnormal process status of aplay"
 
 
-    # kill all arecord
-    pkill -9 aplay
-    pkill -9 arecord
+    dlogc 'pkill -9 aplay arecord'
+    [ "$rec_count" = 0 ] || pkill -9 arecord
+    [ "$play_count" = 0 ] || pkill -9 aplay
 
     sof-kernel-log-check.sh 0 || die "Catch error in dmesg"
 done
 
 sof-kernel-log-check.sh "$KERNEL_CHECKPOINT" >/dev/null
-exit $?
