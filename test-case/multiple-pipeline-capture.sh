@@ -98,12 +98,10 @@ func_run_pipeline_with_type()
 func_error_exit()
 {
     dloge "$*"
-    ( set +e
-      pgrep -a aplay
-      pgrep -a arecord
-      pkill -9 aplay
-      pkill -9 arecord
-    )
+
+    pgrep -a aplay   &&  pkill -9 aplay
+    pgrep -a arecord &&  pkill -9 arecord
+
     exit 1
 }
 
