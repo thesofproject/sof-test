@@ -60,10 +60,12 @@ rnd_range=$(( rnd_max -  rnd_min ))
 case $test_mode in
     "playback")
         cmd=aplay
+        cmd_opts="$SOF_APLAY_OPTS"
         dummy_file=/dev/zero
     ;;
     "capture")
         cmd=arecord
+        cmd_opts="$SOF_ARECORD_OPTS"
         dummy_file=/dev/null
     ;;
     *)
@@ -86,14 +88,15 @@ do
     dev=$(func_pipeline_parse_value "$idx" dev)
     snd=$(func_pipeline_parse_value "$idx" snd)
 
-    dlogi "Entering expect script with: $cmd -D $dev -r $rate -c $channel -f $fmt -vv -i $file_name -q"
-
     # expect is tcl language script
     #   expr rand(): produces random numbers between 0 and 1
     #   after ms: Ms must be an integer giving a time in milliseconds.
     #       The command sleeps for ms milliseconds and then returns.
+    dlogi "Entering expect script with:
+      $cmd $SOF_ALSA_OPTS $cmd_opts -D $dev -r $rate -c $channel -f $fmt -vv -i $file_name -q"
+
     expect <<END
-spawn $cmd -D $dev -r $rate -c $channel -f $fmt -vv -i $file_name -q
+spawn $cmd $SOF_ALSA_OPTS $cmd_opts -D $dev -r $rate -c $channel -f $fmt -vv -i $file_name -q
 set i 1
 expect {
     "*#*+*\%" {
