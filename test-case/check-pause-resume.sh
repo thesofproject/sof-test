@@ -17,9 +17,10 @@ set -e
 ##    no error happen for aplay/arecord
 ##
 
-source $(dirname ${BASH_SOURCE[0]})/../case-lib/lib.sh
+# shellcheck source=case-lib/lib.sh
+source "$(dirname "${BASH_SOURCE[0]}")"/../case-lib/lib.sh
 
-OPT_OPT_lst['t']='tplg'     OPT_DESC_lst['t']='tplg file, default value is env TPLG: $TPLG'
+OPT_OPT_lst['t']='tplg'     OPT_DESC_lst['t']='tplg file, default value is env TPLG: $''TPLG'
 OPT_PARM_lst['t']=1         OPT_VALUE_lst['t']="$TPLG"
 
 OPT_OPT_lst['m']='mode'     OPT_DESC_lst['m']='test mode'
@@ -53,7 +54,7 @@ file_name=${OPT_VALUE_lst['f']}
 # configure random value range
 rnd_min=${OPT_VALUE_lst['i']}
 rnd_max=${OPT_VALUE_lst['a']}
-rnd_range=$[ $rnd_max - $rnd_min ]
+rnd_range=$(( rnd_max -  rnd_min ))
 [[ $rnd_range -le 0 ]] && dlogw "Error random range scope [ min:$rnd_min - max:$rnd_max ]" && exit 2
 
 case $test_mode in
@@ -75,15 +76,15 @@ esac
 [[ -z $file_name ]] && file_name=$dummy_file
 
 func_pipeline_export "$tplg" "type:$test_mode & ${OPT_VALUE_lst['S']}"
-for idx in $(seq 0 $(expr $PIPELINE_COUNT - 1))
+for idx in $(seq 0 $((PIPELINE_COUNT - 1)))
 do
     # set up checkpoint for each iteration
     func_lib_setup_kernel_checkpoint
-    channel=$(func_pipeline_parse_value $idx channel)
-    rate=$(func_pipeline_parse_value $idx rate)
-    fmt=$(func_pipeline_parse_value $idx fmt)
-    dev=$(func_pipeline_parse_value $idx dev)
-    snd=$(func_pipeline_parse_value $idx snd)
+    channel=$(func_pipeline_parse_value "$idx" channel)
+    rate=$(func_pipeline_parse_value "$idx" rate)
+    fmt=$(func_pipeline_parse_value "$idx" fmt)
+    dev=$(func_pipeline_parse_value "$idx" dev)
+    snd=$(func_pipeline_parse_value "$idx" snd)
 
     dlogi "Entering expect script with: $cmd -D $dev -r $rate -c $channel -f $fmt -vv -i $file_name -q"
 
@@ -118,9 +119,9 @@ END
     #flush the output
     echo
     if [ $ret -ne 0 ]; then
-        func_lib_lsof_error_dump $snd
-        sof-process-kill.sh
-        [[ $? -ne 0 ]] && dlogw "Kill process catch error"
+        func_lib_lsof_error_dump "$snd"
+        sof-process-kill.sh ||
+            dlogw "Kill process catch error"
         exit $ret
     fi
     # check kernel log for each iteration to catch issues
