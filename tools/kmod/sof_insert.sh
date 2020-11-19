@@ -35,6 +35,7 @@ insert_module snd_soc_wm8804_i2c
 insert_module snd_soc_max98357a
 insert_module snd_soc_max98090
 insert_module snd_soc_max98373
+insert_module snd_soc_max98373_i2c
 insert_module snd_soc_max98373_sdw
 
 insert_module snd_soc_rt700
