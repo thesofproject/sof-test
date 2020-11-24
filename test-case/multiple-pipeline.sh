@@ -1,21 +1,19 @@
 #!/bin/bash
 
-### WARNING: this file is 99% COPY/PASTE from multiple-pipeline-playback.sh! ###
-
 ##
-## Case Name: Run multiple pipelines for capture
+## Case Name: Run multiple pipelines for playback or capture
 ## Preconditions:
-##    check-capture-10sec pass
+##    check-playback-10sec or check-capture-10sec pass
 ## Description:
 ##    Pick up pipelines from TPLG file for max count
 ##    Rule:
 ##      a. fill pipeline need match max count
-##      b. fill pipeline type order: capture > playback
+##      b. Start filling either playback or capture depending on -f parameter
 ##      c. if pipeline in TPLG is not enough of count, max count is pipeline count
 ## Case step:
 ##    1. Parse TPLG file to get pipeline count to decide max count is parameter or pipeline count
-##    2. load capture for arecord to fill pipeline count
-##    3. load playback for aplay fill pipeline count
+##    2/3. load capture for arecord to fill pipeline count
+##    2/3. load playback for aplay fill pipeline count
 ##    4. wait for 0.5s for process already loaded
 ##    5. check process status & process count
 ##    6. wait for sleep time
@@ -34,6 +32,10 @@ OPT_PARM_lst['t']=1         OPT_VALUE_lst['t']="$TPLG"
 
 OPT_OPT_lst['c']='count'    OPT_DESC_lst['c']='test pipeline count'
 OPT_PARM_lst['c']=1         OPT_VALUE_lst['c']=4
+
+OPT_OPT_lst['f']='first'
+OPT_DESC_lst['f']='Fill either playback (p) or capture (c) first'
+OPT_PARM_lst['f']=1         OPT_VALUE_lst['f']='p'
 
 OPT_OPT_lst['w']='wait'     OPT_DESC_lst['w']='perpare wait time by sleep'
 OPT_PARM_lst['w']=1         OPT_VALUE_lst['w']=5
@@ -112,8 +114,19 @@ do
     dlogi "===== Testing: (Loop: $i/$loop_cnt) ====="
 
     # start capture:
-    func_run_pipeline_with_type "capture"
-    func_run_pipeline_with_type "playback"
+    f_arg=${OPT_VALUE_lst['f']}
+    case "$f_arg" in
+        'p')
+            func_run_pipeline_with_type "playback"
+            func_run_pipeline_with_type "capture"
+            ;;
+        'c')
+            func_run_pipeline_with_type "capture"
+            func_run_pipeline_with_type "playback"
+            ;;
+        *)
+            die "Wrong -f argument $f_arg, see -h"
+    esac
 
     dlogi "pipeline start sleep 0.5s for device wakeup"
     sleep ${OPT_VALUE_lst['w']}
