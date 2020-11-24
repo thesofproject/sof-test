@@ -130,11 +130,15 @@ begin_timestamp=${1:-0}
 declare ignore_str
 
 # pwd resolves relative paths
-my_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
-platform=$("$my_dir"/sof-dump-status.py -p)
+test_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")"/.. && pwd)
+platform=$("$test_dir"/tools/sof-dump-status.py -p)
 
-# TODO explain
+# shellcheck source=case-lib/lib.sh
+source "$test_dir"/case-lib/lib.sh
+
 # The first string cannot start by |
+
+# TODO explain why we ignore this one and where
 ignore_str='error: debugfs write failed to idle -16'
 
 # CML Helios known issue related with xhci_hcd
@@ -312,11 +316,10 @@ ignore_str="$ignore_str"'|elan_i2c i2c-ELAN0000:.*: invalid report id data'
 ignore_str="$ignore_str"'|rt700 sdw:.:.*:700:.: Bus clash detected'
 
 # confirm begin_timestamp is in UNIX timestamp format, otherwise search full log
-journalctlflag="-k -q --no-pager --utc --output=short-monotonic --no-hostname"
 if [[ $begin_timestamp =~ ^[0-9]{10} ]]; then
-    cmd="journalctl $journalctlflag --since=@$begin_timestamp"
+    cmd="journalctl_cmd --since=@$begin_timestamp"
 else
-    cmd="journalctl $journalctlflag"
+    cmd="journalctl_cmd"
 fi
 
 declare -p cmd
