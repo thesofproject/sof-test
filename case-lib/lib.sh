@@ -64,7 +64,7 @@ fake_kern_error()
     boot_secs=$(awk '{ print $1 }' < /proc/uptime)
     kern_log_prefix="$d $(hostname) kernel: [$boot_secs]"
 
-    printf '<0>%s >/dev/kmsg' "$k_msg"  | sudo tee -a /dev/kmsg >/dev/null
+    printf '<0>%s >/dev/kmsg\n' "$k_msg"  | sudo tee -a /dev/kmsg >/dev/null
 
     # From https://www.kernel.org/doc/Documentation/ABI/testing/dev-kmsg
     # It is not possible to inject to /dev/kmesg with the facility
