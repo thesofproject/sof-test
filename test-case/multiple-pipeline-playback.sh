@@ -110,8 +110,6 @@ do
     # set up checkpoint for each iteration
     func_lib_setup_kernel_checkpoint
     dlogi "===== Testing: (Loop: $i/$loop_cnt) ====="
-    # clean up dmesg
-    sudo dmesg -C
 
     # start capture:
     func_run_pipeline_with_type "playback"
@@ -153,7 +151,6 @@ do
     [ "$play_count" = 0 ] || sof-process-state.sh aplay >/dev/null ||
         func_error_exit "Catch the abnormal process status of aplay"
 
-
     dlogc 'pkill -9 aplay arecord'
     [ "$rec_count" = 0 ] || pkill -9 arecord
     [ "$play_count" = 0 ] || pkill -9 aplay
@@ -161,3 +158,4 @@ do
     # check kernel log for each iteration to catch issues
     sof-kernel-log-check.sh "$KERNEL_CHECKPOINT" || die "Caught error in kernel log"
 done
+
