@@ -179,7 +179,7 @@ ignore_str="$ignore_str"'|iwlwifi 0000:00:14\.3: Microcode SW error detected\. R
 ignore_str="$ignore_str"'|: authentication with ..:..:..:..:..:.. timed out'
 
 # Dell TGL laptop with SoundWire, issues reported by sof-test
-ignore_str="$ignore_str"'|ACPI BIOS Error (bug):'
+ignore_str="$ignore_str"'|ACPI BIOS Error \(bug\):'
 ignore_str="$ignore_str"'|ACPI Error:'
 ignore_str="$ignore_str"'|acpi device:00: Failed to change power state to D3hot'
 
