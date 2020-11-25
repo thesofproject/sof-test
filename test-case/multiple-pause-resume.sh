@@ -20,6 +20,7 @@ set -e
 ##    no errors occur for either process
 ##
 
+# shellcheck source=case-lib/lib.sh
 source $(dirname ${BASH_SOURCE[0]})/../case-lib/lib.sh
 
 OPT_OPT_lst['t']='tplg'     OPT_DESC_lst['t']='tplg file, default value is env TPLG: $TPLG'
@@ -102,12 +103,12 @@ done
 func_pause_resume_pipeline()
 {
     local idx=${pipeline_idx_lst[$1]} cmd=${cmd_idx_lst[$1]} file=${file_idx_lst[$1]}
-    local channel=$(func_pipeline_parse_value $idx channel)
-    local rate=$(func_pipeline_parse_value $idx rate)
-    local fmt=$(func_pipeline_parse_value $idx fmt)
-    local dev=$(func_pipeline_parse_value $idx dev)
-    local pcm=$(func_pipeline_parse_value $idx pcm)
-    local type=$(func_pipeline_parse_value $idx type)
+    local channel; channel=$(func_pipeline_parse_value "$idx" channel)
+    local rate; rate=$(func_pipeline_parse_value "$idx" rate)
+    local fmt; fmt=$(func_pipeline_parse_value "$idx" fmt)
+    local dev; dev=$(func_pipeline_parse_value "$idx" dev)
+    local pcm; pcm=$(func_pipeline_parse_value "$idx" pcm)
+    local type; type=$(func_pipeline_parse_value "$idx" type)
     # expect is tcl language script
     #   expr rand(): produces random numbers between 0 and 1
     #   after ms: Ms must be an integer giving a time in milliseconds.
@@ -168,7 +169,7 @@ do
         if [ "$(pidof expect)" ]; then
             dloge "Still have expect process not finished after wait for $max_wait_time"
             # now dump process
-            ps -ef |grep -E 'aplay|arecord'
+            ps -ef |grep -E 'aplay|arecord' || true
             exit 1
         fi
         # now check for all expect quit status
@@ -182,8 +183,8 @@ do
         dlogi "Check expect exit status"
         for pid in ${pid_lst[*]}
         do
-            wait $pid
-            [[ $? -ne 0 ]] && die "pause resume is exit status error"
+            wait "$pid" ||
+                die "pause resume PID $pid had non-zero exit status"
         done
     done
     # check kernel log for each iteration to catch issues
