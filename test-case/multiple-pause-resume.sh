@@ -183,8 +183,10 @@ do
         dlogi "Check expect exit status"
         for pid in ${pid_lst[*]}
         do
-            wait "$pid" ||
+            wait "$pid" || {
+                sof-kernel-log-check.sh "$KERNEL_CHECKPOINT" || true
                 die "pause resume PID $pid had non-zero exit status"
+            }
         done
     done
     # check kernel log for each iteration to catch issues
