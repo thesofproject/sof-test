@@ -132,6 +132,11 @@ do
     func_lib_setup_kernel_checkpoint
     dlogi "===== Testing: (Loop: $i/$loop_cnt) ====="
 
+
+    dlogi 'MARC TEST: give the DSP 4 seconds to go to sleep and no time to wake up'
+    OPT_VALUE_lst['w']=0
+    sleep 4
+
     # start capture:
     f_arg=${OPT_VALUE_lst['f']}
     case "$f_arg" in
