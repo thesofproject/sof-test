@@ -105,6 +105,27 @@ func_error_exit()
     exit 1
 }
 
+
+ps_checks()
+{
+    local play_count rec_count total_count
+    # Extra logging
+    # >&2 ps u --no-headers -C aplay -C arecord || true
+
+    rec_count=$(ps  --no-headers -C arecord | wc -l)
+    play_count=$(ps --no-headers -C aplay   | wc -l)
+    total_count=$((rec_count + play_count))
+
+    [ "$total_count" -eq "$max_count" ] ||
+        func_error_exit "Target pipeline count: $max_count, current process count: $total_count"
+
+    [ "$rec_count" = 0 ] || sof-process-state.sh arecord >/dev/null ||
+        func_error_exit "Caught abnormal process status of arecord"
+    [ "$play_count" = 0 ] || sof-process-state.sh aplay >/dev/null ||
+        func_error_exit "Caught abnormal process status of aplay"
+}
+
+
 for i in $(seq 1 $loop_cnt)
 do
     # set up checkpoint for each iteration
@@ -128,45 +149,22 @@ do
             die "Wrong -f argument $f_arg, see -h"
     esac
 
-    dlogi "pipeline start sleep 0.5s for device wakeup"
+    dlogi "sleep ${OPT_VALUE_lst['w']}s for sound device wakeup"
     sleep ${OPT_VALUE_lst['w']}
 
-    # check all refer capture pipeline status
-    # 1. check process count:
-    rec_count=$(pidof arecord|wc -w)
-    tmp_count=$((tmp_count + rec_count))
-    play_count=$(pidof aplay|wc -w)
-    tmp_count=$((tmp_count + play_count))
-    [[ $tmp_count -ne $max_count ]] && func_error_exit "Target pipeline count: $max_count, current process count: $tmp_count"
-
-    # 2. check arecord process status
     dlogi "checking pipeline status"
-    [ "$rec_count" = 0 ] || sof-process-state.sh arecord >/dev/null ||
-        func_error_exit "Catch the abnormal process status of arecord"
-    [ "$play_count" = 0 ] || sof-process-state.sh aplay >/dev/null ||
-        func_error_exit "Catch the abnormal process status of aplay"
+    ps_checks
 
     dlogi "preparing sleep ${OPT_VALUE_lst['w']}"
     sleep ${OPT_VALUE_lst['w']}
 
-    # 3. check process count again:
-    tmp_count=0
-    rec_count=$(pidof arecord|wc -w)
-    tmp_count=$((tmp_count + rec_count))
-    play_count=$(pidof aplay|wc -w)
-    tmp_count=$((tmp_count + play_count))
-    [[ $tmp_count -ne $max_count ]] && func_error_exit "Target pipeline count: $max_count, current process count: $tmp_count"
-
-    # 4. check arecord process status
+    # check processes again
     dlogi "checking pipeline status again"
-    [ "$rec_count" = 0 ] || sof-process-state.sh arecord >/dev/null ||
-        func_error_exit "Catch the abnormal process status of arecord"
-    [ "$play_count" = 0 ] || sof-process-state.sh aplay >/dev/null ||
-        func_error_exit "Catch the abnormal process status of aplay"
+    ps_checks
 
     dlogc 'pkill -9 aplay arecord'
-    [ "$rec_count" = 0 ] || pkill -9 arecord
-    [ "$play_count" = 0 ] || pkill -9 aplay
+    pkill -9 arecord || true
+    pkill -9 aplay   || true
 
     # check kernel log for each iteration to catch issues
     sof-kernel-log-check.sh "$KERNEL_CHECKPOINT" || die "Caught error in kernel log"
