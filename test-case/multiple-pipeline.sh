@@ -66,8 +66,6 @@ DEV_LST['playback']='/dev/zero'
 APP_LST['capture']='arecord_opts'
 DEV_LST['capture']='/dev/null'
 
-tmp_count=$max_count
-
 # define for load pipeline
 func_run_pipeline_with_type()
 {
@@ -117,10 +115,12 @@ do
     f_arg=${OPT_VALUE_lst['f']}
     case "$f_arg" in
         'p')
+            tmp_count=$max_count
             func_run_pipeline_with_type "playback"
             func_run_pipeline_with_type "capture"
             ;;
         'c')
+            tmp_count=$max_count
             func_run_pipeline_with_type "capture"
             func_run_pipeline_with_type "playback"
             ;;
