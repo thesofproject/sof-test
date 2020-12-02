@@ -6,8 +6,8 @@
 # yaml merge-expand .travis.yml exp.yml && diff -b -u .travis.yml exp.yml
 
 
-# bionic = 2018
-dist: bionic
+# focal = 2020
+dist: focal
 
 language: minimal
 
