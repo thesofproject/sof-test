@@ -21,6 +21,28 @@ source "$SCRIPT_HOME/case-lib/pipeline.sh"
 # shellcheck source=case-lib/hijack.sh
 source "$SCRIPT_HOME/case-lib/hijack.sh"
 
+sof_test_version()
+{
+    SOF_TEST_VERSION=$(cd "$SCRIPT_HOME" &&
+                           git describe --always --long --tags --dirty) || {
+        SOF_TEST_VERSION='git describe failed'
+        dlogi "$SOF_TEST_VERSION"
+        return 1
+    }
+
+    dlogi "Running sof-test version: $SOF_TEST_VERSION"
+    # Github pull requests look like this, so need to log that too
+    # 5c75f14f8 (HEAD) Merge 2b0ddec518 into d1968d3b5031ca82e
+    #   ^ useless!            ^ PR            ^ target branch
+    dlogi "   $(cd "$SCRIPT_HOME" && git log --oneline -n 1 --decorate)"
+}
+
+# Run only once when one script invokes another
+if test -z "$SOF_TEST_VERSION"; then
+    sof_test_version || true
+    export SOF_TEST_VERSION
+fi
+
 # restrict bash version for some bash feature
 [[ $(echo -e "$BASH_VERSION\n4.1"|sort -V|head -n 1) == '4.1' ]] || {
     dlogw "Bash version: ${BASH_VERSINFO[0]}.${BASH_VERSINFO[1]} should > 4.1"
