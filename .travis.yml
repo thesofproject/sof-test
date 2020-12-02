@@ -16,7 +16,7 @@ git:
   quiet: true
 
 before_install:
-  - sudo apt-get -y install shellcheck pylint
+  - sudo apt-get -y install shellcheck pylint python3-numpy python3-scipy
 
 jobs:
   include:
