@@ -313,11 +313,19 @@ ignore_str="$ignore_str"'|rt700 sdw:.:.*:700:.: Bus clash detected'
 
 # confirm begin_timestamp is in UNIX timestamp format, otherwise search full log
 journalctlflag="-k -q --no-pager --utc --output=short-monotonic --no-hostname"
-[[ $begin_timestamp =~ ^[0-9]{10} ]] && cmd="journalctl $journalctlflag --since=@$begin_timestamp" || cmd="journalctl $journalctlflag"
+if [[ $begin_timestamp =~ ^[0-9]{10} ]]; then
+    cmd="journalctl $journalctlflag --since=@$begin_timestamp"
+else
+    cmd="journalctl $journalctlflag"
+fi
 
 declare -p cmd
 # check priority err for error message
-[[ "$ignore_str" ]] && err=$($cmd --priority=err | grep -vE "$ignore_str") || $($cmd --priority=err)
+if [[ "$ignore_str" ]]; then
+    err=$($cmd --priority=err | grep -vE "$ignore_str")
+else
+    err=$($cmd --priority=err)
+fi
 
 [[ -z "$err" ]] || {
     echo "$(date -u '+%Y-%m-%d %T %Z')" "[ERROR]" "Caught kernel log error"
