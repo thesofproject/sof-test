@@ -307,10 +307,6 @@ ignore_str="$ignore_str"'|elan_i2c i2c-ELAN0000:.*: invalid report id data'
 # SDW related logs
 #
 
-# origin logs seen on CML with RT700 platforms
-# rt700 sdw:1:25d:700:0: Bus clash detected
-ignore_str="$ignore_str"'|rt700 sdw:.:.*:700:.: Bus clash detected'
-
 # confirm begin_timestamp is in UNIX timestamp format, otherwise search full log
 journalctlflag="-k -q --no-pager --utc --output=short-monotonic --no-hostname"
 if [[ $begin_timestamp =~ ^[0-9]{10} ]]; then
