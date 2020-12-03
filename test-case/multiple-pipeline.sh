@@ -119,9 +119,9 @@ ps_checks()
     [ "$total_count" -eq "$max_count" ] ||
         func_error_exit "Target pipeline count: $max_count, current process count: $total_count"
 
-    [ "$rec_count" = 0 ] || sof-process-state.sh arecord >/dev/null ||
+    [ "$rec_count" = 0 ] || check_process_state arecord >/dev/null ||
         func_error_exit "Caught abnormal process status of arecord"
-    [ "$play_count" = 0 ] || sof-process-state.sh aplay >/dev/null ||
+    [ "$play_count" = 0 ] || check_process_state aplay >/dev/null ||
         func_error_exit "Caught abnormal process status of aplay"
 }
 
