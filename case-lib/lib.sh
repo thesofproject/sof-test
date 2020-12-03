@@ -318,3 +318,39 @@ journalctl_cmd()
    journalctl -k -q --no-pager --utc --output=short-monotonic \
      --no-hostname  "$@"
 }
+
+check_process_state()
+{
+    [[ $# -eq 1 ]] || die "Process name or ID is required to call check_process_state"
+
+    # ps manual: PROCESS STATE CODES
+    declare -A PS_STATUS
+    PS_STATUS['D']='uninterruptible sleep (usually IO)'
+    PS_STATUS['R']='running or runnable (on run queue)'
+    PS_STATUS['S']='interruptible sleep (waiting for an event to complete)'
+    PS_STATUS['T']='stopped by job control signal'
+    PS_STATUS['t']='stopped by debugger during the tracing'
+    PS_STATUS['W']='paging (not valid since the 2.6.xx kernel)'
+    PS_STATUS['X']='dead (should never be seen)'
+    PS_STATUS['Z']='defunct ("zombie") process, terminated but not reaped by its parent'
+
+    process=$1
+    # option of ps should be -p if process=processID, -C if process=processName
+    opt="-C"
+    [[ -n "${process//[0-9]/}" ]] || opt="-p"
+
+    # process does not exist
+    [[ "$(ps "$opt" "$process" -o state --no-header)" ]] ||
+        die "Process $process not found"
+
+    abnormal_count=0
+    # process status detect
+    for state in $(ps "$opt" "$process" -o state --no-header)
+    do
+        # aplay prepare: 'D'; aplay playing: 'S'; aplay pause: 'R';
+        grep -qE "D|S|R" <<< "$state" || abnormal_count=$((abnormal_count + 1))
+        dlogi "Process status of $process: ${PS_STATUS[$state]}"
+    done
+
+    [[ $abnormal_count -eq 0 ]] || return 1
+}
