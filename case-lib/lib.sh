@@ -5,7 +5,7 @@ SCRIPT_HOME="$(dirname "$0")"
 # get test-case parent folder name
 SCRIPT_HOME=$(cd "$SCRIPT_HOME/.." && pwd)
 # shellcheck disable=SC2034 # external script can use it
-SCRIPT_NAME="$0"  # get test-case script load name
+: "${SCRIPT_NAME:="$0"}"  # get test-case script load name
 # shellcheck disable=SC2034 # external script can use it
 SCRIPT_PRAM="$*"  # get test-case parameter
 

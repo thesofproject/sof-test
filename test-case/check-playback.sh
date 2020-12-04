@@ -18,6 +18,7 @@
 
 set -e
 
+SCRIPT_NAME=BOGUS-check-playback
 # shellcheck source=case-lib/lib.sh
 source "$(dirname "${BASH_SOURCE[0]}")"/../case-lib/lib.sh
 
