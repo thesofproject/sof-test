@@ -140,18 +140,16 @@ func_opt_parse_option()
         fi
     done
     # declare -p OPT_VALUE_lst
-    
+
     [ "${OPT_VALUE_lst['h']}" -eq 1 ] && _func_opt_dump_help
     # record the full parameter to the cmd
     if [[ ! -f "$LOG_ROOT/version.txt" ]] && [[ -f "$SCRIPT_HOME/.git/config" ]]; then
         {
             printf "Command:\n"
             [[ "$TPLG" ]] && printf "TPLG=%s" "$TPLG "
-            printf '%s %s' "$SCRIPT_NAME" "$SCRIPT_PRAM"
-            printf 'Branch:\n'
-            git -C "$SCRIPT_HOME" branch
+            printf "%s %s\n" "$SCRIPT_NAME" "$SCRIPT_PRAM"
             printf 'Commit:\n'
-            git -C "$SCRIPT_HOME" log --branches --oneline -n 5
+            git -C "$SCRIPT_HOME" log --oneline --decorate -n 5
         } >> "$LOG_ROOT/version.txt"
     fi
 
