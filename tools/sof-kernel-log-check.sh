@@ -308,6 +308,22 @@ ignore_str="$ignore_str"'|proc_thermal 0000:00:..\..: No auxiliary DTSs enabled'
 # elan_i2c i2c-ELAN0000:00: invalid report id data (ff)
 ignore_str="$ignore_str"'|elan_i2c i2c-ELAN0000:.*: invalid report id data'
 
+# ignore known issues root caused to be a race condition in CTX_SAVE and IPC RX
+# https://github.com/thesofproject/linux/issues/2458
+# [  941.214954] sof-audio-pci 0000:00:1f.3: ipc tx: 0x40010000: GLB_PM_MSG: CTX_SAVE
+# [  941.221565] sof-audio-pci 0000:00:1f.3: ipc rx: 0xffffffff: unknown GLB command
+# [  941.221569] sof-audio-pci 0000:00:1f.3: error: unknown DSP message 0xf0000000
+# [  941.221575] sof-audio-pci 0000:00:1f.3: ipc rx done: 0xffffffff: unknown GLB command
+# [  941.221588] sof-audio-pci 0000:00:1f.3: ipc tx succeeded: 0x40010000: GLB_PM_MSG: CTX_SAVE
+ignore_str="$ignore_str"'|error: unknown DSP message 0xf0000000'
+# https://github.com/thesofproject/linux/issues/2576
+# [ 6495.711415] sof-audio-pci 0000:00:1f.3: ipc tx: 0x40010000: GLB_PM_MSG: CTX_SAVE
+# [ 6495.711488] sof-audio-pci 0000:00:1f.3: ipc rx: 0x90020000: GLB_TRACE_MSG
+# [ 6495.711507] sof-audio-pci 0000:00:1f.3: error: DSP trace buffer overflow 4294967295 bytes. Total messages -1
+# [ 6495.711514] sof-audio-pci 0000:00:1f.3: ipc rx done: 0x90020000: GLB_TRACE_MSG
+# [ 6495.711567] sof-audio-pci 0000:00:1f.3: ipc tx succeeded: 0x40010000: GLB_PM_MSG: CTX_SAVE
+ignore_str="$ignore_str"'|error: DSP trace buffer overflow 4294967295 bytes. Total messages -1'
+
 #
 # SDW related logs
 #
