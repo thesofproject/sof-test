@@ -1,0 +1,45 @@
+---
+# Tools that can save round-trips to github and a lot of time:
+#
+# yamllint -f parsable pull_request.yml
+# pip3 install ruamel.yaml.cmd
+# yaml json pull_request.yml
+# yaml merge-expand pull_request.yml exp.yml &&
+#    diff -b -u pull_request.yml exp.yml
+
+name: Pull Requests
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+jobs:
+
+  shellcheck:
+    runs-on: ubuntu-20.04
+    steps:
+      - {uses: actions/checkout@v2, with: {fetch-depth: 0}}
+      - name: shellcheck
+        env:
+          BASE_REF: ${{ github.base_ref }}
+        # Triple-dotted 'origin/master...HEAD'
+        run: ./tools/CI/check-gitrange.bash origin/${BASE_REF}...HEAD
+               text/x-shellscript shellcheck -x
+
+  pylint:
+    runs-on: ubuntu-20.04
+    steps:
+      # :-( https://github.community/t/support-for-yaml-anchors/16128
+      - {uses: actions/checkout@v2, with: {fetch-depth: 0}}
+      - uses: actions/setup-python@v2
+      - name: get python libs
+        # FIXME: apt-get succeeds but 'import numpy' still fails!?
+        run: sudo apt-get -y install python3-numpy python3-scipy pylint
+      - name: pylint
+        env:
+          BASE_REF: ${{ github.base_ref }}
+        # let's re-enable 'C'onventions once we got the other numbers down
+        run: ./tools/CI/check-gitrange.bash origin/${BASE_REF}...HEAD
+               text/x-python pylint --disable=C
