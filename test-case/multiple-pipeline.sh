@@ -3,6 +3,7 @@
 ##
 ## Case Name: Run multiple pipelines for playback or capture
 ## Preconditions:
+
 ##    check-playback-10sec or check-capture-10sec pass
 ## Description:
 ##    Pick up pipelines from TPLG file for max count

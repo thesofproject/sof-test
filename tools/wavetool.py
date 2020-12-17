@@ -16,6 +16,7 @@ import numpy as np
 import scipy.signal as signal
 import scipy.io.wavfile as wavefile
 
+
 # The acceptable threshold of smart amplifier delay, unit: ms.
 # If the delay is longer, then DSP is overloaded or something
 # is wrong with firmware scheduler.
