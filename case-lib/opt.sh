@@ -31,7 +31,7 @@ func_opt_parse_option()
 
     _func_case_dump_descption()
     {
-         grep '^##' "$SCRIPT_NAME"|sed 's/^##//g'
+         grep '^##' "$0"|sed 's/^##//g'
     }
 
     # Asks getopt to validate command line input and generate $_op_temp_script
