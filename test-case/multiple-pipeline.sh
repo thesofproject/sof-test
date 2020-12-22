@@ -1,25 +1,33 @@
 #!/bin/bash
 
 ##
-## Case Name: Run multiple pipelines for playback or capture
+## Case Name: multiple-pipeline
 ## Preconditions:
-##    check-playback-10sec or check-capture-10sec pass
+##    playback and capture features work well, they can be checked with
+##    check-playback.sh and check-capture.sh
 ## Description:
-##    Pick up pipelines from TPLG file for max count
+##    Run multiple pipelines in parallel
 ##    Rule:
-##      a. fill pipeline need match max count
-##      b. Start filling either playback or capture depending on -f parameter
-##      c. if pipeline in TPLG is not enough of count, max count is pipeline count
+##      a. playback first mode: playback pipelines will be started first, if playback
+##         pipeline count is less than requested pipeline count defined by -c option,
+##         capture pipelines will be started to ensure requested number of pipelines are
+##         running in parallel.
+##      b. capture first mode: same with playback mode, but capture pipelines will be
+##         started first.
+##      c. all pipelines mode: if requested pipeline count is greater than the number of
+##         pipelines defined in topology, all pipelines will be started.
 ## Case step:
-##    1. Parse TPLG file to get pipeline count to decide max count is parameter or pipeline count
-##    2/3. load capture for arecord to fill pipeline count
-##    2/3. load playback for aplay fill pipeline count
-##    4. wait for 0.5s for process already loaded
+##    1. acquire pipeline count that will be running in parallel
+##    2.a Playback First Mode: start playback pipeline(s), if the requested pipeline count
+##        is not satisfied, start capture pipeline(s)
+##    2.b Capture First Mode: start capture pipeline(s), if the requested pipeline count is
+##        not satisfied, start playback pipeline(s)
+##    3. wait pipeline process(es) to be started and running
 ##    5. check process status & process count
-##    6. wait for sleep time
-##    7. check process status & process count
+##    6. running pipelines in parallel for a period of time defined by -w option
+##    7. re-check process status & process count
 ## Expect result:
-##    all pipelines are alive and without kernel error
+##    all pipelines are alive and no kernel and SOF errors detected
 ##
 
 set -e
@@ -55,8 +63,10 @@ tplg=${OPT_VALUE_lst['t']}
 [[ ${OPT_VALUE_lst['s']} -eq 1 ]] && func_lib_start_log_collect
 
 max_count=0
-func_pipeline_export "$tplg" "type:any" # this line will help to get $PIPELINE_COUNT
-# get the min value of TPLG:'pipeline count' with Case:'pipeline count'
+# this line will help to get $PIPELINE_COUNT
+func_pipeline_export "$tplg" "type:any"
+# acquire pipeline count that will run in parallel, if the number of pipeline
+# in topology is less than the required pipeline count, all pipeline will be started.
 [[ $PIPELINE_COUNT -gt ${OPT_VALUE_lst['c']} ]] && max_count=${OPT_VALUE_lst['c']} || max_count=$PIPELINE_COUNT
 
 # now small function define
@@ -117,7 +127,7 @@ ps_checks()
     total_count=$((rec_count + play_count))
 
     [ "$total_count" -eq "$max_count" ] ||
-        func_error_exit "Target pipeline count: $max_count, current process count: $total_count"
+        func_error_exit "Running process count is $total_count, but $max_count is expected"
 
     [ "$rec_count" = 0 ] || sof-process-state.sh arecord >/dev/null ||
         func_error_exit "Caught abnormal process status of arecord"
