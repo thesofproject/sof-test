@@ -308,6 +308,12 @@ ignore_str="$ignore_str"'|proc_thermal 0000:00:..\..: No auxiliary DTSs enabled'
 # elan_i2c i2c-ELAN0000:00: invalid report id data (ff)
 ignore_str="$ignore_str"'|elan_i2c i2c-ELAN0000:.*: invalid report id data'
 
+# net related error logs can be ignored
+# origin logs seen on TGL platforms
+ignore_str="$ignore_str"'|asix .*:'
+# origin logs seen on CML platforms
+ignore_str="$ignore_str"'|e1000e .*:'
+
 #
 # SDW related logs
 #
