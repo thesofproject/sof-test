@@ -51,6 +51,9 @@ OPT_PARM_lst['s']=0             OPT_VALUE_lst['s']=1
 OPT_OPT_lst['f']='file'     OPT_DESC_lst['f']='file name'
 OPT_PARM_lst['f']=1         OPT_VALUE_lst['f']=''
 
+OPT_OPT_lst['P']='pipelines'   OPT_DESC_lst['P']="run test case on specified pipelines"
+OPT_PARM_lst['P']=1             OPT_VALUE_lst['P']="id:any"
+
 func_opt_parse_option "$@"
 func_lib_check_sudo
 
@@ -72,7 +75,7 @@ else
 fi
 [[ -z $file_name ]] && file_name=$dummy_file
 
-func_pipeline_export "$tplg" "type:${OPT_VALUE_lst['m']}"
+func_pipeline_export "$tplg" "type:${OPT_VALUE_lst['m']} & ${OPT_VALUE_lst['P']}"
 
 if [ "${OPT_VALUE_lst['T']}" ]; then
     opt="-l ${OPT_VALUE_lst['l']} -T ${OPT_VALUE_lst['T']}"
