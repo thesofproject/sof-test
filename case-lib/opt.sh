@@ -29,9 +29,9 @@ func_opt_parse_option()
     local _op_temp_script
     local -A _op_short_lst _op_long_lst
 
-    _func_case_dump_descption()
+    _func_case_dump_description()
     {
-         grep '^##' "$SCRIPT_NAME"|sed 's/^##//g'
+         grep '^##' "$SCRIPT_NAME" | sed 's/^## //g'
     }
 
     # Asks getopt to validate command line input and generate $_op_temp_script
@@ -104,7 +104,7 @@ func_opt_parse_option()
 
             printf '    -h |  --help\n'
             printf '\tthis message\n'
-            _func_case_dump_descption
+            _func_case_dump_description
             trap - EXIT
             exit 2
         }
@@ -153,5 +153,5 @@ func_opt_parse_option()
         } >> "$LOG_ROOT/version.txt"
     fi
 
-    unset _func_create_tmpbash _func_opt_dump_help _func_case_dump_descption
+    unset _func_create_tmpbash _func_opt_dump_help _func_case_dump_description
 }
