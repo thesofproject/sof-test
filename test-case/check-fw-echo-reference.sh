@@ -23,15 +23,15 @@ rm -f /tmp/bat.wav.*
 libdir=$(dirname "${BASH_SOURCE[0]}")
 source "$libdir"/../case-lib/lib.sh
 
-OPT_OPT_lst['t']='tplg'         OPT_DESC_lst['t']='tplg file, default value is env TPLG: $''TPLG'
+OPT_NAME['t']='tplg'         OPT_DESC_lst['t']='tplg file, default value is env TPLG: $''TPLG'
 OPT_PARM_lst['t']=1             OPT_VALUE_lst['t']="$TPLG"
-OPT_OPT_lst['s']='sof-logger'   OPT_DESC_lst['s']="Open sof-logger trace the data will store at $LOG_ROOT"
+OPT_NAME['s']='sof-logger'   OPT_DESC_lst['s']="Open sof-logger trace the data will store at $LOG_ROOT"
 OPT_PARM_lst['s']=0             OPT_VALUE_lst['s']=1
-OPT_OPT_lst['l']='loop'         OPT_DESC_lst['l']='loop count'
+OPT_NAME['l']='loop'         OPT_DESC_lst['l']='loop count'
 OPT_PARM_lst['l']=1             OPT_VALUE_lst['l']=1
-OPT_OPT_lst['n']='frames'       OPT_DESC_lst['n']='test frames'
+OPT_NAME['n']='frames'       OPT_DESC_lst['n']='test frames'
 OPT_PARM_lst['n']=1             OPT_VALUE_lst['n']=240000
-OPT_OPT_lst['f']='frequency'    OPT_DESC_lst['f']='target frequency'
+OPT_NAME['f']='frequency'    OPT_DESC_lst['f']='target frequency'
 OPT_PARM_lst['f']=1             OPT_VALUE_lst['f']=997
 
 func_opt_parse_option "$@"

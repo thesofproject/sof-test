@@ -24,19 +24,19 @@ source $(dirname ${BASH_SOURCE[0]})/../case-lib/lib.sh
 random_min=3    # wait time should >= 3 for other device wakeup from sleep
 random_max=20
 
-OPT_OPT_lst['l']='loop'     OPT_DESC_lst['l']='loop count'
+OPT_NAME['l']='loop'     OPT_DESC_lst['l']='loop count'
 OPT_PARM_lst['l']=1         OPT_VALUE_lst['l']=5
 
-OPT_OPT_lst['T']='type'    OPT_DESC_lst['T']="suspend/resume type from /sys/power/mem_sleep"
+OPT_NAME['T']='type'    OPT_DESC_lst['T']="suspend/resume type from /sys/power/mem_sleep"
 OPT_PARM_lst['T']=1         OPT_VALUE_lst['T']=""
 
-OPT_OPT_lst['S']='sleep'    OPT_DESC_lst['S']='suspend/resume command:rtcwake sleep duration'
+OPT_NAME['S']='sleep'    OPT_DESC_lst['S']='suspend/resume command:rtcwake sleep duration'
 OPT_PARM_lst['S']=1         OPT_VALUE_lst['S']=5
 
-OPT_OPT_lst['w']='wait'     OPT_DESC_lst['w']='idle time after suspend/resume wakeup'
+OPT_NAME['w']='wait'     OPT_DESC_lst['w']='idle time after suspend/resume wakeup'
 OPT_PARM_lst['w']=1         OPT_VALUE_lst['w']=5
 
-OPT_OPT_lst['r']='random'   OPT_DESC_lst['r']="Randomly setup wait/sleep time, range is [$random_min-$random_max], this option will overwrite s & w option"
+OPT_NAME['r']='random'   OPT_DESC_lst['r']="Randomly setup wait/sleep time, range is [$random_min-$random_max], this option will overwrite s & w option"
 OPT_PARM_lst['r']=0         OPT_VALUE_lst['r']=0
 
 func_opt_parse_option "$@"
