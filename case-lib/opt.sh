@@ -3,25 +3,25 @@
 # Before using this, you must define these option arrays in your test
 # script. They must all be indexed by some unique, one-character
 # codename for each of your option.
-declare -A OPT_DESC_lst OPT_OPT_lst OPT_PARM_lst OPT_VALUE_lst
+declare -A OPT_DESC_lst OPT_NAME OPT_PARM_lst OPT_VALUE_lst
 
 # option setup && parse function
 func_opt_parse_option()
 {
-    # OPT_OPT_lst     (long) option name
+    # OPT_NAME     (long) option name
     # OPT_DESC_lst    short sentence describing the option
     # OPT_PARM_lst    0 or 1: number of argument required
     # OPT_VALUE_lst   default value overwritten by command line
     #                 input if any. Set to 0 or 1 when PARM=0
 
     # for example
-    # OPT_OPT_lst['r']='remote'
+    # OPT_NAME['r']='remote'
     # OPT_DESC_lst['r']='Run for the remote machine'
     # OPT_PARM_lst['r']=1
     # OPT_VALUE_lst['r']='' ## if PARM=1, must be set, if PARM=0, can ignore
 
     # h & help is default option, so don't need to add into option list
-    OPT_OPT_lst['h']='help'
+    OPT_NAME['h']='help'
     OPT_DESC_lst['h']='this message'
     OPT_PARM_lst['h']=0
     OPT_VALUE_lst['h']=0
@@ -53,9 +53,9 @@ func_opt_parse_option()
             _short_opt=$_short_opt"$i"
             _op_short_lst["-$i"]="$i"
             [ "$_long_opt" ] && _long_opt="$_long_opt"','
-            if [ "${OPT_OPT_lst[$i]}" ]; then
-                _long_opt=$_long_opt"${OPT_OPT_lst[$i]}"
-                _op_long_lst["--${OPT_OPT_lst[$i]}"]="$i"
+            if [ "${OPT_NAME[$i]}" ]; then
+                _long_opt=$_long_opt"${OPT_NAME[$i]}"
+                _op_long_lst["--${OPT_NAME[$i]}"]="$i"
             fi
             # append ':' if the option accepts an argument
             [ ${OPT_PARM_lst[$i]} -eq 1 ] && _short_opt=$_short_opt':' && _long_opt=$_long_opt':'
@@ -84,10 +84,10 @@ func_opt_parse_option()
                 # have parameter
                 [ "X${OPT_PARM_lst[$i]}" == "X1" ] && printf ' parameter'
                 # display long option
-                if [ "${OPT_OPT_lst[$i]}" ]; then
+                if [ "${OPT_NAME[$i]}" ]; then
                     # whether display short option
                     [ "$i" ] && printf ' |  ' || printf '    '
-                    printf '%s' "--${OPT_OPT_lst[$i]}"
+                    printf '%s' "--${OPT_NAME[$i]}"
                     [ "X${OPT_PARM_lst[$i]}" == "X1" ] && printf ' parameter'
                 fi
                 printf '\n\t%s\n' "${OPT_DESC_lst[$i]}"
@@ -118,7 +118,7 @@ func_opt_parse_option()
 
     # Iterate over command line input and overwrite OPT_VALUE_lst
     # default values.
-    # declare -p OPT_OPT_lst OPT_VALUE_lst
+    # declare -p OPT_NAME OPT_VALUE_lst
     local idx
     while true ; do
         # idx is our internal one-character code name unique for each option

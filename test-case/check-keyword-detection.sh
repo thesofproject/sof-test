@@ -22,25 +22,25 @@ libdir=$(dirname "${BASH_SOURCE[0]}")
 # shellcheck source=case-lib/lib.sh
 source "$libdir"/../case-lib/lib.sh
 
-OPT_OPT_lst['t']='tplg'              OPT_DESC_lst['t']='tplg file, default value is env TPLG: $''TPLG'
+OPT_NAME['t']='tplg'              OPT_DESC_lst['t']='tplg file, default value is env TPLG: $''TPLG'
 OPT_PARM_lst['t']=1                  OPT_VALUE_lst['t']="$TPLG"
 
-OPT_OPT_lst['s']='sof-logger'        OPT_DESC_lst['s']="Open sof-logger trace the data will store at $LOG_ROOT"
+OPT_NAME['s']='sof-logger'        OPT_DESC_lst['s']="Open sof-logger trace the data will store at $LOG_ROOT"
 OPT_PARM_lst['s']=0                  OPT_VALUE_lst['s']=1
 
-OPT_OPT_lst['p']='preamble-time'     OPT_DESC_lst['p']='key phrase preamble length'
+OPT_NAME['p']='preamble-time'     OPT_DESC_lst['p']='key phrase preamble length'
 OPT_PARM_lst['p']=1                  OPT_VALUE_lst['p']=2100
 
-OPT_OPT_lst['s']='history-depth'     OPT_DESC_lst['s']='draining size'
+OPT_NAME['s']='history-depth'     OPT_DESC_lst['s']='draining size'
 OPT_PARM_lst['s']=1                  OPT_VALUE_lst['s']=2100
 
-OPT_OPT_lst['b']='buffer'            OPT_DESC_lst['b']='buffer size'
+OPT_NAME['b']='buffer'            OPT_DESC_lst['b']='buffer size'
 OPT_PARM_lst['b']=1                  OPT_VALUE_lst['b']=67200
 
-OPT_OPT_lst['l']='loop'              OPT_DESC_lst['l']='loop count'
+OPT_NAME['l']='loop'              OPT_DESC_lst['l']='loop count'
 OPT_PARM_lst['l']=1                  OPT_VALUE_lst['l']=1
 
-OPT_OPT_lst['d']='duration'          OPT_DESC_lst['d']='interrupt kwd pipeline in # seconds'
+OPT_NAME['d']='duration'          OPT_DESC_lst['d']='interrupt kwd pipeline in # seconds'
 OPT_PARM_lst['d']=1                  OPT_VALUE_lst['d']=10
 
 func_opt_parse_option "$@"
