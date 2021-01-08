@@ -18,13 +18,13 @@
 source $(dirname ${BASH_SOURCE[0]})/../case-lib/lib.sh
 
 volume_array=("0%" "10%" "20%" "30%" "40%" "50%" "60%" "70%" "80%" "90%" "100%")
-OPT_NAME['t']='tplg'     OPT_DESC_lst['t']='tplg file, default value is env TPLG: $TPLG'
+OPT_NAME['t']='tplg'     OPT_DESC['t']='tplg file, default value is env TPLG: $TPLG'
 OPT_PARM_lst['t']=1         OPT_VALUE_lst['t']="$TPLG"
 
-OPT_NAME['l']='loop'     OPT_DESC_lst['l']='loop count'
+OPT_NAME['l']='loop'     OPT_DESC['l']='loop count'
 OPT_PARM_lst['l']=1         OPT_VALUE_lst['l']=2
 
-OPT_NAME['s']='sof-logger'   OPT_DESC_lst['s']="Open sof-logger trace the data will store at $LOG_ROOT"
+OPT_NAME['s']='sof-logger'   OPT_DESC['s']="Open sof-logger trace the data will store at $LOG_ROOT"
 OPT_PARM_lst['s']=0             OPT_VALUE_lst['s']=1
 
 func_opt_parse_option "$@"

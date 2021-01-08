@@ -20,28 +20,28 @@ set -e
 # shellcheck source=case-lib/lib.sh
 source "$(dirname "${BASH_SOURCE[0]}")"/../case-lib/lib.sh
 
-OPT_NAME['t']='tplg'     OPT_DESC_lst['t']='tplg file, default value is env TPLG: $''TPLG'
+OPT_NAME['t']='tplg'     OPT_DESC['t']='tplg file, default value is env TPLG: $''TPLG'
 OPT_PARM_lst['t']=1         OPT_VALUE_lst['t']="$TPLG"
 
-OPT_NAME['m']='mode'     OPT_DESC_lst['m']='test mode'
+OPT_NAME['m']='mode'     OPT_DESC['m']='test mode'
 OPT_PARM_lst['m']=1         OPT_VALUE_lst['m']='playback'
 
-OPT_NAME['c']='count'    OPT_DESC_lst['c']='pause/resume repeat count'
+OPT_NAME['c']='count'    OPT_DESC['c']='pause/resume repeat count'
 OPT_PARM_lst['c']=1         OPT_VALUE_lst['c']=10
 
-OPT_NAME['f']='file'     OPT_DESC_lst['f']='file name'
+OPT_NAME['f']='file'     OPT_DESC['f']='file name'
 OPT_PARM_lst['f']=1         OPT_VALUE_lst['f']=''
 
-OPT_NAME['i']='min'      OPT_DESC_lst['i']='random range min value, unit is ms'
+OPT_NAME['i']='min'      OPT_DESC['i']='random range min value, unit is ms'
 OPT_PARM_lst['i']=1         OPT_VALUE_lst['i']='100'
 
-OPT_NAME['a']='max'      OPT_DESC_lst['a']='random range max value, unit is ms'
+OPT_NAME['a']='max'      OPT_DESC['a']='random range max value, unit is ms'
 OPT_PARM_lst['a']=1         OPT_VALUE_lst['a']='200'
 
-OPT_NAME['s']='sof-logger'   OPT_DESC_lst['s']="Open sof-logger trace the data will store at $LOG_ROOT"
+OPT_NAME['s']='sof-logger'   OPT_DESC['s']="Open sof-logger trace the data will store at $LOG_ROOT"
 OPT_PARM_lst['s']=0             OPT_VALUE_lst['s']=1
 
-OPT_NAME['S']='filter_string'   OPT_DESC_lst['S']="run this case on specified pipelines"
+OPT_NAME['S']='filter_string'   OPT_DESC['S']="run this case on specified pipelines"
 OPT_PARM_lst['S']=1             OPT_VALUE_lst['S']="id:any"
 
 func_opt_parse_option "$@"
