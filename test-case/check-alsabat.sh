@@ -21,19 +21,19 @@ rm -f /tmp/bat.wav.*
 # shellcheck source=case-lib/lib.sh
 source "$(dirname "${BASH_SOURCE[0]}")"/../case-lib/lib.sh
 
-OPT_NAME['p']='pcm_p'     	OPT_DESC_lst['p']='pcm for playback. Example: hw:0,0'
+OPT_NAME['p']='pcm_p'     	OPT_DESC['p']='pcm for playback. Example: hw:0,0'
 OPT_PARM_lst['p']=1          	OPT_VALUE_lst['p']=''
 
-OPT_NAME['c']='pcm_c'      	OPT_DESC_lst['c']='pcm for capture. Example: hw:1,0'
+OPT_NAME['c']='pcm_c'      	OPT_DESC['c']='pcm for capture. Example: hw:1,0'
 OPT_PARM_lst['c']=1             OPT_VALUE_lst['c']=''
 
-OPT_NAME['f']='frequency'    OPT_DESC_lst['f']='target frequency'
+OPT_NAME['f']='frequency'    OPT_DESC['f']='target frequency'
 OPT_PARM_lst['f']=1             OPT_VALUE_lst['f']=997
 
-OPT_NAME['n']='frames'     OPT_DESC_lst['n']='test frames'
+OPT_NAME['n']='frames'     OPT_DESC['n']='test frames'
 OPT_PARM_lst['n']=1             OPT_VALUE_lst['n']=240000
 
-OPT_NAME['s']='sof-logger'   OPT_DESC_lst['s']="Open sof-logger trace the data will store at $LOG_ROOT"
+OPT_NAME['s']='sof-logger'   OPT_DESC['s']="Open sof-logger trace the data will store at $LOG_ROOT"
 OPT_PARM_lst['s']=0             OPT_VALUE_lst['s']=1
 
 func_opt_parse_option "$@"

@@ -35,17 +35,17 @@ set -e
 source $(dirname ${BASH_SOURCE[0]})/../case-lib/lib.sh
 case_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")"; pwd)
 
-OPT_NAME['t']='tplg'     OPT_DESC_lst['t']='tplg file, default value is env TPLG: $TPLG'
+OPT_NAME['t']='tplg'     OPT_DESC['t']='tplg file, default value is env TPLG: $TPLG'
 OPT_PARM_lst['t']=1         OPT_VALUE_lst['t']="$TPLG"
 
 OPT_NAME['l']='loop'
-OPT_DESC_lst['l']='loop of PCM aplay check - module remove / insert - PCM aplay check'
+OPT_DESC['l']='loop of PCM aplay check - module remove / insert - PCM aplay check'
 OPT_PARM_lst['l']=1          OPT_VALUE_lst['l']=2
 
-OPT_NAME['d']='duration' OPT_DESC_lst['d']='duration of playback process'
+OPT_NAME['d']='duration' OPT_DESC['d']='duration of playback process'
 OPT_PARM_lst['d']=1         OPT_VALUE_lst['d']=3
 
-OPT_NAME['p']='pulseaudio'   OPT_DESC_lst['p']='disable pulseaudio on the test process'
+OPT_NAME['p']='pulseaudio'   OPT_DESC['p']='disable pulseaudio on the test process'
 OPT_PARM_lst['p']=0             OPT_VALUE_lst['p']=1
 
 func_opt_parse_option "$@"

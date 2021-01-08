@@ -24,34 +24,34 @@ set -e
 
 source $(dirname ${BASH_SOURCE[0]})/../case-lib/lib.sh
 
-OPT_NAME['l']='loop'     OPT_DESC_lst['l']='suspend/resume loop count'
+OPT_NAME['l']='loop'     OPT_DESC['l']='suspend/resume loop count'
 OPT_PARM_lst['l']=1         OPT_VALUE_lst['l']=3
 
-OPT_NAME['T']='type'     OPT_DESC_lst['T']="suspend/resume type from /sys/power/mem_sleep"
+OPT_NAME['T']='type'     OPT_DESC['T']="suspend/resume type from /sys/power/mem_sleep"
 OPT_PARM_lst['T']=1         OPT_VALUE_lst['T']=""
 
-OPT_NAME['S']='sleep'    OPT_DESC_lst['S']='suspend/resume command:rtcwake sleep duration'
+OPT_NAME['S']='sleep'    OPT_DESC['S']='suspend/resume command:rtcwake sleep duration'
 OPT_PARM_lst['S']=1         OPT_VALUE_lst['S']=5
 
-OPT_NAME['w']='wait'     OPT_DESC_lst['w']='idle time after suspend/resume wakeup'
+OPT_NAME['w']='wait'     OPT_DESC['w']='idle time after suspend/resume wakeup'
 OPT_PARM_lst['w']=1         OPT_VALUE_lst['w']=5
 
-OPT_NAME['r']='random'   OPT_DESC_lst['r']="Randomly setup wait/sleep time, this option will overwrite s & w option"
+OPT_NAME['r']='random'   OPT_DESC['r']="Randomly setup wait/sleep time, this option will overwrite s & w option"
 OPT_PARM_lst['r']=0         OPT_VALUE_lst['r']=0
 
-OPT_NAME['m']='mode'     OPT_DESC_lst['m']='alsa application type: playback/capture'
+OPT_NAME['m']='mode'     OPT_DESC['m']='alsa application type: playback/capture'
 OPT_PARM_lst['m']=1         OPT_VALUE_lst['m']='playback'
 
-OPT_NAME['t']='tplg'     OPT_DESC_lst['t']='tplg file, default value is env TPLG: $TPLG'
+OPT_NAME['t']='tplg'     OPT_DESC['t']='tplg file, default value is env TPLG: $TPLG'
 OPT_PARM_lst['t']=1         OPT_VALUE_lst['t']="$TPLG"
 
-OPT_NAME['s']='sof-logger'   OPT_DESC_lst['s']="Open sof-logger trace the data will store at $LOG_ROOT"
+OPT_NAME['s']='sof-logger'   OPT_DESC['s']="Open sof-logger trace the data will store at $LOG_ROOT"
 OPT_PARM_lst['s']=0             OPT_VALUE_lst['s']=1
 
-OPT_NAME['f']='file'     OPT_DESC_lst['f']='file name'
+OPT_NAME['f']='file'     OPT_DESC['f']='file name'
 OPT_PARM_lst['f']=1         OPT_VALUE_lst['f']=''
 
-OPT_NAME['P']='pipelines'   OPT_DESC_lst['P']="run test case on specified pipelines"
+OPT_NAME['P']='pipelines'   OPT_DESC['P']="run test case on specified pipelines"
 OPT_PARM_lst['P']=1             OPT_VALUE_lst['P']="id:any"
 
 func_opt_parse_option "$@"

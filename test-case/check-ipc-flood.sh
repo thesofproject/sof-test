@@ -15,13 +15,13 @@
 
 source $(dirname ${BASH_SOURCE[0]})/../case-lib/lib.sh
 
-OPT_NAME['c']='cnt'      OPT_DESC_lst['c']='ipc loop count'
+OPT_NAME['c']='cnt'      OPT_DESC['c']='ipc loop count'
 OPT_PARM_lst['c']=1         OPT_VALUE_lst['c']=10000
 
-OPT_NAME['f']='dfs'      OPT_DESC_lst['f']='system dfs file'
+OPT_NAME['f']='dfs'      OPT_DESC['f']='system dfs file'
 OPT_PARM_lst['f']=1         OPT_VALUE_lst['f']="/sys/kernel/debug/sof/ipc_flood_count"
 
-OPT_NAME['l']='loop'     OPT_DESC_lst['l']='loop count'
+OPT_NAME['l']='loop'     OPT_DESC['l']='loop count'
 OPT_PARM_lst['l']=1         OPT_VALUE_lst['l']=1
 
 func_opt_parse_option "$@"

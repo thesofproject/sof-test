@@ -53,31 +53,31 @@ set -e
 
 source $(dirname ${BASH_SOURCE[0]})/../case-lib/lib.sh
 
-OPT_NAME['m']='mode'         OPT_DESC_lst['m']='test mode. Example: playback; capture'
+OPT_NAME['m']='mode'         OPT_DESC['m']='test mode. Example: playback; capture'
 OPT_PARM_lst['m']=1             OPT_VALUE_lst['m']='playback'
 
-OPT_NAME['p']='pcm'          OPT_DESC_lst['p']='audio pcm. Example: hw:0,0'
+OPT_NAME['p']='pcm'          OPT_DESC['p']='audio pcm. Example: hw:0,0'
 OPT_PARM_lst['p']=1             OPT_VALUE_lst['p']='hw:0,0'
 
-OPT_NAME['f']='fmt'          OPT_DESC_lst['f']='audio format value'
+OPT_NAME['f']='fmt'          OPT_DESC['f']='audio format value'
 OPT_PARM_lst['f']=1             OPT_VALUE_lst['f']='S16_LE'
 
-OPT_NAME['c']='channel'      OPT_DESC_lst['c']='audio channel count'
+OPT_NAME['c']='channel'      OPT_DESC['c']='audio channel count'
 OPT_PARM_lst['c']=1             OPT_VALUE_lst['c']='2'
 
-OPT_NAME['r']='rate'         OPT_DESC_lst['r']='audio rate'
+OPT_NAME['r']='rate'         OPT_DESC['r']='audio rate'
 OPT_PARM_lst['r']=1             OPT_VALUE_lst['r']='48000'
 
-OPT_NAME['F']='file'         OPT_DESC_lst['F']='file name. Example: /dev/zero; /dev/null'
+OPT_NAME['F']='file'         OPT_DESC['F']='file name. Example: /dev/zero; /dev/null'
 OPT_PARM_lst['F']=1             OPT_VALUE_lst['F']=''
 
-OPT_NAME['l']='loop'         OPT_DESC_lst['l']='loop count'
+OPT_NAME['l']='loop'         OPT_DESC['l']='loop count'
 OPT_PARM_lst['l']=1             OPT_VALUE_lst['l']=5
 
-OPT_NAME['i']='sleep-period' OPT_DESC_lst['i']='sleep period of aplay, unit is ms'
+OPT_NAME['i']='sleep-period' OPT_DESC['i']='sleep period of aplay, unit is ms'
 OPT_PARM_lst['i']=1             OPT_VALUE_lst['i']='100'
 
-OPT_NAME['s']='sof-logger'   OPT_DESC_lst['s']="Open sof-logger trace the data will store at $LOG_ROOT"
+OPT_NAME['s']='sof-logger'   OPT_DESC['s']="Open sof-logger trace the data will store at $LOG_ROOT"
 OPT_PARM_lst['s']=0             OPT_VALUE_lst['s']=1
 
 func_opt_parse_option "$@"
