@@ -24,22 +24,30 @@ source "$(dirname "${BASH_SOURCE[0]}")"/../case-lib/lib.sh
 OPT_NAME['p']='pcm_p'     	OPT_DESC['p']='pcm for playback. Example: hw:0,0'
 OPT_PARM_lst['p']=1          	OPT_VALUE_lst['p']=''
 
+OPT_NAME['C']='channel_c'       OPT_DESC['C']='channel number for capture.'
+OPT_PARM_lst['C']=1             OPT_VALUE_lst['C']='1'
+
+OPT_NAME['r']='rate'            OPT_DESC['r']='sample rate'
+OPT_PARM_lst['r']=1             OPT_VALUE_lst['r']=48000
+
 OPT_NAME['c']='pcm_c'      	OPT_DESC['c']='pcm for capture. Example: hw:1,0'
 OPT_PARM_lst['c']=1             OPT_VALUE_lst['c']=''
 
-OPT_NAME['f']='frequency'    OPT_DESC['f']='target frequency'
+OPT_NAME['f']='frequency'       OPT_DESC['f']='target frequency'
 OPT_PARM_lst['f']=1             OPT_VALUE_lst['f']=997
 
-OPT_NAME['n']='frames'     OPT_DESC['n']='test frames'
+OPT_NAME['n']='frames'          OPT_DESC['n']='test frames'
 OPT_PARM_lst['n']=1             OPT_VALUE_lst['n']=240000
 
-OPT_NAME['s']='sof-logger'   OPT_DESC['s']="Open sof-logger trace the data will store at $LOG_ROOT"
+OPT_NAME['s']='sof-logger'      OPT_DESC['s']="Open sof-logger trace the data will store at $LOG_ROOT"
 OPT_PARM_lst['s']=0             OPT_VALUE_lst['s']=1
 
 func_opt_parse_option "$@"
 
 pcm_p=${OPT_VALUE_lst['p']}
 pcm_c=${OPT_VALUE_lst['c']}
+rate=${OPT_VALUE_lst['r']}
+channel_c=${OPT_VALUE_lst['C']}
 frequency=${OPT_VALUE_lst['f']}
 frames=${OPT_VALUE_lst['n']}
 
@@ -70,18 +78,20 @@ aplay   -Dplug$pcm_p -d 1 /dev/zero -q || die "Failed to play on PCM: $pcm_p"
 arecord -Dplug$pcm_c -d 1 /dev/null -q || die "Failed to capture on PCM: $pcm_c"
 
 # alsabat test
-# different PCMs may support different audio formats(like samplerate, channel-counting, etc.).
-# use plughw to do the audio format conversions. So we don't need to specify them for each PCM.
-dlogc "alsabat -Pplug$pcm_p --standalone -n $frames -F $frequency"
-alsabat -Pplug$pcm_p --standalone -n $frames -F $frequency & playPID=$!
+# hardcode the channel number of playback to 2, as sof doesnot support mono wav.
+dlogc "alsabat -P$pcm_p --standalone -n $frames -r $rate -c 2 -F $frequency"
+alsabat -P$pcm_p --standalone -n $frames -c 2 -r $rate -F $frequency & playPID=$!
 
 # playback may have low latency, add one second delay to aviod recording zero at beginning.
 sleep 1
-dlogc "alsabat -Cplug$pcm_c -F $frequency"
-alsabat -Cplug$pcm_c -F $frequency || {
-# upload failed wav file
-	__upload_wav_file
-	exit 1
+
+# We use different USB sound cards in CI, part of them only support 1 channel for capture,
+# so make the channel as an option and config it in alsabat-playback.csv
+dlogc "alsabat -C$pcm_c -c $channel_c -r $rate -F $frequency"
+alsabat -C$pcm_c -c $channel_c -r $rate -F $frequency || {
+        # upload failed wav file
+        __upload_wav_file
+        exit 1
 }
 
 wait $playPID
