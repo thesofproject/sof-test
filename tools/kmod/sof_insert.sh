@@ -45,6 +45,9 @@ insert_module snd_soc_rt1308_sdw
 insert_module snd_soc_rt715
 insert_module snd_soc_rt1011
 
+insert_module snd_sof_acpi_intel_byt
+insert_module snd_sof_acpi_intel_bdw
+
 insert_module snd_sof_acpi
 insert_module snd_sof_pci
 insert_module snd_usb_audio

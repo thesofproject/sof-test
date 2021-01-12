@@ -22,6 +22,12 @@ remove_module snd_usb_audio
 #-------------------------------------------
 remove_module snd_hda_intel
 remove_module snd_sof_pci
+remove_module snd_sof_acpi_intel_byt
+remove_module snd_sof_acpi_intel_bdw
+
+#-------------------------------------------
+# Helpers
+#-------------------------------------------
 remove_module snd_sof_acpi
 
 #-------------------------------------------
@@ -33,17 +39,24 @@ remove_module snd_intel_sst_core
 remove_module snd_soc_sst_atom_hifi2_platform
 remove_module snd_soc_skl
 
-#-------------------------------------------
-# Machine drivers
-#-------------------------------------------
+#------------------------------------------------------
+# obsolete platform drivers - kept to avoid breaking CI
+#------------------------------------------------------
 remove_module snd_sof_intel_byt
 remove_module snd_sof_intel_bdw
+
+#-------------------------------------------
+# platform drivers
+#-------------------------------------------
 remove_module snd_sof_intel_hda_common
 remove_module snd_sof_intel_hda
 remove_module snd_sof_intel_ipc
 remove_module snd_sof_xtensa_dsp
 remove_module snd_soc_acpi_intel_match
 
+#-------------------------------------------
+# Machine drivers
+#-------------------------------------------
 remove_module snd_soc_sof_rt5682
 remove_module snd_soc_sof_da7219_max98373
 remove_module snd_soc_sst_bdw_rt5677_mach
