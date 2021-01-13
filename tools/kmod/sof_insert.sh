@@ -48,8 +48,15 @@ insert_module snd_soc_rt1011
 insert_module snd_sof_acpi_intel_byt
 insert_module snd_sof_acpi_intel_bdw
 
+insert_module snd_sof_pci_intel_tng
+insert_module snd_sof_pci_intel_apl
+insert_module snd_sof_pci_intel_cnl
+insert_module snd_sof_pci_intel_icl
+insert_module snd_sof_pci_intel_tgl
+
 insert_module snd_sof_acpi
 insert_module snd_sof_pci
+
 insert_module snd_usb_audio
 
 # without the status check force quit
