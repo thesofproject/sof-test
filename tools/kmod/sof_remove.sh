@@ -19,9 +19,14 @@ remove_module snd_usb_audio
 
 #-------------------------------------------
 # Top level devices
+# ACPI is after PCI due to TNG dependencies
 #-------------------------------------------
 remove_module snd_hda_intel
-remove_module snd_sof_pci
+remove_module snd_sof_pci_intel_tng
+remove_module snd_sof_pci_intel_apl
+remove_module snd_sof_pci_intel_cnl
+remove_module snd_sof_pci_intel_icl
+remove_module snd_sof_pci_intel_tgl
 remove_module snd_sof_acpi_intel_byt
 remove_module snd_sof_acpi_intel_bdw
 
@@ -29,6 +34,7 @@ remove_module snd_sof_acpi_intel_bdw
 # Helpers
 #-------------------------------------------
 remove_module snd_sof_acpi
+remove_module snd_sof_pci
 
 #-------------------------------------------
 # legacy drivers (not used but loaded)
