@@ -1,30 +1,23 @@
 #!/bin/bash
 
-# Before using this, you must define these option arrays in your test
-# script. They must all be indexed by some unique, one-character
-# codename for each of your option.
-declare -A OPT_DESC OPT_NAME OPT_HAS_ARG OPT_VAL
+# These four arrays are used to define script options, and they should be
+# indexed by a character [a-zA-Z], which is the option short name.
+# OPT_NAME: option long name
+# OPT_HAS_ARG:
+#    1: this option requires an extra argument
+#    0: this option behaves like boolean, and requires no argument
+# OPT_VAL: the extra argument required, or 0 if option requires no argument
+# OPT_DESC: description for this option
+declare -A OPT_NAME OPT_HAS_ARG OPT_VAL OPT_DESC
 
 # option setup && parse function
 func_opt_parse_option()
 {
-    # OPT_NAME     (long) option name
-    # OPT_DESC    short sentence describing the option
-    # OPT_HAS_ARG    0 or 1: number of argument required
-    # OPT_VAL   default value overwritten by command line
-    #                 input if any. Set to 0 or 1 when PARM=0
-
-    # for example
-    # OPT_NAME['r']='remote'
-    # OPT_DESC['r']='Run for the remote machine'
-    # OPT_HAS_ARG['r']=1
-    # OPT_VAL['r']='' ## if PARM=1, must be set, if PARM=0, can ignore
-
-    # h & help is default option, so don't need to add into option list
+    # The help option
     OPT_NAME['h']='help'
-    OPT_DESC['h']='this message'
     OPT_HAS_ARG['h']=0
     OPT_VAL['h']=0
+    OPT_DESC['h']='show help information'
 
     local _op_temp_script
     local -A _op_short_lst _op_long_lst
@@ -81,7 +74,7 @@ func_opt_parse_option()
                 [ "X$i" = "Xh" ] && continue
                 # display short option
                 [ "$i" ] && printf '    -%s' "$i"
-                # have parameter
+                # if option requires extra argument
                 [ "X${OPT_HAS_ARG[$i]}" == "X1" ] && printf ' parameter'
                 # display long option
                 if [ "${OPT_NAME[$i]}" ]; then
