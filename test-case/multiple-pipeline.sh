@@ -36,26 +36,26 @@ set -e
 source $(dirname ${BASH_SOURCE[0]})/../case-lib/lib.sh
 
 OPT_NAME['t']='tplg'     OPT_DESC['t']='tplg file, default value is env TPLG: $TPLG'
-OPT_PARM_lst['t']=1         OPT_VALUE_lst['t']="$TPLG"
+OPT_HAS_ARG['t']=1         OPT_VALUE_lst['t']="$TPLG"
 
 OPT_NAME['c']='count'    OPT_DESC['c']='test pipeline count'
-OPT_PARM_lst['c']=1         OPT_VALUE_lst['c']=4
+OPT_HAS_ARG['c']=1         OPT_VALUE_lst['c']=4
 
 OPT_NAME['f']='first'
 OPT_DESC['f']='Fill either playback (p) or capture (c) first'
-OPT_PARM_lst['f']=1         OPT_VALUE_lst['f']='p'
+OPT_HAS_ARG['f']=1         OPT_VALUE_lst['f']='p'
 
 OPT_NAME['w']='wait'     OPT_DESC['w']='perpare wait time by sleep'
-OPT_PARM_lst['w']=1         OPT_VALUE_lst['w']=5
+OPT_HAS_ARG['w']=1         OPT_VALUE_lst['w']=5
 
 OPT_NAME['r']='random'   OPT_DESC['r']='random load pipeline'
-OPT_PARM_lst['r']=0         OPT_VALUE_lst['r']=0
+OPT_HAS_ARG['r']=0         OPT_VALUE_lst['r']=0
 
 OPT_NAME['s']='sof-logger'   OPT_DESC['s']="Open sof-logger trace the data will store at $LOG_ROOT"
-OPT_PARM_lst['s']=0             OPT_VALUE_lst['s']=1
+OPT_HAS_ARG['s']=0             OPT_VALUE_lst['s']=1
 
 OPT_NAME['l']='loop'     OPT_DESC['l']='loop count'
-OPT_PARM_lst['l']=1         OPT_VALUE_lst['l']=1
+OPT_HAS_ARG['l']=1         OPT_VALUE_lst['l']=1
 
 func_opt_parse_option "$@"
 loop_cnt=${OPT_VALUE_lst['l']}

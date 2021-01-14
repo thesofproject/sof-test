@@ -22,25 +22,25 @@ rm -f /tmp/bat.wav.*
 source "$(dirname "${BASH_SOURCE[0]}")"/../case-lib/lib.sh
 
 OPT_NAME['p']='pcm_p'     	OPT_DESC['p']='pcm for playback. Example: hw:0,0'
-OPT_PARM_lst['p']=1          	OPT_VALUE_lst['p']=''
+OPT_HAS_ARG['p']=1          	OPT_VALUE_lst['p']=''
 
 OPT_NAME['C']='channel_c'       OPT_DESC['C']='channel number for capture.'
-OPT_PARM_lst['C']=1             OPT_VALUE_lst['C']='1'
+OPT_HAS_ARG['C']=1             OPT_VALUE_lst['C']='1'
 
 OPT_NAME['r']='rate'            OPT_DESC['r']='sample rate'
-OPT_PARM_lst['r']=1             OPT_VALUE_lst['r']=48000
+OPT_HAS_ARG['r']=1             OPT_VALUE_lst['r']=48000
 
 OPT_NAME['c']='pcm_c'      	OPT_DESC['c']='pcm for capture. Example: hw:1,0'
-OPT_PARM_lst['c']=1             OPT_VALUE_lst['c']=''
+OPT_HAS_ARG['c']=1             OPT_VALUE_lst['c']=''
 
 OPT_NAME['f']='frequency'       OPT_DESC['f']='target frequency'
-OPT_PARM_lst['f']=1             OPT_VALUE_lst['f']=997
+OPT_HAS_ARG['f']=1             OPT_VALUE_lst['f']=997
 
 OPT_NAME['n']='frames'          OPT_DESC['n']='test frames'
-OPT_PARM_lst['n']=1             OPT_VALUE_lst['n']=240000
+OPT_HAS_ARG['n']=1             OPT_VALUE_lst['n']=240000
 
 OPT_NAME['s']='sof-logger'      OPT_DESC['s']="Open sof-logger trace the data will store at $LOG_ROOT"
-OPT_PARM_lst['s']=0             OPT_VALUE_lst['s']=1
+OPT_HAS_ARG['s']=0             OPT_VALUE_lst['s']=1
 
 func_opt_parse_option "$@"
 

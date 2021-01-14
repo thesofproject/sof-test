@@ -32,23 +32,23 @@ source "$(dirname "${BASH_SOURCE[0]}")"/../case-lib/lib.sh
 OPT_NAME['t']='tplg'     OPT_DESC['t']='tplg file, default value is env TPLG: $TPLG'
 # $TPLG is assigned outside this script as env variable
 # shellcheck disable=SC2153
-OPT_PARM_lst['t']=1         OPT_VALUE_lst['t']="$TPLG"
+OPT_HAS_ARG['t']=1         OPT_VALUE_lst['t']="$TPLG"
 
 OPT_NAME['s']='sof-logger'   OPT_DESC['s']="Open sof-logger trace the data will store at $LOG_ROOT"
-OPT_PARM_lst['s']=0             OPT_VALUE_lst['s']=1
+OPT_HAS_ARG['s']=0             OPT_VALUE_lst['s']=1
 
 OPT_NAME['l']='loop'     OPT_DESC['l']='loop count'
-OPT_PARM_lst['l']=1         OPT_VALUE_lst['l']=1
+OPT_HAS_ARG['l']=1         OPT_VALUE_lst['l']=1
 
 OPT_NAME['d']='duration' OPT_DESC['d']='playback/capture duration in second'
-OPT_PARM_lst['d']=1         OPT_VALUE_lst['d']=6
+OPT_HAS_ARG['d']=1         OPT_VALUE_lst['d']=6
 
-# We need OPT_NAME to tell what the command option is, and OPT_PARM_lst to tell
+# We need OPT_NAME to tell what the command option is, and OPT_HAS_ARG to tell
 # how many arguments this option required, though they are not used.
 # shellcheck disable=SC2034
 OPT_NAME['F']='fmts'   OPT_DESC['F']='Iterate all supported formats'
 # shellcheck disable=SC2034
-OPT_PARM_lst['F']=0         OPT_VALUE_lst['F']=0
+OPT_HAS_ARG['F']=0         OPT_VALUE_lst['F']=0
 
 func_opt_parse_option "$@"
 

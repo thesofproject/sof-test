@@ -3,27 +3,27 @@
 # Before using this, you must define these option arrays in your test
 # script. They must all be indexed by some unique, one-character
 # codename for each of your option.
-declare -A OPT_DESC OPT_NAME OPT_PARM_lst OPT_VALUE_lst
+declare -A OPT_DESC OPT_NAME OPT_HAS_ARG OPT_VALUE_lst
 
 # option setup && parse function
 func_opt_parse_option()
 {
     # OPT_NAME     (long) option name
     # OPT_DESC    short sentence describing the option
-    # OPT_PARM_lst    0 or 1: number of argument required
+    # OPT_HAS_ARG    0 or 1: number of argument required
     # OPT_VALUE_lst   default value overwritten by command line
     #                 input if any. Set to 0 or 1 when PARM=0
 
     # for example
     # OPT_NAME['r']='remote'
     # OPT_DESC['r']='Run for the remote machine'
-    # OPT_PARM_lst['r']=1
+    # OPT_HAS_ARG['r']=1
     # OPT_VALUE_lst['r']='' ## if PARM=1, must be set, if PARM=0, can ignore
 
     # h & help is default option, so don't need to add into option list
     OPT_NAME['h']='help'
     OPT_DESC['h']='this message'
-    OPT_PARM_lst['h']=0
+    OPT_HAS_ARG['h']=0
     OPT_VALUE_lst['h']=0
 
     local _op_temp_script
@@ -58,7 +58,7 @@ func_opt_parse_option()
                 _op_long_lst["--${OPT_NAME[$i]}"]="$i"
             fi
             # append ':' if the option accepts an argument
-            [ ${OPT_PARM_lst[$i]} -eq 1 ] && _short_opt=$_short_opt':' && _long_opt=$_long_opt':'
+            [ ${OPT_HAS_ARG[$i]} -eq 1 ] && _short_opt=$_short_opt':' && _long_opt=$_long_opt':'
         done
 
         if  ! _op_temp_script=$(
@@ -82,17 +82,17 @@ func_opt_parse_option()
                 # display short option
                 [ "$i" ] && printf '    -%s' "$i"
                 # have parameter
-                [ "X${OPT_PARM_lst[$i]}" == "X1" ] && printf ' parameter'
+                [ "X${OPT_HAS_ARG[$i]}" == "X1" ] && printf ' parameter'
                 # display long option
                 if [ "${OPT_NAME[$i]}" ]; then
                     # whether display short option
                     [ "$i" ] && printf ' |  ' || printf '    '
                     printf '%s' "--${OPT_NAME[$i]}"
-                    [ "X${OPT_PARM_lst[$i]}" == "X1" ] && printf ' parameter'
+                    [ "X${OPT_HAS_ARG[$i]}" == "X1" ] && printf ' parameter'
                 fi
                 printf '\n\t%s\n' "${OPT_DESC[$i]}"
                 if [ "${OPT_VALUE_lst[$i]}" ]; then
-                    if [ "${OPT_PARM_lst[$i]}" -eq 1 ]; then
+                    if [ "${OPT_HAS_ARG[$i]}" -eq 1 ]; then
                         printf '\tDefault Value: %s\n' "${OPT_VALUE_lst[$i]}"
                     elif [ "${OPT_VALUE_lst[$i]}" -eq 0 ]; then
                         printf '\tDefault Value: Off\n'
@@ -125,7 +125,7 @@ func_opt_parse_option()
         idx="${_op_short_lst[$1]}"
         [ ! "$idx" ] && idx="${_op_long_lst[$1]}"
         if [ "$idx" ]; then
-            if [ ${OPT_PARM_lst[$idx]} -eq 1 ]; then
+            if [ ${OPT_HAS_ARG[$idx]} -eq 1 ]; then
                 [ ! "$2" ] && printf 'option: %s missing parameter, parsing error' "$1" && exit 2
                 OPT_VALUE_lst[$idx]="$2"
                 shift 2
