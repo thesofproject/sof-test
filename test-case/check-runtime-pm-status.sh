@@ -20,16 +20,16 @@
 source $(dirname ${BASH_SOURCE[0]})/../case-lib/lib.sh
 
 OPT_NAME['t']='tplg'     OPT_DESC['t']='tplg file, default value is env TPLG: $TPLG'
-OPT_HAS_ARG['t']=1         OPT_VALUE_lst['t']="$TPLG"
+OPT_HAS_ARG['t']=1         OPT_VAL['t']="$TPLG"
 
 OPT_NAME['l']='loop'     OPT_DESC['l']='loop count'
-OPT_HAS_ARG['l']=1         OPT_VALUE_lst['l']=3
+OPT_HAS_ARG['l']=1         OPT_VAL['l']=3
 
 OPT_NAME['d']='delay'    OPT_DESC['d']='max delay time for state convert'
-OPT_HAS_ARG['d']=1         OPT_VALUE_lst['d']=15
+OPT_HAS_ARG['d']=1         OPT_VAL['d']=15
 
 OPT_NAME['s']='sof-logger'   OPT_DESC['s']="Open sof-logger trace the data will store at $LOG_ROOT"
-OPT_HAS_ARG['s']=0             OPT_VALUE_lst['s']=1
+OPT_HAS_ARG['s']=0             OPT_VAL['s']=1
 
 # param: $1 -> max delay time for dsp pm status switch
 func_check_dsp_status()
@@ -50,8 +50,8 @@ func_check_dsp_status()
 }
 
 func_opt_parse_option "$@"
-tplg=${OPT_VALUE_lst['t']}
-loop_count=${OPT_VALUE_lst['l']}
+tplg=${OPT_VAL['t']}
+loop_count=${OPT_VAL['l']}
 [[ -z $tplg ]] && die "Miss tplg file to run"
 
 [[ $(sof-dump-status.py --dsp_status 0) == "unsupported" ]] &&
@@ -63,7 +63,7 @@ DEV_LST['playback']='/dev/zero'
 APP_LST['capture']='arecord'
 DEV_LST['capture']='/dev/null'
 
-[[ ${OPT_VALUE_lst['s']} -eq 1 ]] && func_lib_start_log_collect
+[[ ${OPT_VAL['s']} -eq 1 ]] && func_lib_start_log_collect
 func_pipeline_export "$tplg" "type:any"
 
 for idx in $(seq 0 $(expr $PIPELINE_COUNT - 1))
@@ -107,7 +107,7 @@ do
             dlogc "kill process: kill -9 $pid"
             kill -9 $pid && wait $pid 2>/dev/null
             dlogi "$cmd killed"
-            func_check_dsp_status ${OPT_VALUE_lst['d']}
+            func_check_dsp_status ${OPT_VAL['d']}
             result=`sof-dump-status.py --dsp_status 0`
 
             dlogi "runtime status: $result"

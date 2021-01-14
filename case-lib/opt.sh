@@ -3,7 +3,7 @@
 # Before using this, you must define these option arrays in your test
 # script. They must all be indexed by some unique, one-character
 # codename for each of your option.
-declare -A OPT_DESC OPT_NAME OPT_HAS_ARG OPT_VALUE_lst
+declare -A OPT_DESC OPT_NAME OPT_HAS_ARG OPT_VAL
 
 # option setup && parse function
 func_opt_parse_option()
@@ -11,20 +11,20 @@ func_opt_parse_option()
     # OPT_NAME     (long) option name
     # OPT_DESC    short sentence describing the option
     # OPT_HAS_ARG    0 or 1: number of argument required
-    # OPT_VALUE_lst   default value overwritten by command line
+    # OPT_VAL   default value overwritten by command line
     #                 input if any. Set to 0 or 1 when PARM=0
 
     # for example
     # OPT_NAME['r']='remote'
     # OPT_DESC['r']='Run for the remote machine'
     # OPT_HAS_ARG['r']=1
-    # OPT_VALUE_lst['r']='' ## if PARM=1, must be set, if PARM=0, can ignore
+    # OPT_VAL['r']='' ## if PARM=1, must be set, if PARM=0, can ignore
 
     # h & help is default option, so don't need to add into option list
     OPT_NAME['h']='help'
     OPT_DESC['h']='this message'
     OPT_HAS_ARG['h']=0
-    OPT_VALUE_lst['h']=0
+    OPT_VAL['h']=0
 
     local _op_temp_script
     local -A _op_short_lst _op_long_lst
@@ -91,10 +91,10 @@ func_opt_parse_option()
                     [ "X${OPT_HAS_ARG[$i]}" == "X1" ] && printf ' parameter'
                 fi
                 printf '\n\t%s\n' "${OPT_DESC[$i]}"
-                if [ "${OPT_VALUE_lst[$i]}" ]; then
+                if [ "${OPT_VAL[$i]}" ]; then
                     if [ "${OPT_HAS_ARG[$i]}" -eq 1 ]; then
-                        printf '\tDefault Value: %s\n' "${OPT_VALUE_lst[$i]}"
-                    elif [ "${OPT_VALUE_lst[$i]}" -eq 0 ]; then
+                        printf '\tDefault Value: %s\n' "${OPT_VAL[$i]}"
+                    elif [ "${OPT_VAL[$i]}" -eq 0 ]; then
                         printf '\tDefault Value: Off\n'
                     else
                         printf '\tDefault Value: On\n'
@@ -116,9 +116,9 @@ func_opt_parse_option()
     # FIXME: what is this supposed to do!?
     eval set -- "$_op_temp_script"
 
-    # Iterate over command line input and overwrite OPT_VALUE_lst
+    # Iterate over command line input and overwrite OPT_VAL
     # default values.
-    # declare -p OPT_NAME OPT_VALUE_lst
+    # declare -p OPT_NAME OPT_VAL
     local idx
     while true ; do
         # idx is our internal one-character code name unique for each option
@@ -127,10 +127,10 @@ func_opt_parse_option()
         if [ "$idx" ]; then
             if [ ${OPT_HAS_ARG[$idx]} -eq 1 ]; then
                 [ ! "$2" ] && printf 'option: %s missing parameter, parsing error' "$1" && exit 2
-                OPT_VALUE_lst[$idx]="$2"
+                OPT_VAL[$idx]="$2"
                 shift 2
             else # boolean flag: reverse the default value
-                OPT_VALUE_lst[$idx]=$((!${OPT_VALUE_lst[$idx]}))
+                OPT_VAL[$idx]=$((!${OPT_VAL[$idx]}))
                 shift
             fi
         elif [ "X$1" == "X--" ]; then
@@ -139,9 +139,9 @@ func_opt_parse_option()
             printf 'option: %s unknown, error!' "$1" && exit 2
         fi
     done
-    # declare -p OPT_VALUE_lst
+    # declare -p OPT_VAL
 
-    [ "${OPT_VALUE_lst['h']}" -eq 1 ] && _func_opt_dump_help
+    [ "${OPT_VAL['h']}" -eq 1 ] && _func_opt_dump_help
     # record the full parameter to the cmd
     if [[ ! -f "$LOG_ROOT/version.txt" ]] && [[ -f "$SCRIPT_HOME/.git/config" ]]; then
         {

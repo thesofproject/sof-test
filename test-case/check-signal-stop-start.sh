@@ -19,28 +19,28 @@
 source $(dirname ${BASH_SOURCE[0]})/../case-lib/lib.sh
 
 OPT_NAME['t']='tplg'     OPT_DESC['t']='tplg file, default value is env TPLG: $TPLG'
-OPT_HAS_ARG['t']=1         OPT_VALUE_lst['t']="$TPLG"
+OPT_HAS_ARG['t']=1         OPT_VAL['t']="$TPLG"
 
 OPT_NAME['m']='mode'     OPT_DESC['m']='test mode'
-OPT_HAS_ARG['m']=1         OPT_VALUE_lst['m']='playback'
+OPT_HAS_ARG['m']=1         OPT_VAL['m']='playback'
 
 OPT_NAME['i']='sleep'    OPT_DESC['i']='interval time for stop/start'
-OPT_HAS_ARG['i']=1         OPT_VALUE_lst['i']=0.5
+OPT_HAS_ARG['i']=1         OPT_VAL['i']=0.5
 
 OPT_NAME['c']='count'    OPT_DESC['c']='test count of stop/start'
-OPT_HAS_ARG['c']=1         OPT_VALUE_lst['c']=10
+OPT_HAS_ARG['c']=1         OPT_VAL['c']=10
 
 OPT_NAME['s']='sof-logger'   OPT_DESC['s']="Open sof-logger trace the data will store at $LOG_ROOT"
-OPT_HAS_ARG['s']=0             OPT_VALUE_lst['s']=1
+OPT_HAS_ARG['s']=0             OPT_VAL['s']=1
 
 func_opt_parse_option "$@"
 
-tplg=${OPT_VALUE_lst['t']}
-count=${OPT_VALUE_lst['c']}
-interval=${OPT_VALUE_lst['i']}
-test_mode=${OPT_VALUE_lst['m']}
+tplg=${OPT_VAL['t']}
+count=${OPT_VAL['c']}
+interval=${OPT_VAL['i']}
+test_mode=${OPT_VAL['m']}
 
-[[ ${OPT_VALUE_lst['s']} -eq 1 ]] && func_lib_start_log_collect
+[[ ${OPT_VAL['s']} -eq 1 ]] && func_lib_start_log_collect
 
 case $test_mode in
     "playback")

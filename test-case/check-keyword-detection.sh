@@ -23,36 +23,36 @@ libdir=$(dirname "${BASH_SOURCE[0]}")
 source "$libdir"/../case-lib/lib.sh
 
 OPT_NAME['t']='tplg'              OPT_DESC['t']='tplg file, default value is env TPLG: $''TPLG'
-OPT_HAS_ARG['t']=1                  OPT_VALUE_lst['t']="$TPLG"
+OPT_HAS_ARG['t']=1                  OPT_VAL['t']="$TPLG"
 
 OPT_NAME['s']='sof-logger'        OPT_DESC['s']="Open sof-logger trace the data will store at $LOG_ROOT"
-OPT_HAS_ARG['s']=0                  OPT_VALUE_lst['s']=1
+OPT_HAS_ARG['s']=0                  OPT_VAL['s']=1
 
 OPT_NAME['p']='preamble-time'     OPT_DESC['p']='key phrase preamble length'
-OPT_HAS_ARG['p']=1                  OPT_VALUE_lst['p']=2100
+OPT_HAS_ARG['p']=1                  OPT_VAL['p']=2100
 
 OPT_NAME['s']='history-depth'     OPT_DESC['s']='draining size'
-OPT_HAS_ARG['s']=1                  OPT_VALUE_lst['s']=2100
+OPT_HAS_ARG['s']=1                  OPT_VAL['s']=2100
 
 OPT_NAME['b']='buffer'            OPT_DESC['b']='buffer size'
-OPT_HAS_ARG['b']=1                  OPT_VALUE_lst['b']=67200
+OPT_HAS_ARG['b']=1                  OPT_VAL['b']=67200
 
 OPT_NAME['l']='loop'              OPT_DESC['l']='loop count'
-OPT_HAS_ARG['l']=1                  OPT_VALUE_lst['l']=1
+OPT_HAS_ARG['l']=1                  OPT_VAL['l']=1
 
 OPT_NAME['d']='duration'          OPT_DESC['d']='interrupt kwd pipeline in # seconds'
-OPT_HAS_ARG['d']=1                  OPT_VALUE_lst['d']=10
+OPT_HAS_ARG['d']=1                  OPT_VAL['d']=10
 
 func_opt_parse_option "$@"
 
-tplg=${OPT_VALUE_lst['t']}
-loop_cnt=${OPT_VALUE_lst['l']}
-buffer_size=${OPT_VALUE_lst['b']}
-history_depth=${OPT_VALUE_lst['s']}
-preamble_time=${OPT_VALUE_lst['p']}
-duration=${OPT_VALUE_lst['d']}
+tplg=${OPT_VAL['t']}
+loop_cnt=${OPT_VAL['l']}
+buffer_size=${OPT_VAL['b']}
+history_depth=${OPT_VAL['s']}
+preamble_time=${OPT_VAL['p']}
+duration=${OPT_VAL['d']}
 
-[[ ${OPT_VALUE_lst['s']} -eq 1 ]] && func_lib_start_log_collect
+[[ ${OPT_VAL['s']} -eq 1 ]] && func_lib_start_log_collect
 
 func_pipeline_export "$tplg" "kpbm:any"
 func_lib_setup_kernel_checkpoint

@@ -32,31 +32,31 @@ source "$(dirname "${BASH_SOURCE[0]}")"/../case-lib/lib.sh
 OPT_NAME['t']='tplg'     OPT_DESC['t']='tplg file, default value is env TPLG: $TPLG'
 # $TPLG is assigned outside this script as env variable
 # shellcheck disable=SC2153
-OPT_HAS_ARG['t']=1         OPT_VALUE_lst['t']="$TPLG"
+OPT_HAS_ARG['t']=1         OPT_VAL['t']="$TPLG"
 
 OPT_NAME['s']='sof-logger'   OPT_DESC['s']="Open sof-logger trace the data will store at $LOG_ROOT"
-OPT_HAS_ARG['s']=0             OPT_VALUE_lst['s']=1
+OPT_HAS_ARG['s']=0             OPT_VAL['s']=1
 
 OPT_NAME['l']='loop'     OPT_DESC['l']='loop count'
-OPT_HAS_ARG['l']=1         OPT_VALUE_lst['l']=1
+OPT_HAS_ARG['l']=1         OPT_VAL['l']=1
 
 OPT_NAME['d']='duration' OPT_DESC['d']='playback/capture duration in second'
-OPT_HAS_ARG['d']=1         OPT_VALUE_lst['d']=6
+OPT_HAS_ARG['d']=1         OPT_VAL['d']=6
 
 # We need OPT_NAME to tell what the command option is, and OPT_HAS_ARG to tell
 # how many arguments this option required, though they are not used.
 # shellcheck disable=SC2034
 OPT_NAME['F']='fmts'   OPT_DESC['F']='Iterate all supported formats'
 # shellcheck disable=SC2034
-OPT_HAS_ARG['F']=0         OPT_VALUE_lst['F']=0
+OPT_HAS_ARG['F']=0         OPT_VAL['F']=0
 
 func_opt_parse_option "$@"
 
-duration=${OPT_VALUE_lst['d']}
-loop_cnt=${OPT_VALUE_lst['l']}
-tplg=${OPT_VALUE_lst['t']}
+duration=${OPT_VAL['d']}
+loop_cnt=${OPT_VAL['l']}
+tplg=${OPT_VAL['t']}
 
-[[ ${OPT_VALUE_lst['s']} -eq 1 ]] && func_lib_start_log_collect
+[[ ${OPT_VAL['s']} -eq 1 ]] && func_lib_start_log_collect
 
 func_pipeline_export "$tplg" "smart_amp:any"
 func_lib_setup_kernel_checkpoint
@@ -80,7 +80,7 @@ do
 done
 
 fmts="$cp_fmt"
-if [ ${OPT_VALUE_lst['F']} = '1' ]; then
+if [ ${OPT_VAL['F']} = '1' ]; then
     fmts="$cp_fmts"
 fi
 

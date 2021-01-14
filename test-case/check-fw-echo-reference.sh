@@ -24,24 +24,24 @@ libdir=$(dirname "${BASH_SOURCE[0]}")
 source "$libdir"/../case-lib/lib.sh
 
 OPT_NAME['t']='tplg'         OPT_DESC['t']='tplg file, default value is env TPLG: $''TPLG'
-OPT_HAS_ARG['t']=1             OPT_VALUE_lst['t']="$TPLG"
+OPT_HAS_ARG['t']=1             OPT_VAL['t']="$TPLG"
 OPT_NAME['s']='sof-logger'   OPT_DESC['s']="Open sof-logger trace the data will store at $LOG_ROOT"
-OPT_HAS_ARG['s']=0             OPT_VALUE_lst['s']=1
+OPT_HAS_ARG['s']=0             OPT_VAL['s']=1
 OPT_NAME['l']='loop'         OPT_DESC['l']='loop count'
-OPT_HAS_ARG['l']=1             OPT_VALUE_lst['l']=1
+OPT_HAS_ARG['l']=1             OPT_VAL['l']=1
 OPT_NAME['n']='frames'       OPT_DESC['n']='test frames'
-OPT_HAS_ARG['n']=1             OPT_VALUE_lst['n']=240000
+OPT_HAS_ARG['n']=1             OPT_VAL['n']=240000
 OPT_NAME['f']='frequency'    OPT_DESC['f']='target frequency'
-OPT_HAS_ARG['f']=1             OPT_VALUE_lst['f']=997
+OPT_HAS_ARG['f']=1             OPT_VAL['f']=997
 
 func_opt_parse_option "$@"
 
-tplg=${OPT_VALUE_lst['t']}
-loop_cnt=${OPT_VALUE_lst['l']}
-frames=${OPT_VALUE_lst['n']}
-frequency=${OPT_VALUE_lst['f']}
+tplg=${OPT_VAL['t']}
+loop_cnt=${OPT_VAL['l']}
+frames=${OPT_VAL['n']}
+frequency=${OPT_VAL['f']}
 
-[[ ${OPT_VALUE_lst['s']} -eq 1 ]] && func_lib_start_log_collect
+[[ ${OPT_VAL['s']} -eq 1 ]] && func_lib_start_log_collect
 
 func_pipeline_export "$tplg" "echo:any"
 func_lib_setup_kernel_checkpoint

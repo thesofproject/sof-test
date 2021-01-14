@@ -18,20 +18,20 @@
 source $(dirname ${BASH_SOURCE[0]})/../case-lib/lib.sh
 
 OPT_NAME['t']='tplg'     OPT_DESC['t']='tplg file, default value is env TPLG: $TPLG'
-OPT_HAS_ARG['t']=1         OPT_VALUE_lst['t']="$TPLG"
+OPT_HAS_ARG['t']=1         OPT_VAL['t']="$TPLG"
 
 OPT_NAME['l']='loop'     OPT_DESC['l']='option of speaker-test'
-OPT_HAS_ARG['l']=1         OPT_VALUE_lst['l']=3
+OPT_HAS_ARG['l']=1         OPT_VAL['l']=3
 
 OPT_NAME['s']='sof-logger'   OPT_DESC['s']="Open sof-logger trace the data will store at $LOG_ROOT"
-OPT_HAS_ARG['s']=0             OPT_VALUE_lst['s']=1
+OPT_HAS_ARG['s']=0             OPT_VAL['s']=1
 
 func_opt_parse_option "$@"
-tplg=${OPT_VALUE_lst['t']}
-[[ ${OPT_VALUE_lst['s']} -eq 1 ]] && func_lib_start_log_collect
+tplg=${OPT_VAL['t']}
+[[ ${OPT_VAL['s']} -eq 1 ]] && func_lib_start_log_collect
 
 func_pipeline_export "$tplg" "type:playback"
-tcnt=${OPT_VALUE_lst['l']}
+tcnt=${OPT_VAL['l']}
 func_lib_setup_kernel_checkpoint
 for idx in $(seq 0 $(expr $PIPELINE_COUNT - 1))
 do

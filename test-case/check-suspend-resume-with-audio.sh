@@ -25,40 +25,40 @@ set -e
 source $(dirname ${BASH_SOURCE[0]})/../case-lib/lib.sh
 
 OPT_NAME['l']='loop'     OPT_DESC['l']='suspend/resume loop count'
-OPT_HAS_ARG['l']=1         OPT_VALUE_lst['l']=3
+OPT_HAS_ARG['l']=1         OPT_VAL['l']=3
 
 OPT_NAME['T']='type'     OPT_DESC['T']="suspend/resume type from /sys/power/mem_sleep"
-OPT_HAS_ARG['T']=1         OPT_VALUE_lst['T']=""
+OPT_HAS_ARG['T']=1         OPT_VAL['T']=""
 
 OPT_NAME['S']='sleep'    OPT_DESC['S']='suspend/resume command:rtcwake sleep duration'
-OPT_HAS_ARG['S']=1         OPT_VALUE_lst['S']=5
+OPT_HAS_ARG['S']=1         OPT_VAL['S']=5
 
 OPT_NAME['w']='wait'     OPT_DESC['w']='idle time after suspend/resume wakeup'
-OPT_HAS_ARG['w']=1         OPT_VALUE_lst['w']=5
+OPT_HAS_ARG['w']=1         OPT_VAL['w']=5
 
 OPT_NAME['r']='random'   OPT_DESC['r']="Randomly setup wait/sleep time, this option will overwrite s & w option"
-OPT_HAS_ARG['r']=0         OPT_VALUE_lst['r']=0
+OPT_HAS_ARG['r']=0         OPT_VAL['r']=0
 
 OPT_NAME['m']='mode'     OPT_DESC['m']='alsa application type: playback/capture'
-OPT_HAS_ARG['m']=1         OPT_VALUE_lst['m']='playback'
+OPT_HAS_ARG['m']=1         OPT_VAL['m']='playback'
 
 OPT_NAME['t']='tplg'     OPT_DESC['t']='tplg file, default value is env TPLG: $TPLG'
-OPT_HAS_ARG['t']=1         OPT_VALUE_lst['t']="$TPLG"
+OPT_HAS_ARG['t']=1         OPT_VAL['t']="$TPLG"
 
 OPT_NAME['s']='sof-logger'   OPT_DESC['s']="Open sof-logger trace the data will store at $LOG_ROOT"
-OPT_HAS_ARG['s']=0             OPT_VALUE_lst['s']=1
+OPT_HAS_ARG['s']=0             OPT_VAL['s']=1
 
 OPT_NAME['f']='file'     OPT_DESC['f']='file name'
-OPT_HAS_ARG['f']=1         OPT_VALUE_lst['f']=''
+OPT_HAS_ARG['f']=1         OPT_VAL['f']=''
 
 OPT_NAME['P']='pipelines'   OPT_DESC['P']="run test case on specified pipelines"
-OPT_HAS_ARG['P']=1             OPT_VALUE_lst['P']="id:any"
+OPT_HAS_ARG['P']=1             OPT_VAL['P']="id:any"
 
 func_opt_parse_option "$@"
 func_lib_check_sudo
 
-tplg=${OPT_VALUE_lst['t']}
-[[ ${OPT_VALUE_lst['s']} -eq 1 ]] && func_lib_start_log_collect
+tplg=${OPT_VAL['t']}
+[[ ${OPT_VAL['s']} -eq 1 ]] && func_lib_start_log_collect
 
 # overwrite the subscript: test-case LOG_ROOT environment
 # so when load the test-case in current script
@@ -66,24 +66,24 @@ tplg=${OPT_VALUE_lst['t']}
 # which is current script log folder
 export LOG_ROOT=$LOG_ROOT
 
-if [ "${OPT_VALUE_lst['m']}" == "playback" ]; then
+if [ "${OPT_VAL['m']}" == "playback" ]; then
     cmd='aplay'     dummy_file='/dev/zero'
-elif [ "${OPT_VALUE_lst['m']}" == "capture" ]; then
+elif [ "${OPT_VAL['m']}" == "capture" ]; then
     cmd='arecord'   dummy_file='/dev/null'
 else
-    dlogw "Error alsa application type: ${OPT_VALUE_lst['m']}"
+    dlogw "Error alsa application type: ${OPT_VAL['m']}"
 fi
 [[ -z $file_name ]] && file_name=$dummy_file
 
-func_pipeline_export "$tplg" "type:${OPT_VALUE_lst['m']} & ${OPT_VALUE_lst['P']}"
+func_pipeline_export "$tplg" "type:${OPT_VAL['m']} & ${OPT_VAL['P']}"
 
-if [ "${OPT_VALUE_lst['T']}" ]; then
-    opt="-l ${OPT_VALUE_lst['l']} -T ${OPT_VALUE_lst['T']}"
+if [ "${OPT_VAL['T']}" ]; then
+    opt="-l ${OPT_VAL['l']} -T ${OPT_VAL['T']}"
 else
-    opt="-l ${OPT_VALUE_lst['l']}"
+    opt="-l ${OPT_VAL['l']}"
 fi
-if [ ${OPT_VALUE_lst['r']} -eq 0  ]; then
-    opt="$opt -S ${OPT_VALUE_lst['S']} -w ${OPT_VALUE_lst['w']}"
+if [ ${OPT_VAL['r']} -eq 0  ]; then
+    opt="$opt -S ${OPT_VAL['S']} -w ${OPT_VAL['w']}"
 else
     opt="$opt -r"
 fi

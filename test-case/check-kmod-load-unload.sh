@@ -16,7 +16,7 @@ set -e
 ##    5. insert all in-tree modules listed in sof_insert.sh
 ##    6. check for successful sof-firmware boot
 ##    7. check for dmesg errors
-##    8. loop to beginning (max OPT_VALUE_lst['r'])
+##    8. loop to beginning (max OPT_VAL['r'])
 ## Expect result:
 ##    kernel module removal / insert process is successful
 ##    check kernel log and find no errors
@@ -27,20 +27,20 @@ source "$(dirname "${BASH_SOURCE[0]}")"/../case-lib/lib.sh
 
 OPT_NAME['l']='loop_cnt'
 OPT_DESC['l']='remove / insert module loop count -- per device'
-OPT_HAS_ARG['l']=1         OPT_VALUE_lst['l']=2
+OPT_HAS_ARG['l']=1         OPT_VAL['l']=2
 
 OPT_NAME['p']='pulseaudio'   OPT_DESC['p']='disable pulseaudio on the test process'
-OPT_HAS_ARG['p']=0             OPT_VALUE_lst['p']=1
+OPT_HAS_ARG['p']=0             OPT_VAL['p']=1
 
 func_opt_parse_option "$@"
 func_lib_setup_kernel_checkpoint
 
-loop_cnt=${OPT_VALUE_lst['l']}
+loop_cnt=${OPT_VAL['l']}
 
 PATH="${PATH%%:*}/kmod:$PATH"
 func_lib_check_sudo 'unloading modules'
 
-if [ ${OPT_VALUE_lst['p']} -eq 1 ];then
+if [ ${OPT_VAL['p']} -eq 1 ];then
     func_lib_disable_pulseaudio
 fi
 

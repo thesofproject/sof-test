@@ -36,38 +36,38 @@ set -e
 source $(dirname ${BASH_SOURCE[0]})/../case-lib/lib.sh
 
 OPT_NAME['t']='tplg'     OPT_DESC['t']='tplg file, default value is env TPLG: $TPLG'
-OPT_HAS_ARG['t']=1         OPT_VALUE_lst['t']="$TPLG"
+OPT_HAS_ARG['t']=1         OPT_VAL['t']="$TPLG"
 
 OPT_NAME['c']='count'    OPT_DESC['c']='test pipeline count'
-OPT_HAS_ARG['c']=1         OPT_VALUE_lst['c']=4
+OPT_HAS_ARG['c']=1         OPT_VAL['c']=4
 
 OPT_NAME['f']='first'
 OPT_DESC['f']='Fill either playback (p) or capture (c) first'
-OPT_HAS_ARG['f']=1         OPT_VALUE_lst['f']='p'
+OPT_HAS_ARG['f']=1         OPT_VAL['f']='p'
 
 OPT_NAME['w']='wait'     OPT_DESC['w']='perpare wait time by sleep'
-OPT_HAS_ARG['w']=1         OPT_VALUE_lst['w']=5
+OPT_HAS_ARG['w']=1         OPT_VAL['w']=5
 
 OPT_NAME['r']='random'   OPT_DESC['r']='random load pipeline'
-OPT_HAS_ARG['r']=0         OPT_VALUE_lst['r']=0
+OPT_HAS_ARG['r']=0         OPT_VAL['r']=0
 
 OPT_NAME['s']='sof-logger'   OPT_DESC['s']="Open sof-logger trace the data will store at $LOG_ROOT"
-OPT_HAS_ARG['s']=0             OPT_VALUE_lst['s']=1
+OPT_HAS_ARG['s']=0             OPT_VAL['s']=1
 
 OPT_NAME['l']='loop'     OPT_DESC['l']='loop count'
-OPT_HAS_ARG['l']=1         OPT_VALUE_lst['l']=1
+OPT_HAS_ARG['l']=1         OPT_VAL['l']=1
 
 func_opt_parse_option "$@"
-loop_cnt=${OPT_VALUE_lst['l']}
-tplg=${OPT_VALUE_lst['t']}
-[[ ${OPT_VALUE_lst['s']} -eq 1 ]] && func_lib_start_log_collect
+loop_cnt=${OPT_VAL['l']}
+tplg=${OPT_VAL['t']}
+[[ ${OPT_VAL['s']} -eq 1 ]] && func_lib_start_log_collect
 
 max_count=0
 # this line will help to get $PIPELINE_COUNT
 func_pipeline_export "$tplg" "type:any"
 # acquire pipeline count that will run in parallel, if the number of pipeline
 # in topology is less than the required pipeline count, all pipeline will be started.
-[[ $PIPELINE_COUNT -gt ${OPT_VALUE_lst['c']} ]] && max_count=${OPT_VALUE_lst['c']} || max_count=$PIPELINE_COUNT
+[[ $PIPELINE_COUNT -gt ${OPT_VAL['c']} ]] && max_count=${OPT_VAL['c']} || max_count=$PIPELINE_COUNT
 
 # now small function define
 declare -A APP_LST DEV_LST
@@ -82,7 +82,7 @@ func_run_pipeline_with_type()
     [[ $tmp_count -le 0 ]] && return
     func_pipeline_export "$tplg" "type:$1"
     local -a idx_lst
-    if [ ${OPT_VALUE_lst['r']} -eq 0 ]; then
+    if [ ${OPT_VAL['r']} -eq 0 ]; then
         idx_lst=( $(seq 0 $(expr $PIPELINE_COUNT - 1)) )
     else
         # convert array to line, shuf to get random line, covert line to array
@@ -143,7 +143,7 @@ do
     dlogi "===== Testing: (Loop: $i/$loop_cnt) ====="
 
     # start capture:
-    f_arg=${OPT_VALUE_lst['f']}
+    f_arg=${OPT_VAL['f']}
     case "$f_arg" in
         'p')
             tmp_count=$max_count
@@ -159,14 +159,14 @@ do
             die "Wrong -f argument $f_arg, see -h"
     esac
 
-    dlogi "sleep ${OPT_VALUE_lst['w']}s for sound device wakeup"
-    sleep ${OPT_VALUE_lst['w']}
+    dlogi "sleep ${OPT_VAL['w']}s for sound device wakeup"
+    sleep ${OPT_VAL['w']}
 
     dlogi "checking pipeline status"
     ps_checks
 
-    dlogi "preparing sleep ${OPT_VALUE_lst['w']}"
-    sleep ${OPT_VALUE_lst['w']}
+    dlogi "preparing sleep ${OPT_VAL['w']}"
+    sleep ${OPT_VAL['w']}
 
     # check processes again
     dlogi "checking pipeline status again"

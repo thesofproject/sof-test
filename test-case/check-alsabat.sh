@@ -22,34 +22,34 @@ rm -f /tmp/bat.wav.*
 source "$(dirname "${BASH_SOURCE[0]}")"/../case-lib/lib.sh
 
 OPT_NAME['p']='pcm_p'     	OPT_DESC['p']='pcm for playback. Example: hw:0,0'
-OPT_HAS_ARG['p']=1          	OPT_VALUE_lst['p']=''
+OPT_HAS_ARG['p']=1          	OPT_VAL['p']=''
 
 OPT_NAME['C']='channel_c'       OPT_DESC['C']='channel number for capture.'
-OPT_HAS_ARG['C']=1             OPT_VALUE_lst['C']='1'
+OPT_HAS_ARG['C']=1             OPT_VAL['C']='1'
 
 OPT_NAME['r']='rate'            OPT_DESC['r']='sample rate'
-OPT_HAS_ARG['r']=1             OPT_VALUE_lst['r']=48000
+OPT_HAS_ARG['r']=1             OPT_VAL['r']=48000
 
 OPT_NAME['c']='pcm_c'      	OPT_DESC['c']='pcm for capture. Example: hw:1,0'
-OPT_HAS_ARG['c']=1             OPT_VALUE_lst['c']=''
+OPT_HAS_ARG['c']=1             OPT_VAL['c']=''
 
 OPT_NAME['f']='frequency'       OPT_DESC['f']='target frequency'
-OPT_HAS_ARG['f']=1             OPT_VALUE_lst['f']=997
+OPT_HAS_ARG['f']=1             OPT_VAL['f']=997
 
 OPT_NAME['n']='frames'          OPT_DESC['n']='test frames'
-OPT_HAS_ARG['n']=1             OPT_VALUE_lst['n']=240000
+OPT_HAS_ARG['n']=1             OPT_VAL['n']=240000
 
 OPT_NAME['s']='sof-logger'      OPT_DESC['s']="Open sof-logger trace the data will store at $LOG_ROOT"
-OPT_HAS_ARG['s']=0             OPT_VALUE_lst['s']=1
+OPT_HAS_ARG['s']=0             OPT_VAL['s']=1
 
 func_opt_parse_option "$@"
 
-pcm_p=${OPT_VALUE_lst['p']}
-pcm_c=${OPT_VALUE_lst['c']}
-rate=${OPT_VALUE_lst['r']}
-channel_c=${OPT_VALUE_lst['C']}
-frequency=${OPT_VALUE_lst['f']}
-frames=${OPT_VALUE_lst['n']}
+pcm_p=${OPT_VAL['p']}
+pcm_c=${OPT_VAL['c']}
+rate=${OPT_VAL['r']}
+channel_c=${OPT_VAL['C']}
+frequency=${OPT_VAL['f']}
+frames=${OPT_VAL['n']}
 
 if [ "$pcm_p" = "" ]||[ "$pcm_c" = "" ];
 then
@@ -57,7 +57,7 @@ then
 	exit 2
 fi
 
-[[ ${OPT_VALUE_lst['s']} -eq 1 ]] && func_lib_start_log_collect
+[[ ${OPT_VAL['s']} -eq 1 ]] && func_lib_start_log_collect
 
 function __upload_wav_file
 {

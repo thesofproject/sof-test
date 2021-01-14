@@ -24,40 +24,40 @@ set -e
 source $(dirname ${BASH_SOURCE[0]})/../case-lib/lib.sh
 
 OPT_NAME['t']='tplg'     OPT_DESC['t']='tplg file, default value is env TPLG: $TPLG'
-OPT_HAS_ARG['t']=1         OPT_VALUE_lst['t']="$TPLG"
+OPT_HAS_ARG['t']=1         OPT_VAL['t']="$TPLG"
 
 OPT_NAME['l']='loop'     OPT_DESC['l']='loop count'
-OPT_HAS_ARG['l']=1         OPT_VALUE_lst['l']=3
+OPT_HAS_ARG['l']=1         OPT_VAL['l']=3
 
 OPT_NAME['c']='count'    OPT_DESC['c']='combine test pipeline count'
-OPT_HAS_ARG['c']=1         OPT_VALUE_lst['c']=2
+OPT_HAS_ARG['c']=1         OPT_VAL['c']=2
 
 OPT_NAME['r']='loop'     OPT_DESC['r']='pause resume repeat count'
-OPT_HAS_ARG['r']=1         OPT_VALUE_lst['r']=3
+OPT_HAS_ARG['r']=1         OPT_VAL['r']=3
 
 OPT_NAME['i']='min'      OPT_DESC['i']='random range min value, unit is ms'
-OPT_HAS_ARG['i']=1         OPT_VALUE_lst['i']='100'
+OPT_HAS_ARG['i']=1         OPT_VAL['i']='100'
 
 OPT_NAME['a']='max'      OPT_DESC['a']='random range max value, unit is ms'
-OPT_HAS_ARG['a']=1         OPT_VALUE_lst['a']='200'
+OPT_HAS_ARG['a']=1         OPT_VAL['a']='200'
 
 OPT_NAME['s']='sof-logger'   OPT_DESC['s']="Open sof-logger trace the data will store at $LOG_ROOT"
-OPT_HAS_ARG['s']=0             OPT_VALUE_lst['s']=1
+OPT_HAS_ARG['s']=0             OPT_VAL['s']=1
 
 func_opt_parse_option "$@"
 
-repeat_count=${OPT_VALUE_lst['r']}
-loop_count=${OPT_VALUE_lst['l']}
+repeat_count=${OPT_VAL['r']}
+loop_count=${OPT_VAL['l']}
 # configure random value range
-rnd_min=${OPT_VALUE_lst['i']}
-rnd_max=${OPT_VALUE_lst['a']}
+rnd_min=${OPT_VAL['i']}
+rnd_max=${OPT_VAL['a']}
 rnd_range=$[ $rnd_max - $rnd_min ]
 [[ $rnd_range -le 0 ]] && dlogw "Error random range scope [ min:$rnd_min - max:$rnd_max ]" && exit 2
 
-tplg=${OPT_VALUE_lst['t']}
+tplg=${OPT_VAL['t']}
 func_pipeline_export "$tplg" "type:any"
 
-[[ ${OPT_VALUE_lst['s']} -eq 1 ]] && func_lib_start_log_collect
+[[ ${OPT_VAL['s']} -eq 1 ]] && func_lib_start_log_collect
 
 declare -a pipeline_idx_lst
 declare -a cmd_idx_lst
@@ -87,7 +87,7 @@ do
 done
 
 # get the min value of TPLG:'pipeline count' with Case:'pipeline count'
-[[ ${#pipeline_idx_lst[*]} -gt ${OPT_VALUE_lst['c']} ]] && max_count=${OPT_VALUE_lst['c']} || max_count=${#pipeline_idx_lst[*]}
+[[ ${#pipeline_idx_lst[*]} -gt ${OPT_VAL['c']} ]] && max_count=${OPT_VAL['c']} || max_count=${#pipeline_idx_lst[*]}
 [[ $max_count -eq 1 ]] && dlogw "pipeline count is 1, don't need to run this case" && exit 2
 
 # create combination list
