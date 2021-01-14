@@ -16,19 +16,19 @@
 source $(dirname ${BASH_SOURCE[0]})/../case-lib/lib.sh
 
 OPT_NAME['c']='cnt'      OPT_DESC['c']='ipc loop count'
-OPT_HAS_ARG['c']=1         OPT_VALUE_lst['c']=10000
+OPT_HAS_ARG['c']=1         OPT_VAL['c']=10000
 
 OPT_NAME['f']='dfs'      OPT_DESC['f']='system dfs file'
-OPT_HAS_ARG['f']=1         OPT_VALUE_lst['f']="/sys/kernel/debug/sof/ipc_flood_count"
+OPT_HAS_ARG['f']=1         OPT_VAL['f']="/sys/kernel/debug/sof/ipc_flood_count"
 
 OPT_NAME['l']='loop'     OPT_DESC['l']='loop count'
-OPT_HAS_ARG['l']=1         OPT_VALUE_lst['l']=1
+OPT_HAS_ARG['l']=1         OPT_VAL['l']=1
 
 func_opt_parse_option "$@"
 
-lpc_loop_cnt=${OPT_VALUE_lst['c']}
-ipc_flood_dfs=${OPT_VALUE_lst['f']}
-loop_cnt=${OPT_VALUE_lst['l']}
+lpc_loop_cnt=${OPT_VAL['c']}
+ipc_flood_dfs=${OPT_VAL['f']}
+loop_cnt=${OPT_VAL['l']}
 
 [[ ! "$(sof-kernel-dump.sh|grep 'sof-audio'|grep 'Firmware debug build')" ]] && dlogw "${BASH_SOURCE[0]} need debug version firmware" && exit 2
 

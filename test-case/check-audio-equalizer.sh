@@ -21,21 +21,21 @@ my_dir=$(dirname "${BASH_SOURCE[0]}")
 source "$my_dir"/../case-lib/lib.sh
 
 OPT_NAME['t']='tplg'     OPT_DESC['t']="tplg file, default value is env TPLG: $TPLG"
-OPT_HAS_ARG['t']=1         OPT_VALUE_lst['t']="$TPLG"
+OPT_HAS_ARG['t']=1         OPT_VAL['t']="$TPLG"
 
 OPT_NAME['d']='duration' OPT_DESC['d']='aplay duration in second'
-OPT_HAS_ARG['d']=1         OPT_VALUE_lst['d']=5
+OPT_HAS_ARG['d']=1         OPT_VAL['d']=5
 
 OPT_NAME['l']='loop'     OPT_DESC['l']='loop count'
-OPT_HAS_ARG['l']=1         OPT_VALUE_lst['l']=1
+OPT_HAS_ARG['l']=1         OPT_VAL['l']=1
 
 OPT_NAME['s']='sof-logger'   OPT_DESC['s']="Open sof-logger trace the data will store at $LOG_ROOT"
-OPT_HAS_ARG['s']=0             OPT_VALUE_lst['s']=1
+OPT_HAS_ARG['s']=0             OPT_VAL['s']=1
 
 func_opt_parse_option "$@"
-tplg=${OPT_VALUE_lst['t']}
-duration=${OPT_VALUE_lst['d']}
-loop_cnt=${OPT_VALUE_lst['l']}
+tplg=${OPT_VAL['t']}
+duration=${OPT_VAL['d']}
+loop_cnt=${OPT_VAL['l']}
 
 # import only EQ pipeline from topology
 func_pipeline_export "$tplg" "eq:any"

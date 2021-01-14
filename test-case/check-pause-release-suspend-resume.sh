@@ -54,42 +54,42 @@ set -e
 source $(dirname ${BASH_SOURCE[0]})/../case-lib/lib.sh
 
 OPT_NAME['m']='mode'         OPT_DESC['m']='test mode. Example: playback; capture'
-OPT_HAS_ARG['m']=1             OPT_VALUE_lst['m']='playback'
+OPT_HAS_ARG['m']=1             OPT_VAL['m']='playback'
 
 OPT_NAME['p']='pcm'          OPT_DESC['p']='audio pcm. Example: hw:0,0'
-OPT_HAS_ARG['p']=1             OPT_VALUE_lst['p']='hw:0,0'
+OPT_HAS_ARG['p']=1             OPT_VAL['p']='hw:0,0'
 
 OPT_NAME['f']='fmt'          OPT_DESC['f']='audio format value'
-OPT_HAS_ARG['f']=1             OPT_VALUE_lst['f']='S16_LE'
+OPT_HAS_ARG['f']=1             OPT_VAL['f']='S16_LE'
 
 OPT_NAME['c']='channel'      OPT_DESC['c']='audio channel count'
-OPT_HAS_ARG['c']=1             OPT_VALUE_lst['c']='2'
+OPT_HAS_ARG['c']=1             OPT_VAL['c']='2'
 
 OPT_NAME['r']='rate'         OPT_DESC['r']='audio rate'
-OPT_HAS_ARG['r']=1             OPT_VALUE_lst['r']='48000'
+OPT_HAS_ARG['r']=1             OPT_VAL['r']='48000'
 
 OPT_NAME['F']='file'         OPT_DESC['F']='file name. Example: /dev/zero; /dev/null'
-OPT_HAS_ARG['F']=1             OPT_VALUE_lst['F']=''
+OPT_HAS_ARG['F']=1             OPT_VAL['F']=''
 
 OPT_NAME['l']='loop'         OPT_DESC['l']='loop count'
-OPT_HAS_ARG['l']=1             OPT_VALUE_lst['l']=5
+OPT_HAS_ARG['l']=1             OPT_VAL['l']=5
 
 OPT_NAME['i']='sleep-period' OPT_DESC['i']='sleep period of aplay, unit is ms'
-OPT_HAS_ARG['i']=1             OPT_VALUE_lst['i']='100'
+OPT_HAS_ARG['i']=1             OPT_VAL['i']='100'
 
 OPT_NAME['s']='sof-logger'   OPT_DESC['s']="Open sof-logger trace the data will store at $LOG_ROOT"
-OPT_HAS_ARG['s']=0             OPT_VALUE_lst['s']=1
+OPT_HAS_ARG['s']=0             OPT_VAL['s']=1
 
 func_opt_parse_option "$@"
 
-pcm=${OPT_VALUE_lst['p']}
-fmt=${OPT_VALUE_lst['f']}
-channel=${OPT_VALUE_lst['c']}
-rate=${OPT_VALUE_lst['r']}
-repeat_count=${OPT_VALUE_lst['l']}
-sleep_period=${OPT_VALUE_lst['i']}
-test_mode=${OPT_VALUE_lst['m']}
-file_name=${OPT_VALUE_lst['F']}
+pcm=${OPT_VAL['p']}
+fmt=${OPT_VAL['f']}
+channel=${OPT_VAL['c']}
+rate=${OPT_VAL['r']}
+repeat_count=${OPT_VAL['l']}
+sleep_period=${OPT_VAL['i']}
+test_mode=${OPT_VAL['m']}
+file_name=${OPT_VAL['F']}
 
 case $test_mode in
     "playback")
@@ -108,7 +108,7 @@ esac
 [[ -z $file_name ]] && file_name=$dummy_file
 
 
-[[ ${OPT_VALUE_lst['s']} -eq 1 ]] && func_lib_start_log_collect
+[[ ${OPT_VAL['s']} -eq 1 ]] && func_lib_start_log_collect
 
 func_lib_setup_kernel_checkpoint
 

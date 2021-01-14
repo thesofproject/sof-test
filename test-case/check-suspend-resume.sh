@@ -25,24 +25,24 @@ random_min=3    # wait time should >= 3 for other device wakeup from sleep
 random_max=20
 
 OPT_NAME['l']='loop'     OPT_DESC['l']='loop count'
-OPT_HAS_ARG['l']=1         OPT_VALUE_lst['l']=5
+OPT_HAS_ARG['l']=1         OPT_VAL['l']=5
 
 OPT_NAME['T']='type'    OPT_DESC['T']="suspend/resume type from /sys/power/mem_sleep"
-OPT_HAS_ARG['T']=1         OPT_VALUE_lst['T']=""
+OPT_HAS_ARG['T']=1         OPT_VAL['T']=""
 
 OPT_NAME['S']='sleep'    OPT_DESC['S']='suspend/resume command:rtcwake sleep duration'
-OPT_HAS_ARG['S']=1         OPT_VALUE_lst['S']=5
+OPT_HAS_ARG['S']=1         OPT_VAL['S']=5
 
 OPT_NAME['w']='wait'     OPT_DESC['w']='idle time after suspend/resume wakeup'
-OPT_HAS_ARG['w']=1         OPT_VALUE_lst['w']=5
+OPT_HAS_ARG['w']=1         OPT_VAL['w']=5
 
 OPT_NAME['r']='random'   OPT_DESC['r']="Randomly setup wait/sleep time, range is [$random_min-$random_max], this option will overwrite s & w option"
-OPT_HAS_ARG['r']=0         OPT_VALUE_lst['r']=0
+OPT_HAS_ARG['r']=0         OPT_VAL['r']=0
 
 func_opt_parse_option "$@"
 func_lib_check_sudo
 
-type=${OPT_VALUE_lst['T']}
+type=${OPT_VAL['T']}
 # switch type
 if [ "$type" ]; then
     # check for type value effect
@@ -52,10 +52,10 @@ if [ "$type" ]; then
 fi
 dlogi "Current suspend/resume type mode: $(cat /sys/power/mem_sleep)"
 
-loop_count=${OPT_VALUE_lst['l']}
+loop_count=${OPT_VAL['l']}
 declare -a sleep_lst wait_lst
 
-if [ ${OPT_VALUE_lst['r']} -eq 1 ]; then
+if [ ${OPT_VAL['r']} -eq 1 ]; then
     # create random number list
     for i in $(seq 1 $loop_count)
     do
@@ -65,8 +65,8 @@ if [ ${OPT_VALUE_lst['r']} -eq 1 ]; then
 else
     for i in $(seq 1 $loop_count)
     do
-        sleep_lst[$i]=${OPT_VALUE_lst['S']}
-        wait_lst[$i]=${OPT_VALUE_lst['w']}
+        sleep_lst[$i]=${OPT_VAL['S']}
+        wait_lst[$i]=${OPT_VAL['w']}
     done
 fi
 

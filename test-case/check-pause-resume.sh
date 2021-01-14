@@ -21,39 +21,39 @@ set -e
 source "$(dirname "${BASH_SOURCE[0]}")"/../case-lib/lib.sh
 
 OPT_NAME['t']='tplg'     OPT_DESC['t']='tplg file, default value is env TPLG: $''TPLG'
-OPT_HAS_ARG['t']=1         OPT_VALUE_lst['t']="$TPLG"
+OPT_HAS_ARG['t']=1         OPT_VAL['t']="$TPLG"
 
 OPT_NAME['m']='mode'     OPT_DESC['m']='test mode'
-OPT_HAS_ARG['m']=1         OPT_VALUE_lst['m']='playback'
+OPT_HAS_ARG['m']=1         OPT_VAL['m']='playback'
 
 OPT_NAME['c']='count'    OPT_DESC['c']='pause/resume repeat count'
-OPT_HAS_ARG['c']=1         OPT_VALUE_lst['c']=10
+OPT_HAS_ARG['c']=1         OPT_VAL['c']=10
 
 OPT_NAME['f']='file'     OPT_DESC['f']='file name'
-OPT_HAS_ARG['f']=1         OPT_VALUE_lst['f']=''
+OPT_HAS_ARG['f']=1         OPT_VAL['f']=''
 
 OPT_NAME['i']='min'      OPT_DESC['i']='random range min value, unit is ms'
-OPT_HAS_ARG['i']=1         OPT_VALUE_lst['i']='100'
+OPT_HAS_ARG['i']=1         OPT_VAL['i']='100'
 
 OPT_NAME['a']='max'      OPT_DESC['a']='random range max value, unit is ms'
-OPT_HAS_ARG['a']=1         OPT_VALUE_lst['a']='200'
+OPT_HAS_ARG['a']=1         OPT_VAL['a']='200'
 
 OPT_NAME['s']='sof-logger'   OPT_DESC['s']="Open sof-logger trace the data will store at $LOG_ROOT"
-OPT_HAS_ARG['s']=0             OPT_VALUE_lst['s']=1
+OPT_HAS_ARG['s']=0             OPT_VAL['s']=1
 
 OPT_NAME['S']='filter_string'   OPT_DESC['S']="run this case on specified pipelines"
-OPT_HAS_ARG['S']=1             OPT_VALUE_lst['S']="id:any"
+OPT_HAS_ARG['S']=1             OPT_VAL['S']="id:any"
 
 func_opt_parse_option "$@"
 
-tplg=${OPT_VALUE_lst['t']}
-test_mode=${OPT_VALUE_lst['m']}
-repeat_count=${OPT_VALUE_lst['c']}
+tplg=${OPT_VAL['t']}
+test_mode=${OPT_VAL['m']}
+repeat_count=${OPT_VAL['c']}
 #TODO: file name salt for capture
-file_name=${OPT_VALUE_lst['f']}
+file_name=${OPT_VAL['f']}
 # configure random value range
-rnd_min=${OPT_VALUE_lst['i']}
-rnd_max=${OPT_VALUE_lst['a']}
+rnd_min=${OPT_VAL['i']}
+rnd_max=${OPT_VAL['a']}
 rnd_range=$(( rnd_max -  rnd_min ))
 [[ $rnd_range -le 0 ]] && dlogw "Error random range scope [ min:$rnd_min - max:$rnd_max ]" && exit 2
 
@@ -73,11 +73,11 @@ case $test_mode in
     ;;
 esac
 
-[[ ${OPT_VALUE_lst['s']} -eq 1 ]] && func_lib_start_log_collect
+[[ ${OPT_VAL['s']} -eq 1 ]] && func_lib_start_log_collect
 
 [[ -z $file_name ]] && file_name=$dummy_file
 
-func_pipeline_export "$tplg" "type:$test_mode & ${OPT_VALUE_lst['S']}"
+func_pipeline_export "$tplg" "type:$test_mode & ${OPT_VAL['S']}"
 for idx in $(seq 0 $((PIPELINE_COUNT - 1)))
 do
     # set up checkpoint for each iteration
