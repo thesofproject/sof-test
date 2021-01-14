@@ -19,13 +19,13 @@ set -e
 source $(dirname ${BASH_SOURCE[0]})/../case-lib/lib.sh
 
 OPT_NAME['l']='loop'     OPT_DESC['l']='loop count'
-OPT_PARM_lst['l']=1         OPT_VALUE_lst['l']=3
+OPT_HAS_ARG['l']=1         OPT_VALUE_lst['l']=3
 
 OPT_NAME['t']='timeout'  OPT_DESC['t']='timeout after system boot up'
-OPT_PARM_lst['t']=1         OPT_VALUE_lst['t']=30
+OPT_HAS_ARG['t']=1         OPT_VALUE_lst['t']=30
 
 OPT_NAME['d']='delay'    OPT_DESC['d']='delay time mapping to sub-case PM status'
-OPT_PARM_lst['d']=1         OPT_VALUE_lst['d']=10
+OPT_HAS_ARG['d']=1         OPT_VALUE_lst['d']=10
 
 func_opt_parse_option "$@"
 

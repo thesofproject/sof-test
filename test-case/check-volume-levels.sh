@@ -32,7 +32,7 @@ TESTDIR=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 source "$TESTDIR/case-lib/lib.sh"
 
 OPT_NAME['t']='tplg'     OPT_DESC['t']='tplg file, default value is env TPLG: $''TPLG'
-OPT_PARM_lst['t']=1         OPT_VALUE_lst['t']="$TPLG"
+OPT_HAS_ARG['t']=1         OPT_VALUE_lst['t']="$TPLG"
 
 func_opt_parse_option "$@"
 

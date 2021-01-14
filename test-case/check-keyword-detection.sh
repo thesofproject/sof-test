@@ -23,25 +23,25 @@ libdir=$(dirname "${BASH_SOURCE[0]}")
 source "$libdir"/../case-lib/lib.sh
 
 OPT_NAME['t']='tplg'              OPT_DESC['t']='tplg file, default value is env TPLG: $''TPLG'
-OPT_PARM_lst['t']=1                  OPT_VALUE_lst['t']="$TPLG"
+OPT_HAS_ARG['t']=1                  OPT_VALUE_lst['t']="$TPLG"
 
 OPT_NAME['s']='sof-logger'        OPT_DESC['s']="Open sof-logger trace the data will store at $LOG_ROOT"
-OPT_PARM_lst['s']=0                  OPT_VALUE_lst['s']=1
+OPT_HAS_ARG['s']=0                  OPT_VALUE_lst['s']=1
 
 OPT_NAME['p']='preamble-time'     OPT_DESC['p']='key phrase preamble length'
-OPT_PARM_lst['p']=1                  OPT_VALUE_lst['p']=2100
+OPT_HAS_ARG['p']=1                  OPT_VALUE_lst['p']=2100
 
 OPT_NAME['s']='history-depth'     OPT_DESC['s']='draining size'
-OPT_PARM_lst['s']=1                  OPT_VALUE_lst['s']=2100
+OPT_HAS_ARG['s']=1                  OPT_VALUE_lst['s']=2100
 
 OPT_NAME['b']='buffer'            OPT_DESC['b']='buffer size'
-OPT_PARM_lst['b']=1                  OPT_VALUE_lst['b']=67200
+OPT_HAS_ARG['b']=1                  OPT_VALUE_lst['b']=67200
 
 OPT_NAME['l']='loop'              OPT_DESC['l']='loop count'
-OPT_PARM_lst['l']=1                  OPT_VALUE_lst['l']=1
+OPT_HAS_ARG['l']=1                  OPT_VALUE_lst['l']=1
 
 OPT_NAME['d']='duration'          OPT_DESC['d']='interrupt kwd pipeline in # seconds'
-OPT_PARM_lst['d']=1                  OPT_VALUE_lst['d']=10
+OPT_HAS_ARG['d']=1                  OPT_VALUE_lst['d']=10
 
 func_opt_parse_option "$@"
 

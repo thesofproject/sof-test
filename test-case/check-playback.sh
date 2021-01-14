@@ -22,28 +22,28 @@ set -e
 source "$(dirname "${BASH_SOURCE[0]}")"/../case-lib/lib.sh
 
 OPT_NAME['t']='tplg'     OPT_DESC['t']='tplg file, default value is env TPLG: $''TPLG'
-OPT_PARM_lst['t']=1         OPT_VALUE_lst['t']="$TPLG"
+OPT_HAS_ARG['t']=1         OPT_VALUE_lst['t']="$TPLG"
 
 OPT_NAME['r']='round'     OPT_DESC['r']='round count'
-OPT_PARM_lst['r']=1         OPT_VALUE_lst['r']=1
+OPT_HAS_ARG['r']=1         OPT_VALUE_lst['r']=1
 
 OPT_NAME['d']='duration' OPT_DESC['d']='aplay duration in second'
-OPT_PARM_lst['d']=1         OPT_VALUE_lst['d']=10
+OPT_HAS_ARG['d']=1         OPT_VALUE_lst['d']=10
 
 OPT_NAME['l']='loop'     OPT_DESC['l']='loop count'
-OPT_PARM_lst['l']=1         OPT_VALUE_lst['l']=3
+OPT_HAS_ARG['l']=1         OPT_VALUE_lst['l']=3
 
 OPT_NAME['f']='file'   OPT_DESC['f']='source file path'
-OPT_PARM_lst['f']=1         OPT_VALUE_lst['f']=''
+OPT_HAS_ARG['f']=1         OPT_VALUE_lst['f']=''
 
 OPT_NAME['s']='sof-logger'   OPT_DESC['s']="Open sof-logger trace the data will store at $LOG_ROOT"
-OPT_PARM_lst['s']=0             OPT_VALUE_lst['s']=1
+OPT_HAS_ARG['s']=0             OPT_VALUE_lst['s']=1
 
 OPT_NAME['F']='fmts'   OPT_DESC['F']='Iterate all supported formats'
-OPT_PARM_lst['F']=0         OPT_VALUE_lst['F']=0
+OPT_HAS_ARG['F']=0         OPT_VALUE_lst['F']=0
 
 OPT_NAME['S']='filter_string'   OPT_DESC['S']="run this case on specified pipelines"
-OPT_PARM_lst['S']=1             OPT_VALUE_lst['S']="id:any"
+OPT_HAS_ARG['S']=1             OPT_VALUE_lst['S']="id:any"
 
 func_opt_parse_option "$@"
 
