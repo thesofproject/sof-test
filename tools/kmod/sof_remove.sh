@@ -33,6 +33,9 @@ remove_module snd_sof_acpi_intel_bdw
 #-------------------------------------------
 # Helpers
 #-------------------------------------------
+# change from https://github.com/thesofproject/linux/pull/2683
+# snd_sof_intel_hda_common has dependency on snd_sof_pci
+remove_module snd_sof_intel_hda_common
 remove_module snd_sof_acpi
 remove_module snd_sof_pci
 
@@ -54,7 +57,6 @@ remove_module snd_sof_intel_bdw
 #-------------------------------------------
 # platform drivers
 #-------------------------------------------
-remove_module snd_sof_intel_hda_common
 remove_module snd_sof_intel_hda
 remove_module snd_sof_intel_ipc
 remove_module snd_sof_xtensa_dsp
