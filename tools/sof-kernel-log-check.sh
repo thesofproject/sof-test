@@ -326,6 +326,9 @@ ignore_str="$ignore_str"'|iwlwifi .*: Direct firmware load for .* failed with er
 # BugLink: https://github.com/thesofproject/sof-test/issues/307
 # iwlwifi 0000:00:14.3: Microcode SW error detected. Restarting 0x0.'
 ignore_str="$ignore_str"'|iwlwifi .*: Microcode SW error detected\. Restarting 0x0\.'
+# BugLink: https://github.com/thesofproject/sof-test/issues/578
+# iwlwifi 0000:00:14.3: No beacon heard and the time event is over already...
+ignore_str="$ignore_str"'|iwlwifi .*: No beacon heard and the time event is over already'
 
 #
 # SDW related logs
