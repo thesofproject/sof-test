@@ -35,9 +35,9 @@
 set -e
 
 # shellcheck source=case-lib/lib.sh
-source $(dirname ${BASH_SOURCE[0]})/../case-lib/lib.sh
+source "$(dirname "${BASH_SOURCE[0]}")"/../case-lib/lib.sh
 
-OPT_NAME['t']='tplg'     OPT_DESC['t']='tplg file, default value is env TPLG: $TPLG'
+OPT_NAME['t']='tplg'     OPT_DESC['t']='Topology path, default to environment variable: TPLG'
 OPT_HAS_ARG['t']=1         OPT_VAL['t']="$TPLG"
 
 OPT_NAME['c']='count'    OPT_DESC['c']='test pipeline count'
@@ -88,22 +88,22 @@ func_run_pipeline_with_type()
     func_pipeline_export "$tplg" "type:$1"
     local -a idx_lst
     if [ ${OPT_VAL['r']} -eq 0 ]; then
-        idx_lst=( $(seq 0 $(expr $PIPELINE_COUNT - 1)) )
+        idx_lst=("$(seq 0 $((PIPELINE_COUNT - 1)))")
     else
         # convert array to line, shuf to get random line, covert line to array
-        idx_lst=( $(seq 0 $(expr $PIPELINE_COUNT - 1)|sed 's/ /\n/g'|shuf|xargs) )
+        idx_lst=("$(seq 0 $((PIPELINE_COUNT - 1)) | sed 's/ /\n/g' | shuf | xargs)")
     fi
     for idx in ${idx_lst[*]}
     do
-        channel=$(func_pipeline_parse_value $idx channel)
-        rate=$(func_pipeline_parse_value $idx rate)
-        fmt=$(func_pipeline_parse_value $idx fmt)
-        dev=$(func_pipeline_parse_value $idx dev)
-        pcm=$(func_pipeline_parse_value $idx pcm)
+        channel=$(func_pipeline_parse_value "$idx" channel)
+        rate=$(func_pipeline_parse_value "$idx" rate)
+        fmt=$(func_pipeline_parse_value "$idx" fmt)
+        dev=$(func_pipeline_parse_value "$idx" dev)
+        pcm=$(func_pipeline_parse_value "$idx" pcm)
 
         dlogi "Testing: $pcm [$dev]"
 
-        "${APP_LST[$1]}" -D $dev -c $channel -r $rate -f $fmt "${DEV_LST[$1]}" -q &
+        "${APP_LST[$1]}" -D "$dev" -c "$channel" -r "$rate" -f "$fmt" "${DEV_LST[$1]}" -q &
 
         : $((tmp_count--))
         if [ "$tmp_count" -le 0 ]; then return 0; fi
