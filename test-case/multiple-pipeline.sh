@@ -8,19 +8,21 @@
 ## Description:
 ##    Run multiple pipelines in parallel
 ##    Rule:
-##      a. playback first mode: playback pipelines will be started first, if playback
+##      1. playback first mode: playback pipelines will be started first, if playback
 ##         pipeline count is less than requested pipeline count defined by -c option,
 ##         capture pipelines will be started to ensure requested number of pipelines are
 ##         running in parallel.
-##      b. capture first mode: same with playback mode, but capture pipelines will be
+##      2. capture first mode: same with playback mode, but capture pipelines will be
 ##         started first.
-##      c. all pipelines mode: if requested pipeline count is greater than the number of
-##         pipelines defined in topology, all pipelines will be started.
+##      3. all pipelines mode: run all pipelines in parallel by
+##          a. use option '-f a' OR
+##          b. specify a very big requested pipeline count to -c option
 ## Case step:
 ##    1. acquire pipeline count that will be running in parallel
-##    2.a Playback First Mode: start playback pipeline(s), if the requested pipeline count
+##    2. start playback or capture pipelines
+##        a. Playback First Mode: start playback pipeline(s), if the requested pipeline count
 ##        is not satisfied, start capture pipeline(s)
-##    2.b Capture First Mode: start capture pipeline(s), if the requested pipeline count is
+##        b. Capture First Mode: start capture pipeline(s), if the requested pipeline count is
 ##        not satisfied, start playback pipeline(s)
 ##    3. wait pipeline process(es) to be started and running
 ##    5. check process status & process count
@@ -42,7 +44,7 @@ OPT_NAME['c']='count'    OPT_DESC['c']='test pipeline count'
 OPT_HAS_ARG['c']=1         OPT_VAL['c']=4
 
 OPT_NAME['f']='first'
-OPT_DESC['f']='Fill either playback (p) or capture (c) first'
+OPT_DESC['f']='Fill either playback (p) or capture (c) first or any (a) for all pipelines'
 OPT_HAS_ARG['f']=1         OPT_VAL['f']='p'
 
 OPT_NAME['w']='wait'     OPT_DESC['w']='perpare wait time by sleep'
@@ -60,6 +62,7 @@ OPT_HAS_ARG['l']=1         OPT_VAL['l']=1
 func_opt_parse_option "$@"
 loop_cnt=${OPT_VAL['l']}
 tplg=${OPT_VAL['t']}
+f_arg=${OPT_VAL['f']}
 [[ ${OPT_VAL['s']} -eq 1 ]] && func_lib_start_log_collect
 
 max_count=0
@@ -68,6 +71,8 @@ func_pipeline_export "$tplg" "type:any"
 # acquire pipeline count that will run in parallel, if the number of pipeline
 # in topology is less than the required pipeline count, all pipeline will be started.
 [[ $PIPELINE_COUNT -gt ${OPT_VAL['c']} ]] && max_count=${OPT_VAL['c']} || max_count=$PIPELINE_COUNT
+# overide max_count if user want to run all pipelines in parallel
+[ "$f_arg" != "a" ] || max_count=$PIPELINE_COUNT
 
 # now small function define
 declare -A APP_LST DEV_LST
@@ -142,10 +147,9 @@ do
     func_lib_setup_kernel_checkpoint
     dlogi "===== Testing: (Loop: $i/$loop_cnt) ====="
 
-    # start capture:
-    f_arg=${OPT_VAL['f']}
+    # start playback or capture:
     case "$f_arg" in
-        'p')
+        'p' | 'a')
             tmp_count=$max_count
             func_run_pipeline_with_type "playback"
             func_run_pipeline_with_type "capture"
