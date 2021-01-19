@@ -311,6 +311,18 @@ ignore_str="$ignore_str"'|proc_thermal 0000:00:..\..: No auxiliary DTSs enabled'
 ignore_str="$ignore_str"'|elan_i2c i2c-ELAN0000:.*: invalid report id data'
 
 #
+# net work related logs
+#
+# asix net adaptor logs can be ignored
+# origin logs seen on TGLH platforms
+# BugLink: https://github.com/thesofproject/sof-test/issues/565
+# asix 3-12.1:1.0 enx000ec668ad2a: Failed to read reg index 0x0000: -113
+# asix 3-12.1:1.0 enx000ec668ad2a: Failed to write reg index 0x0000: -113
+# asix 3-12.1:1.0 enx000ec668ad2a: Failed to enable software MII access
+ignore_str="$ignore_str"'|asix .*: Failed to .* reg index .*'
+ignore_str="$ignore_str"'|asix .*: Failed to enable software MII access'
+
+#
 # SDW related logs
 #
 
