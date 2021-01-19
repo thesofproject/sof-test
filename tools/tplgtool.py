@@ -130,9 +130,56 @@ class TplgParser():
         bytes_data = bytes_data[156 + priv_size:]
         return mixer, bytes_data
 
-    # no such kcontrol in the binary tplg till now, leave this unimplemented
+    def _tplg_chan_parse(self, bytes_data):
+        chan_fields = ["size", "reg", "shift", "id"]
+        values = struct.unpack("IIII",bytes_data[0:16])
+        return dict(zip(chan_fields, values))
+
+    # parse snd_soc_tplg_enum_control struct
     def _enum_ctrl_parse(self, bytes_data):
-        pass
+        enum_ctrl_fields = ["size", "num_channels", "channel", "items", "mask", "count", \
+            "texts", "values", "priv"]
+        values = []
+        # size and num_channels
+        values.append(struct.unpack("I",bytes_data[0:4])[0])
+        values.append(struct.unpack("I",bytes_data[4:8])[0])
+        # channel
+        channel = []
+        SOC_TPLG_MAX_CHAN = 8
+        for idx in range(SOC_TPLG_MAX_CHAN):
+            channel.append(self._tplg_chan_parse(bytes_data[8+idx*16: 24+idx*16]))
+            print(24+idx*16)
+        values.append(channel)
+        # item, mask, count
+        values.append(struct.unpack("I",bytes_data[136:140])[0])
+        values.append(struct.unpack("I",bytes_data[140:144])[0])
+        values.append(struct.unpack("I",bytes_data[144:148])[0])
+        # texts
+        SOC_TPLG_NUM_TEXTS = 16
+        texts = []
+        for idx in range(SOC_TPLG_NUM_TEXTS):
+            texts.append(self._parse_char_array(bytes_data[148+idx*44: 192+idx*44]))
+            print(192+44*idx)
+        values.append(texts)
+
+        # values field in struct snd_soc_tplg_enum_control
+        values.append(list(struct.unpack("I"*176, bytes_data[852:1556])))
+
+        priv_size = struct.unpack("I", bytes_data[1556:1560])[0]
+        priv = {"size": priv_size}
+        if priv_size == 0:
+            priv["data"] = None
+        else :
+            priv["data"] = bytes_data[1560:1560+priv_size]
+        values.append(priv)
+
+        enum_ctrl = dict(zip(enum_ctrl_fields, values))
+
+        if len(bytes_data[1560 + priv_size - 1:]) < 4:
+            return enum_ctrl, None
+
+        rest_data = bytes_data[1560 + priv_size:]
+        return enum_ctrl, rest_data
 
     def _bytes_ctrl_parse(self, bytes_data):
         bytes_ctrl_fields = ["size", "max", "mask", "base", "num_regs", "ext_ops", "priv"]
