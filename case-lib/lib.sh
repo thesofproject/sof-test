@@ -54,12 +54,13 @@ func_lib_setup_kernel_checkpoint()
 # more critical for testing changes to the test framework and especially
 # error handling code.
 #
-# Sample usage: fake_kern_error "FAKE error $0 PID $$ $round"
+# Sample usage: fake_kern_error "DRIVER ID: FAKE error $0 PID $$ $round"
+#               fake_kern_error "asix 3-12.1:1.0 enx000ec668ad2a: Failed to write reg index 0x0000: -11"
 fake_kern_error()
 {
     local k_msg d boot_secs kern_log_prefix
 
-    k_msg="sof-audio-pci 0000:66:66.6: $1"
+    k_msg="$1"
     d=$(date '+%b %d %R:%S') # TODO: is this locale dependent?
     boot_secs=$(awk '{ print $1 }' < /proc/uptime)
     kern_log_prefix="$d $(hostname) kernel: [$boot_secs]"
