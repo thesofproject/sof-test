@@ -166,20 +166,10 @@ ignore_str="$ignore_str"'|cfg80211: failed to load regulatory\.db'
 ignore_str="$ignore_str"'|EXT4-fs \(nvme0n1p6\): re-mounted\. Opts: errors=remount-ro'
 ignore_str="$ignore_str"'|usb 2-3: Enable of device-initiated U1 failed\.'
 ignore_str="$ignore_str"'|usb 2-3: Enable of device-initiated U2 failed\.'
-ignore_str="$ignore_str"'|iwlwifi 0000:00:14\.3: Direct firmware load for iwlwifi-QuZ-a0-hr-b0-56\.ucode failed with error -2'
-ignore_str="$ignore_str"'|iwlwifi 0000:00:14\.3: Direct firmware load for iwlwifi-QuZ-a0-hr-b0-55\.ucode failed with error -2'
-ignore_str="$ignore_str"'|iwlwifi 0000:00:14\.3: Direct firmware load for iwlwifi-QuZ-a0-hr-b0-54\.ucode failed with error -2'
-ignore_str="$ignore_str"'|iwlwifi 0000:00:14\.3: Direct firmware load for iwlwifi-QuZ-a0-hr-b0-53\.ucode failed with error -2'
-ignore_str="$ignore_str"'|iwlwifi 0000:00:14\.3: Direct firmware load for iwlwifi-QuZ-a0-hr-b0-52\.ucode failed with error -2'
-ignore_str="$ignore_str"'|iwlwifi 0000:00:14\.3: Direct firmware load for iwlwifi-QuZ-a0-hr-b0-51\.ucode failed with error -2'
-ignore_str="$ignore_str"'|iwlwifi 0000:00:14\.3: Direct firmware load for iwlwifi-QuZ-a0-hr-b0-50\.ucode failed with error -2'
-ignore_str="$ignore_str"'|iwlwifi 0000:00:14\.3: Direct firmware load for iwlwifi-QuZ-a0-hr-b0-49\.ucode failed with error -2'
-ignore_str="$ignore_str"'|iwlwifi 0000:00:14\.3: Direct firmware load for iwl-debug-yoyo\.bin failed with error -2'
 ignore_str="$ignore_str"'|thermal thermal_zone.*: failed to read out thermal zone \(-61\)'
 
 # Dell CML-U laptop with SoundWire, issues reported by sof-test
 # BugLink: https://github.com/thesofproject/sof-test/issues/307
-ignore_str="$ignore_str"'|iwlwifi 0000:00:14\.3: Microcode SW error detected\. Restarting 0x0\.'
 ignore_str="$ignore_str"'|: authentication with ..:..:..:..:..:.. timed out'
 
 # Dell TGL laptop with SoundWire, issues reported by sof-test
@@ -327,6 +317,15 @@ ignore_str="$ignore_str"'|asix .*: Failed to enable software MII access'
 # BugLink: https://github.com/thesofproject/sof-test/issues/564
 # e1000e 0000:00:1f.6 enp0s31f6: Hardware Error
 ignore_str="$ignore_str"'|e1000e .*: Hardware Error'
+
+# iwlwifi net adaptor logs can be ignored
+# origin logs seen on CML platforms
+# iwlwifi 0000:00:14.3: Direct firmware load for iwlwifi-QuZ-a0-hr-b0-56.ucode failed with error -2
+# iwlwifi 0000:00:14.3: Direct firmware load for iwl-debug-yoyo.bin failed with error -2
+ignore_str="$ignore_str"'|iwlwifi .*: Direct firmware load for .* failed with error -2'
+# BugLink: https://github.com/thesofproject/sof-test/issues/307
+# iwlwifi 0000:00:14.3: Microcode SW error detected. Restarting 0x0.'
+ignore_str="$ignore_str"'|iwlwifi .*: Microcode SW error detected\. Restarting 0x0\.'
 
 #
 # SDW related logs
