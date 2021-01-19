@@ -322,6 +322,12 @@ ignore_str="$ignore_str"'|elan_i2c i2c-ELAN0000:.*: invalid report id data'
 ignore_str="$ignore_str"'|asix .*: Failed to .* reg index .*'
 ignore_str="$ignore_str"'|asix .*: Failed to enable software MII access'
 
+# e1000e net adaptor logs can be ignored
+# origin logs seen on CML platforms
+# BugLink: https://github.com/thesofproject/sof-test/issues/564
+# e1000e 0000:00:1f.6 enp0s31f6: Hardware Error
+ignore_str="$ignore_str"'|e1000e .*: Hardware Error'
+
 #
 # SDW related logs
 #
