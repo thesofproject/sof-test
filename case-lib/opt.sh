@@ -10,15 +10,19 @@
 # OPT_DESC: description for this option
 declare -A OPT_NAME OPT_HAS_ARG OPT_VAL OPT_DESC
 
-# option setup && parse function
-func_opt_parse_option()
+# Define common options among test scripts.
+add_common_options()
 {
     # The help option
     OPT_NAME['h']='help'
     OPT_HAS_ARG['h']=0
     OPT_VAL['h']=0
     OPT_DESC['h']='show help information'
+}
 
+# option setup && parse function
+func_opt_parse_option()
+{
     local _op_temp_script
     local -A _op_short_lst _op_long_lst
 
@@ -101,6 +105,8 @@ func_opt_parse_option()
             trap - EXIT
             exit 2
         }
+
+    add_common_options
 
     # Asks getopt to validate input and generate _op_temp_script.
     # Initialize reverse maps _op_short_lst and _opt_long_lst used next.
