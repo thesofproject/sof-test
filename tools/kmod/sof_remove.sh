@@ -14,6 +14,14 @@ remove_module() {
     fi
 }
 
+try_remove_module() {
+    set +e
+
+    remove_module $1
+
+    set -e
+ }
+
 # SOF CI has a dependency on usb audio
 remove_module snd_usb_audio
 
@@ -29,6 +37,11 @@ remove_module snd_sof_pci_intel_icl
 remove_module snd_sof_pci_intel_tgl
 remove_module snd_sof_acpi_intel_byt
 remove_module snd_sof_acpi_intel_bdw
+
+#-------------------------------------------
+# temporary dependency
+#-------------------------------------------
+try_remove_module snd_sof_intel_hda_common
 
 #-------------------------------------------
 # Helpers
