@@ -310,6 +310,11 @@ ignore_str="$ignore_str"'|proc_thermal 0000:00:..\..: No auxiliary DTSs enabled'
 # elan_i2c i2c-ELAN0000:00: invalid report id data (ff)
 ignore_str="$ignore_str"'|elan_i2c i2c-ELAN0000:.*: invalid report id data'
 
+# SoundWire workaround using RT701
+# https://github.com/thesofproject/linux/pull/2701
+ignore_str="$ignore_str"'|rt711 sdw:[0-3]:25d:701:0: Probe of rt711 failed: -19'
+ignore_str="$ignore_str"'|rt1308 sdw:[0-3]:25d:701:0: Probe of rt1308 failed: -19'
+
 #
 # SDW related logs
 #
