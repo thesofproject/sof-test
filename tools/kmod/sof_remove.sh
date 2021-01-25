@@ -14,6 +14,22 @@ remove_module() {
     fi
 }
 
+exit_handler()
+{
+    local exit_status="$1"
+    # Even without any active audio, pulseaudio can use modules
+    # "non-deterministically". So even if we are successful this time,
+    # warn about any running pulseaudio because it could make us fail
+    # the next time.
+    if pgrep -a pulseaudio; then
+        printf 'ERROR: %s fails semi-randomly when pulseaudio is running\n' \
+               "$(basename "$0")"
+    fi
+    return "$exit_status"
+}
+
+trap 'exit_handler $?' EXIT
+
 # SOF CI has a dependency on usb audio
 remove_module snd_usb_audio
 
