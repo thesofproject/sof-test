@@ -63,6 +63,20 @@ _func_log_directory()
     export LOG_ROOT=$log_dir/$timetag
 }
 
+# create dummy log files
+_func_log_dummy_files()
+{
+    # do not create dummy files if three is no LOG_ROOT
+    [ -n "$LOG_ROOT" ] || return
+
+    # create dummy files
+    LOG_LIST=([0]="slogger.txt" [1]="etrace.txt" [2]="dmesg.txt")
+    for filename in "${LOG_LIST[@]}"
+    do
+        [ -f "$LOG_ROOT/$filename" ] || echo "dummy file $filename" > "$LOG_ROOT/$filename"
+    done
+}
+
 for _func_ in $(declare -F|grep _func_log_|awk '{print $NF;}')
 do
     $_func_
