@@ -30,6 +30,12 @@ remove_module snd_sof_pci_intel_tgl
 remove_module snd_sof_acpi_intel_byt
 remove_module snd_sof_acpi_intel_bdw
 
+#--------------------------------------------------
+# With older kernels this is in use by snd_sof_pci,
+# see https://github.com/thesofproject/linux/pull/2683
+#--------------------------------------------------
+remove_module snd_sof_intel_hda_common || true
+
 #-------------------------------------------
 # Helpers
 #-------------------------------------------
