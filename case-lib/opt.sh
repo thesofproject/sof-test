@@ -3,13 +3,16 @@
 # SPDX-License-Identifier: BSD-3-Clause
 # Copyright(c) 2021 Intel Corporation. All rights reserved.
 
-# These four arrays are used to define script options, and they should be
-# indexed by a character [a-zA-Z], which is the option short name.
+# These four arrays are used to define script options, and they should
+# be indexed by a character [a-zA-Z], which is the option short name.
 # OPT_NAME: option long name
 # OPT_HAS_ARG:
 #    1: this option requires an extra argument
 #    0: this option behaves like boolean, and requires no argument
-# OPT_VAL: the extra argument required, or 0 if option requires no argument
+# OPT_VAL:
+#    - the extra argument required if OPT_HAS_ARG=1
+#    - default boolean value 0/1 if OPT_HAS_ARG=0, if boolean option
+#      is specified in command line, default OPT_VAL will be flipped.
 # OPT_DESC: description for this option
 declare -A OPT_NAME OPT_HAS_ARG OPT_VAL OPT_DESC
 
@@ -23,10 +26,13 @@ add_common_options()
     OPT_DESC['h']='show help information'
 }
 
-# option setup && parse function
+# validate command line options, override default option value,
+# and dump help
 func_opt_parse_option()
 {
-    _func_case_dump_description()
+    # lines that start with '##' will be regarded as documentation.
+    # this function dumps these lines after removing the leading '## '
+    _dump_case_description()
     {
         grep '^##' "$SCRIPT_NAME" | sed 's/^## //g'
     }
@@ -51,30 +57,32 @@ func_opt_parse_option()
                 long_opt_lst["--${OPT_NAME[$opt]}"]="$opt"
             fi
             # append ':' if this option requires an argument
-            [ ${OPT_HAS_ARG[$opt]} -ne 1 ] || {
+            [ "${OPT_HAS_ARG[$opt]}" -ne 1 ] || {
                 short_opt_str=$short_opt_str':'
                 long_opt_str=$long_opt_str':'
             }
         done
     }
 
-    _func_opt_dump_help()
+    _dump_help_and_exit()
     {
         local i
+        local exit_status="$1"
+
         printf 'Usage: %s [OPTION]\n' "$0"
         for i in ${!OPT_DESC[*]}
         do
-            [ "X$i" = "Xh" ] && continue
+            [ "X$i" != "Xh" ] || continue
             # display short option
-            [ "$i" ] && printf '    -%s' "$i"
+            [ ! "$i" ] || printf '    -%s' "$i"
             # if option requires extra argument
-            [ "X${OPT_HAS_ARG[$i]}" == "X1" ] && printf ' parameter'
+            [ "X${OPT_HAS_ARG[$i]}" != "X1" ] || printf ' parameter'
             # display long option
             if [ "${OPT_NAME[$i]}" ]; then
                 # whether display short option
                 [ "$i" ] && printf ' |  ' || printf '    '
                 printf '%s' "--${OPT_NAME[$i]}"
-                [ "X${OPT_HAS_ARG[$i]}" == "X1" ] && printf ' parameter'
+                [ "X${OPT_HAS_ARG[$i]}" != "X1" ] || printf ' parameter'
             fi
             printf '\n\t%s\n' "${OPT_DESC[$i]}"
             if [ "${OPT_VAL[$i]}" ]; then
@@ -89,10 +97,11 @@ func_opt_parse_option()
         done
 
         printf '    -h |  --help\n'
-        printf '\tthis message\n'
-        _func_case_dump_description
+        printf '\tshow help information\n'
+
+        _dump_case_description
         trap - EXIT
-        exit 2
+        exit "$exit_status"
     }
 
     add_common_options
@@ -111,44 +120,50 @@ func_opt_parse_option()
     # we get formatted_cmd_opts="-l '1' -r '1' -d '1' --".
     formatted_cmd_opts=$(getopt -o "$short_opt_str" --long "$long_opt_str" -- "$@") || {
         # Wrong option(s) are specified
-        printf 'Unrecognized option(s) found: %s\n' "$*"
+        printf 'Unrecognized option(s) found in: %s\n' "$*"
         # Uncomment below lines for debug purpose
         # printf '[DEBUG] short option: %s\n' "$short_opt_str" >&2
         # printf '[DEBUG] long option: %s\n' "$long_opt_str" >&2
         # printf '[DEBUG] command line: %s\n' "$*" >&2
-        _func_opt_dump_help
+        _dump_help_and_exit 1
     }
 
     # set the contents in formatted_cmd_opts to position arguments $1, $2, ...
     eval set -- "$formatted_cmd_opts"
 
-    # Iterate over command line input and overwrite OPT_VAL
-    # default values.
-    # declare -p OPT_NAME OPT_VAL
+    # Iterate command line input and overwrite OPT_VAL
     local idx
     while true ; do
-        # idx is our internal one-character code name unique for each option
+        # idx is option short name
         idx="${short_opt_lst[$1]}"
-        [ ! "$idx" ] && idx="${long_opt_lst[$1]}"
+        [ "$idx" ] || idx="${long_opt_lst[$1]}"
         if [ "$idx" ]; then
-            if [ ${OPT_HAS_ARG[$idx]} -eq 1 ]; then
-                [ ! "$2" ] && printf 'option: %s missing parameter, parsing error' "$1" && exit 2
+            if [ "${OPT_HAS_ARG[$idx]}" -eq 1 ]; then
+                # Argument of an option should not be an option
+                # shellcheck disable=SC2015 # SC2015 is allowed here
+                [ -n "$2" ] && [ "${2:0:1}" != "-" ] || {
+                    printf 'Option "%s" requires one argument!\n' "$1"
+                    _dump_help_and_exit 1
+                }
                 OPT_VAL[$idx]="$2"
                 shift 2
-            else # boolean flag: reverse the default value
+            else # boolean option: flip the default value
                 OPT_VAL[$idx]=$((!${OPT_VAL[$idx]}))
                 shift
             fi
-        elif [ "X$1" == "X--" ]; then
-            shift && break
-        else # this should never happen if getopt does a good validation job
-            printf 'option: %s unknown, error!' "$1" && exit 2
+        elif [ "X$1" == "X--" ]; then # the end of command line input
+            shift
+            break
+        else # should never execute if getopt does a good validation job for us
+            printf 'Unknown option: %s!' "$1"
+            _dump_help_and_exit 1
         fi
     done
     # declare -p OPT_VAL
 
-    [ "${OPT_VAL['h']}" -eq 1 ] && _func_opt_dump_help
-    # record the full parameter to the cmd
+    [ "${OPT_VAL['h']}" -eq 1 ] && _dump_help_and_exit 0
+
+    # write command line input and repo information to file
     if [[ ! -f "$LOG_ROOT/version.txt" ]] && [[ -f "$SCRIPT_HOME/.git/config" ]]; then
         {
             printf "Command:\n"
@@ -159,5 +174,5 @@ func_opt_parse_option()
         } >> "$LOG_ROOT/version.txt"
     fi
 
-    unset _fill_opt_vars _func_opt_dump_help _func_case_dump_description
+    unset _fill_opt_vars _dump_help_and_exit _dump_case_description
 }
