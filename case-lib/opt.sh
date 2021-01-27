@@ -28,7 +28,7 @@ func_opt_parse_option()
 
     _func_case_dump_description()
     {
-         grep '^##' "$SCRIPT_NAME" | sed 's/^## //g'
+        grep '^##' "$SCRIPT_NAME" | sed 's/^## //g'
     }
 
     # Asks getopt to validate command line input and generate $_op_temp_script
@@ -75,36 +75,36 @@ func_opt_parse_option()
         printf 'Usage: %s [OPTION]\n' "$0"
         for i in ${!OPT_DESC[*]}
         do
-                [ "X$i" = "Xh" ] && continue
-                # display short option
-                [ "$i" ] && printf '    -%s' "$i"
-                # if option requires extra argument
+            [ "X$i" = "Xh" ] && continue
+            # display short option
+            [ "$i" ] && printf '    -%s' "$i"
+            # if option requires extra argument
+            [ "X${OPT_HAS_ARG[$i]}" == "X1" ] && printf ' parameter'
+            # display long option
+            if [ "${OPT_NAME[$i]}" ]; then
+                # whether display short option
+                [ "$i" ] && printf ' |  ' || printf '    '
+                printf '%s' "--${OPT_NAME[$i]}"
                 [ "X${OPT_HAS_ARG[$i]}" == "X1" ] && printf ' parameter'
-                # display long option
-                if [ "${OPT_NAME[$i]}" ]; then
-                    # whether display short option
-                    [ "$i" ] && printf ' |  ' || printf '    '
-                    printf '%s' "--${OPT_NAME[$i]}"
-                    [ "X${OPT_HAS_ARG[$i]}" == "X1" ] && printf ' parameter'
+            fi
+            printf '\n\t%s\n' "${OPT_DESC[$i]}"
+            if [ "${OPT_VAL[$i]}" ]; then
+                if [ "${OPT_HAS_ARG[$i]}" -eq 1 ]; then
+                    printf '\tDefault Value: %s\n' "${OPT_VAL[$i]}"
+                elif [ "${OPT_VAL[$i]}" -eq 0 ]; then
+                    printf '\tDefault Value: Off\n'
+                else
+                    printf '\tDefault Value: On\n'
                 fi
-                printf '\n\t%s\n' "${OPT_DESC[$i]}"
-                if [ "${OPT_VAL[$i]}" ]; then
-                    if [ "${OPT_HAS_ARG[$i]}" -eq 1 ]; then
-                        printf '\tDefault Value: %s\n' "${OPT_VAL[$i]}"
-                    elif [ "${OPT_VAL[$i]}" -eq 0 ]; then
-                        printf '\tDefault Value: Off\n'
-                    else
-                        printf '\tDefault Value: On\n'
-                    fi
-                fi
-            done
+            fi
+        done
 
-            printf '    -h |  --help\n'
-            printf '\tthis message\n'
-            _func_case_dump_description
-            trap - EXIT
-            exit 2
-        }
+        printf '    -h |  --help\n'
+        printf '\tthis message\n'
+        _func_case_dump_description
+        trap - EXIT
+        exit 2
+    }
 
     add_common_options
 
