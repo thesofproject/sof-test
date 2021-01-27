@@ -23,50 +23,36 @@ add_common_options()
 # option setup && parse function
 func_opt_parse_option()
 {
-    local _op_temp_script
-    local -A _op_short_lst _op_long_lst
-
     _func_case_dump_description()
     {
         grep '^##' "$SCRIPT_NAME" | sed 's/^## //g'
     }
 
-    # Asks getopt to validate command line input and generate $_op_temp_script
-    #
-    # Also initialize the global _op_short_list and _op_long_list
-    # "reversed maps" (reversed compared to the user's OPT_ maps) that
-    # map valid command line input to the corresponding
-    # one-character option code name. Example:
-    #   _op_short_lst=
-    #        ( [-t]="t" [-d]="d" [-l]="l" [-h]="h" )
-    #   _op_long_lst=
-    #        ( [--help]="h" [--duration]="d" [--tplg]="t" [--loop]="l" )
-    _func_create_tmpbash()
+    # This function helps to fill below four variables
+    # - short_opt_str/long_opt_str: short/long option in getopt format, used
+    #   for command line validation
+    # - short_opt_lst/long_opt_lst: list of short/long option map which maps
+    #   command line option to its corresponding short/long name, used for
+    #   overriding default OPT_VAL, eg, short_opt_lst=([-h]="h" [-t]="t")
+    #   long_opt_lst=([--help]="h" [--tplg]="t")
+    _fill_opt_vars()
     {
-         # options in getopt format
-        local i _short_opt _long_opt
-        for i in ${!OPT_DESC[*]}
+        local opt
+        for opt in ${!OPT_DESC[*]}
         do
-            _short_opt=$_short_opt"$i"
-            _op_short_lst["-$i"]="$i"
-            [ "$_long_opt" ] && _long_opt="$_long_opt"','
-            if [ "${OPT_NAME[$i]}" ]; then
-                _long_opt=$_long_opt"${OPT_NAME[$i]}"
-                _op_long_lst["--${OPT_NAME[$i]}"]="$i"
+            short_opt_str="$short_opt_str""$opt"
+            short_opt_lst["-$opt"]="$opt"
+            [ "$long_opt_str" ] && long_opt_str="$long_opt_str"','
+            if [ "${OPT_NAME[$opt]}" ]; then
+                long_opt_str="$long_opt_str""${OPT_NAME[$opt]}"
+                long_opt_lst["--${OPT_NAME[$opt]}"]="$opt"
             fi
-            # append ':' if the option accepts an argument
-            [ ${OPT_HAS_ARG[$i]} -eq 1 ] && _short_opt=$_short_opt':' && _long_opt=$_long_opt':'
+            # append ':' if this option requires an argument
+            [ ${OPT_HAS_ARG[$opt]} -ne 1 ] || {
+                short_opt_str=$short_opt_str':'
+                long_opt_str=$long_opt_str':'
+            }
         done
-
-        if  ! _op_temp_script=$(
-                getopt -o "$_short_opt" --long "$_long_opt" -- "$@"); then
-            # here output for the End-User who don't care about this function/option couldn't to run
-            printf 'Error parsing options: %s\n' "$*"
-            # To debug uncomment these lines:
-            # printf 'DEBUG parsing options: short_opt: %s / long_opt: %s / args: %s\n' "$_short_opt" "$_long_opt" "$*" >&2
-            # declare -p |grep -E 'OPT_[A-Z]*_lst|_op_'
-            _func_opt_dump_help
-        fi
     }
 
     _func_opt_dump_help()
@@ -108,12 +94,30 @@ func_opt_parse_option()
 
     add_common_options
 
-    # Asks getopt to validate input and generate _op_temp_script.
-    # Initialize reverse maps _op_short_lst and _opt_long_lst used next.
-    _func_create_tmpbash "$@"
+    # short option and long option in getopt format
+    local short_opt_str long_opt_str
+    # the option map used for OPT_VAL overriding
+    local -A short_opt_lst long_opt_lst
+    # Fill above four variables
+    _fill_opt_vars
 
-    # FIXME: what is this supposed to do!?
-    eval set -- "$_op_temp_script"
+    local formatted_cmd_opts
+    # Call getopt to help us to validate and format command line options,
+    # the formatted command line options will end with '--', which denotes
+    # the end of the command line options. eg, run "check-playback.sh -l1 -r1 -d1",
+    # we get formatted_cmd_opts="-l '1' -r '1' -d '1' --".
+    formatted_cmd_opts=$(getopt -o "$short_opt_str" --long "$long_opt_str" -- "$@") || {
+        # Wrong option(s) are specified
+        printf 'Unrecognized option(s) found: %s\n' "$*"
+        # Uncomment below lines for debug purpose
+        # printf '[DEBUG] short option: %s\n' "$short_opt_str" >&2
+        # printf '[DEBUG] long option: %s\n' "$long_opt_str" >&2
+        # printf '[DEBUG] command line: %s\n' "$*" >&2
+        _func_opt_dump_help
+    }
+
+    # set the contents in formatted_cmd_opts to position arguments $1, $2, ...
+    eval set -- "$formatted_cmd_opts"
 
     # Iterate over command line input and overwrite OPT_VAL
     # default values.
@@ -121,8 +125,8 @@ func_opt_parse_option()
     local idx
     while true ; do
         # idx is our internal one-character code name unique for each option
-        idx="${_op_short_lst[$1]}"
-        [ ! "$idx" ] && idx="${_op_long_lst[$1]}"
+        idx="${short_opt_lst[$1]}"
+        [ ! "$idx" ] && idx="${long_opt_lst[$1]}"
         if [ "$idx" ]; then
             if [ ${OPT_HAS_ARG[$idx]} -eq 1 ]; then
                 [ ! "$2" ] && printf 'option: %s missing parameter, parsing error' "$1" && exit 2
@@ -152,5 +156,5 @@ func_opt_parse_option()
         } >> "$LOG_ROOT/version.txt"
     fi
 
-    unset _func_create_tmpbash _func_opt_dump_help _func_case_dump_description
+    unset _fill_opt_vars _func_opt_dump_help _func_case_dump_description
 }
