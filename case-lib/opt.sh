@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# SPDX-License-Identifier: BSD-3-Clause
+# Copyright(c) 2021 Intel Corporation. All rights reserved.
+
 # These four arrays are used to define script options, and they should be
 # indexed by a character [a-zA-Z], which is the option short name.
 # OPT_NAME: option long name
