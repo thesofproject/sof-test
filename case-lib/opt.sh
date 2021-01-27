@@ -30,11 +30,11 @@ add_common_options()
 # and dump help
 func_opt_parse_option()
 {
-    # lines that start with '##' will be regarded as documentation.
-    # this function dumps these lines after removing the leading '## '
+    # Lines that start with '##' will be regarded as documentation,
+    # removing the leading '##' or '## ' from documentation.
     _dump_case_description()
     {
-        grep '^##' "$SCRIPT_NAME" | sed 's/^## //g'
+        grep '^##' "$SCRIPT_NAME" | sed 's/^##//g' | sed 's/^ //g'
     }
 
     # This function helps to fill below four variables
