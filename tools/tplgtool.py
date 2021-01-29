@@ -539,12 +539,8 @@ class TplgParser():
         return block
 
     def parse(self,tplg_file):
-        try:
-            with open(tplg_file,"rb") as fd:
-                self._tplg_binary = fd.read()
-        except:
-            print("File %s open error" %tplg_file)
-            sys.exit(1)
+        with open(tplg_file,"rb") as fd:
+            self._tplg_binary = fd.read()
 
         # here we call a header with its data a block
         parsed_tplg = []
@@ -944,11 +940,7 @@ if __name__ == "__main__":
             print()
 
     def dump_graph(parsed_tplgs, cmd_args):
-        try:
-            from graphviz import Digraph
-        except:
-            print("graphviz package not installed, please install with `sudo apt install python3-graphviz`")
-            sys.exit(1)
+        from graphviz import Digraph
 
         format = cmd_args['format'].strip()
         dir = cmd_args['directory'].strip()
