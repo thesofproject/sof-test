@@ -23,32 +23,32 @@ source "$(dirname "${BASH_SOURCE[0]}")"/../case-lib/lib.sh
 # check pulseaudio runs properly or not
 func_lib_check_pa || die "Please check whether pulseaudio runs correctly or not"
 
-OPT_OPT_lst['r']='round'     OPT_DESC_lst['r']='round count'
-OPT_PARM_lst['r']=1         OPT_VALUE_lst['r']=3
+OPT_NAME['r']='round'      OPT_DESC['r']='round count'
+OPT_HAS_ARG['r']=1         OPT_VAL['r']=3
 
-OPT_OPT_lst['d']='duration' OPT_DESC_lst['d']='paplay duration in second'
-OPT_PARM_lst['d']=1         OPT_VALUE_lst['d']=8
+OPT_NAME['d']='duration'   OPT_DESC['d']='paplay duration in second'
+OPT_HAS_ARG['d']=1         OPT_VAL['d']=8
 
-OPT_OPT_lst['f']='file'   OPT_DESC_lst['f']='source file path'
-OPT_PARM_lst['f']=1         OPT_VALUE_lst['f']='/dev/zero'
+OPT_NAME['f']='file'       OPT_DESC['f']='source file path'
+OPT_HAS_ARG['f']=1         OPT_VAL['f']='/dev/zero'
 
-OPT_OPT_lst['F']='format'   OPT_DESC_lst['F']='sample format'
-OPT_PARM_lst['F']=1         OPT_VALUE_lst['F']=s16le
+OPT_NAME['F']='format'     OPT_DESC['F']='sample format'
+OPT_HAS_ARG['F']=1         OPT_VAL['F']=s16le
 
-OPT_OPT_lst['R']='rate'   OPT_DESC_lst['R']='sample rate'
-OPT_PARM_lst['R']=1         OPT_VALUE_lst['R']=44100
+OPT_NAME['R']='rate'       OPT_DESC['R']='sample rate'
+OPT_HAS_ARG['R']=1         OPT_VAL['R']=44100
 
-OPT_OPT_lst['C']='channels'   OPT_DESC_lst['C']='channels'
-OPT_PARM_lst['C']=1         OPT_VALUE_lst['C']=2
+OPT_NAME['C']='channels'   OPT_DESC['C']='channels'
+OPT_HAS_ARG['C']=1         OPT_VAL['C']=2
 
 func_opt_parse_option "$@"
 
-round_cnt=${OPT_VALUE_lst['r']}
-duration=${OPT_VALUE_lst['d']}
-file=${OPT_VALUE_lst['f']}
-format=${OPT_VALUE_lst['F']}
-rate=${OPT_VALUE_lst['R']}
-channel=${OPT_VALUE_lst['C']}
+round_cnt=${OPT_VAL['r']}
+duration=${OPT_VAL['d']}
+file=${OPT_VAL['f']}
+format=${OPT_VAL['F']}
+rate=${OPT_VAL['R']}
+channel=${OPT_VAL['C']}
 
 [[ -e $file ]] || { dlogw "$file does not exist, use /dev/zero as dummy playback source" && file=/dev/zero; }
 
