@@ -108,6 +108,8 @@ remove_module snd_soc_sdw_rt700
 remove_module snd_soc_sdw_rt711_rt1308_rt715
 remove_module snd_soc_sof_sdw
 remove_module snd_soc_ehl_rt5660
+remove_module snd_soc_intel_hda_dsp_common
+remove_module snd_soc_intel_sof_maxim_common
 remove_module snd_sof_ipc_test
 remove_module snd_sof_probes
 remove_module snd_sof_intel_client
