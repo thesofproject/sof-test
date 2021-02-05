@@ -1,0 +1,30 @@
+---
+# Tools that can save round-trips to github and a lot of time:
+#
+# yamllint -f parsable pull_request.yml
+# pip3 install ruamel.yaml.cmd
+# yaml json pull_request.yml
+# yaml merge-expand pull_request.yml exp.yml &&
+#    diff -b -u pull_request.yml exp.yml
+
+name: reviewdog
+
+# yamllint disable-line rule:truthy
+on:
+  pull_request:
+    branches:
+     - master
+
+jobs:
+
+  shellcheck:
+    name: runner / shellcheck
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v1
+      - name: shellcheck
+        uses: reviewdog/action-shellcheck@v1
+        with:
+          github_token: ${{ secrets.github_token }}
+          reporter: github-pr-review
+          fail_on_error: true
