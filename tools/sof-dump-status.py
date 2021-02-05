@@ -545,6 +545,13 @@ if __name__ == "__main__":
                 "matches":  {
                     "board_vendor": "Google",
                 }
+            },
+	    {
+                "ident": "Up Extreme",
+                "matches": {
+                    "board_name": "UP-WHL01",
+                    "board_vendor": "AAEON"
+                }
             }
         ]
         fw_path = "/lib/firmware/intel/sof"
