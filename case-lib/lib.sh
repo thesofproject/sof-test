@@ -79,15 +79,22 @@ fake_kern_error()
 SOF_LOG_COLLECT=0
 func_lib_start_log_collect()
 {
-    local is_etrace=${1:-0} ldcFile="$SOFLDC"
+    local is_etrace=${1:-0} ldcFile
     # if user doesn't specify file path of sof-*.ldc, fall back to
     # /etc/sof/sof-PLATFORM.ldc, which is the default path used by CI.
-    [[ -n "$ldcFile" ]] || {
-        ldcFile=/etc/sof/sof-$(sof-dump-status.py -p).ldc || {
+    # and then on the standard location.
+    if [ -n "$SOFLDC" ]; then
+        ldcFile="$SOFLDC"
+    else
+        local platf; platf=$(sof-dump-status.py -p) || {
             >&2 dloge "Failed to query platform with sof-dump-status.py"
             return 1
         }
-    }
+        ldcFile=/etc/sof/sof-"$platf".ldc
+        [ -e "$ldcFile" ] ||
+            ldcFile=/lib/firmware/intel/sof/sof-"$platf".ldc
+    fi
+
     [[ -e "$ldcFile" ]] || {
         dloge "LDC file $ldcFile not found, check the SOFLDC environment variable or put your sof-*.ldc to /etc/sof"
         return 1
