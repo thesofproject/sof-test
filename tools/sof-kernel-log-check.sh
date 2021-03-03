@@ -197,7 +197,7 @@ ignore_str="$ignore_str"'|usb 2-.: .'
 # CML Helios reported usb errors in kmod test, and caused false failure
 # BugLink: https://github.com/thesofproject/sof-test/issues/567
 ignore_str="$ignore_str"'|usb .-.+: device descriptor read/.+, error'
-ignore_str="$ignore_str"'|usb .-.+.: device not accepting address .+, error'
+ignore_str="$ignore_str"'|usb .-.+: device not accepting address .+, error'
 ignore_str="$ignore_str"'|usb usb.-port.+: unable to enumerate USB device'
 
 # Test cases on some platforms fail because the boot retry message:
