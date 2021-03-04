@@ -214,8 +214,8 @@ ignore_str="$ignore_str"'|usb usb.-port.+: unable to enumerate USB device'
 # case.
 #
 # Buglink: https://github.com/thesofproject/sof/issues/3395
-
 ignore_str="$ignore_str"'|sof-audio-pci 0000:00:..\..: status = 0x[0-f]{8} panic = 0x[0-f]{8}'
+
 # There will be debug logs at each failed initializaiton of DSP before Linux 5.9
 #   sof-audio-pci 0000:00:1f.3: error: cl_dsp_init: timeout HDA_DSP_SRAM_REG_ROM_STATUS read
 #   sof-audio-pci 0000:00:1f.3: error: status = 0x00000000 panic = 0x00000000
@@ -228,6 +228,12 @@ ignore_str="$ignore_str"'|sof-audio-pci 0000:00:..\..: status = 0x[0-f]{8} panic
 ignore_str="$ignore_str"'|error: iteration [01]'
 ignore_str="$ignore_str"'|error: status'
 ignore_str="$ignore_str"'|error: cl_dsp_init: timeout HDA_DSP_SRAM_REG_ROM_STATUS read'
+
+# asix error in TGLH_0A5E_SDW
+# kernel: asix 3-3.1:1.0 enx000ec65356e1: asix_rx_fixup() Bad Header Length 0x0, offset 4
+# kernel: asix 3-12.1:1.0 enx000ec668ad2a: ...
+#buglink: https://github.com/thesofproject/sof-test/issues/622
+ignore_str="$ignore_str"'|asix .-.+\..:.\.. en.+: asix_rx_fixup() Bad Header Length'
 
 case "$platform" in
     # Audio PCI ID on CML Mantis is [8086:9dc8], which is defined as CNL in linux kernel.
