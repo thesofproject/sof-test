@@ -76,10 +76,9 @@ fake_kern_error()
 
 }
 
-SOF_LOG_COLLECT=0
-func_lib_start_log_collect()
+find_ldc_file()
 {
-    local is_etrace=${1:-0} ldcFile
+    local ldcFile
     # if user doesn't specify file path of sof-*.ldc, fall back to
     # /etc/sof/sof-PLATFORM.ldc, which is the default path used by CI.
     # and then on the standard location.
@@ -96,9 +95,18 @@ func_lib_start_log_collect()
     fi
 
     [[ -e "$ldcFile" ]] || {
-        dloge "LDC file $ldcFile not found, check the SOFLDC environment variable or put your sof-*.ldc to /etc/sof"
+        >&2 dloge "LDC file $ldcFile not found, check the SOFLDC environment variable or copy your sof-*.ldc to /etc/sof"
         return 1
     }
+    printf '%s' "$ldcFile"
+}
+
+SOF_LOG_COLLECT=0
+func_lib_start_log_collect()
+{
+    local is_etrace=${1:-0} ldcFile
+
+    ldcFile=$(find_ldc_file) || return $?
 
     local logopt="-t"
 
