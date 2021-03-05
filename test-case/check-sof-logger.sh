@@ -15,7 +15,8 @@
 ##    sof-logger already catch some thing
 ##
 
-source $(dirname ${BASH_SOURCE[0]})/../case-lib/lib.sh
+# shellcheck source=case-lib/lib.sh
+source "$(dirname "${BASH_SOURCE[0]}")"/../case-lib/lib.sh
 
 func_opt_parse_option "$@"
 
@@ -36,14 +37,10 @@ fi
 loggerBin=$(which sof-logger)
 dlogi "Found file: $(md5sum $loggerBin|awk '{print $2, $1;}')"
 
-# check ldc file in /etc/sof/
-platform=$(sof-dump-status.py -p)
-ldcFile=/etc/sof/sof-$platform.ldc
-dlogi "Checking ldc File: $ldcFile ..."
-if [[ ! -f $ldcFile ]]; then
-    die "File ($ldcFile) Not Found!"
-fi
-dlogi "Found file: $(md5sum $ldcFile|awk '{print $2, $1;}')"
+dlogi "Looking for ldc File ..."
+ldcFile=$(find_ldc_file) || die ".ldc file not found!"
+
+dlogi "Found file: $(md5sum "$ldcFile"|awk '{print $2, $1;}')"
 
 data_file=$LOG_ROOT/logger.data.log
 error_file=$LOG_ROOT/logger.error.log
