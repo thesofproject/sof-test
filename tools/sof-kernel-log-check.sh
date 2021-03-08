@@ -164,8 +164,7 @@ ignore_str="$ignore_str"'|tpm tpm0: tpm_try_transmit: send\(\): error -5'
 ignore_str="$ignore_str"'|platform regulatory\.0: Direct firmware load for regulatory\.db failed with error -2'
 ignore_str="$ignore_str"'|cfg80211: failed to load regulatory\.db'
 ignore_str="$ignore_str"'|EXT4-fs \(nvme0n1p6\): re-mounted\. Opts: errors=remount-ro'
-ignore_str="$ignore_str"'|usb 2-3: Enable of device-initiated U1 failed\.'
-ignore_str="$ignore_str"'|usb 2-3: Enable of device-initiated U2 failed\.'
+ignore_str="$ignore_str"'|usb .+: Enable of device-initiated .+ failed\.'
 ignore_str="$ignore_str"'|thermal thermal_zone.*: failed to read out thermal zone \(-61\)'
 
 # Dell CML-U laptop with SoundWire, issues reported by sof-test
@@ -189,8 +188,8 @@ ignore_str="$ignore_str"'|\[drm:drm_dp_send_link_address \[drm_kms_helper\]\] \*
 
 # CHT devices with USB hub, issues reported by sof-test
 # BugLink: https://github.com/thesofproject/sof-test/issues/431
-ignore_str="$ignore_str"'|hub 2-.: .'
-ignore_str="$ignore_str"'|usb 2-.: .'
+ignore_str="$ignore_str"'|hub [23]-.+: hub_ext_port_status failed'
+ignore_str="$ignore_str"'|usb [23]-.+: Failed to suspend device, error'
 
 # TGL devices with USB 3.1 devices, issues reported by sof-test
 # BugLink: https://github.com/thesofproject/sof-test/issues/482
