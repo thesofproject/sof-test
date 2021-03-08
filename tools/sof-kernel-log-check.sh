@@ -164,7 +164,7 @@ ignore_str="$ignore_str"'|tpm tpm0: tpm_try_transmit: send\(\): error -5'
 ignore_str="$ignore_str"'|platform regulatory\.0: Direct firmware load for regulatory\.db failed with error -2'
 ignore_str="$ignore_str"'|cfg80211: failed to load regulatory\.db'
 ignore_str="$ignore_str"'|EXT4-fs \(nvme0n1p6\): re-mounted\. Opts: errors=remount-ro'
-ignore_str="$ignore_str"'|usb .+: Enable of device-initiated .+ failed\.'
+ignore_str="$ignore_str"'|usb .+: (Enable|Disable) of device-initiated .+ failed\.'
 ignore_str="$ignore_str"'|thermal thermal_zone.*: failed to read out thermal zone \(-61\)'
 
 # Dell CML-U laptop with SoundWire, issues reported by sof-test
