@@ -22,13 +22,19 @@ exit_handler()
     # warn about any running pulseaudio because it could make us fail
     # the next time.
     if pgrep -a pulseaudio; then
-        printf 'ERROR: %s fails semi-randomly when pulseaudio is running\n' \
+        >&2 printf 'ERROR: %s fails semi-randomly when pulseaudio is running\n' \
                "$(basename "$0")"
+        systemctl --user list-units --all '*pulse*' || true
     fi
     return "$exit_status"
 }
 
 trap 'exit_handler $?' EXIT
+
+# Breaks systemctl --user and "double sudo" is not great
+test "$(id -u)" -ne 0 ||
+    >&2 printf '\nWARNING: running as root is not supported\n\n'
+
 
 # SOF CI has a dependency on usb audio
 remove_module snd_usb_audio
@@ -192,5 +198,3 @@ remove_module snd_hwdep
 remove_module snd_compress
 remove_module snd_pcm
 
-# without the status check force quit
-builtin exit 0
