@@ -46,3 +46,11 @@ jobs:
         # let's re-enable 'C'onventions once we got the other numbers down
         run: ./tools/CI/check-gitrange.bash origin/${BASE_REF}...HEAD
                text/x-python pylint --disable=C
+
+
+  yamllint:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+      - name: yamllint ourselves
+        run: yamllint .github/workflows/pull_request.yml
