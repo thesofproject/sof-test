@@ -74,11 +74,15 @@ fi
 # '\.c\:[1-9]' to filter like '.c:6' this type keyword like:
 # [3017136.770833]  (11.302083) c0 SA  src/lib/agent.c:65  ERROR validate(), ll drift detected, delta = 25549
 fw_log_err=$(grep -i 'error' "$data_file" | grep -v '\.c\:[1-9]')
+data_len=$(wc -l < "${data_file}")
 
 # '[[:blank:]]TIMESTAMP.*CONTENT$' to filter the log header:
 # TIMESTAMP  DELTA C# COMPONENT  LOCATION  CONTENT
 if [[ ! $(sed -n '/[[:blank:]]TIMESTAMP.*CONTENT$/p' "${data_file}") ]]; then
     dloge "Log header not found in ${data_file}"
+    func_logger_exit 1
+elif [[ "${data_len}" -lt 2 ]]; then
+    dloge "Nothing but the header in ${data_file}"
     func_logger_exit 1
 # we catch error from fw log
 elif [[ $fw_log_err ]]; then
