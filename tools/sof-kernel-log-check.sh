@@ -200,6 +200,13 @@ ignore_str="$ignore_str"'|usb .-.+: device descriptor read/.+, error'
 ignore_str="$ignore_str"'|usb .-.+: device not accepting address .+, error'
 ignore_str="$ignore_str"'|usb usb.-port.+: unable to enumerate USB device'
 
+# Devices with IGB network interfaces. Since we have multiple issues we ignore
+# all messages from this driver, e.g.
+# igb 0000:01:00.0 enp1s0: Reset adapter'
+# igb 0000:01:00.0: exceed max 2 second'
+# BugLink: https://github.com/thesofproject/sof-test/issues/617
+ignore_str="$ignore_str"'|igb 0000:..:..\..*'
+
 # Test cases on some platforms fail because the boot retry message:
 #
 #    sof-audio-pci 0000:00:1f.3: status = 0x00000000 panic = 0x00000000
