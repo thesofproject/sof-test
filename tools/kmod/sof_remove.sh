@@ -120,6 +120,7 @@ remove_module snd_sof_ipc_test
 remove_module snd_sof_probes
 remove_module snd_sof_intel_client
 remove_module snd_sof_client
+remove_module snd_sof_nocodec || true
 
 remove_module snd_sof
 remove_module snd_sof_nocodec
