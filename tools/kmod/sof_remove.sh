@@ -35,6 +35,8 @@ trap 'exit_handler $?' EXIT
 test "$(id -u)" -ne 0 ||
     >&2 printf '\nWARNING: running as root is not supported\n\n'
 
+# Make sure sudo works first, not after dozens of SKIP
+sudo true
 
 # SOF CI has a dependency on usb audio
 remove_module snd_usb_audio
