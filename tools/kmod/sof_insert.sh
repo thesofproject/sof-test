@@ -7,10 +7,10 @@ insert_module() {
     local MODULE="$1"
 
     if modinfo "$MODULE" &> /dev/null ; then
-        echo "Inserting $MODULE"
+        printf 'MODPROBE\t%s\n' "$MODULE"
         sudo modprobe "$MODULE"
     else
-        echo "skipping $MODULE, not in tree"
+        printf 'SKIP    \t%s \tnot in tree\n' "$MODULE"
     fi
 }
 
