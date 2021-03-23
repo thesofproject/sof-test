@@ -14,6 +14,9 @@ insert_module() {
     fi
 }
 
+# Test sudo first, not after dozens of SKIP
+sudo true
+
 insert_module snd_soc_da7213
 insert_module snd_soc_da7219
 
