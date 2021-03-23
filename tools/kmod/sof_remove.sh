@@ -6,7 +6,7 @@ remove_module() {
 
     local MODULE="$1"
 
-    if lsmod | grep -w "$MODULE" &> /dev/null ; then
+    if lsmod | grep -q "^${MODULE}[[:blank:]]"; then
         printf 'RMMOD\t%s\n' "$MODULE"
         sudo rmmod "$MODULE"
     else
