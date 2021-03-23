@@ -120,6 +120,11 @@ remove_module snd_sof_ipc_test
 remove_module snd_sof_probes
 remove_module snd_sof_intel_client
 remove_module snd_sof_client
+
+# snd_sof_nocodec dependencies re-ordered
+# in https://github.com/thesofproject/linux/pull/2800
+# TODO: remove || true and the duplicate below
+# when we stop testing old branches.
 remove_module snd_sof_nocodec || true
 
 remove_module snd_sof
