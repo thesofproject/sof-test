@@ -7,10 +7,10 @@ remove_module() {
     local MODULE="$1"
 
     if lsmod | grep -w "$MODULE" &> /dev/null ; then
-        echo "Removing $MODULE"
+        printf 'RMMOD\t%s\n' "$MODULE"
         sudo rmmod "$MODULE"
     else
-        echo "skipping $MODULE, not loaded"
+        printf 'SKIP\t%s  \tnot loaded\n' "$MODULE"
     fi
 }
 
