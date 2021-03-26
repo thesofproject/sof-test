@@ -19,7 +19,7 @@ OPT_NAME['c']='cnt'      OPT_DESC['c']='ipc loop count'
 OPT_HAS_ARG['c']=1         OPT_VAL['c']=10000
 
 OPT_NAME['f']='dfs'      OPT_DESC['f']='system dfs file'
-OPT_HAS_ARG['f']=1         OPT_VAL['f']="/sys/kernel/debug/sof/ipc_flood_count"
+OPT_HAS_ARG['f']=1         OPT_VAL['f']="/sys/kernel/debug/sof/snd_sof_client.ipc_test.0/ipc_flood_count"
 
 OPT_NAME['l']='loop'     OPT_DESC['l']='loop count'
 OPT_HAS_ARG['l']=1         OPT_VAL['l']=1
