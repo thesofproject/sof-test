@@ -81,7 +81,7 @@ func_pipeline_export "$tplg" "type:$test_mode & ${OPT_VAL['S']}"
 for idx in $(seq 0 $((PIPELINE_COUNT - 1)))
 do
     # set up checkpoint for each iteration
-    func_lib_setup_kernel_checkpoint
+    setup_kernel_check_point
     channel=$(func_pipeline_parse_value "$idx" channel)
     rate=$(func_pipeline_parse_value "$idx" rate)
     fmt=$(func_pipeline_parse_value "$idx" fmt)

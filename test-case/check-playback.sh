@@ -67,7 +67,7 @@ else
     dlogi "using $file as playback source"
 fi
 
-func_lib_setup_kernel_checkpoint
+setup_kernel_check_point
 func_lib_check_sudo
 func_pipeline_export "$tplg" "type:playback & ${OPT_VAL['S']}"
 

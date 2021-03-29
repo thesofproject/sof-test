@@ -55,7 +55,7 @@ duration=${OPT_VAL['d']}
 [[ ${OPT_VAL['s']} -eq 1 ]] && func_lib_start_log_collect
 
 func_pipeline_export "$tplg" "kpbm:any"
-func_lib_setup_kernel_checkpoint
+setup_kernel_check_point
 
 if test "$PIPELINE_COUNT" != "1"; then
     die "detected $PIPELINE_COUNT wov pipeline(s) from topology, but 1 is needed"

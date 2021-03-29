@@ -69,7 +69,7 @@ func_error_exit()
 for i in $(seq 1 $loop_cnt)
 do
     # set up checkpoint for each iteration
-    func_lib_setup_kernel_checkpoint
+    setup_kernel_check_point
     dlogi "===== Testing: (Loop: $i/$loop_cnt) ====="
     # following sof-tplgreader, split 'both' pipelines into separate playback & capture pipelines, with playback occurring first
     for order in $(seq 0 2 $(expr $PIPELINE_COUNT - 1))
