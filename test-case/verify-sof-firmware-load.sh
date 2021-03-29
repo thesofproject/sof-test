@@ -20,9 +20,7 @@ source "$(dirname "${BASH_SOURCE[0]}")"/../case-lib/lib.sh
 
 func_opt_parse_option "$@"
 
-# hijack DMESG_LOG_START_LINE to dump kernel from file start is not Sub-Test
-# TODO: clean up Sub-Test feature
-alias | grep -q 'Sub-Test' || DMESG_LOG_START_LINE=$(sof-get-kernel-line.sh | tail -n 1 | awk '{print $1;}' )
+alias | grep -q 'Sub-Test' || setup_kernel_check_point
 
 cmd="journalctl_cmd"
 
