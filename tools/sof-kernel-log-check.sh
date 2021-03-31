@@ -239,8 +239,13 @@ ignore_str="$ignore_str"'|error: cl_dsp_init: timeout HDA_DSP_SRAM_REG_ROM_STATU
 # asix error in TGLH_0A5E_SDW
 # kernel: asix 3-3.1:1.0 enx000ec65356e1: asix_rx_fixup() Bad Header Length 0x0, offset 4
 # kernel: asix 3-12.1:1.0 enx000ec668ad2a: ...
-#buglink: https://github.com/thesofproject/sof-test/issues/622
+# buglink: https://github.com/thesofproject/sof-test/issues/622
 ignore_str="$ignore_str"'|asix .-.+\..:.\.. en.+: asix_rx_fixup() Bad Header Length'
+
+# asix error in TGLH_0A5E_SDW
+# kernel: asix 3-3.1:1.0 enx000ec65356e1: Failed to enable software MII access
+# buglink: https://github.com/thesofproject/sof-test/issues/565
+ignore_str="$ignore_str"'|asix .-.+\..:.\.. en.+: Failed to enable software MII access'
 
 case "$platform" in
     # Audio PCI ID on CML Mantis is [8086:9dc8], which is defined as CNL in linux kernel.
