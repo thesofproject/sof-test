@@ -187,6 +187,14 @@ ignore_str="$ignore_str"'|\[drm\] \*ERROR\* CPU pipe . FIFO underrun'
 # DRM issues with kernel v5.10-rc1 https://github.com/thesofproject/linux/pull/2538
 ignore_str="$ignore_str"'|\[drm:drm_dp_send_link_address \[drm_kms_helper\]\] \*ERROR\* Sending link address failed with -5'
 
+# Generic USB issue reported on TGL, CML, BDW
+# https://sof-ci.01.org/linuxpr/PR2812/build5534/devicetest/
+# usb 3-8: cannot get connectors status: req = 0x81, wValue = 0x700, wIndex = 0xa00, type = 0
+# usb 3-13: cannot get connectors status: req = 0x81, wValue = 0x700, wIndex = 0xa00, type = 0
+# usb 1-1.1: cannot get connectors status: req = 0x81, wValue = 0x700, wIndex = 0xa00, type = 0
+# usb 1-3: cannot get connectors status: req = 0x81, wValue = 0x700, wIndex = 0xa00, type = 0
+ignore_str="$ignore_str"'|usb .+-.+: cannot get connectors status:'
+
 # CHT devices with USB hub, issues reported by sof-test
 # BugLink: https://github.com/thesofproject/sof-test/issues/431
 ignore_str="$ignore_str"'|hub 2-.: .'
