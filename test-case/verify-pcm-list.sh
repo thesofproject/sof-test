@@ -26,8 +26,8 @@ OPT_HAS_ARG['t']=1         OPT_VAL['t']="${TPLG:-}"
 func_opt_parse_option "$@"
 tplg=${OPT_VAL['t']}
 
-tplg_path=`func_lib_get_tplg_path "$tplg"`
-[[ "$?" != "0" ]] && die "No available topology for this test case"
+tplg_path=$(func_lib_get_tplg_path "$tplg") ||
+       	die "No available topology for this test case"
 
 # hijack DMESG_LOG_START_LINE which refer dump kernel log in exit function
 DMESG_LOG_START_LINE=$(sof-get-kernel-line.sh|tail -n 1 |awk '{print $1;}')
@@ -35,7 +35,7 @@ DMESG_LOG_START_LINE=$(sof-get-kernel-line.sh|tail -n 1 |awk '{print $1;}')
 tplg_str="$(sof-tplgreader.py $tplg_path -d id pcm type -o)"
 pcm_str="$(sof-dump-status.py -i ${SOFCARD:-0})"
 
-dlogc "sof-tplgreader.py $tplg_file -d id pcm type -o"
+dlogc "sof-tplgreader.py $tplg_path -d id pcm type -o"
 dlogi "Pipeline(s) from topology file:"
 echo "$tplg_str"
 dlogc "sof-dump-status.py -i ${SOFCARD:-0}"
