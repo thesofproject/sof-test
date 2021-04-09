@@ -45,9 +45,11 @@ func_pipeline_export()
         done
     fi
 
-    local opt=""
-    # acquire filter option
-    [[ "$2" ]] && opt="-f '$2'"
+    local opt="$2"
+    # In no HDMI mode, exclude HDMI pipelines
+    [ -z "$NO_HDMI_MODE" ] || opt="$opt & ~pcm:HDMI"
+    opt="-f '${opt}'"
+
     [[ "$ignore" ]] && opt="$opt -b '$ignore'"
     [[ "$SOFCARD" ]] && opt="$opt -s $SOFCARD"
 

@@ -49,3 +49,10 @@ SOFCARD=${SOFCARD:-}
 # 2: run cmd with sudo, but needs sudo password
 # example: echo $SUDO_PASSWD | sudo -S ls /sys/kernel/debug/
 SUDO_LEVEL=${SUDO_LEVEL:-}
+
+# The i915 driver sometimes is not ready on a new platform, sof-test
+# will fail because broken HDMI pipelines are present.
+# The NO_HDMI_MODE option controls the pipeline filter, if true, HDMI
+# pipelines will be filtered out. Example:
+#
+# NO_HDMI_MODE=true
