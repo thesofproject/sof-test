@@ -260,10 +260,10 @@ func_lib_get_tplg_path()
     local tplg=$1
     if [[ -z "$tplg" ]]; then   # tplg given is empty
         return 1
-    elif [[ -f "$TPLG_ROOT/$(basename "$tplg")" ]]; then
-        echo "$TPLG_ROOT/$(basename "$tplg")"
     elif [[ -f "$tplg" ]]; then
         realpath "$tplg"
+    elif [[ -f "$TPLG_ROOT/$tplg" ]]; then
+        echo "$TPLG_ROOT/$tplg"
     else
         return 1
     fi
