@@ -35,6 +35,11 @@ func_pipeline_export()
     }
     dlogi "$SCRIPT_NAME will use topology $tplg_path to run the test case"
 
+    if test -d /lib/firmware/updates &&
+            [[ $tplg_path = /lib/firmware/intel/* ]]; then
+        dlogw "/lib/firmware/updates/ exists but topology is in /lib/firmware/intel/"
+    fi
+
     # create block option string
     local ignore=""
     if [ ${#TPLG_IGNORE_LST[@]} -ne 0 ]; then

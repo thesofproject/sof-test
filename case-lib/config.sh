@@ -7,7 +7,13 @@
 SUDO_PASSWD=${SUDO_PASSWD:-}
 
 # global define
-TPLG_ROOT=${TPLG_ROOT:-/lib/firmware/intel/sof-tplg}
+if [ -z "$TPLG_ROOT" ]; then
+    if test -e /lib/firmware/updates/intel/sof-tplg; then
+        TPLG_ROOT=/lib/firmware/updates/intel/sof-tplg
+    else
+        TPLG_ROOT=/lib/firmware/intel/sof-tplg
+    fi
+fi
 
 # ignore the target keyword for tplg
 # example: ignore 'pipeline ids equal to 2'

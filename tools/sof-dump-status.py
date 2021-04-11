@@ -554,7 +554,11 @@ if __name__ == "__main__":
                 }
             }
         ]
-        fw_path = "/lib/firmware/intel/sof"
+        SOF_UPDATES = "/lib/firmware/updates/intel/sof"
+        fw_path = (
+            SOF_UPDATES if os.path.exists(SOF_UPDATES)
+            else "/lib/firmware/intel/sof"
+        )
         sysinfo.loadDMI()
         board = {
                     "ident": sysinfo.dmi["board_name"],

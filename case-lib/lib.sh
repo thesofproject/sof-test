@@ -92,8 +92,14 @@ find_ldc_file()
             return 1
         }
         ldcFile=/etc/sof/sof-"$platf".ldc
-        [ -e "$ldcFile" ] ||
-            ldcFile=/lib/firmware/intel/sof/sof-"$platf".ldc
+        [ -e "$ldcFile" ] || {
+            # Fall back on standard /lib/firmware location
+            if test -e /lib/firmware/updates/intel/sof; then
+                ldcFile=/lib/firmware/updates/intel/sof/sof-"$platf".ldc
+            else
+                ldcFile=/lib/firmware/intel/sof/sof-"$platf".ldc
+            fi
+        }
     fi
 
     [[ -e "$ldcFile" ]] || {
