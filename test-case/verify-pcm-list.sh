@@ -32,8 +32,9 @@ tplg_path=$(func_lib_get_tplg_path "$tplg") ||
 # hijack DMESG_LOG_START_LINE which refer dump kernel log in exit function
 DMESG_LOG_START_LINE=$(sof-get-kernel-line.sh|tail -n 1 |awk '{print $1;}')
 
-tplg_str="$(sof-tplgreader.py $tplg_path -d id pcm type -o)"
-pcm_str="$(sof-dump-status.py -i ${SOFCARD:-0})"
+
+tplg_str=$(sof-tplgreader.py "$tplg_path" -d id pcm type -o)
+pcm_str=$(sof-dump-status.py -i "${SOFCARD:-0}")
 
 dlogc "sof-tplgreader.py $tplg_path -d id pcm type -o"
 dlogi "Pipeline(s) from topology file:"
@@ -48,7 +49,7 @@ if [[ "$tplg_str" != "$pcm_str" ]]; then
     aplay -l
     dlogi "Dump arecord -l"
     arecord -l
-    sof-kernel-dump.sh > $LOG_ROOT/kernel.txt
+    sof-kernel-dump.sh > "$LOG_ROOT"/kernel.txt
     exit 1
 else
     dlogi "Pipeline(s) from topology match pipeline(s) from system"
