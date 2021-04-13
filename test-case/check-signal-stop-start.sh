@@ -56,7 +56,7 @@ case $test_mode in
     ;;
 esac
 
-func_lib_setup_kernel_checkpoint
+setup_kernel_check_point
 
 func_stop_start_pipeline()
 {

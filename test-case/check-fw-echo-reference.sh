@@ -44,7 +44,7 @@ frequency=${OPT_VAL['f']}
 [[ ${OPT_VAL['s']} -eq 1 ]] && func_lib_start_log_collect
 
 func_pipeline_export "$tplg" "echo:any"
-func_lib_setup_kernel_checkpoint
+setup_kernel_check_point
 
 if [ "$PIPELINE_COUNT" != "2" ]; then
     die "Only detect $PIPELINE_COUNT pipeline(s) from topology, but two are needed"

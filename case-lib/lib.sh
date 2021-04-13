@@ -40,10 +40,11 @@ if [ ! "$SOFCARD" ]; then
 		awk '/sof-[a-z]/ && $1 ~ /^[0-9]+$/ { $1=$1; print $1; exit 0;}')
 fi
 
-func_lib_setup_kernel_checkpoint()
+setup_kernel_check_point()
 {
-    # shellcheck disable=SC2034 # external script will use it
-    KERNEL_CHECKPOINT=$(date +%s)
+    # Make the check point $SOF_TEST_INTERVAL second(s) earlier to avoid log loss.
+    # Note this may lead to an error caused by one test appear in the next one.
+    KERNEL_CHECKPOINT=$(($(date +%s) - $SOF_TEST_INTERVAL))
 }
 
 # This function adds a fake error to dmesg (which is always saved by
@@ -342,5 +343,5 @@ is_sof_used()
 journalctl_cmd()
 {
    journalctl -k -q --no-pager --utc --output=short-monotonic \
-     --no-hostname  "$@"
+     --no-hostname "$@"
 }

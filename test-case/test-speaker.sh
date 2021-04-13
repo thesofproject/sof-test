@@ -32,7 +32,7 @@ tplg=${OPT_VAL['t']}
 
 func_pipeline_export "$tplg" "type:playback"
 tcnt=${OPT_VAL['l']}
-func_lib_setup_kernel_checkpoint
+setup_kernel_check_point
 for idx in $(seq 0 $(expr $PIPELINE_COUNT - 1))
 do
     channel=$(func_pipeline_parse_value $idx channel)

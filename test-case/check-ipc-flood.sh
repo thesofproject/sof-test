@@ -44,7 +44,7 @@ do
     # cleanup dmesg buffer for each iteration
     sudo dmesg -c > /dev/null
     # set up timestamp for each iteration
-    func_lib_setup_kernel_checkpoint
+    setup_kernel_check_point
     dlogi "===== [$i/$loop_cnt] loop Begin ====="
     dlogc "sudo bash -c 'echo $lpc_loop_cnt > $ipc_flood_dfs'"
     sudo bash -c "'echo $lpc_loop_cnt > $ipc_flood_dfs'"

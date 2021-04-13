@@ -33,7 +33,7 @@ OPT_NAME['p']='pulseaudio'   OPT_DESC['p']='disable pulseaudio on the test proce
 OPT_HAS_ARG['p']=0             OPT_VAL['p']=1
 
 func_opt_parse_option "$@"
-func_lib_setup_kernel_checkpoint
+setup_kernel_check_point
 
 loop_cnt=${OPT_VAL['l']}
 
@@ -48,7 +48,7 @@ for idx in $(seq 1 $loop_cnt)
 do
     dlogi "===== Starting iteration $idx of $loop_cnt ====="
     ## - 1: remove module section
-    func_lib_setup_kernel_checkpoint
+    setup_kernel_check_point
 
     # After module removal, it takes about 10s for "aplay -l" to show
     # device list, within this 10s, it shows "no soundcard found". Here
@@ -78,7 +78,7 @@ do
     sof-kernel-log-check.sh "$KERNEL_CHECKPOINT" ||
         die "error found after kmod unload is real error, failing"
 
-    func_lib_setup_kernel_checkpoint
+    setup_kernel_check_point
     dlogi "run kmod/sof_insert.sh"
     sudo sof_insert.sh || {
         # FIXME: don't exit the status of dloge(). Use die()

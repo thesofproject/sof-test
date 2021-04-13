@@ -74,7 +74,7 @@ for i in $(seq 1 $loop_count)
 do
     dlogi "===== Round($i/$loop_count) ====="
     # set up checkpoint for each iteration
-    func_lib_setup_kernel_checkpoint
+    setup_kernel_check_point
     sleep_count=$(cat /sys/power/wakeup_count)
     dlogc "Run the command: rtcwake -m mem -s ${sleep_lst[$i]}"
     sudo rtcwake -m mem -s ${sleep_lst[$i]}
