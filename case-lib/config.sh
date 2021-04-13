@@ -1,4 +1,5 @@
 #!/bin/bash
+## THIS IS A TEST PR, AS WE ADD A NEW PLATFORM TO PR TEST
 
 # this file is used for defining global variables
 
