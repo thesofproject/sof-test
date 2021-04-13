@@ -43,7 +43,7 @@ interval=${OPT_VAL['i']}
 
 [[ ${OPT_VAL['s']} -eq 1 ]] && func_lib_start_log_collect
 
-func_lib_setup_kernel_checkpoint
+setup_kernel_check_point
 func_lib_check_sudo
 
 case $test_mode in

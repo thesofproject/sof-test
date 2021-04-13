@@ -83,7 +83,7 @@ do
     for i in $(seq 1 $loop_count)
     do
         # set up checkpoint for each iteration
-        func_lib_setup_kernel_checkpoint
+        setup_kernel_check_point
         dlogi "===== Iteration $i of $loop_count for $pcm ====="
         # playback or capture device - check status
         dlogc "$cmd -D $dev -r $rate -c $channel -f $fmt $dummy_file -q"

@@ -56,3 +56,8 @@ SUDO_LEVEL=${SUDO_LEVEL:-}
 # pipelines will be filtered out. Example:
 #
 # NO_HDMI_MODE=true
+
+# Test interval between two test cases, the default value is 5 seconds
+# in CI, which is controlled by sof-framework. In manual run, user can
+# override the default value.
+SOF_TEST_INTERVAL=${SOF_TEST_INTERVAL:-5}

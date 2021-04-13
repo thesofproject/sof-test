@@ -144,7 +144,7 @@ ps_checks()
 for i in $(seq 1 $loop_cnt)
 do
     # set up checkpoint for each iteration
-    func_lib_setup_kernel_checkpoint
+    setup_kernel_check_point
     dlogi "===== Testing: (Loop: $i/$loop_cnt) ====="
 
     # start playback or capture:

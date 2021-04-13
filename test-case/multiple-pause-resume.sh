@@ -145,7 +145,7 @@ for i in $(seq 1 $loop_count)
 do
     dlogi "===== Loop count( $i / $loop_count ) ====="
     # set up checkpoint for each iteration
-    func_lib_setup_kernel_checkpoint
+    setup_kernel_check_point
     for pipeline_combine_str in "${pipeline_combine_lst[@]}"
     do
         unset pid_lst

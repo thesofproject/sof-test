@@ -91,7 +91,7 @@ fi
 for idx in $(seq 0 $(expr $PIPELINE_COUNT - 1))
 do
     # set up checkpoint for each iteration
-    func_lib_setup_kernel_checkpoint
+    setup_kernel_check_point
     # store local checkpoint as we have sub-test
     LOCAL_CHECK_POINT="$KERNEL_CHECKPOINT"
     channel=$(func_pipeline_parse_value $idx channel)
