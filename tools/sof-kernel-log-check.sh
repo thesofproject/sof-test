@@ -244,11 +244,12 @@ ignore_str="$ignore_str"'|error: iteration [01]'
 ignore_str="$ignore_str"'|error: status'
 ignore_str="$ignore_str"'|error: cl_dsp_init: timeout HDA_DSP_SRAM_REG_ROM_STATUS read'
 
-# asix error in TGLH_0A5E_SDW
+# asix error in TGLH_0A5E_SDW, TGLH_RVP_HDA
 # kernel: asix 3-3.1:1.0 enx000ec65356e1: asix_rx_fixup() Bad Header Length 0x0, offset 4
-# kernel: asix 3-12.1:1.0 enx000ec668ad2a: ...
+# kernel: asix 3-12.1:1.0 enx000ec668ad2a: asix_rx_fixup() ...
+# kernel: asix 3-4:1.0 enx8cae4cfe1882: asix_rx_fixup() Bad Header Length 0x4b203a6e, offset 4
 # buglink: https://github.com/thesofproject/sof-test/issues/622
-ignore_str="$ignore_str"'|asix .-.+\..:.\.. en.+: asix_rx_fixup() Bad Header Length'
+ignore_str="$ignore_str"'|asix .-.+:.\.. en.+: asix_rx_fixup\(\) Bad Header Length'
 
 # asix error in TGLH_0A5E_SDW
 # kernel: asix 3-3.1:1.0 enx000ec65356e1: Failed to enable software MII access
