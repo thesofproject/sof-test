@@ -42,6 +42,7 @@ OPT_NAME['C']='channels'   OPT_DESC['C']='channels'
 OPT_HAS_ARG['C']=1         OPT_VAL['C']=2
 
 func_opt_parse_option "$@"
+setup_kernel_check_point
 
 round_cnt=${OPT_VAL['r']}
 duration=${OPT_VAL['d']}

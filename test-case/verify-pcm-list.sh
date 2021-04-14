@@ -29,9 +29,7 @@ tplg=${OPT_VAL['t']}
 tplg_path=$(func_lib_get_tplg_path "$tplg") ||
        	die "No available topology for this test case"
 
-# hijack DMESG_LOG_START_LINE which refer dump kernel log in exit function
-DMESG_LOG_START_LINE=$(sof-get-kernel-line.sh|tail -n 1 |awk '{print $1;}')
-
+setup_kernel_check_point
 
 tplg_str=$(sof-tplgreader.py "$tplg_path" -d id pcm type -o)
 pcm_str=$(sof-dump-status.py -i "${SOFCARD:-0}")

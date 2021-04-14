@@ -45,6 +45,7 @@ OPT_NAME['S']='filter_string'   OPT_DESC['S']="run this case on specified pipeli
 OPT_HAS_ARG['S']=1             OPT_VAL['S']="id:any"
 
 func_opt_parse_option "$@"
+setup_kernel_check_point
 
 tplg=${OPT_VAL['t']}
 test_mode=${OPT_VAL['m']}

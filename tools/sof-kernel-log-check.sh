@@ -135,6 +135,10 @@ platform=$("$test_dir"/tools/sof-dump-status.py -p)
 
 # shellcheck source=case-lib/lib.sh
 source "$test_dir"/case-lib/lib.sh
+# The lib.sh sourced hijack.sh, which trapped exit to use our
+# exit handler, because this is not a test case, we don't need
+# the exit handler.
+trap - EXIT
 
 # The first string cannot start by |
 

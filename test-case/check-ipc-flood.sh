@@ -25,6 +25,7 @@ OPT_NAME['l']='loop'     OPT_DESC['l']='loop count'
 OPT_HAS_ARG['l']=1         OPT_VAL['l']=1
 
 func_opt_parse_option "$@"
+setup_kernel_check_point
 
 lpc_loop_cnt=${OPT_VAL['c']}
 ipc_flood_dfs=${OPT_VAL['f']}

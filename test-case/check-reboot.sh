@@ -150,7 +150,7 @@ $old_content
 
 $boot_once_flag
 export LOG_ROOT='$(realpath $LOG_ROOT)'
-export DMESG_LOG_START_LINE=$(wc -l /var/log/kern.log|awk '{print $1;}')
+setup_kernel_check_point
 bash -c '$full_cmd'
 
 exit 0

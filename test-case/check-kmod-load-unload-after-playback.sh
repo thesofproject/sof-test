@@ -66,6 +66,8 @@ fi
 
 for counter in $(seq 1 $loop_cnt)
 do
+    # Only collect the latest success/failure logs
+    setup_kernel_check_point
     dlogi "===== Starting iteration $counter of $loop_cnt ====="
 
     # logic: if this case disables pulseaudio, the sub case does not need to disable pulseaudio

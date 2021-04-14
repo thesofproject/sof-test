@@ -43,6 +43,7 @@ OPT_NAME['s']='sof-logger'      OPT_DESC['s']="Open sof-logger trace the data wi
 OPT_HAS_ARG['s']=0             OPT_VAL['s']=1
 
 func_opt_parse_option "$@"
+setup_kernel_check_point
 
 pcm_p=${OPT_VAL['p']}
 pcm_c=${OPT_VAL['c']}
