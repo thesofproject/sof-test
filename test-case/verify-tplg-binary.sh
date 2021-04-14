@@ -23,6 +23,7 @@ OPT_NAME['t']='tplg'     OPT_DESC['t']='tplg file, default value is env TPLG: $'
 OPT_HAS_ARG['t']=1         OPT_VAL['t']="$TPLG"
 
 func_opt_parse_option "$@"
+setup_kernel_check_point
 tplg=${OPT_VAL['t']}
 
 tplg_path=`func_lib_get_tplg_path "$tplg"`

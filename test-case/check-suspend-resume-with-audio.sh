@@ -55,6 +55,7 @@ OPT_NAME['P']='pipelines'   OPT_DESC['P']="run test case on specified pipelines"
 OPT_HAS_ARG['P']=1             OPT_VAL['P']="id:any"
 
 func_opt_parse_option "$@"
+setup_kernel_check_point
 func_lib_check_sudo
 
 tplg=${OPT_VAL['t']}

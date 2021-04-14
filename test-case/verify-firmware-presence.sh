@@ -20,6 +20,7 @@ set -e
 source "$(dirname "${BASH_SOURCE[0]}")"/../case-lib/lib.sh
 
 func_opt_parse_option "$@"
+setup_kernel_check_point
 
 path=$(sof-dump-status.py -P)
 platform=$(sof-dump-status.py -p)

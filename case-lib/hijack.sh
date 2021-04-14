@@ -50,17 +50,14 @@ function func_exit_handler()
         wcLog=$(wc -l "$logfile")
         dlogi "nlines=$wcLog"
     fi
-    # when case ends, store kernel log
-    # /var/log/kern.log format:
-    # f1    f2  f3   f4          f5      f6 f7    f8...
-    # Mouth day Time MachineName kernel: [  time] content
-    # May 15 21:28:38 MachineName kernel: [    6.469255] sof-audio-pci 0000:00:0e.0: ipc rx: 0x90020000: GLB_TRACE_MSG
-    # May 15 21:28:38 MachineName kernel: [    6.469268] sof-audio-pci 0000:00:0e.0: ipc rx done: 0x90020000: GLB_TRACE_MSG
-    if [[ -n "$DMESG_LOG_START_LINE" && "$DMESG_LOG_START_LINE" -ne 0 ]]; then
-        tail -n +"$DMESG_LOG_START_LINE" /var/log/kern.log |cut -f5- -d ' ' > "$LOG_ROOT/dmesg.txt"
+
+    if [[ "$KERNEL_CHECKPOINT" =~ ^[0-9]{10} ]]; then
+        journalctl_cmd --since=@"$KERNEL_CHECKPOINT" > "$LOG_ROOT/dmesg.txt"
     else
-        cut -f5- -d ' ' /var/log/kern.log > "$LOG_ROOT/dmesg.txt"
+        die 'Kernel check point "KERNEL_CHECKPOINT" is not properly set'
     fi
+    # After log collected, KERNEL_CHECKPOINT will not be used any more
+    unset KERNEL_CHECKPOINT
 
     # get ps command result as list
     local -a cmd_lst
