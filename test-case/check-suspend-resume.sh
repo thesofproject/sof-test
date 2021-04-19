@@ -70,6 +70,11 @@ else
     done
 fi
 
+# This is used to workaround https://github.com/thesofproject/sof-test/issues/650,
+# which may be caused by kernel issue or unstable network connection.
+# TODO: remove this after issue fixed.
+sleep 1
+
 for i in $(seq 1 $loop_count)
 do
     dlogi "===== Round($i/$loop_count) ====="
