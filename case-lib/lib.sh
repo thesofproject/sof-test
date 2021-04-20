@@ -338,3 +338,8 @@ journalctl_cmd()
    journalctl -k -q --no-pager --utc --output=short-monotonic \
      --no-hostname "$@"
 }
+
+disable_kernel_check_point()
+{
+    KERNEL_CHECKPOINT="disabled"
+}
