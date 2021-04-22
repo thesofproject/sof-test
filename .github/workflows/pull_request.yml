@@ -10,9 +10,7 @@
 name: Pull Requests
 
 # yamllint disable-line rule:truthy
-on:
-  pull_request:
-    branches: [master]
+on: [push, pull_request, workflow_dispatch]
 
 jobs:
 
