@@ -44,7 +44,7 @@ setup_kernel_check_point()
 {
     # Make the check point $SOF_TEST_INTERVAL second(s) earlier to avoid log loss.
     # Note this may lead to an error caused by one test appear in the next one.
-    KERNEL_CHECKPOINT=$(($(date +%s) - $SOF_TEST_INTERVAL))
+    KERNEL_CHECKPOINT=$(($(date +%s) - SOF_TEST_INTERVAL))
 }
 
 # This function adds a fake error to dmesg (which is always saved by
