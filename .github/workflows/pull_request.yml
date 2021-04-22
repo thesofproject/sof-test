@@ -7,10 +7,14 @@
 # yaml merge-expand pull_request.yml exp.yml &&
 #    diff -b -u pull_request.yml exp.yml
 
+
+# TODO: see if https://github.com/trilom/file-changes-action/ or similar
+# can replace check-gitrange.bash
+
 name: Pull Requests
 
 # yamllint disable-line rule:truthy
-on: [push, pull_request, workflow_dispatch]
+on: [pull_request, workflow_dispatch]
 
 jobs:
 
@@ -47,11 +51,3 @@ jobs:
         # let's re-enable 'C'onventions once we got the other numbers down
         run: ./tools/CI/check-gitrange.bash origin/${BASE_REF}...HEAD
                text/x-python pylint --disable=C
-
-
-  yamllint:
-    runs-on: ubuntu-20.04
-    steps:
-      - uses: actions/checkout@v2
-      - name: yamllint ourselves
-        run: yamllint .github/workflows/pull_request.yml
