@@ -31,6 +31,23 @@ function func_exit_handler()
             sleep 1s
         }
 
+        # There are bugs that cause DMA drops and the last few lines to
+        # get stuck somewhere. This hack seems to be enough to nudge the
+        # system and force it to DMA a bit more logs: hopefully all the
+        # logs relevant to the current test.
+        # We must use a component that is available everywhere: pga
+        for i in 1 2; do
+            # Running this twice makes it very easy to observe the stuck
+            # lines bug: the "ipc" logs corresponding to this -F command
+            # will appear _only once_ at the end of the slogger.txt DMA
+            # trace!
+            sudo "$SOFLOGGER" -l "$(find_ldc_file)" -F info=pga > /dev/null ||
+                test "$exit_status" -ne 0 || exit_status=1
+        done
+        # We _also_ need to wait for the trace_work() thread to run;
+        # BOTH are needed. The bug is not just a delay.
+        sleep 1
+
         local loggerBin wcLog; loggerBin=$(basename "$SOFLOGGER")
         # We need this to avoid the confusion of a "Terminated" message
         # without context.
