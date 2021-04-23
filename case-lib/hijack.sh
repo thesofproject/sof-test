@@ -60,7 +60,9 @@ function func_exit_handler()
     if [[ "$KERNEL_CHECKPOINT" =~ ^[0-9]{10} ]]; then
         journalctl_cmd --since=@"$KERNEL_CHECKPOINT" > "$LOG_ROOT/dmesg.txt"
     else
-        die 'Kernel check point "KERNEL_CHECKPOINT" is not properly set'
+       dloge 'Kernel check point "KERNEL_CHECKPOINT" is not properly set'
+       dloge "KERNEL_CHECKPOINT=$KERNEL_CHECKPOINT"
+       test "$exit_status" -ne 0 || exit_status=1
     fi
     # After log collected, KERNEL_CHECKPOINT will not be used any more
     unset KERNEL_CHECKPOINT
