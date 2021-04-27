@@ -56,10 +56,14 @@ sudo pkill -9 "$(basename "$loggerBin")" 2> /dev/null
 
 func_logger_exit()
 {
-    local code=$1 type=${2:-data}
-    dlogi "Log $type BEG>>"
-    cat "$LOG_ROOT/logger.$type.log"
-    dlogi "<<END $type data"
+    local code=$1
+
+    for ftype in data error; do
+        printf '\n'
+        dlogi "Log $ftype BEG::"
+        cat "$LOG_ROOT/logger.$ftype.log"
+        dlogi "::END $ftype"
+    done
     exit "$code"
 }
 
@@ -67,7 +71,7 @@ func_logger_exit()
 logger_err=$(grep -i 'error' "$error_file")
 if [[ $logger_err ]]; then
     dloge "No available log to export due to sof-logger errors."
-    func_logger_exit 1 'error'
+    func_logger_exit 1
 fi
 
 # '\.c\:[1-9]' to filter like '.c:6' this type keyword like:
