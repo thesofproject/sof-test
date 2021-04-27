@@ -3,24 +3,28 @@
 ##
 ## Case Name: check-sof-logger
 ## Preconditions:
-##    sof-logger install in system path
-##    ldc file is in /etc/sof/
+##    sof-logger installed in system path
+##    ldc file is in /etc/sof/ or /lib/firmware
+##
 ## Description:
-##    Check debug tools sof-logger can success work
+##    Checks basic functionality of the sof-logger itself. Does not test
+##    the firmware, i.e., does NOT fail when errors are found in the
+##    logs.
+##
 ## Case step:
 ##    1. check sof-logger in system
 ##    2. check ldc file in system
 ##    3. run sof-logger
 ## Expect result:
-##    sof-logger already catch some thing
+##    sof-logger produces some output and did not fail
 ##
+
+set -e
 
 # shellcheck source=case-lib/lib.sh
 source "$(dirname "${BASH_SOURCE[0]}")"/../case-lib/lib.sh
 
 func_opt_parse_option "$@"
-
-#TODO: need to add arguments for user to give location for logger and ldc file
 
 setup_kernel_check_point
 
@@ -53,57 +57,103 @@ ldcFile=$(find_ldc_file) || die ".ldc file not found!"
 
 dlogi "Found file: $(md5sum "$ldcFile"|awk '{print $2, $1;}')"
 
+# These filenames are kept for backward-compatibility
+# DMA trace
 data_file=$LOG_ROOT/logger.data.txt
+# stderr
 error_file=$LOG_ROOT/logger.error.txt
+
+# etrace shared memory mailbox, newer feature.
+etrace_file=$LOG_ROOT/logger.etrace.txt
+etrace_stderr_file=$LOG_ROOT/logger.etrace_stderr.txt
 
 func_lib_check_sudo
 
-dlogi "Try to dump the dma trace log via sof-logger ..."
-# sof-logger errors will output to $error_file
-dlogc "sudo $loggerBin -t -l $ldcFile -o $data_file 2> $error_file &"
-sudo bash -c "'$loggerBin -t -l $ldcFile -o $data_file 2> $error_file &'"
-sleep 2
-dlogc "sudo pkill -9 $(basename "$loggerBin")"
-sudo pkill -9 "$(basename "$loggerBin")" 2> /dev/null
-
-func_logger_exit()
+run_loggers()
 {
-    local code=$1
+    local loggerPID etrace_exit
 
-    for ftype in data error; do
-        printf '\n'
-        dlogi "Log $ftype BEG::"
-        cat "$LOG_ROOT/logger.$ftype.log"
-        dlogi "::END $ftype"
-    done
-    exit "$code"
+    dlogi "Trying to get the DMA trace log with background sof-logger ..."
+    dlogc \
+    "sudo $loggerBin  -t -f 3 -l  $ldcFile  -o  $data_file  2>  $error_file  &"
+    sudo "$loggerBin" -t -f 3 -l "$ldcFile" -o "$data_file" 2> "$error_file" & loggerPID=$!
+
+    # This test is not really supposed to run while the DSP is busy at
+    # the same time, so $data_file should be short enough.
+    sleep 2
+
+    dlogi "Trying to get the etrace mailbox ..."
+    dlogc \
+    "sudo $loggerBin    -f 3 -l  $ldcFile  2>  $etrace_stderr_file  -o  $etrace_file"
+    sudo "$loggerBin"   -f 3 -l "$ldcFile" 2> "$etrace_stderr_file" -o "$etrace_file" ||
+        etrace_exit=$?
+
+    printf '\n'
+
+    dlogc "kill $loggerPID # DMA trace"
+    kill "$loggerPID"
+
+    return $etrace_exit
 }
 
-# check if we get any sof-logger errors
-logger_err=$(grep -i 'error' "$error_file")
-if [[ $logger_err ]]; then
-    dloge "No available log to export due to sof-logger errors."
-    func_logger_exit 1
-fi
+# Dumps all logs before exiting
+print_logs_exit()
+{
+    local exit_code="$1" errmsg="$2"
 
-# '\.c\:[1-9]' to filter like '.c:6' this type keyword like:
-# [3017136.770833]  (11.302083) c0 SA  src/lib/agent.c:65  ERROR validate(), ll drift detected, delta = 25549
-fw_log_err=$(grep -i 'error' "$data_file" | grep -v '\.c\:[1-9]')
+    # Print $errmsg twice: - once _after_ the (possibly long) logs
+    # because the end is where everyone logically looks atfirst when the
+    # test fails, and; - also now _before_ the logs in case something
+    # goes wrong and we don't make it until the end.
+    test -z "$errmsg" || dloge "$errmsg"
 
-# '[[:blank:]]TIMESTAMP.*CONTENT$' to filter the log header:
-# TIMESTAMP  DELTA C# COMPONENT  LOCATION  CONTENT
-if [[ ! $(sed -n '/TIMESTAMP.*CONTENT/p' "${data_file}") ]]; then
-    dloge "Log header not found in ${data_file}"
-    func_logger_exit 1
-# we catch error from fw log
-elif [[ $fw_log_err ]]; then
-    dloge "Error(s) found in firmware log ${data_file}"
-    func_logger_exit 1
-fi
+    local bname
+    for ftype in data etrace error etrace_stderr; do
+        printf '\n\n'
+        bname="logger.$ftype.txt"
+        dlogi "Log $ftype BEG::"
+        cat "$LOG_ROOT/$bname" || true # we already checked these
+        dlogi "::END $ftype"
+    done
+    test -z "$errmsg" || dloge "$errmsg"
+    exit "$exit_code"
+}
 
-if grep -i -q 'error' "$data_file" ; then
-    dlogw "Catch keyword 'ERROR' in firmware log"
-fi
+main()
+{
+    run_loggers ||
+        print_logs_exit 1 "Reading etrace failed, run_loggers returned $?"
 
-# no error with sof-logger and no error in fw log
-func_logger_exit 0
+    local f
+
+    for f in etrace_stderr error; do
+        local stderr_file="$LOG_ROOT/logger.$f.txt"
+        test -e "$stderr_file" || die "$stderr_file" not found
+        if test -s "$stderr_file"; then
+            print_logs_exit 1 "stderr $stderr_file is not empty"
+        fi
+    done
+
+    # Search for the log header, should be something like this:
+    # TIMESTAMP  DELTA C# COMPONENT  LOCATION  CONTENT
+    for f in etrace data; do
+        local tracef="$LOG_ROOT/logger.$f.txt"
+        test -e "$tracef" || die "$tracef" not found
+        # Other columns are optional
+        head -n 1 "$tracef" | grep -q 'COMPONENT.*CONTENT'  ||
+            print_logs_exit 1 "Log header not found in ${data_file}"
+
+        # See initial message SOF PR #3281 / SOF commit 67a0a69
+        grep -q 'dma-trace.c.*ERROR FW ABI.*tag.*hash' "$tracef" ||
+            print_logs_exit 1 "Initial ERROR FW ABI message not found in ${data_file}"
+    done
+
+    # This is a bit redundant with the previous test but does not hurt.
+    tail -n +2 "${data_file}" | grep -q '[^[:blank:]]' ||
+        print_logs_exit 1 "Nothing but the first line in DMA trace ${data_file}"
+
+    # Show all outputs even when everything went OK
+    print_logs_exit 0
+}
+
+main "$@"
