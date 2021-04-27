@@ -76,7 +76,7 @@ fw_log_err=$(grep -i 'error' "$data_file" | grep -v '\.c\:[1-9]')
 
 # '[[:blank:]]TIMESTAMP.*CONTENT$' to filter the log header:
 # TIMESTAMP  DELTA C# COMPONENT  LOCATION  CONTENT
-if [[ ! $(sed -n '/[[:blank:]]TIMESTAMP.*CONTENT$/p' "${data_file}") ]]; then
+if [[ ! $(sed -n '/TIMESTAMP.*CONTENT/p' "${data_file}") ]]; then
     dloge "Log header not found in ${data_file}"
     func_logger_exit 1
 # we catch error from fw log
