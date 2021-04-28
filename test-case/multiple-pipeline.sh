@@ -47,7 +47,7 @@ OPT_NAME['f']='first'
 OPT_DESC['f']='Fill either playback (p) or capture (c) first or any (a) for all pipelines'
 OPT_HAS_ARG['f']=1         OPT_VAL['f']='p'
 
-OPT_NAME['w']='wait'     OPT_DESC['w']='duration of one (sub)test iteration'
+OPT_NAME['w']='wait'     OPT_DESC['w']='perpare wait time by sleep'
 OPT_HAS_ARG['w']=1         OPT_VAL['w']=5
 
 OPT_NAME['r']='random'   OPT_DESC['r']='random load pipeline'
@@ -163,10 +163,13 @@ do
             die "Wrong -f argument $f_arg, see -h"
     esac
 
+    dlogi "sleep ${OPT_VAL['w']}s for sound device wakeup"
+    sleep ${OPT_VAL['w']}
+
     dlogi "checking pipeline status"
     ps_checks
 
-    dlogi "Letting playback/capture run for ${OPT_VAL['w']}s"
+    dlogi "preparing sleep ${OPT_VAL['w']}"
     sleep ${OPT_VAL['w']}
 
     # check processes again
