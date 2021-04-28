@@ -17,9 +17,10 @@ insert_module() {
 # Test sudo first, not after dozens of SKIP
 sudo true
 
+# Insert codec drivers first, they are required to register ASoC components
+
 insert_module snd_soc_da7213
 insert_module snd_soc_da7219
-
 insert_module snd_soc_rt274
 insert_module snd_soc_rt286
 insert_module snd_soc_rt298
@@ -48,6 +49,9 @@ insert_module snd_soc_rt1308_sdw
 insert_module snd_soc_rt715
 insert_module snd_soc_rt1011
 
+# insert top-level ACPI/PCI SOF drivers. They will register SOF components and
+# load machine drivers as needed. Do not insert any other sort of audio module,
+# code dependencies will be used to load the relevant modules.
 insert_module snd_sof_acpi_intel_byt
 insert_module snd_sof_acpi_intel_bdw
 
@@ -60,6 +64,7 @@ insert_module snd_sof_pci_intel_tgl
 insert_module snd_sof_acpi
 insert_module snd_sof_pci
 
+# USB
 insert_module snd_usb_audio
 
 # without the status check force quit
