@@ -65,6 +65,7 @@ remove_module snd_sof_intel_hda_common || true
 #-------------------------------------------
 remove_module snd_sof_acpi
 remove_module snd_sof_pci
+remove_module snd_sof_intel_atom
 
 #-------------------------------------------
 # legacy drivers (not used but loaded)
