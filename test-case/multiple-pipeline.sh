@@ -163,6 +163,10 @@ do
             die "Wrong -f argument $f_arg, see -h"
     esac
 
+    # FIXME: Last aplay or arecord process might delay to start.
+    #        Without this sleep, ps_checks returns failure in some cases
+    sleep 0.5
+
     dlogi "checking pipeline status"
     ps_checks
 
