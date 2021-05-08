@@ -163,6 +163,10 @@ do
             die "Wrong -f argument $f_arg, see -h"
     esac
 
+    # Give the aplay_opts and arecord_opts subshells some time to start
+    # their aplay processes.
+    dlogi "wait 0.5s for aplay_opts()"
+    sleep 0.5
     dlogi "checking pipeline status"
     ps_checks
 
