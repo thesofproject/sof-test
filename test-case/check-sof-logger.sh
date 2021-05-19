@@ -29,9 +29,21 @@ type -a sof-logger ||
     die "sof-logger Not Installed!"
 
 
-if type -a sof-logger | tail -n +2 | grep -q . ; then
-    dlogw "There are multiple sof-loggers in system"
-    dlogw "using $(type -p sof-logger)"
+# Checksum a list of files, one filename per stdin line.
+# Whitespace-safe and shellcheck-approved.
+md5list()
+{
+    while read -r; do md5sum "$REPLY"; done
+}
+
+# Recent Ubuntu versions symlink the entire /bin -> /usr/bin so we
+# cannot just count the number of filenames we found. Count the
+# number of different _checksums_ we found in PATH.
+if type -a -p sof-logger | md5list | awk '{ print $1 }' |
+        sort -u | tail -n +2 | grep -q . ; then
+    dloge "There are different sof-logger in PATH on the system $(hostname)!"
+    type -a -p sof-logger | md5list
+    die "Not testing a random sof-logger version"
 fi
 loggerBin=$(type -p sof-logger)
 dlogi "Found file: $(md5sum "$loggerBin" | awk '{print $2, $1;}')"
