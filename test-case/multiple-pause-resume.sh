@@ -57,7 +57,7 @@ rnd_range=$[ $rnd_max - $rnd_min ]
 tplg=${OPT_VAL['t']}
 func_pipeline_export "$tplg" "type:any"
 
-[[ ${OPT_VAL['s']} -eq 1 ]] && func_lib_start_log_collect
+logger_disabled || func_lib_start_log_collect
 
 declare -a pipeline_idx_lst
 declare -a cmd_idx_lst

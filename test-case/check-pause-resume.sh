@@ -74,7 +74,7 @@ case $test_mode in
     ;;
 esac
 
-[[ ${OPT_VAL['s']} -eq 1 ]] && func_lib_start_log_collect
+logger_disabled || func_lib_start_log_collect
 
 [[ -z $file_name ]] && file_name=$dummy_file
 

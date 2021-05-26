@@ -63,7 +63,7 @@ func_opt_parse_option "$@"
 loop_cnt=${OPT_VAL['l']}
 tplg=${OPT_VAL['t']}
 f_arg=${OPT_VAL['f']}
-[[ ${OPT_VAL['s']} -eq 1 ]] && func_lib_start_log_collect
+logger_disabled || func_lib_start_log_collect
 
 max_count=0
 # this line will help to get $PIPELINE_COUNT

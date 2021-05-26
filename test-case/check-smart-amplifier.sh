@@ -56,7 +56,7 @@ duration=${OPT_VAL['d']}
 loop_cnt=${OPT_VAL['l']}
 tplg=${OPT_VAL['t']}
 
-[[ ${OPT_VAL['s']} -eq 1 ]] && func_lib_start_log_collect
+logger_disabled || func_lib_start_log_collect
 
 func_pipeline_export "$tplg" "smart_amp:any"
 setup_kernel_check_point
