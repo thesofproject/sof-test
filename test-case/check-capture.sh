@@ -57,7 +57,7 @@ loop_cnt=${OPT_VAL['l']}
 out_dir=${OPT_VAL['o']}
 file_prefix=${OPT_VAL['f']}
 
-[[ ${OPT_VAL['s']} -eq 1 ]] && func_lib_start_log_collect
+logger_disabled || func_lib_start_log_collect
 
 setup_kernel_check_point
 func_lib_check_sudo

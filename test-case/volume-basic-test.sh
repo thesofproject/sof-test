@@ -41,7 +41,7 @@ func_error_exit()
 
 [[ -z $tplg ]] && die "Missing tplg file needed to run"
 func_pipeline_export "$tplg" "type:playback"
-[[ ${OPT_VAL['s']} -eq 1 ]] && func_lib_start_log_collect
+logger_disabled || func_lib_start_log_collect
 
 [[ $PIPELINE_COUNT -eq 0 ]] && die "Missing playback pipeline for aplay to run"
 channel=$(func_pipeline_parse_value 0 channel)

@@ -28,7 +28,7 @@ OPT_HAS_ARG['s']=0             OPT_VAL['s']=1
 
 func_opt_parse_option "$@"
 tplg=${OPT_VAL['t']}
-[[ ${OPT_VAL['s']} -eq 1 ]] && func_lib_start_log_collect
+logger_disabled || func_lib_start_log_collect
 
 func_pipeline_export "$tplg" "type:playback"
 tcnt=${OPT_VAL['l']}

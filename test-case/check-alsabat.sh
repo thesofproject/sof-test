@@ -58,7 +58,7 @@ then
 	exit 2
 fi
 
-[[ ${OPT_VAL['s']} -eq 1 ]] && func_lib_start_log_collect
+logger_disabled || func_lib_start_log_collect
 
 function __upload_wav_file
 {
