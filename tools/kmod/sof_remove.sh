@@ -26,6 +26,13 @@ exit_handler()
                "$(basename "$0")"
         systemctl --user list-units --all '*pulse*' || true
     fi
+
+    if test "$exit_status" -ne 0; then
+        lsmod | grep -e sof -e snd -e sound -e drm
+        # rmmod can fail silently, for instance when "Used by" is -1
+        printf "%s FAILED\n" "$0"
+    fi
+
     return "$exit_status"
 }
 
