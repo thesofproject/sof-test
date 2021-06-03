@@ -53,8 +53,8 @@ ldcFile=$(find_ldc_file) || die ".ldc file not found!"
 
 dlogi "Found file: $(md5sum "$ldcFile"|awk '{print $2, $1;}')"
 
-data_file=$LOG_ROOT/logger.data.log
-error_file=$LOG_ROOT/logger.error.log
+data_file=$LOG_ROOT/logger.data.txt
+error_file=$LOG_ROOT/logger.error.txt
 
 func_lib_check_sudo
 
