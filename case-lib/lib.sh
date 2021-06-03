@@ -335,7 +335,7 @@ is_sof_used()
 # a wrapper to journalctl with required style
 journalctl_cmd()
 {
-   journalctl -k -q --no-pager --utc --output=short-monotonic \
+   sudo journalctl -k -q --no-pager --utc --output=short-monotonic \
      --no-hostname "$@"
 }
 
