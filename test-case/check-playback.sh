@@ -86,8 +86,7 @@ do
         if [ ${OPT_VAL['F']} = '1' ]; then
             fmts=$(func_pipeline_parse_value "$idx" fmts)
         fi
-        # clean up dmesg
-        sudo dmesg -C
+
         for fmt_elem in $fmts
         do
             for i in $(seq 1 $loop_cnt)
