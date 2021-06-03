@@ -48,6 +48,8 @@ func_pipeline_export()
     local opt="$2"
     # In no HDMI mode, exclude HDMI pipelines
     [ -z "$NO_HDMI_MODE" ] || opt="$opt & ~pcm:HDMI"
+    # In no Bluetooth mode, exclude BT pipelines
+    [ -z "$NO_BT_MODE" ] || opt="$opt & ~pcm:Bluetooth"
     opt="-f '${opt}'"
 
     [[ "$ignore" ]] && opt="$opt -b '$ignore'"

@@ -57,6 +57,12 @@ SUDO_LEVEL=${SUDO_LEVEL:-}
 #
 # NO_HDMI_MODE=true
 
+# Bluetooth connection is not set up on our Linux device.
+# The I2S is in slave and there will be no WS/FSYNC from
+# the BT side, so audio side will get -EIO.
+#
+# NO_BT_MODE=true
+
 # Test interval between two test cases, the default value is 5 seconds
 # in CI, which is controlled by sof-framework. In manual run, user can
 # override the default value.
