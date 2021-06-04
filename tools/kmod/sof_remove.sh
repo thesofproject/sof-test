@@ -207,6 +207,7 @@ remove_module soundwire_generic_allocation
 remove_module regmap_sdw
 remove_module regmap_sdw_mbq
 remove_module soundwire_bus
+remove_module snd_intel_sdw_acpi
 
 remove_module snd_soc_core
 remove_module snd_hda_codec
