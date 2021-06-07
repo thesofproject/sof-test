@@ -324,6 +324,11 @@ ignore_str="$ignore_str"'|DMAR: \[DMA Read\] Request device'
 # x86/mktme: No known encryption algorithm is supported: 0x4
 ignore_str="$ignore_str"'|x86/mktme: No known encryption algorithm is supported: 0x4'
 
+# r8152 networking warnings can be ignored
+# orginal logs seen on  TGLU_SKU0A32_SDCA
+# kernel: r8152 3-8.1:1.0 enx34298f909f0b: can't resubmit intr, status -1
+ignore_str="$ignore_str""|r8152 [[:digit:].:-]+ [a-z0-9]+: can't resubmit intr, status -."
+
 # dw_dmac logs can be ignored
 # origin logs seen on BDW/BYT/CHT platforms
 # dw_dmac INTL9C60:00: Missing DT data
