@@ -314,6 +314,11 @@ ignore_str="$ignore_str"'|genirq: Flags mismatch irq .'
 # DMAR: [Firmware Bug]: No firmware reserved region can cover this RMRR [0x00000000ad000000-0x00000000af7fffff], contact BIOS vendor for fixes
 ignore_str="$ignore_str"'|DMAR: \[Firmware Bug\]: No firmware reserved region can cover this RMRR .'
 
+
+# TME related warnings can be ignored
+# x86/mktme: No known encryption algorithm is supported: 0x4
+ignore_str="$ignore_str"'|x86/mktme: No known encryption algorithm is supported: 0x4'
+
 # dw_dmac logs can be ignored
 # origin logs seen on BDW/BYT/CHT platforms
 # dw_dmac INTL9C60:00: Missing DT data
