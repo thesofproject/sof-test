@@ -319,6 +319,11 @@ ignore_str="$ignore_str"'|DMAR: \[Firmware Bug\]: No firmware reserved region ca
 ignore_str="$ignore_str"'|DMAR: DRHD: handling fault status reg 3'
 ignore_str="$ignore_str"'|DMAR: \[DMA Read\] Request device'
 
+
+# TME related warnings can be ignored
+# x86/mktme: No known encryption algorithm is supported: 0x4
+ignore_str="$ignore_str"'|x86/mktme: No known encryption algorithm is supported: 0x4'
+
 # dw_dmac logs can be ignored
 # origin logs seen on BDW/BYT/CHT platforms
 # dw_dmac INTL9C60:00: Missing DT data
