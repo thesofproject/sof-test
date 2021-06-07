@@ -313,6 +313,11 @@ ignore_str="$ignore_str"'|genirq: Flags mismatch irq .'
 # origin logs seen on BDW platforms
 # DMAR: [Firmware Bug]: No firmware reserved region can cover this RMRR [0x00000000ad000000-0x00000000af7fffff], contact BIOS vendor for fixes
 ignore_str="$ignore_str"'|DMAR: \[Firmware Bug\]: No firmware reserved region can cover this RMRR .'
+# origin logs seen on TGL platforms
+# DMAR: DRHD: handling fault status reg 3
+# DMAR: [DMA Read] Request device [00:02.0] PASID ffffffff fault addr 70ad5000 [fault reason 07] Next page table ptr is invalid
+ignore_str="$ignore_str"'|DMAR: DRHD: handling fault status reg 3'
+ignore_str="$ignore_str"'|DMAR: [DMA Read] Request device'
 
 # dw_dmac logs can be ignored
 # origin logs seen on BDW/BYT/CHT platforms
