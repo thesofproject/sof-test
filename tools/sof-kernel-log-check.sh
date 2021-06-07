@@ -314,6 +314,11 @@ ignore_str="$ignore_str"'|genirq: Flags mismatch irq .'
 # DMAR: [Firmware Bug]: No firmware reserved region can cover this RMRR [0x00000000ad000000-0x00000000af7fffff], contact BIOS vendor for fixes
 ignore_str="$ignore_str"'|DMAR: \[Firmware Bug\]: No firmware reserved region can cover this RMRR .'
 
+# r8152 networking warnings can be ignored
+# orginal logs seen on  TGLU_SKU0A32_SDCA
+# kernel: r8152 3-8.1:1.0 enx34298f909f0b: can't resubmit intr, status -1
+ignore_str="$ignore_str""|r8152 [[:digit:].:-]+ [a-z0-9]+: can't resubmit intr, status -."
+
 # dw_dmac logs can be ignored
 # origin logs seen on BDW/BYT/CHT platforms
 # dw_dmac INTL9C60:00: Missing DT data
