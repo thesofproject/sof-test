@@ -79,14 +79,14 @@ class clsSYSCardInfo():
 
     def loadPCI(self):
         self.pci_lst.clear()
-        exit_code, output=subprocess.getstatusoutput("lspci -D |grep audio -i|grep intel -i")
+        exit_code, output=subprocess.getstatusoutput("sudo lspci -D |grep audio -i|grep intel -i")
         # grep exit 1 means nothing matched
         if exit_code != 0:
             return
         for line in output.splitlines():
             pci_info = {}
             pci_info['pci_id'] = line.split(' ')[0]
-            tmp_output = subprocess.getoutput("lspci -s %s -kx" % (pci_info['pci_id'])).splitlines()
+            tmp_output = subprocess.getoutput("sudo lspci -s %s -kx" % (pci_info['pci_id'])).splitlines()
             pci_info['name'] = tmp_output[1].split(':')[-1].strip()
             for i in range(2, len(tmp_output)):
                 if tmp_output[i].split()[1].strip() == 'modules:' :
