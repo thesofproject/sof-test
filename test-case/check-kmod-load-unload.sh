@@ -80,10 +80,7 @@ do
 
     setup_kernel_check_point
     dlogi "run kmod/sof_insert.sh"
-    sudo sof_insert.sh || {
-        # FIXME: don't exit the status of dloge(). Use die()
-        dloge "insert modules error" && exit
-    }
+    sudo sof_insert.sh || die "insert modules error"
 
     ## - 2a: check for errors after insertion
     dlogi "checking for general errors after kmod insert with sof-kernel-log-check tool"
