@@ -97,15 +97,6 @@ do
     # successful remove/insert module pass
     dlogi "==== firmware boot complete: $idx of $loop_cnt ===="
 
-    # pulseaudio deamon will detect the snd_sof_pci device after 3s
-    # so after 2s snd_sof_pci device will in used status which is block current case logic
-    # here the logic is to check snd_sof_pci status is not in used status, the max delay is 10s
-    for i in $(seq 1 10)
-    do
-        [[ "X$(awk '/^snd_sof_pci/ {print $3;}' /proc/modules)" == "X0" ]] && break
-        sleep 1
-    done
-
     # After the last module insertion, it still takes about 10s for 'aplay -l' to show device
     # list. We need to wait before aplay can function. Here, wait dsp status to suspend to
     # avoid influence on next test case.
