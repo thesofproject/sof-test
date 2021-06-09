@@ -100,14 +100,16 @@ do
     # After the last module insertion, it still takes about 10s for 'aplay -l' to show device
     # list. We need to wait before aplay can function. Here, wait dsp status to suspend to
     # avoid influence on next test case.
-    for i in $(seq 1 15)
-    do
-        # ignore platforms not support runtime pm
-        [[ $(sof-dump-status.py --dsp_status 0) == "unsupported" ]] && break
-        [[ $(sof-dump-status.py --dsp_status 0) == "suspended" ]] && break
+    i=0
+    while dsp_status=$(sof-dump-status.py --dsp_status 0); do
+        # ignore platforms that do not support runtime pm
+        if [[ "$dsp_status" == 'unsupported' ]] ||
+               [[ "$dsp_status" == 'suspended' ]]; then
+            break
+        fi
+        if [ "$((i++))" -ge 15 ]; then
+            die "After 15s DSP status is: $dsp_status"
+        fi
         sleep 1
     done
-
 done
-
-exit 0
