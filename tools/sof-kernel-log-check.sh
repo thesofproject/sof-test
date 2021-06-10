@@ -276,6 +276,9 @@ case "$platform" in
         # https://unix.stackexchange.com/questions/109294/mei-00000016-0-init-hw-failure
         ignore_str="$ignore_str"'|mei_me 0000:00:16\..: wait hw ready failed'
         ;;
+    ehl)
+        # https://github.com/thesofproject/sof-test/issues/695
+        ignore_str="$ignore_str"'|device-mapper: table: .+: thin-pool: unknown target type'
 esac
 
 # below are new error level kernel logs from journalctl --priority=err
