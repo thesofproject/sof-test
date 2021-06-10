@@ -322,7 +322,7 @@ ignore_str="$ignore_str"'|DMAR: \[DMA Read\] Request device'
 
 # TME related warnings can be ignored
 # x86/mktme: No known encryption algorithm is supported: 0x4
-ignore_str="$ignore_str"'|x86/mktme: No known encryption algorithm is supported: 0x4'
+ignore_str="$ignore_str"'|x86/mktme: No known encryption algorithm is supported: .+'
 
 # r8152 networking warnings can be ignored
 # orginal logs seen on  TGLU_SKU0A32_SDCA
