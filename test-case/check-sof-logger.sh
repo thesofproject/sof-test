@@ -144,8 +144,8 @@ main()
             print_logs_exit 1 "Log header not found in ${data_file}"
 
         # See initial message SOF PR #3281 / SOF commit 67a0a69
-        grep -q 'dma-trace.c.*ERROR FW ABI.*tag.*hash' "$tracef" ||
-            print_logs_exit 1 "Initial ERROR FW ABI message not found in ${data_file}"
+        grep -q 'dma-trace.c.*FW ABI.*tag.*hash' "$tracef" ||
+            print_logs_exit 1 "Initial FW ABI banner not found in ${data_file}"
     done
 
     # This is a bit redundant with the previous test but does not hurt.
