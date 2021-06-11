@@ -276,6 +276,13 @@ case "$platform" in
         # https://unix.stackexchange.com/questions/109294/mei-00000016-0-init-hw-failure
         ignore_str="$ignore_str"'|mei_me 0000:00:16\..: wait hw ready failed'
         ;;
+    adl)
+	# i915 AUX logs can be ignored
+        # origin logs seen on ADLS platforms
+        # i915 0000:00:02.0: [drm] *ERROR* AUX A/DDI A/PHY A: did not complete or timeout within 10ms (status 0xad4003ff)
+        # i915 0000:00:02.0: [drm] *ERROR* AUX A/DDI A/PHY A: not done (status 0xad4003ff)
+        ignore_str="$ignore_str"'|i915 [[:digit:].:]+: \[drm\] \*ERROR\* AUX .+'
+        ;;
 esac
 
 # below are new error level kernel logs from journalctl --priority=err
@@ -357,6 +364,7 @@ ignore_str="$ignore_str"'|elan_i2c i2c-ELAN0000:.*: invalid report id data'
 # BugLink: https://github.com/thesofproject/sof-test/issues/578
 # iwlwifi 0000:00:14.3: No beacon heard and the time event is over already...
 ignore_str="$ignore_str"'|iwlwifi [[:digit:].:]+: '
+
 
 #
 # SDW related logs
