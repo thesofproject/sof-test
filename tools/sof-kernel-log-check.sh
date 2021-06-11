@@ -261,8 +261,10 @@ ignore_str="$ignore_str"'|asix .-.+:.\.. en.+: asix_rx_fixup\(\) Bad Header Leng
 
 # asix error in TGLH_0A5E_SDW
 # kernel: asix 3-3.1:1.0 enx000ec65356e1: Failed to enable software MII access
+# kernel: asix 3-3.1:1.0 enx000ec65356e1: Failed to enable hardware MII access
 # buglink: https://github.com/thesofproject/sof-test/issues/565
-ignore_str="$ignore_str"'|asix .-.+\..:.\.. en.+: Failed to enable software MII access'
+# buglink: https://github.com/thesofproject/sof-test/issues/664
+ignore_str="$ignore_str"'|asix .-.+\..:.\.. en.+: Failed to .+'
 
 case "$platform" in
     # Audio PCI ID on CML Mantis is [8086:9dc8], which is defined as CNL in linux kernel.
