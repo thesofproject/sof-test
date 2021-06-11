@@ -30,7 +30,7 @@ OPT_NAME['l']='loop'     OPT_DESC['l']='loop count'
 OPT_HAS_ARG['l']=1         OPT_VAL['l']=3
 
 OPT_NAME['c']='count'    OPT_DESC['c']='combine test pipeline count'
-OPT_HAS_ARG['c']=1         OPT_VAL['c']=2
+OPT_HAS_ARG['c']=1         OPT_VAL['c']=1
 
 OPT_NAME['r']='loop'     OPT_DESC['r']='pause resume repeat count'
 OPT_HAS_ARG['r']=1         OPT_VAL['r']=3
@@ -86,9 +86,10 @@ do
     fi
 done
 
-# get the min value of TPLG:'pipeline count' with Case:'pipeline count'
-[[ ${#pipeline_idx_lst[*]} -gt ${OPT_VAL['c']} ]] && max_count=${OPT_VAL['c']} || max_count=${#pipeline_idx_lst[*]}
-[[ $max_count -eq 1 ]] && dlogw "pipeline count is 1, don't need to run this case" && exit 2
+max_count="${OPT_VAL['c']}"
+if [ "$max_count" -gt "$PIPELINE_COUNT" ] || [ "$max_count" == "1" ]; then
+    max_count="$PIPELINE_COUNT"
+fi
 
 # create combination list
 declare -a pipeline_combine_lst
