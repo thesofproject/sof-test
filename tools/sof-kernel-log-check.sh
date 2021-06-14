@@ -295,6 +295,9 @@ ignore_str="$ignore_str"'|Initramfs unpacking failed'
 ignore_str="$ignore_str"'|atkbd serio0: Failed to deactivate keyboard on isa0060/serio0'
 ignore_str="$ignore_str"'|atkbd serio0: Failed to enable keyboard on isa0060/serio0'
 
+# PS2/serial failures
+ignore_str="$ignore_str""|i8042: Can't read CTR while initializing i8042"
+
 # smbus issues can be ignored
 ignore_str="$ignore_str"'|i801_smbus 0000:00:..\..: Transaction timeout'
 ignore_str="$ignore_str"'|i801_smbus 0000:00:..\..: Failed terminating the transaction'
