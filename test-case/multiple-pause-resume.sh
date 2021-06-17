@@ -3,19 +3,31 @@
 set -e
 
 ##
-## Case Name: Run multiple pipeline for pause resume
+## Case Name: multiple-pause-resume
 ## Preconditions:
 ##    N/A
 ## Description:
-##    pickup multiple pipline to do pause resume
-##    fake pause/resume with expect
-##    expect sleep for sleep time then mocks spacebar keypresses ' ' to
-##    cause resume action
+##    Run pipelines in parallel and pause-resume them.
+##
+##    We can use '-c' option to control the number of pipelines
+##    that runs in parallel, the default value for '-c' is 1,
+##    with which all pipelines will run in parallel and get pause-
+##    resumed. Manually specified value should be greater than 1,
+##    and less than the maximum pipeline count.
+##
+##    If pipeline count N (1 < N < Max) is specified, each combination
+##    of N pipelines out of all will be tested. For example,
+##    supposed we have 4 pipelines in topology with ID 0, 1, 2, 3, and
+##    '-c 2' is used, below combination will be iterated.
+##    0,1  0,2  0,3  1,2  1,3  2,3
+##
+##    We use 'expect' to send SPACE to each aplay/arecord process,
+##    to simulate the real pause-resume action.
 ## Case step:
-##    1. run 1st pipeline
-##    2. pickup any other pipeline
-##    3. use expect to fake pause/resume in each pipeline
-##    4. go through with tplg file
+##    1. Get the number of pipelines that will run in parallel from '-c' option
+##    2. Get all the combination of N pipelines out of all.
+##    3. Start pipelines and use expect to send SPACE to pause-resume them
+##    4. Goes to next pipeline combination
 ## Expect result:
 ##    no errors occur for either process
 ##
@@ -48,11 +60,11 @@ func_opt_parse_option "$@"
 
 repeat_count=${OPT_VAL['r']}
 loop_count=${OPT_VAL['l']}
-# configure random value range
+# pause-resume interval will be a random value between rnd_min and rnd_max
 rnd_min=${OPT_VAL['i']}
 rnd_max=${OPT_VAL['a']}
 rnd_range=$[ $rnd_max - $rnd_min ]
-[[ $rnd_range -le 0 ]] && dlogw "Error random range scope [ min:$rnd_min - max:$rnd_max ]" && exit 2
+[[ $rnd_range -le 0 ]] && dlogw "Random range is not accepted [ min:$rnd_min - max:$rnd_max ]" && exit 2
 
 tplg=${OPT_VAL['t']}
 func_pipeline_export "$tplg" "type:any"
@@ -63,7 +75,9 @@ declare -a pipeline_idx_lst
 declare -a cmd_idx_lst
 declare -a file_idx_lst
 
-# merge all pipeline to the 1 group
+# Create two arrays to store command and file that will be used when start a pipeline.
+# For playback pipeline, aplay and /dev/zero will be used, for capture pipeline arecord
+# and /dev/null will be used.
 for i in $(seq 0 $(expr $PIPELINE_COUNT - 1))
 do
     pipeline_idx_lst=(${pipeline_idx_lst[*]} $i)
@@ -77,12 +91,12 @@ do
     elif [ "$type" == "both" ];then
         cmd_idx_lst=(${cmd_idx_lst[*]} "aplay")
         file_idx_lst=(${file_idx_lst[*]} "/dev/zero")
-        # both include playback & capture, so duplicate it
+        # 'both' contains playback & capture pipeline
         pipeline_idx_lst=(${pipeline_idx_lst[*]} $i)
         cmd_idx_lst=(${cmd_idx_lst[*]} "arecord")
         file_idx_lst=(${file_idx_lst[*]} "/dev/null")
     else
-        die "Unknow pipeline type: $type"
+        die "Unknown pipeline type: $type"
     fi
 done
 
@@ -91,7 +105,7 @@ if [ "$max_count" -gt "$PIPELINE_COUNT" ] || [ "$max_count" == "1" ]; then
     max_count="$PIPELINE_COUNT"
 fi
 
-# create combination list
+# create pipeline combination list
 declare -a pipeline_combine_lst
 for i in $(sof-combinatoric.py -n ${#pipeline_idx_lst[*]} -p $max_count)
 do
@@ -99,7 +113,7 @@ do
     pipeline_combine_str="$(echo $i|sed 's/,/ /g')"
     pipeline_combine_lst=("${pipeline_combine_lst[@]}" "$pipeline_combine_str")
 done
-[[ ${#pipeline_combine_lst[@]} -eq 0 ]] && dlogw "pipeline combine is empty" && exit 2
+[[ ${#pipeline_combine_lst[@]} -eq 0 ]] && dlogw "Failed to generate pipeline combination" && exit 2
 
 func_pause_resume_pipeline()
 {
@@ -157,7 +171,7 @@ do
             pid_lst=(${pid_lst[*]} $!)
         done
         # wait for expect script finished
-        dlogi "wait for expect process finished"
+        dlogi "wait expect process to exit"
         i=$max_wait_time
         while [ $i -gt 0 ]
         do
@@ -168,13 +182,13 @@ do
         # fix aplay/arecord last output
         echo
         if [ "$(pidof expect)" ]; then
-            dloge "Still have expect process not finished after wait for $max_wait_time"
+            dloge "Error: expect process is still running after $max_wait_time seconds"
             # now dump process
             ps -ef |grep -E 'aplay|arecord' || true
             exit 1
         fi
-        # now check for all expect quit status
-        # dump the pipeline combine, because pause resume will have too many operation log
+        # now check for all expect exit status
+        # dump the pipeline combination
         for idx in $(echo $pipeline_combine_str)
         do
             pipeline_index=${pipeline_idx_lst[$idx]}
