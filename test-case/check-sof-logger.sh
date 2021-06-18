@@ -97,6 +97,12 @@ run_loggers()
     return $etrace_exit
 }
 
+
+dma_nudge()
+{
+    sudo timeout -k 5 2  "$loggerBin" -l "${ldcFile}" -F info=pga -t
+}
+
 # Dumps all logs before exiting
 print_logs_exit()
 {
@@ -110,11 +116,12 @@ print_logs_exit()
 
     local bname
     for ftype in data etrace error etrace_stderr; do
-        printf '\n\n'
+        printf '\n'
         bname="logger.$ftype.txt"
         dlogi "Log file $bname BEG::"
         cat "$LOG_ROOT/$bname" || true # we already checked these
         dlogi "::END log file $bname"
+        printf '\n'
     done
     test -z "$errmsg" || dloge "$errmsg"
     exit "$exit_code"
@@ -158,8 +165,12 @@ main()
                logger."$f".txt > "$stderr_file"
     done
 
+    # Simulates a stuck DMA to test the code below
+    # sed -i -e '2,$ d' "$LOG_ROOT/logger.data.txt"
+
     # Search for the log header, should be something like this:
     # TIMESTAMP  DELTA C# COMPONENT  LOCATION  CONTENT
+    # then for the 'FW ABI' banner
     for f in etrace data; do
         local tracef="$LOG_ROOT/logger.$f.txt"
         test -e "$tracef" || die "$tracef" not found
@@ -168,13 +179,28 @@ main()
             print_logs_exit 1 "Log header not found in ${data_file}"
 
         # See initial message SOF PR #3281 / SOF commit 67a0a69
-        grep -q 'dma-trace.c.*FW ABI.*tag.*hash' "$tracef" ||
-            print_logs_exit 1 "Initial FW ABI banner not found in ${data_file}"
-    done
+        grep -q 'dma-trace.c.*FW ABI.*tag.*hash' "$tracef" || {
 
-    # This is a bit redundant with the previous test but does not hurt.
-    tail -n +2 "${data_file}" | grep -q '[^[:blank:]]' ||
-        print_logs_exit 1 "Nothing but the first line in DMA trace ${data_file}"
+            # Workaround for DMA trace bug
+            # https://github.com/thesofproject/sof/issues/4333
+            if [ "$f" = data ]; then
+                dloge "Empty or stuck DMA trace? Let's try to nudge it."
+                dloge '  vv  Workaround for SOF issue 4333  vv'
+                local second_chance="$LOG_ROOT/logger.dma_trace_bug_4333.txt"
+                dma_nudge | tee "$second_chance"
+                printf '\n'
+                dloge ' ^^ End of workaround nudge for 4333 ^^ '
+                printf '\n'
+
+                if head "$second_chance" |
+                        grep -q 'dma-trace.c.*FW ABI.*tag.*hash'; then
+                    continue # and don't report failure 4333
+                fi
+            fi
+
+            print_logs_exit 1 "Initial FW ABI banner not found in ${data_file}"
+        }
+    done
 
     # Show all outputs even when everything went OK
     print_logs_exit 0
