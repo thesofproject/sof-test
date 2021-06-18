@@ -21,12 +21,11 @@
 
 set -e
 
+TOPDIR=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 # shellcheck source=case-lib/lib.sh
-source "$(dirname "${BASH_SOURCE[0]}")"/../case-lib/lib.sh
+source "${TOPDIR}"/case-lib/lib.sh
 
 func_opt_parse_option "$@"
-
-setup_kernel_check_point
 
 # check sof-logger location
 type -a sof-logger ||
@@ -121,10 +120,31 @@ print_logs_exit()
     exit "$exit_code"
 }
 
+reload_drivers()
+{
+    "${TOPDIR}"/tools/kmod/sof_remove.sh
+
+    setup_kernel_check_point
+
+    "${TOPDIR}"/tools/kmod/sof_insert.sh
+
+    # The DSP may unfortunately need multiple retries to boot, see
+    # https://github.com/thesofproject/sof/issues/3395
+    dlogi "Waiting a few seconds for the DSP to fully boot and then suspend"
+    for i in $(seq 1 5); do
+        if sudo test -e /sys/kernel/debug/sof/etrace; then break; fi
+        sleep 1
+    done
+    # Now give enough time to go to D3 suspend
+    sleep 4
+}
+
 main()
 {
+    reload_drivers
+
     run_loggers ||
-        print_logs_exit 1 "Reading etrace failed, run_loggers returned $?"
+        print_logs_exit 1 "Reading (e)trace failed, run_loggers returned $?"
 
     local f
 
