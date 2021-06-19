@@ -111,9 +111,9 @@ print_logs_exit()
     for ftype in data etrace error etrace_stderr; do
         printf '\n\n'
         bname="logger.$ftype.txt"
-        dlogi "Log $ftype BEG::"
+        dlogi "Log file $bname BEG::"
         cat "$LOG_ROOT/$bname" || true # we already checked these
-        dlogi "::END $ftype"
+        dlogi "::END log file $bname"
     done
     test -z "$errmsg" || dloge "$errmsg"
     exit "$exit_code"
@@ -132,6 +132,8 @@ main()
         if test -s "$stderr_file"; then
             print_logs_exit 1 "stderr $stderr_file is not empty"
         fi
+        printf 'GOOD: %s was empty, no stderr output from that sof-logger instance\n' \
+               logger."$f".txt > "$stderr_file"
     done
 
     # Search for the log header, should be something like this:
