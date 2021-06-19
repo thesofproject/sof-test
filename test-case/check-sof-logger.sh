@@ -71,16 +71,21 @@ func_lib_check_sudo
 
 run_loggers()
 {
-    local loggerPID etrace_exit
+    local etrace_exit
+
+    # This test is not really supposed to run while the DSP is busy at
+    # the same time, so $data_file will hopefully not be long.
+    local dma_collect_secs=2
 
     dlogi "Trying to get the DMA trace log with background sof-logger ..."
     dlogc \
     "sudo $loggerBin  -t -f 3 -l  $ldcFile  -o  $data_file  2>  $error_file  &"
-    sudo "$loggerBin" -t -f 3 -l "$ldcFile" -o "$data_file" 2> "$error_file" & loggerPID=$!
+    sudo timeout -k 3 --preserve-status "$dma_collect_secs"  \
+         "$loggerBin" -t -f 3 -l "$ldcFile" \
+         -o "$data_file" 2> "$error_file" & dmaPID=$!
 
-    # This test is not really supposed to run while the DSP is busy at
-    # the same time, so $data_file should be short enough.
-    sleep 2
+    sleep "$dma_collect_secs"
+    wait "$dmaPID"
 
     dlogi "Trying to get the etrace mailbox ..."
     dlogc \
@@ -89,9 +94,6 @@ run_loggers()
         etrace_exit=$?
 
     printf '\n'
-
-    dlogc "kill $loggerPID # DMA trace"
-    kill "$loggerPID"
 
     return $etrace_exit
 }
