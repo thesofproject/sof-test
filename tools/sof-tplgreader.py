@@ -172,8 +172,11 @@ class clsTPLGReader:
                 if 'any' in value or value == ['']:
                     check = True if key in line.keys() else False
                 else:
-                    # match for 'keyword'/'keyword [0-9]' target line
-                    check = len ([em for em in value if re.match(em + '$|' + em + '[^a-zA-Z]', str(line[key]), re.I)]) > 0
+                    # check if current pipeline is the one we want
+                    if type(value) == list:
+                        check = str(line[key]) in value
+                    else:
+                        check = str(line[key]) == value
                 if check is bIn:
                     break
             else:
