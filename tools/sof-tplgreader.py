@@ -1,8 +1,5 @@
 #!/usr/bin/env python3
 
-import subprocess
-import os
-import re
 from tplgtool import TplgParser, TplgFormatter
 from common import format_pipeline, export_pipeline
 
@@ -117,6 +114,7 @@ class clsTPLGReader:
                         pipeline[comp] = interweaved_dict[comp]
         return 0
 
+    # The following functions re-implement built-in Python sets
     @staticmethod
     def list_and(lst1, lst2):
         assert(lst1 is not None and lst2 is not None)
@@ -164,10 +162,22 @@ class clsTPLGReader:
     def setBlock(self, block_lst=None):
         self._block_lst = block_lst
 
-    def _filterOutput(self, target_lst, filter_dict, bIn):
+    def _filterOutput(self, pipelines, filter_dict, bIn):
+        """Returns the subset of pipelines matching a single filter expression.
+
+        pipelines: list of pipelines. Each pipeline is a dict, example:
+           {'cap_name': 'Low Latency Playback 0', 'dev': 'hw:0,6',...
+
+        filter_dict: filter like for instance { 'id' : ['3'] }. It's not
+           clear what happens if the dict has several elements; avoid?
+
+        bIn: True: exclude filter, False: include filter.
+        """
         filtered = []
-        for line in target_lst[:]:
-            check = False
+        for line in pipelines[:]:
+            check = False # "check" means "match"
+            # This inner for loop is deceiving: the filter_dict usually has a
+            # single key:value and then the break/else is pure confusion.
             for key, value in filter_dict.items():
                 if 'any' in value or value == ['']:
                     check = True if key in line.keys() else False
@@ -177,21 +187,25 @@ class clsTPLGReader:
                 if check is bIn:
                     break
             else:
+                # No 'break': include this pipeline
                 filtered.append(line)
         return filtered
 
     def _filter_by_dict(self, filter_dict):
+        "filter_dict comes from parse_filter(), see filter_dict example there."
         if filter_dict == {}:
             return self._pipeline_lst
         full_list = self._pipeline_lst
         filtered = None
-        # pipelines filtered by the first filter item
+        # Apply the first expression in the filter
         for key, value in filter_dict['filter'][0].items():
             if key.startswith('~'):
                 filtered = self._filterOutput(full_list, {key[1:]:value}, True)
             else:
                 filtered = self._filterOutput(full_list, {key:value}, False)
-        # do filtering by the rest filter items and logic operations
+        # Combine with the remaining expressions and boolean
+        # operators. Apply the filters from left to right, no usual
+        # boolean precedence. See --help below.
         for idx in range(1, len(filter_dict['filter'])):
             new_filtered = None
             for key, value in filter_dict['filter'][idx].items():
@@ -251,9 +265,15 @@ if __name__ == "__main__":
             exit(1)
         return tplgObj.getPipeline(sort)
 
-    # parse filter string into two structures, one is dict list for each filter item,
-    # and another is logic operation list.
     def parse_filter(filter_str):
+        """Parse filter input into two structures, one is dict list for each
+        filter item, and another is logic operation list.  For example
+        "id:2 | pga & id:1" is parsed as:
+
+        { 'filter':  [ {'id': ['2']}, {'pga': ['']}, {'id': ['1']} ],
+               'op': [              '|',           '&'             ]
+        }
+        """
         filter_lst = []
         op_lst = []
         for filter_elem in filter_str.split('|'):
@@ -285,12 +305,21 @@ if __name__ == "__main__":
 string format is 'key':'value','value', the filter
 string support & | and ~ logic operation.
 if only care about key, you can use 'key':'any'.
+
 Example Usage:
 `-f "type:any` -> all pipelines
 `-f "type:playback"` -> playback pipelines
 `-f "type:capture & pga"` -> capture pipelines with PGA
 `-f "pga & eq"` -> pipelines with both EQ and PGA
 `-f "id:3"` -> pipeline whose id is 3
+
+WARNING: usual boolean precedence does NOT apply! Filters are naively
+applied from left to right. For instance you could expect "id:2 | pga & id:1"
+to be interpreted as "id:2 | (pga & id:1)" and to return some pipelines
+with id:1 plus others with id:2. But no: this gets computed from left to
+right like this: "(id:2 | pga) & id:1", so this filter is actually
+equivalent to the shorter "pga & id:1"
+
 ''')
     parser.add_argument('-b', '--block', type=str,
         help='setup block filter, command line parameter format is the same as -f argument')
