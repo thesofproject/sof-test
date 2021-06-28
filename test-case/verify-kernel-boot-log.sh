@@ -21,4 +21,6 @@ source "$(dirname "${BASH_SOURCE[0]}")"/../case-lib/lib.sh
 func_opt_parse_option "$@"
 disable_kernel_check_point
 
+print_module_params
+
 sof-kernel-log-check.sh

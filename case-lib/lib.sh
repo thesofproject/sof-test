@@ -364,3 +364,13 @@ logger_disabled()
         return 1
     fi
 }
+
+print_module_params()
+{
+    echo "--------- Printing module parameters ----------"
+    grep -H ^ /sys/module/snd_intel_dspcfg/parameters/*
+
+    # for all the *sof* modules
+    grep -H ^ /sys/module/*sof*/parameters/*
+    echo "----------------------------------------"
+}
