@@ -374,3 +374,26 @@ print_module_params()
     grep -H ^ /sys/module/*sof*/parameters/*
     echo "----------------------------------------"
 }
+
+devres_debug_set()
+{
+    local new="$1"
+    local old
+    old=$(cat /sys/module/devres/parameters/log)
+    if [ "$old" -eq "$new" ]; then
+        dlogi "DEVRES log is already $new"
+        return 0
+    fi
+
+    echo "$new" | sudo tee /sys/module/devres/parameters/log > /dev/null
+}
+
+enable_devres_debug_log()
+{
+    devres_debug_set 1
+}
+
+disable_devres_debug_log()
+{
+    devres_debug_set 0
+}

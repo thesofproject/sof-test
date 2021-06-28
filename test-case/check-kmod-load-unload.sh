@@ -44,6 +44,10 @@ if [ ${OPT_VAL['p']} -eq 1 ];then
     func_lib_disable_pulseaudio
 fi
 
+# Enable DEVRES debug log dynamically, this is very verbose
+# it should be disabled at the end of this test
+enable_devres_debug_log
+
 for idx in $(seq 1 $loop_cnt)
 do
     dlogi "===== Starting iteration $idx of $loop_cnt ====="
@@ -110,3 +114,5 @@ do
         sleep 1
     done
 done
+
+disable_devres_debug_log

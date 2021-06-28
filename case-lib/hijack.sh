@@ -105,6 +105,11 @@ function func_exit_handler()
         done
     fi
 
+    # Currently devres debug log is enabled only for kmod test.
+    # When the test case is failed, devres debug level may not be clear.
+    # So exit handler should reset log level.
+    disable_devres_debug_log
+
     # check if function already defined.
     # on exit check whether pulseaudio is disabled.
     ret=0
