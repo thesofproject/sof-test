@@ -61,7 +61,7 @@ loop_count=${OPT_VAL['l']}
 [[ -z $tplg ]] && dloge "Miss tplg file to run" && exit 2
 
 [[ $(sof-dump-status.py --dsp_status 0) == "unsupported" ]] &&
-    dlogi "platform doesn't support runtime pm, skip test case" && exit 2
+    skip_test "platform doesn't support runtime pm, skip test case"
 
 declare -A APP_LST DEV_LST
 APP_LST['playback']='aplay'
