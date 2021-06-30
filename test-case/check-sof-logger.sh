@@ -148,6 +148,11 @@ reload_drivers()
 
 main()
 {
+    if is_zephyr; then
+        disable_kernel_check_point
+        skip_test "The SOF logger does not work with Zephyr yet, see issue #4420"
+    fi
+
     reload_drivers
 
     run_loggers ||
