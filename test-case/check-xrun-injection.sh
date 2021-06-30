@@ -96,7 +96,7 @@ do
     xrun_injection="/proc/asound/card0/$pcm/sub0/xrun_injection"
 
     # check xrun injection file
-    [[ ! -e $xrun_injection ]] && dloge "XRUN DEBUG is not enabled in kernel, skip the test." && exit 2
+    [[ ! -e $xrun_injection ]] && skip_test "XRUN DEBUG is not enabled in kernel, skip the test."
     dlogi "Testing: test xrun injection on PCM:$pcm,$pipeline_type. Interval time: $interval"
     dlogc "$cmd -D$dev -r $rate -c $channel -f $fmt $dummy_file -q"
     $cmd -D$dev -r $rate -c $channel -f $fmt $dummy_file -q &

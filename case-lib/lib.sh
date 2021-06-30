@@ -327,6 +327,13 @@ die()
     exit 1
 }
 
+skip_test()
+{
+    dlogi "$@"
+    # See func_exit_handler()
+    exit 2
+}
+
 is_sof_used()
 {
     grep -q "sof" /proc/asound/cards;
