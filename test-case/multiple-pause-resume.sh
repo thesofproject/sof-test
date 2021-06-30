@@ -157,10 +157,10 @@ do
         done
         # wait for expect script finished
         dlogi "wait for expect process finished"
-        i=$max_wait_time
-        while [ $i -gt 0 ]
+        iwait=$max_wait_time
+        while [ $iwait -gt 0 ]
         do
-            i=$[ $i - 1 ]
+            iwait=$((iwait - 1))
             sleep 1s
             [[ ! "$(pidof expect)" ]] && break
         done
