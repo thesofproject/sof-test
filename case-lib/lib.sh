@@ -357,12 +357,7 @@ is_zephyr()
 
 logger_disabled()
 {
-    # disable logger when firmware type is zephyr or -s is set to 0
-    if is_zephyr || [[ ${OPT_VAL['s']} -ne 1 ]]; then
-        return 0
-    else
-        return 1
-    fi
+    [[ ${OPT_VAL['s']} -eq 0 ]] || is_zephyr
 }
 
 print_module_params()
