@@ -27,19 +27,20 @@ OPT_NAME['t']='tplg'     OPT_DESC['t']='tplg file, default value is env TPLG: $T
 OPT_HAS_ARG['t']=1         OPT_VAL['t']="$TPLG"
 
 OPT_NAME['l']='loop'     OPT_DESC['l']='loop count'
-OPT_HAS_ARG['l']=1         OPT_VAL['l']=3
+OPT_HAS_ARG['l']=1         OPT_VAL['l']=5
 
 OPT_NAME['c']='count'    OPT_DESC['c']='combine test pipeline count'
 OPT_HAS_ARG['c']=1         OPT_VAL['c']=2
 
 OPT_NAME['r']='loop'     OPT_DESC['r']='pause resume repeat count'
-OPT_HAS_ARG['r']=1         OPT_VAL['r']=3
+OPT_HAS_ARG['r']=1         OPT_VAL['r']=5
 
-OPT_NAME['i']='min'      OPT_DESC['i']='random range min value, unit is ms'
-OPT_HAS_ARG['i']=1         OPT_VAL['i']='100'
+# pause/resume interval will be a random value bounded by the min and max values below
+OPT_NAME['i']='min'      OPT_DESC['i']='pause/resume transition min value, unit is ms'
+OPT_HAS_ARG['i']=1         OPT_VAL['i']='20'
 
-OPT_NAME['a']='max'      OPT_DESC['a']='random range max value, unit is ms'
-OPT_HAS_ARG['a']=1         OPT_VAL['a']='200'
+OPT_NAME['a']='max'      OPT_DESC['a']='pause/resume transition max value, unit is ms'
+OPT_HAS_ARG['a']=1         OPT_VAL['a']='50'
 
 OPT_NAME['s']='sof-logger'   OPT_DESC['s']="Open sof-logger trace the data will store at $LOG_ROOT"
 OPT_HAS_ARG['s']=0             OPT_VAL['s']=1
@@ -139,7 +140,8 @@ exit 1
 END
 }
 
-max_wait_time=$[ 10 * $repeat_count ]
+# to prevent infinite loop, 5 second per a repeat is plenty
+max_wait_time=$((5 * repeat_count)) 
 
 for i in $(seq 1 $loop_count)
 do
