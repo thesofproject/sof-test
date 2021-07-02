@@ -162,6 +162,42 @@ func_lib_check_sudo()
     }
 }
 
+systemctl_show_pulseaudio()
+{
+    printf '\n'
+    local domain
+    for domain in --system --global --user; do
+        ( set -x
+          systemctl "$domain" list-unit-files --all '*pulse*'
+        ) || true
+        printf '\n'
+    done
+
+    printf 'For %s ONLY:\n' "$(id -un)"
+    ( set -x
+      systemctl --user list-units --all '*pulse*'
+    ) || true
+    printf '\n'
+
+    # pgrep ouput is nicer because it hides itself, however pgrep does
+    # not show a critical information: the userID which can be not us
+    # but 'gdm'!
+    # shellcheck disable=SC2009
+    ps axu | grep -i pulse
+    >&2 printf 'ERROR: %s fails semi-randomly when pulseaudio is running\n' \
+        "$(basename "$0")"
+
+    >&2 printf '\nTry: sudo systemctl --global mask pulseaudio.{socket,service} and reboot.
+    --global is required for session managers like "gdm"
+'
+    # We cannot suggest "systemctl --user mask" for a 'gdm' user
+    # because we can't 'su' to it and access its DBUS, so we suggest
+    # --global to keep it simple. If --global is too strong for you, you
+    # can manually create a
+    # /var/lib/gdm3/.config/systemd/user/pulseaudio.service -> /dev/null
+    # symlink
+}
+
 declare -a PULSECMD_LST
 declare -a PULSE_PATHS
 
