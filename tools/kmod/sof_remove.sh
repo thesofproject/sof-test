@@ -2,6 +2,12 @@
 # SPDX-License-Identifier: BSD-3-Clause
 # Copyright(c) 2018 Intel Corporation. All rights reserved.
 
+
+TOPDIR=$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)
+
+# shellcheck source=case-lib/lib.sh
+source "$TOPDIR"/case-lib/lib.sh
+
 remove_module() {
 
     local MODULE="$1"
@@ -22,9 +28,7 @@ exit_handler()
     # warn about any running pulseaudio because it could make us fail
     # the next time.
     if pgrep -a pulseaudio; then
-        >&2 printf 'ERROR: %s fails semi-randomly when pulseaudio is running\n' \
-               "$(basename "$0")"
-        systemctl --user list-units --all '*pulse*' || true
+        systemctl_show_pulseaudio
     fi
 
     if test "$exit_status" -ne 0; then
