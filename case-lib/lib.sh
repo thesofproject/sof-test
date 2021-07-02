@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # get test-case information
-SCRIPT_HOME="$(dirname "$0")"
+SCRIPT_HOME="$(dirname "${BASH_SOURCE[0]}")"
 # get test-case parent folder name
 SCRIPT_HOME=$(cd "$SCRIPT_HOME/.." && pwd)
 # shellcheck disable=SC2034 # external script can use it
