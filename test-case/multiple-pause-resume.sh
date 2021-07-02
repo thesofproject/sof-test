@@ -21,9 +21,9 @@ set -e
 ##
 
 # shellcheck source=case-lib/lib.sh
-source $(dirname ${BASH_SOURCE[0]})/../case-lib/lib.sh
+source "$(dirname "${BASH_SOURCE[0]}")"/../case-lib/lib.sh
 
-OPT_NAME['t']='tplg'     OPT_DESC['t']='tplg file, default value is env TPLG: $TPLG'
+OPT_NAME['t']='tplg'     OPT_DESC['t']="tplg file, default value is env TPLG: $TPLG"
 OPT_HAS_ARG['t']=1         OPT_VAL['t']="$TPLG"
 
 OPT_NAME['l']='loop'     OPT_DESC['l']='loop count'
@@ -52,7 +52,7 @@ loop_count=${OPT_VAL['l']}
 # configure random value range
 rnd_min=${OPT_VAL['i']}
 rnd_max=${OPT_VAL['a']}
-rnd_range=$[ $rnd_max - $rnd_min ]
+rnd_range=$((rnd_max - rnd_min))
 [[ $rnd_range -le 0 ]] && dlogw "Error random range scope [ min:$rnd_min - max:$rnd_max ]" && exit 2
 
 tplg=${OPT_VAL['t']}
@@ -65,23 +65,23 @@ declare -a cmd_idx_lst
 declare -a file_idx_lst
 
 # merge all pipeline to the 1 group
-for i in $(seq 0 $(expr $PIPELINE_COUNT - 1))
+for i in $(seq 0 $((PIPELINE_COUNT - 1)))
 do
-    pipeline_idx_lst=(${pipeline_idx_lst[*]} $i)
-    type=$(func_pipeline_parse_value $i type)
+    pipeline_idx_lst=("${pipeline_idx_lst[@]}" "$i")
+    type=$(func_pipeline_parse_value "$i" type)
     if [ "$type" == "playback" ];then
-        cmd_idx_lst=(${cmd_idx_lst[*]} "aplay")
-        file_idx_lst=(${file_idx_lst[*]} "/dev/zero")
+        cmd_idx_lst=("${cmd_idx_lst[@]}" "aplay")
+        file_idx_lst=("${file_idx_lst[@]}" "/dev/zero")
     elif [ "$type" == "capture" ];then
-        cmd_idx_lst=(${cmd_idx_lst[*]} "arecord")
-        file_idx_lst=(${file_idx_lst[*]} "/dev/null")
+        cmd_idx_lst=("${cmd_idx_lst[@]}" "arecord")
+        file_idx_lst=("${file_idx_lst[@]}" "/dev/null")
     elif [ "$type" == "both" ];then
-        cmd_idx_lst=(${cmd_idx_lst[*]} "aplay")
-        file_idx_lst=(${file_idx_lst[*]} "/dev/zero")
+        cmd_idx_lst=("${cmd_idx_lst[@]}" "aplay")
+        file_idx_lst=("${file_idx_lst[@]}" "/dev/zero")
         # both include playback & capture, so duplicate it
-        pipeline_idx_lst=(${pipeline_idx_lst[*]} $i)
-        cmd_idx_lst=(${cmd_idx_lst[*]} "arecord")
-        file_idx_lst=(${file_idx_lst[*]} "/dev/null")
+        pipeline_idx_lst=("${pipeline_idx_lst[@]}" "$i")
+        cmd_idx_lst=("${cmd_idx_lst[@]}" "arecord")
+        file_idx_lst=("${file_idx_lst[@]}" "/dev/null")
     else
         die "Unknow pipeline type: $type"
     fi
@@ -93,10 +93,10 @@ done
 
 # create combination list
 declare -a pipeline_combine_lst
-for i in $(sof-combinatoric.py -n ${#pipeline_idx_lst[*]} -p $max_count)
+for i in $(sof-combinatoric.py -n ${#pipeline_idx_lst[*]} -p "$max_count")
 do
-    # convert combine string to combine element
-    pipeline_combine_str="$(echo $i|sed 's/,/ /g')"
+    # convert combine string to combine element by replacing commas with spaces for the for loop below
+    pipeline_combine_str="${i//,/ }"
     pipeline_combine_lst=("${pipeline_combine_lst[@]}" "$pipeline_combine_str")
 done
 [[ ${#pipeline_combine_lst[@]} -eq 0 ]] && dlogw "pipeline combine is empty" && exit 2
@@ -152,10 +152,10 @@ do
     do
         unset pid_lst
         declare -a pid_lst
-        for idx in $(echo $pipeline_combine_str)
+        for idx in $pipeline_combine_str
         do
-            func_pause_resume_pipeline $idx
-            pid_lst=(${pid_lst[*]} $!)
+            func_pause_resume_pipeline "$idx"
+            pid_lst=("${pid_lst[@]}" $!)
         done
         # wait for expect script finished
         dlogi "wait for expect process finished"
@@ -170,16 +170,17 @@ do
         echo
         if [ "$(pidof expect)" ]; then
             dloge "Still have expect process not finished after wait for $max_wait_time"
-            # now dump process
-            ps -ef |grep -E 'aplay|arecord' || true
+            # list aplay/arecord processes
+            pgrep -a -f aplay || true
+            pgrep -a -f arecord || true
             exit 1
         fi
         # now check for all expect quit status
         # dump the pipeline combine, because pause resume will have too many operation log
-        for idx in $(echo $pipeline_combine_str)
+        for idx in $pipeline_combine_str
         do
             pipeline_index=${pipeline_idx_lst[$idx]}
-            pcm=$(func_pipeline_parse_value $pipeline_index pcm)
+            pcm=$(func_pipeline_parse_value "$pipeline_index" pcm)
             dlogi "pipeline: $pcm with ${cmd_idx_lst[$idx]}"
         done
         dlogi "Check expect exit status"
