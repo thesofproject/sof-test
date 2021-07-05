@@ -146,3 +146,32 @@ apl
 
 * tplgtool.py
 <br> Dumps info from tplg binary file.
+
+
+## System configuration tips
+
+### sudo noise
+
+sof-test uses sudo a lot which creates a lot of noise in `journalctl`
+output which is especially a problem when testing. To turn off that
+noise first run `sudo visudo` and add the following line:
+
+```
+Defaults:USER_LOGIN,root !log_allowed
+```
+For more see `man sudoers`.
+
+Then add the following line at the _top_ of `/etc/pam.d/sudo`
+
+```
+# Be "done" when the pam_succeed_if.so arguments are matched; don't
+# process other lines. If not matched then "ignore" this line.
+# Also support "double sudo" :-(
+session [success=done default=ignore] pam_succeed_if.so quiet         uid = 0 ruser = root
+session [success=done default=ignore] pam_succeed_if.so quiet_success uid = 0 ruser = USER_LOGIN
+```
+
+Note PAM security configuration is complex and
+distribution-specific. This was tested only on Ubuntu 20.04. See `man
+pam.d` or one of the PAM guides available on the Internet. Be careful
+not to make your system vulnerable.
