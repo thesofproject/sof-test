@@ -36,7 +36,7 @@ fi
 # setup SOFCARD id
 if [ ! "$SOFCARD" ]; then
 	# $1=$1 strips whitespaces
-	SOFCARD=$(grep -v 'sof-probes' /proc/asound/cards |
+	SOFCARD=$(grep -v 'sof-probe' /proc/asound/cards |
 		awk '/sof-[a-z]/ && $1 ~ /^[0-9]+$/ { $1=$1; print $1; exit 0;}')
 fi
 
