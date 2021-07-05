@@ -36,6 +36,22 @@ exit_handler()
     return "$exit_status"
 }
 
+# Always return 0 because if a lingering sof-logger is an error, it's
+# not _our_ error.
+kill_trace_users()
+{
+    local dma_trace=/sys/kernel/debug/sof/trace
+
+    sudo fuser "$dma_trace" || return 0
+
+    ( set -x
+      sudo fuser --kill -TERM "$dma_trace" || true
+      sudo fuser "$dma_trace" || return 0
+      sleep 1
+      sudo fuser --kill -KILL "$dma_trace" || true
+    )
+}
+
 trap 'exit_handler $?' EXIT
 
 # Breaks systemctl --user and "double sudo" is not great
@@ -44,6 +60,11 @@ test "$(id -u)" -ne 0 ||
 
 # Make sure sudo works first, not after dozens of SKIP
 sudo true
+
+# For some reason (bug?) using /sys/kernel/debug/sof/trace hangs rmmod
+# Playing audio is not an issue, for instance speaker-test -s 1 -l 0 is
+# interrupted when unloading the drivers.
+kill_trace_users
 
 # SOF CI has a dependency on usb audio
 remove_module snd_usb_audio
