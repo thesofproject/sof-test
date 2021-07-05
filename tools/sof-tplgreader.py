@@ -182,8 +182,12 @@ class clsTPLGReader:
                 if 'any' in value or value == ['']:
                     check = True if key in line.keys() else False
                 else:
-                    # check if current pipeline is among the ones we want
-                    check = str(line[key]) in value
+                    # Use full match for numerical values, and use substring
+                    # match for string values
+                    if str(line[key]).isdigit():
+                        check = str(line[key]) in value
+                    else:
+                        check = any([em in str(line[key]) for em in value])
                 if check is bIn:
                     break
             else:
@@ -306,12 +310,19 @@ string format is 'key':'value','value', the filter
 string support & | and ~ logic operation.
 if only care about key, you can use 'key':'any'.
 
+NOTE: pipelines are filtered according to their key-value attributes pairs,
+the value in a key-value pair is either numerical or non-numerical. Strings
+contain only digits are considered numerical, and others are considered
+non-numerical. Exact value match will be carried out for numerical values,
+and partial(substring) value match will be carried for non-numerical values.
+
 Example Usage:
-`-f "type:any` -> all pipelines
-`-f "type:playback"` -> playback pipelines
+`-f "type:any` -> all pipelines (special value match, 'any' matches everything)
+`-f "type:playback"` -> playback pipelines (partial match)
 `-f "type:capture & pga"` -> capture pipelines with PGA
-`-f "pga & eq"` -> pipelines with both EQ and PGA
-`-f "id:3"` -> pipeline whose id is 3
+`-f "pga & eq"` -> pipelines with both EQ and PGA (key match)
+`-f "id:3"` -> pipeline whose id is 3 (exact value match)
+`-f "pcm:HDMI"` -> pipelines with pcm name contains HDMI (partial value match)
 
 WARNING: usual boolean precedence does NOT apply! Filters are naively
 applied from left to right. For instance you could expect "id:2 | pga & id:1"
