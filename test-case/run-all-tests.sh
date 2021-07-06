@@ -228,7 +228,7 @@ test_multiple-pipeline-capture()
 }
 test_multiple-pause-resume()
 {
-	"$mydir"/multiple-pause-resume.sh -r 25
+	"$mydir"/multiple-pause-resume.sh -l "$small_loop" -r 25
 }
 test_kmod-load-unload()
 {
