@@ -4,18 +4,28 @@
 
 insert_module() {
 
-    local MODULE="$1"
+    local MODULE="$1"; shift
 
     if modinfo "$MODULE" &> /dev/null ; then
-        printf 'MODPROBE\t%s\n' "$MODULE"
-        sudo modprobe "$MODULE"
+        printf 'MODPROBE\t%s\t\t' "$MODULE"
+        printf '%s ' "$@"
+        printf '\n'
+        sudo modprobe "$MODULE" "$@"
     else
-        printf 'SKIP    \t%s \tnot in tree\n' "$MODULE"
+        printf 'SKIP    \t%s \t(not in tree)\n' "$MODULE"
     fi
 }
 
 # Test sudo first, not after dozens of SKIP
 sudo true
+
+
+# This is not required unless you want to change the default flags.
+# For the list of flags search:   git -C linux grep SOF_DBG_
+# Warning: the DMA trace can be forced ON in Kconfig and
+# the SOF_DBG_ENABLE_TRACE bit ignored here.
+# insert_module snd_sof sof_debug=1
+
 
 # Insert codec drivers first, they are required to register ASoC components
 
