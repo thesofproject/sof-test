@@ -365,6 +365,12 @@ ignore_str="$ignore_str"'|elan_i2c i2c-ELAN0000:.*: invalid report id data'
 # iwlwifi 0000:00:14.3: No beacon heard and the time event is over already...
 ignore_str="$ignore_str"'|iwlwifi [[:digit:].:]+: '
 
+# Ignore DEVRES debug log which is ERROR by default
+# DEVRES debug log will be enabled in kmod test
+# There are four OPs from DEVRES, ADD, REP, REM, REL
+# for example, [  182.317913] cml_rt1011_rt5682 cml_rt1011_rt5682: DEVRES REL 00000000618e4fb0 devm_card_release (8 bytes)
+# issue link: https://github.com/thesofproject/linux/issues/3008
+ignore_str="$ignore_str"'| DEVRES [A-Z]{3} '
 
 #
 # SDW related logs
