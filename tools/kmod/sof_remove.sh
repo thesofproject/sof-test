@@ -151,10 +151,13 @@ remove_module snd_soc_sof_sdw
 remove_module snd_soc_ehl_rt5660
 remove_module snd_soc_intel_hda_dsp_common
 remove_module snd_soc_intel_sof_maxim_common
-remove_module snd_sof_ipc_test
+
+#-------------------------------------------
+# SOF client drivers
+#-------------------------------------------
 remove_module snd_sof_probes
-remove_module snd_sof_intel_client
-remove_module snd_sof_client
+remove_module snd_sof_ipc_test
+remove_module snd_sof_dma_trace
 
 # snd_sof_nocodec dependencies re-ordered
 # in https://github.com/thesofproject/linux/pull/2800
