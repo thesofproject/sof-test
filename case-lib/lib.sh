@@ -93,8 +93,14 @@ find_ldc_file()
             return 1
         }
         ldcFile=/etc/sof/sof-"$platf".ldc
-        [ -e "$ldcFile" ] ||
-            ldcFile=/lib/firmware/intel/sof/sof-"$platf".ldc
+        [ -e "$ldcFile" ] || {
+            # Fall back on standard /lib/firmware location
+            if test -e /lib/firmware/updates/intel/sof; then
+                ldcFile=/lib/firmware/updates/intel/sof/sof-"$platf".ldc
+            else
+                ldcFile=/lib/firmware/intel/sof/sof-"$platf".ldc
+            fi
+        }
     fi
 
     [[ -e "$ldcFile" ]] || {
@@ -261,10 +267,10 @@ func_lib_get_tplg_path()
     local tplg=$1
     if [[ -z "$tplg" ]]; then   # tplg given is empty
         return 1
-    elif [[ -f "$TPLG_ROOT/$(basename "$tplg")" ]]; then
-        echo "$TPLG_ROOT/$(basename "$tplg")"
     elif [[ -f "$tplg" ]]; then
         realpath "$tplg"
+    elif [[ -f "$TPLG_ROOT/$tplg" ]]; then
+        echo "$TPLG_ROOT/$tplg"
     else
         return 1
     fi
