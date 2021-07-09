@@ -21,25 +21,26 @@ set -e
 ##
 
 # shellcheck source=case-lib/lib.sh
-source $(dirname ${BASH_SOURCE[0]})/../case-lib/lib.sh
+source "$(dirname "${BASH_SOURCE[0]}")"/../case-lib/lib.sh
 
-OPT_NAME['t']='tplg'     OPT_DESC['t']='tplg file, default value is env TPLG: $TPLG'
+OPT_NAME['t']='tplg'     OPT_DESC['t']="tplg file, default value is env TPLG: $TPLG"
 OPT_HAS_ARG['t']=1         OPT_VAL['t']="$TPLG"
 
 OPT_NAME['l']='loop'     OPT_DESC['l']='loop count'
-OPT_HAS_ARG['l']=1         OPT_VAL['l']=3
+OPT_HAS_ARG['l']=1         OPT_VAL['l']=5
 
 OPT_NAME['c']='count'    OPT_DESC['c']='combine test pipeline count'
 OPT_HAS_ARG['c']=1         OPT_VAL['c']=2
 
 OPT_NAME['r']='loop'     OPT_DESC['r']='pause resume repeat count'
-OPT_HAS_ARG['r']=1         OPT_VAL['r']=3
+OPT_HAS_ARG['r']=1         OPT_VAL['r']=5
 
-OPT_NAME['i']='min'      OPT_DESC['i']='random range min value, unit is ms'
-OPT_HAS_ARG['i']=1         OPT_VAL['i']='100'
+# pause/resume interval will be a random value bounded by the min and max values below
+OPT_NAME['i']='min'      OPT_DESC['i']='pause/resume transition min value, unit is ms'
+OPT_HAS_ARG['i']=1         OPT_VAL['i']='20'
 
-OPT_NAME['a']='max'      OPT_DESC['a']='random range max value, unit is ms'
-OPT_HAS_ARG['a']=1         OPT_VAL['a']='200'
+OPT_NAME['a']='max'      OPT_DESC['a']='pause/resume transition max value, unit is ms'
+OPT_HAS_ARG['a']=1         OPT_VAL['a']='50'
 
 OPT_NAME['s']='sof-logger'   OPT_DESC['s']="Open sof-logger trace the data will store at $LOG_ROOT"
 OPT_HAS_ARG['s']=0             OPT_VAL['s']=1
@@ -51,7 +52,7 @@ loop_count=${OPT_VAL['l']}
 # configure random value range
 rnd_min=${OPT_VAL['i']}
 rnd_max=${OPT_VAL['a']}
-rnd_range=$[ $rnd_max - $rnd_min ]
+rnd_range=$((rnd_max - rnd_min))
 [[ $rnd_range -le 0 ]] && dlogw "Error random range scope [ min:$rnd_min - max:$rnd_max ]" && exit 2
 
 tplg=${OPT_VAL['t']}
@@ -64,23 +65,23 @@ declare -a cmd_idx_lst
 declare -a file_idx_lst
 
 # merge all pipeline to the 1 group
-for i in $(seq 0 $(expr $PIPELINE_COUNT - 1))
+for i in $(seq 0 $((PIPELINE_COUNT - 1)))
 do
-    pipeline_idx_lst=(${pipeline_idx_lst[*]} $i)
-    type=$(func_pipeline_parse_value $i type)
+    pipeline_idx_lst=("${pipeline_idx_lst[*]}" "$i")
+    type=$(func_pipeline_parse_value "$i" type)
     if [ "$type" == "playback" ];then
-        cmd_idx_lst=(${cmd_idx_lst[*]} "aplay")
-        file_idx_lst=(${file_idx_lst[*]} "/dev/zero")
+        cmd_idx_lst=("${cmd_idx_lst[*]}" "aplay")
+        file_idx_lst=("${file_idx_lst[*]}" "/dev/zero")
     elif [ "$type" == "capture" ];then
-        cmd_idx_lst=(${cmd_idx_lst[*]} "arecord")
-        file_idx_lst=(${file_idx_lst[*]} "/dev/null")
+        cmd_idx_lst=("${cmd_idx_lst[*]}" "arecord")
+        file_idx_lst=("${file_idx_lst[*]}" "/dev/null")
     elif [ "$type" == "both" ];then
-        cmd_idx_lst=(${cmd_idx_lst[*]} "aplay")
-        file_idx_lst=(${file_idx_lst[*]} "/dev/zero")
+        cmd_idx_lst=("${cmd_idx_lst[*]}" "aplay")
+        file_idx_lst=("${file_idx_lst[*]}" "/dev/zero")
         # both include playback & capture, so duplicate it
-        pipeline_idx_lst=(${pipeline_idx_lst[*]} $i)
-        cmd_idx_lst=(${cmd_idx_lst[*]} "arecord")
-        file_idx_lst=(${file_idx_lst[*]} "/dev/null")
+        pipeline_idx_lst=("${pipeline_idx_lst[*]}" "$i")
+        cmd_idx_lst=("${cmd_idx_lst[*]}" "arecord")
+        file_idx_lst=("${file_idx_lst[*]}" "/dev/null")
     else
         die "Unknow pipeline type: $type"
     fi
@@ -92,10 +93,10 @@ done
 
 # create combination list
 declare -a pipeline_combine_lst
-for i in $(sof-combinatoric.py -n ${#pipeline_idx_lst[*]} -p $max_count)
+for i in $(sof-combinatoric.py -n ${#pipeline_idx_lst[*]} -p "$max_count")
 do
     # convert combine string to combine element
-    pipeline_combine_str="$(echo $i|sed 's/,/ /g')"
+    pipeline_combine_str="${i//,/ }"
     pipeline_combine_lst=("${pipeline_combine_lst[@]}" "$pipeline_combine_str")
 done
 [[ ${#pipeline_combine_lst[@]} -eq 0 ]] && dlogw "pipeline combine is empty" && exit 2
@@ -139,7 +140,8 @@ exit 1
 END
 }
 
-max_wait_time=$[ 10 * $repeat_count ]
+# to prevent infinite loop, 5 second per a repeat is plenty
+max_wait_time=$((5 * repeat_count)) 
 
 for i in $(seq 1 $loop_count)
 do
@@ -150,10 +152,10 @@ do
     do
         unset pid_lst
         declare -a pid_lst
-        for idx in $(echo $pipeline_combine_str)
+        for idx in $pipeline_combine_str
         do
-            func_pause_resume_pipeline $idx
-            pid_lst=(${pid_lst[*]} $!)
+            func_pause_resume_pipeline "$idx"
+            pid_lst=("${pid_lst[*]}" $!)
         done
         # wait for expect script finished
         dlogi "wait for expect process finished"
@@ -168,16 +170,17 @@ do
         echo
         if [ "$(pidof expect)" ]; then
             dloge "Still have expect process not finished after wait for $max_wait_time"
-            # now dump process
-            ps -ef |grep -E 'aplay|arecord' || true
+            # list aplay/arecord process and kill them
+            pgrep -a aplay && pkill -9 aplay
+            pgrep -a arecord && pkill -9 arecord
             exit 1
         fi
         # now check for all expect quit status
         # dump the pipeline combine, because pause resume will have too many operation log
-        for idx in $(echo $pipeline_combine_str)
+        for idx in $pipeline_combine_str
         do
             pipeline_index=${pipeline_idx_lst[$idx]}
-            pcm=$(func_pipeline_parse_value $pipeline_index pcm)
+            pcm=$(func_pipeline_parse_value "$pipeline_index" pcm)
             dlogi "pipeline: $pcm with ${cmd_idx_lst[$idx]}"
         done
         dlogi "Check expect exit status"
