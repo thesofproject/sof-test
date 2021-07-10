@@ -48,7 +48,9 @@ OPT_HAS_ARG['d']=1         OPT_VAL['d']=3
 OPT_NAME['p']='pulseaudio'   OPT_DESC['p']='disable pulseaudio on the test process'
 OPT_HAS_ARG['p']=0             OPT_VAL['p']=1
 
-func_opt_parse_option "$@"
+fxunc_opt_parse_option "$@"
+setup_kernel_check_point
+
 tplg=${OPT_VAL['t']}
 loop_cnt=${OPT_VAL['l']}
 pb_duration=${OPT_VAL['d']}
