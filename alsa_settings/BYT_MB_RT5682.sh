@@ -1,3 +1,5 @@
+set -e
+
 # enable headset playback
 amixer -c sofrt5682 cset name='DAC L Mux' 0
 amixer -c sofrt5682 cset name='DAC R Mux' 0

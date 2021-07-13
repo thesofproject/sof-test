@@ -1,3 +1,5 @@
+set -e
+
 # enable headset playback
 amixer -c rt286 cset name='HPO L Switch' 1
 amixer -c rt286 cset name='HPO R Switch' 1

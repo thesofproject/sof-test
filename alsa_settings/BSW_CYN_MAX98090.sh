@@ -1,3 +1,5 @@
+set -e
+
 # enable headset playback
 amixer -c max98090 cset name='Headphone Left Switch' on
 amixer -c max98090 cset name='Headphone Switch' on

@@ -1,3 +1,5 @@
+set -e
+
 # enable headset playback
 amixer -c sofpcm512x cset name='Digital Playback Switch' 1
 amixer -c sofpcm512x cset name='Digital Playback Volume' 150

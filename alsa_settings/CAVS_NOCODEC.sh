@@ -1,3 +1,5 @@
+set -e
+
 # SSP playback
 amixer -c sofnocodec cset name='PGA1.0 1 Master Playback Volume' 32
 amixer -c sofnocodec cset name='PGA3.0 3 Master Playback Volume' 32

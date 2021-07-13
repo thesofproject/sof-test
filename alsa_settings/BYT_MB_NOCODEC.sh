@@ -1,3 +1,5 @@
+set -e
+
 # enable headset playback
 amixer -c sofnocodec cset name='PGA1.0 1 Master Playback Volume' 26
 
