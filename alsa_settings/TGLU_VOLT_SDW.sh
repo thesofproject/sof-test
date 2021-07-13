@@ -1,3 +1,5 @@
+set -e
+
 # headset playback
 amixer -c sofsoundwire cset name='Headphone Switch' 1
 amixer -c sofsoundwire cset name='rt5682 DAC L Mux' 1

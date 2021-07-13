@@ -1,3 +1,5 @@
+set -e
+
 # enable headset playback
 amixer -c sofehlrt5660 cset name='DAC1 MIXL DAC1 Switch' 1
 amixer -c sofehlrt5660 cset name='DAC1 MIXR DAC1 Switch' 1

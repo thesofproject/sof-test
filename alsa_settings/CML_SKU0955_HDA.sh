@@ -1,3 +1,5 @@
+set -e
+
 # set headset
 amixer -c sofhdadsp cset name='Master Playback Switch' on
 amixer -c sofhdadsp cset name='Master Playback Volume' 70

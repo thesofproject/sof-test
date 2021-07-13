@@ -1,3 +1,5 @@
+set -e
+
 # set HDMI volume
 amixer -c sofhdadsp cset name='IEC958 Playback Switch' on
 amixer -c sofhdadsp cset name='IEC958 Playback Switch',index=1  on
