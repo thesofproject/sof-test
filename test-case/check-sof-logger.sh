@@ -39,6 +39,10 @@ md5list()
     while read -r; do md5sum "$REPLY"; done
 }
 
+# TODO: move all this code to "main" or any other, possibly new
+# function. See why in
+# https://github.com/thesofproject/sof-test/issues/740
+
 # Recent Ubuntu versions symlink the entire /bin -> /usr/bin so we
 # cannot just count the number of filenames we found. Count the
 # number of different _checksums_ we found in PATH.
@@ -151,6 +155,12 @@ main()
     if is_zephyr; then
         disable_kernel_check_point
         skip_test "The SOF logger does not work with Zephyr yet, see issue #4420"
+    fi
+
+    local platform; platform=$("$TOPDIR"/tools/sof-dump-status.py -p)
+
+    if [ adl = "$platform" ]; then
+        skip_test "adl FW takes too long to boot, see linux/issues/3042"
     fi
 
     reload_drivers
