@@ -283,6 +283,11 @@ case "$platform" in
         # i915 0000:00:02.0: [drm] *ERROR* AUX A/DDI A/PHY A: not done (status 0xad4003ff)
         ignore_str="$ignore_str"'|i915 [[:digit:].:]+: \[drm\] \*ERROR\* AUX .+'
         ;;
+    ehl)
+	# i915 crtc logs can be ignored
+	# origin logs seen on EHL_RVP_I2S platforms
+	# i915 0000:00:02.0: [drm] *ERROR* Suspending crtc's failed with -22
+	ignore_str="$ignore_str""|i915 [[:digit:].:]+: \[drm\] \*ERROR\* Suspending crtc's failed with -[[:digit:]]+"
 esac
 
 # below are new error level kernel logs from journalctl --priority=err
