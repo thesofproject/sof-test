@@ -355,6 +355,11 @@ ignore_str="$ignore_str"'|proc_thermal 0000:00:..\..: No auxiliary DTSs enabled'
 # elan_i2c i2c-ELAN0000:00: invalid report id data (ff)
 ignore_str="$ignore_str"'|elan_i2c i2c-ELAN0000:.*: invalid report id data'
 
+# GLK another touch pad errors to be ignored
+# BugLink: https://github.com/thesofproject/sof-test/issues/735
+ignore_str="$ignore_str"'|elan_i2c i2c-ELAN0000:.*: reading cmd \(0x[A-Fa-f0-9]{4}\) fail'
+ignore_str="$ignore_str"'|elan_i2c i2c-ELAN0000:.*: failed to read current power state:'
+
 # iwlwifi net adaptor logs can be ignored
 # origin logs seen on CML platforms
 # iwlwifi 0000:00:14.3: Direct firmware load for iwlwifi-QuZ-a0-hr-b0-56.ucode failed with error -2
