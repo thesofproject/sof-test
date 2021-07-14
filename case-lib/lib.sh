@@ -365,7 +365,8 @@ die()
 
 skip_test()
 {
-    dlogi "$@"
+    dlogw 'SKIP test because:'
+    dlogw "$@"
     # See func_exit_handler()
     exit 2
 }
