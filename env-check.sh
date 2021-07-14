@@ -8,7 +8,6 @@ mydir=$(cd "$(dirname "$0")"; pwd)
 DYNDBG="/etc/modprobe.d/sof-dyndbg.conf"
 
 # check for the system package
-out_str=""
 func_check_pkg(){
     if command -v "$1" >/dev/null; then
         return
@@ -46,7 +45,7 @@ func_check_exec_binary() {
     fi
 }
 
-check_res=0
+out_str="" check_res=0
 printf "Checking for some OS packages:\t\t"
 func_check_pkg expect
 func_check_pkg aplay
@@ -61,6 +60,22 @@ if [ $check_res -eq 0 ]; then
     printf "pass\n"
 else
     printf '\e[31mWarning\e[0m\n'
+# Need ANSI color characters to be the format string. This is not
+# unsanitized input.
+# shellcheck disable=SC2059
+    printf "$out_str"
+fi
+
+# octave packages are required only for check-volume-levels.sh
+# Good to check upfront but this can be optional requirement
+out_str="" check_res=0
+func_check_pkg octave
+func_check_pkg octave-signal
+func_check_pkg octave-io
+if [ $check_res -eq 0 ]; then
+    printf "pass for Octave packages\n"
+else
+    printf 'Optional: Octave packages are required for check-volume-levels.sh\n'
 # Need ANSI color characters to be the format string. This is not
 # unsanitized input.
 # shellcheck disable=SC2059
