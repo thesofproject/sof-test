@@ -167,6 +167,7 @@ remove_module snd_sof_nocodec || true
 
 remove_module snd_sof
 remove_module snd_sof_nocodec
+remove_module snd_sof_utils
 
 #-------------------------------------------
 # Codec drivers
