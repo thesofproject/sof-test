@@ -65,7 +65,7 @@ sof-logger
 '
 
 # Requires Octave
-# testlist="$testlist volume_levels"
+testlist="$testlist volume_levels"
 
 main()
 {
