@@ -425,3 +425,30 @@ re_enable_ntp_sync()
     # enable ntp sync. This will trigger initial synchronization to time server
     sudo timedatectl set-ntp true
 }
+
+# check-alsabat.sh need to run optimum alsa control settings
+# param1: platform name
+set_alsa_settings()
+{
+    # ZEPHYR platform shares same tplg, remove '_ZEPHYR' from platform name
+    local PNAME="${1%_ZEPHYR}"
+    dlogi "Run alsa setting for $PNAME"
+    case $PNAME in
+        APL_UP2_NOCODEC | CML_RVP_NOCODEC | JSL_RVP_NOCODEC | TGLU_RVP_NOCODEC | ADLP_RVP_NOCODEC)
+            # common nocodec alsa settings
+            "$SCRIPT_HOME"/alsa_settings/CAVS_NOCODEC.sh
+        ;;
+        TGLU_RVP_NOCODEC_CI | ADLP_RVP_NOCODEC_CI)
+            # common nocodec_ci alsa settings
+            "$SCRIPT_HOME"/alsa_settings/CAVS_NOCODEC_CI.sh
+        ;;
+        *)
+            # if script name is same as platform name, default case will handle all
+            if [ -f "$SCRIPT_HOME"/alsa_settings/"$PNAME".sh ]; then
+                "$SCRIPT_HOME"/alsa_settings/"$PNAME".sh
+            else
+                dlogw "alsa setting for $PNAME is not available"
+            fi
+        ;;
+    esac
+}
