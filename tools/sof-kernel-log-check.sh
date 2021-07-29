@@ -331,9 +331,10 @@ ignore_str="$ignore_str"'|DMAR: \[Firmware Bug\]: No firmware reserved region ca
 # origin logs seen on TGL platforms
 # DMAR: DRHD: handling fault status reg 3
 # DMAR: [DMA Read] Request device [00:02.0] PASID ffffffff fault addr 70ad5000 [fault reason 07] Next page table ptr is invalid
+# origin logs seen on TGL and TGLH platforms
+# DMAR: [DMA Read NO_PASID] Request device [0x00:0x02.0] fault addr 0x7c592000 [fault reason 0x06] PTE Read access is not set
 ignore_str="$ignore_str"'|DMAR: DRHD: handling fault status reg 3'
-ignore_str="$ignore_str"'|DMAR: \[DMA Read\] Request device'
-
+ignore_str="$ignore_str"'|DMAR: \[DMA Read.*\] Request device'
 
 # TME related warnings can be ignored
 # x86/mktme: No known encryption algorithm is supported: 0x4
