@@ -92,6 +92,8 @@ dlogc "alsabat -C$pcm_c -c $channel_c -r $rate -F $frequency"
 alsabat -C$pcm_c -c $channel_c -r $rate -F $frequency || {
         # upload failed wav file
         __upload_wav_file
+        # dump amixer contents for more debugging
+        amixer contents > "$LOG_ROOT"/amixer_settings.txt
         exit 1
 }
 
