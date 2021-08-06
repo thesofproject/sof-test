@@ -389,10 +389,6 @@ disable_kernel_check_point()
 
 is_zephyr()
 {
-    # check if jq is installed, will remove this part
-    # after all DUTs have jq installed.
-    type -p jq || sudo apt install jq -y
-
     local manifest=/etc/sof/manifest.txt
     test -e "$manifest" || return 1
     jq '.version.firmwareType' "$manifest" | grep "zephyr"
