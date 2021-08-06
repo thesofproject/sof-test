@@ -211,6 +211,11 @@ ignore_str="$ignore_str"'|usb .-.+: device descriptor read/.+, error'
 ignore_str="$ignore_str"'|usb .-.+: device not accepting address .+, error'
 ignore_str="$ignore_str"'|usb usb.-port.+: unable to enumerate USB device'
 
+# found on TGLU_SKU0A32_SDCA with check-playback-100sec.sh, internal daily test #5745
+# see also: https://github.com/thesofproject/linux/blob/b73297355e03ffdff62e3d7a6438934f05c58f54/drivers/usb/core/hub.c#L5563
+# usb 3-8-port4: disabled by hub (EMI?), re-enabling...
+ignore_str="$ignore_str"'|(usb|hub) .+: disabled by hub \(EMI\?\), re-enabling\.\.\.'
+
 # Devices with IGB network interfaces. Since we have multiple issues we ignore
 # all messages from this driver, e.g.
 # igb 0000:01:00.0 enp1s0: Reset adapter'
