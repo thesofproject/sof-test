@@ -50,6 +50,8 @@ printf "Checking for some OS packages:\t\t"
 func_check_pkg expect
 func_check_pkg aplay
 func_check_pkg python3
+# jq is command-line json parser
+func_check_pkg jq
 func_check_python_pkg graphviz
 func_check_python_pkg numpy
 func_check_python_pkg scipy
