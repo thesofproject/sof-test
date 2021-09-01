@@ -114,8 +114,6 @@ do
     dlogi "Entering audio stream expect script with: $cmd -D $dev -r $rate -c $channel -f $fmt -vv -i $file_name -q"
     dlogi "Will enter suspend-resume cycle during paused period of audio stream process"
 
-    rm -rf /tmp/sof-test.lock
-
     # expect is tcl language script
     #   catch: Evaluate script and trap exceptional returns
     #   after ms: Ms must be an integer giving a time in milliseconds.
@@ -145,7 +143,7 @@ expect {
         }
 
         #enter suspend-resume cycle once per pause instance
-        set retval [catch { exec bash /home/ubuntu/sof-test/test-case/check-suspend-resume.sh -l 1 } msg]
+        set retval [catch { exec bash $(dirname "${BASH_SOURCE[0]}")/check-suspend-resume.sh -l 1 } msg]
 
         #prints logs from suspend-resume test
         puts \$msg
@@ -180,5 +178,4 @@ AUDIO
         exit $ret
     fi
     sof-kernel-log-check.sh "$KERNEL_CHECKPOINT" || die "Caught error in kernel log"
-    #exit $?
 done
