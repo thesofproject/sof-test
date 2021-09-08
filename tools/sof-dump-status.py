@@ -484,25 +484,19 @@ if __name__ == "__main__":
 
     if ret_args.get('id') is not None:
         sysinfo.loadProcSound()
-        card_info = sysinfo.proc_card.get(str(ret_args['id']))
-        if card_info is None:
-            exit(0)
+        card_info = sysinfo.proc_card[str(ret_args['id'])]
         dump_cardinfo_pcm(card_info)
         exit(0)
 
     if ret_args.get('short') is not None:
         sysinfo.loadProcSound()
-        card_info = sysinfo.proc_card.get(str(ret_args['short']))
-        if card_info is None:
-            exit(0)
+        card_info = sysinfo.proc_card[str(ret_args['short'])]
         print(card_info['short'])
         exit(0)
 
     if ret_args.get('longname') is not None:
         sysinfo.loadProcSound()
-        card_info = sysinfo.proc_card.get(str(ret_args['longname']))
-        if card_info is None:
-            exit(0)
+        card_info = sysinfo.proc_card[str(ret_args['longname'])]
         print(card_info['longname'])
         exit(0)
 
