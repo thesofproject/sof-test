@@ -34,7 +34,7 @@ jobs:
     steps:
       # :-( https://github.community/t/support-for-yaml-anchors/16128
       - {uses: actions/checkout@v2, with: {fetch-depth: 0}}
-      - uses: actions/setup-python@v2
+      - run: python --version
 
       # Package index is "out of date by design"
       # https://github.com/actions/virtual-environments/issues/1757
