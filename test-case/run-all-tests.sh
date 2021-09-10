@@ -87,6 +87,9 @@ main()
 	local failures=()
 	local passed=()
 
+	# On Ctrl-C
+	trap interrupted_results INT
+
 	local tests_length=10 time_delay=3
 
 	while getopts "l:T:h" OPTION; do
@@ -133,6 +136,20 @@ print_results()
 	fi
 
 	printf "\n\n\033[40;32m test end with %d failed tests\033[0m\n\n" "${#failures[@]}"
+}
+
+interrupted_results()
+{
+	# Users often hit Ctrl-C multiple times which would interrupt
+	# this function too.
+	trap '' INT
+
+	# Give subprocesses some time to avoid mixed up output
+	sleep 3
+
+	print_results
+	printf 'Testing was INTERRUPTED, results are incomplete!\n'
+	exit 1
 }
 
 test_firmware-presence()
