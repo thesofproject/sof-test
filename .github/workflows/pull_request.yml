@@ -42,8 +42,7 @@ jobs:
         run: sudo apt-get -y update
 
       - name: get python libs
-        # FIXME: apt-get succeeds but 'import numpy' still fails!?
-        run: sudo apt-get -y install python3-numpy python3-scipy pylint
+        run: sudo apt-get -y install $(cat python-deps.txt)
 
       - name: pylint
         env:
