@@ -75,7 +75,7 @@ OPT_NAME['l']='loop'         OPT_DESC['l']='loop count'
 OPT_HAS_ARG['l']=1             OPT_VAL['l']=5
 
 OPT_NAME['i']='sleep-period' OPT_DESC['i']='sleep period of aplay, unit is ms'
-OPT_HAS_ARG['i']=1             OPT_VAL['i']='100'
+OPT_HAS_ARG['i']=1             OPT_VAL['i']='500'
 
 OPT_NAME['s']='sof-logger'   OPT_DESC['s']="Open sof-logger trace the data will store at $LOG_ROOT"
 OPT_HAS_ARG['s']=0             OPT_VAL['s']=1
