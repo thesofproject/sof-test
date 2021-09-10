@@ -121,13 +121,18 @@ main()
 		sleep "$time_delay"
 	done
 
+	print_results
+	exit "${#failures[@]}"
+}
+
+print_results()
+{
 	printf "\n\nPASS:"; printf ' %s;' "${passed[@]}"
 	if [ "${#failures[@]}" -gt 0 ]; then
 	    printf "\nFAIL:"; printf ' %s;' "${failures[@]}"
 	fi
 
 	printf "\n\n\033[40;32m test end with %d failed tests\033[0m\n\n" "${#failures[@]}"
-	exit "${#failures[@]}"
 }
 
 test_firmware-presence()
