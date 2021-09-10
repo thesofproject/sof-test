@@ -1,3 +1,5 @@
 python3-numpy
 python3-scipy
 pylint
+python3-graphviz
+python3-construct=2.8.*
