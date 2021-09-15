@@ -79,6 +79,9 @@ OPT_HAS_ARG['s']=0             OPT_VAL['s']=1
 OPT_NAME['t']='tplg'         OPT_DESC['t']='tplg file with complete path, default is environment variable: TPLG'
 OPT_HAS_ARG['t']=1             OPT_VAL['t']="$TPLG"
 
+OPT_NAME['T']='type'         OPT_DESC['T']="suspend/resume type from /sys/power/mem_sleep"
+OPT_HAS_ARG['T']=1             OPT_VAL['T']=""
+
 func_opt_parse_option "$@"
 
 repeat_count=${OPT_VAL['l']}
@@ -100,6 +103,12 @@ case $test_mode in
         die "Invalid test mode: $test_mode. Accepted test mode: playback; capture"
     ;;
 esac
+
+if [ -n "${OPT_VAL['T']}" ]; then
+    suspend_opts="-l 1 -T ${OPT_VAL['T']}"
+else
+    suspend_opts="-l 1"
+fi
 
 [[ -z $file_name ]] && file_name=$dummy_file
 
@@ -150,7 +159,7 @@ expect {
         }
 
         #enter suspend-resume cycle once per pause instance
-        set retval [catch { exec bash $CASEDIR/check-suspend-resume.sh -l 1 } msg]
+        set retval [catch { exec bash $CASEDIR/check-suspend-resume.sh $suspend_opts } msg]
 
         #prints logs from suspend-resume test
         puts \$msg
