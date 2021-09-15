@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import warnings
 import os
 import sys
 import argparse
@@ -856,6 +857,7 @@ class TplgFormatter:
         return interweaved_dict
 
 if __name__ == "__main__":
+    warnings.warn("tplgtool.py is deprecated, use tplgtool2.py instead.", DeprecationWarning)
 
     def parse_cmdline():
         parser = argparse.ArgumentParser(add_help=True, formatter_class=argparse.RawTextHelpFormatter,
