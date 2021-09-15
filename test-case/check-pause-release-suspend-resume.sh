@@ -7,12 +7,14 @@ set -e
 ## Preconditions:
 ##    N/A
 ## Description:
-##    test audio stream (playback or capture) with pause/release as well as suspend/resume
-##    fake pause/release with expect on audio stream process
+##    Get audio stream pipeline paremeters from the tplg file.
+##    test audio stream (playback or capture) with pause as well as suspend/resume
+##    fake pause with expect on audio stream process
 ##    have system enter suspend state for 5 secs
 ##    resume from suspend state
 ##    release audio stream from paused state
-##    repeat
+##    repeat to all pipelines
+##    user can use -S option to specify only one PCM to test also.
 ## Case step:
 ##    1. audio stream process is started
 ##    2. audio stream process is then paused via mock spacebar press via expect
@@ -51,22 +53,16 @@ set -e
 ##  * No unexpected errors should be present in dmesg during or after test
 ##      completion.
 
-source $(dirname ${BASH_SOURCE[0]})/../case-lib/lib.sh
+CASEDIR=$(dirname "${BASH_SOURCE[0]}")
+
+# shellcheck source=case-lib/lib.sh
+source "$CASEDIR"/../case-lib/lib.sh
 
 OPT_NAME['m']='mode'         OPT_DESC['m']='test mode. Example: playback; capture'
 OPT_HAS_ARG['m']=1             OPT_VAL['m']='playback'
 
-OPT_NAME['p']='pcm'          OPT_DESC['p']='audio pcm. Example: hw:0,0'
-OPT_HAS_ARG['p']=1             OPT_VAL['p']='hw:0,0'
-
-OPT_NAME['f']='fmt'          OPT_DESC['f']='audio format value'
-OPT_HAS_ARG['f']=1             OPT_VAL['f']='S16_LE'
-
-OPT_NAME['c']='channel'      OPT_DESC['c']='audio channel count'
-OPT_HAS_ARG['c']=1             OPT_VAL['c']='2'
-
-OPT_NAME['r']='rate'         OPT_DESC['r']='audio rate'
-OPT_HAS_ARG['r']=1             OPT_VAL['r']='48000'
+OPT_NAME['S']='filter_string'          OPT_DESC['S']='run this case on specified pipelines'
+OPT_HAS_ARG['S']=1             OPT_VAL['S']='id:any'
 
 OPT_NAME['F']='file'         OPT_DESC['F']='file name. Example: /dev/zero; /dev/null'
 OPT_HAS_ARG['F']=1             OPT_VAL['F']=''
@@ -80,16 +76,16 @@ OPT_HAS_ARG['i']=1             OPT_VAL['i']='500'
 OPT_NAME['s']='sof-logger'   OPT_DESC['s']="Open sof-logger trace the data will store at $LOG_ROOT"
 OPT_HAS_ARG['s']=0             OPT_VAL['s']=1
 
+OPT_NAME['t']='tplg'         OPT_DESC['t']='tplg file with complete path, default is environment variable: TPLG'
+OPT_HAS_ARG['t']=1             OPT_VAL['t']="$TPLG"
+
 func_opt_parse_option "$@"
 
-pcm=${OPT_VAL['p']}
-fmt=${OPT_VAL['f']}
-channel=${OPT_VAL['c']}
-rate=${OPT_VAL['r']}
 repeat_count=${OPT_VAL['l']}
 sleep_period=${OPT_VAL['i']}
 test_mode=${OPT_VAL['m']}
 file_name=${OPT_VAL['F']}
+tplg=${OPT_VAL['t']}
 
 case $test_mode in
     "playback")
@@ -107,29 +103,37 @@ esac
 
 [[ -z $file_name ]] && file_name=$dummy_file
 
-
 logger_disabled || func_lib_start_log_collect
 
 setup_kernel_check_point
 
-dlogi "Entering audio stream expect script with: $cmd -D $pcm -r $rate -c $channel -f $fmt -vv -i $dummy_file -q"
-dlogi "Will enter suspend-resume cycle during paused period of audio stream process"
+func_pipeline_export "$tplg" "type:$test_mode & ${OPT_VAL['S']}"
 
-rm -rf /tmp/sof-test.lock
+for idx in $(seq 0 $((PIPELINE_COUNT - 1)))
+do
+    channel=$(func_pipeline_parse_value "$idx" channel)
+    rate=$(func_pipeline_parse_value "$idx" rate)
+    fmt=$(func_pipeline_parse_value "$idx" fmt)
+    dev=$(func_pipeline_parse_value "$idx" dev)
 
-# expect is tcl language script
-#   catch: Evaluate script and trap exceptional returns
-#   after ms: Ms must be an integer giving a time in milliseconds.
-#       The command sleeps for ms milliseconds and then returns.
-expect <<AUDIO
-spawn $cmd -D $pcm -r $rate -c $channel -f $fmt -vv -i $dummy_file -q
+    dlogi "Entering audio stream expect script with:
+        $cmd -D $dev -r $rate -c $channel -f $fmt -vv -i $file_name -q"
+    dlogi "Will enter suspend-resume cycle during paused period of audio stream process"
+
+    # expect is tcl language script
+    #   catch: Evaluate script and trap exceptional returns
+    #   after ms: Ms must be an integer giving a time in milliseconds.
+    #       The command sleeps for ms milliseconds and then returns.
+    expect <<AUDIO
+
+spawn $cmd -D $dev -r $rate -c $channel -f $fmt -vv -i $file_name -q
 set i 1
 set sleep_t $sleep_period
 expect {
     "#*+*\%" {
         #audio stream (aplay or arecord) is active now and playing
         puts "\r===== (\$i/$repeat_count) pb_pbm: Pause $cmd, then wait for ===== "
-        puts "\r(\$i/$repeat_count) pb_pbm: $sleep_t ms after pause"
+        puts "\r(\$i/$repeat_count) pb_pbm: \$sleep_t ms after pause"
         send " "
         after \$sleep_t
         puts "Finished sleep. Confirming $cmd is paused."
@@ -146,7 +150,7 @@ expect {
         }
 
         #enter suspend-resume cycle once per pause instance
-        set retval [catch { exec bash check-suspend-resume.sh -l 1 } msg]
+        set retval [catch { exec bash $CASEDIR/check-suspend-resume.sh -l 1 } msg]
 
         #prints logs from suspend-resume test
         puts \$msg
@@ -172,13 +176,13 @@ expect {
 }
 AUDIO
 
-ret=$?
-#flush the output
-echo
-if [ $ret -ne 0 ]; then
-    sof-process-kill.sh
-    [[ $? -ne 0 ]] && dlogw "Kill process catch error"
-    exit $ret
-fi
-sof-kernel-log-check.sh "$KERNEL_CHECKPOINT"
-exit $?
+    ret=$?
+    #flush the output
+    echo
+    if [ $ret -ne 0 ]; then
+        sof-process-kill.sh || dlogw "sof-process-kill.sh failed"
+        exit $ret
+    fi
+    sof-kernel-log-check.sh "$KERNEL_CHECKPOINT" || die "Caught error in kernel log"
+
+done
