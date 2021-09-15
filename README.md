@@ -14,9 +14,9 @@
 ## Environment set up
 ### requirements
 #### apt packages
-expect alsa-utils python3 python3-graphviz
+expect alsa-utils python3 python3-construct python3-graphviz
 ```
-sudo apt install expect alsa-utils python3 python3-graphviz
+sudo apt install expect alsa-utils python3 python3-construct python3-graphviz
 ```
 #### user group
 sudo adm audio
@@ -144,8 +144,11 @@ apl
 * sof-tplgreader.py
 <br> tplgtool.py wrapper, it reads info from tplgtool.py to analyze topologies.
 
-* tplgtool.py
+* tplgtool2.py
 <br> Dumps info from tplg binary file.
+
+* tplgtool.py
+<br> Dumps info from tplg binary file. (deprecated)
 
 
 ## System configuration tips
