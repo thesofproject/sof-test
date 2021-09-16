@@ -186,6 +186,9 @@ ignore_str="$ignore_str"'|i915 0000:00:02\.0: \[drm\] \*ERROR\* TC cold unblock 
 ignore_str="$ignore_str"'|i915 0000:00:02\.0: \[drm\] \*ERROR\* TC cold block failed'
 # An error observed on ICL RVP: "[drm] *ERROR* CPU pipe A FIFO underrun"
 ignore_str="$ignore_str"'|\[drm\] \*ERROR\* CPU pipe . FIFO underrun'
+# BugLink: https://github.com/thesofproject/sof-test/issues/753
+# see also: https://github.com/thesofproject/linux/blob/57a88a71b411ff44a7568db05226ec2727bf91c1/drivers/gpu/drm/i915/display/intel_crtc.c#L580
+ignore_str="$ignore_str"'|\[drm\] \*ERROR\* Atomic update failure on pipe . \(start=[0-9]+ end=[0-9]+\) time [0-9]+ us, min [0-9]+, max [0-9]+, scanline start [0-9]+, end [0-9]+'
 
 # DRM issues with kernel v5.10-rc1 https://github.com/thesofproject/linux/pull/2538
 ignore_str="$ignore_str"'|\[drm:drm_dp_send_link_address \[drm_kms_helper\]\] \*ERROR\* Sending link address failed with -5'
