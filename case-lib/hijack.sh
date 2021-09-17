@@ -62,16 +62,25 @@ function func_exit_handler()
             sudo pkill -KILL "$loggerBin"
             exit_status=1
         fi
-        # logfile is set in a different file: lib.sh
+
+        # $logfile is defined in a different file (lib.sh)
         # shellcheck disable=SC2154
-        wcLog=$(wc -l "$logfile")
-        dlogi "nlines=$wcLog"
-        local nlines; nlines=$(wc -l < "$logfile")
-        # Line 1 is the header
-        if [ "$nlines" -le 1 ]; then
-            dloge "Empty logger trace"
+        if test -e "$logfile"; then
+
+            wcLog=$(wc -l "$logfile") # show both line count and filename
+            dlogi "nlines=$wcLog"
+
+            local nlines; nlines=$(wc -l < "$logfile") # line count only
+            # The first line is the sof-logger header
+            if [ "$nlines" -le 1 ]; then
+                dloge "Empty logger trace"
+                exit_status=1
+            fi
+        else
+            dloge "Log file not found: $logfile"
             exit_status=1
         fi
+
     fi
 
     if [[ "$KERNEL_CHECKPOINT" =~ ^[0-9]{10} ]]; then
