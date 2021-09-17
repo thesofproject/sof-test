@@ -8,9 +8,9 @@ import re
 import sys
 import typing
 from collections import defaultdict
-from construct import this, Container, ListContainer, Struct, Const, Switch, Array, Bytes, GreedyRange, FocusedSeq, Pass, Padded, Padding, String, Flag, Byte, Int16ul, Int32ul, Int64ul, Terminated
+from construct import this, Container, ListContainer, Struct, Const, Switch, Select, Array, Bytes, GreedyBytes, GreedyRange, FocusedSeq, Pass, Padded, Padding, Prefixed, String, Flag, Byte, Int16ul, Int32ul, Int64ul, Terminated
 from dataclasses import dataclass
-from functools import partial
+from functools import cached_property, partial
 
 def __enum_dict(enumtype) -> dict:
     return dict((e.name, e.value) for e in enumtype)
@@ -21,6 +21,13 @@ def Enum(subcon, enumtype):
 
 def FlagsEnum(subcon, enumtype):
     return construct.FlagsEnum(subcon, **__enum_dict(enumtype))
+
+def CompleteRange(subcon):
+    "like GreedyRange, but will report error if anything left in stream."
+    return FocusedSeq("range",
+            "range" / GreedyRange(subcon),
+            Terminated
+        )
 
 def get_flags(flagsenum: Container) -> "list[str]":
     "Get flags for FlagsEnum container."
@@ -43,6 +50,18 @@ class TplgType(enum.IntEnum):
     BACKEND_LINK = 10
     PDATA = 11
     DAI = 12
+
+class VendorTupleType(enum.IntEnum):
+    r"""vendor tuple types.
+
+    `SND_SOC_TPLG_TUPLE_TYPE_`
+    """
+    UUID = 0
+    STRING = 1
+    BOOL = 2
+    BYTE = 3
+    WORD = 4
+    SHORT = 5
 
 class DaiFormat(enum.IntEnum):
     r"""DAI physical PCM data formats.
@@ -163,6 +182,96 @@ class PcmFormatsFlag(enum.IntFlag):
     FLOAT_LE = 1 << 14
     FLOAT_BE = 1 << 15
 
+class SofVendorToken(enum.IntEnum):
+    r"""SOF vendor tokens
+
+    See `tools/topology1/sof/tokens.m4` in SOF.
+    """
+    # sof_buffer_tokens
+    SOF_TKN_BUF_SIZE = 100
+    SOF_TKN_BUF_CAPS = 101
+    # sof_dai_tokens
+    SOF_TKN_DAI_TYPE = 154
+    SOF_TKN_DAI_INDEX = 155
+    SOF_TKN_DAI_DIRECTION = 156
+    # sof_sched_tokens
+    SOF_TKN_SCHED_PERIOD = 200
+    SOF_TKN_SCHED_PRIORITY = 201
+    SOF_TKN_SCHED_MIPS = 202
+    SOF_TKN_SCHED_CORE = 203
+    SOF_TKN_SCHED_FRAMES = 204
+    SOF_TKN_SCHED_TIME_DOMAIN = 205
+    SOF_TKN_SCHED_DYNAMIC_PIPELINE = 206
+    # sof_volume_tokens
+    SOF_TKN_VOLUME_RAMP_STEP_TYPE = 250
+    SOF_TKN_VOLUME_RAMP_STEP_MS = 251
+    # sof_src_tokens
+    SOF_TKN_SRC_RATE_IN = 300
+    SOF_TKN_SRC_RATE_OUT = 301
+    # sof_asrc_tokens
+    SOF_TKN_ASRC_RATE_IN = 320
+    SOF_TKN_ASRC_RATE_OUT = 321
+    SOF_TKN_ASRC_ASYNCHRONOUS_MODE = 322
+    SOF_TKN_ASRC_OPERATION_MODE = 323
+    # sof_pcm_tokens
+    SOF_TKN_PCM_DMAC_CONFIG = 353
+    # sof_comp_tokens
+    SOF_TKN_COMP_PERIOD_SINK_COUNT = 400
+    SOF_TKN_COMP_PERIOD_SOURCE_COUNT = 401
+    SOF_TKN_COMP_FORMAT = 402
+    SOF_TKN_COMP_CORE_ID = 404
+    SOF_TKN_COMP_UUID = 405
+    # sof_ssp_tokens
+    SOF_TKN_INTEL_SSP_CLKS_CONTROL = 500
+    SOF_TKN_INTEL_SSP_MCLK_ID = 501
+    SOF_TKN_INTEL_SSP_SAMPLE_BITS = 502
+    SOF_TKN_INTEL_SSP_FRAME_PULSE_WIDTH = 503
+    SOF_TKN_INTEL_SSP_QUIRKS = 504
+    SOF_TKN_INTEL_SSP_TDM_PADDING_PER_SLOT = 505
+    SOF_TKN_INTEL_SSP_BCLK_DELAY = 506
+    # sof_dmic_tokens
+    SOF_TKN_INTEL_DMIC_DRIVER_VERSION = 600
+    SOF_TKN_INTEL_DMIC_CLK_MIN = 601
+    SOF_TKN_INTEL_DMIC_CLK_MAX = 602
+    SOF_TKN_INTEL_DMIC_DUTY_MIN = 603
+    SOF_TKN_INTEL_DMIC_DUTY_MAX = 604
+    SOF_TKN_INTEL_DMIC_NUM_PDM_ACTIVE = 605
+    SOF_TKN_INTEL_DMIC_SAMPLE_RATE = 608
+    SOF_TKN_INTEL_DMIC_FIFO_WORD_LENGTH = 609
+    SOF_TKN_INTEL_DMIC_UNMUTE_RAMP_TIME_MS = 610
+    # sof_dmic_pdm_tokens
+    SOF_TKN_INTEL_DMIC_PDM_CTRL_ID = 700
+    SOF_TKN_INTEL_DMIC_PDM_MIC_A_Enable = 701
+    SOF_TKN_INTEL_DMIC_PDM_MIC_B_Enable = 702
+    SOF_TKN_INTEL_DMIC_PDM_POLARITY_A = 703
+    SOF_TKN_INTEL_DMIC_PDM_POLARITY_B = 704
+    SOF_TKN_INTEL_DMIC_PDM_CLK_EDGE = 705
+    SOF_TKN_INTEL_DMIC_PDM_SKEW = 706
+    # sof_tone_tokens
+    SOF_TKN_TONE_SAMPLE_RATE = 800
+    # sof_process_tokens
+    SOF_TKN_PROCESS_TYPE = 900
+    # sof_sai_tokens
+    SOF_TKN_IMX_SAI_MCLK_ID = 1000
+    # sof_esai_tokens
+    SOF_TKN_IMX_ESAI_MCLK_ID = 1100
+    # sof_stream_tokens
+    SOF_TKN_STREAM_PLAYBACK_COMPATIBLE_D0I3 = 1200
+    SOF_TKN_STREAM_CAPTURE_COMPATIBLE_D0I3 = 1201
+    # sof_led_tokens
+    SOF_TKN_MUTE_LED_USE = 1300
+    SOF_TKN_MUTE_LED_DIRECTION = 1301
+    # sof_alh_tokens
+    SOF_TKN_INTEL_ALH_RATE = 1400
+    SOF_TKN_INTEL_ALH_CH = 1401
+    # sof_hda_tokens
+    SOF_TKN_INTEL_HDA_RATE = 1500
+    SOF_TKN_INTEL_HDA_CH = 1501
+    # sof_afe_tokens
+    SOF_TKN_MEDIATEK_AFE_RATE = 1600
+    SOF_TKN_MEDIATEK_AFE_CH = 1601
+    SOF_TKN_MEDIATEK_AFE_FORMAT = 1602
+
 # Pylint complain about too many instance attributes, but they are necessary here.
 # pylint: disable=R0902
 class TplgBinaryFormat:
@@ -205,9 +314,38 @@ class TplgBinaryFormat:
             "index" / Int32ul,
             "count" / Int32ul,
         )
-        self._private = Struct( # snd_soc_tplg_private
-            "size" / Int32ul,
-            "data" / Bytes(this.size), # ignore private data
+        self._vendor_uuid_elem = Struct( # snd_soc_tplg_vendor_uuid_elem
+            "token" / Enum(Int32ul, SofVendorToken),
+            "uuid" / Bytes(16),
+        )
+        self._vendor_value_elem = Struct( # snd_soc_tplg_vendor_value_elem
+            "token" / Enum(Int32ul, SofVendorToken),
+            "value" / Int32ul,
+        )
+        self._vendor_string_elem = Struct( # snd_soc_tplg_vendor_string_elem
+            "token" / Enum(Int32ul, SofVendorToken),
+            "string" / String(self._id_name_maxlen, "ascii")
+        )
+        self._vendor_elem_cases = {
+            VendorTupleType.UUID.name: self._vendor_uuid_elem,
+            VendorTupleType.STRING.name: self._vendor_string_elem,
+            VendorTupleType.BOOL.name: self._vendor_value_elem,
+            VendorTupleType.BYTE.name: self._vendor_value_elem,
+            VendorTupleType.WORD.name: self._vendor_value_elem,
+            VendorTupleType.SHORT.name: self._vendor_value_elem,
+        }
+        self._vendor_array = Struct( # snd_soc_tplg_vendor_array
+            "size" / Int32ul, # size in bytes of the array, including all elements
+            "type" / Enum(Int32ul, VendorTupleType),
+            "num_elems" / Int32ul, # number of elements in array
+            "elems" / Array(this.num_elems, Switch(this.type, self._vendor_elem_cases))
+        )
+        self._private = Prefixed( # snd_soc_tplg_private
+            Int32ul, # size
+            Select(
+                CompleteRange(self._vendor_array), # prefer vendor array
+                GreedyBytes, # fallback to raw data
+            ),
         )
         self._tlv_dbscale = Struct( # snd_soc_tplg_tlv_dbscale
             "min" / Int32ul,
@@ -415,10 +553,7 @@ class TplgBinaryFormat:
                 default = Padding(this.header.payload_size)  # skip unknown blocks,
             ),
         )
-        self.sections = FocusedSeq("sections",
-            "sections" / GreedyRange(self._section),
-            Terminated
-        )
+        self.sections = CompleteRange(self._section)
 
     def parse_file(self, filepath) -> ListContainer:
         "Parse the TPLG binary file to raw structure."
@@ -487,6 +622,19 @@ class GroupedTplg:
             return "capture"
         return "None"
 
+    @staticmethod
+    def get_core_id(widget: Container, default = None):
+        "Get widget core ID."
+        try:
+            return next(
+                elem["value"]
+                for vendor_array in widget["widget"]["priv"]
+                for elem in vendor_array["elems"]
+                if elem["token"] == SofVendorToken.SOF_TKN_COMP_CORE_ID.name
+            )
+        except (KeyError, AttributeError, StopIteration):
+            return default
+
     def print_pcm_info(self):
         r"""Print pcm info, like::
 
@@ -506,6 +654,21 @@ class GroupedTplg:
             ch_max = cap["channels_max"]
             print(f"pcm={name};id={pcm_id};type={pcm_type};fmt={fmt};"
             f"rate_min={rate_min};rate_max={rate_max};ch_min={ch_min};ch_max={ch_max};")
+
+    @cached_property
+    def coreids(self):
+        "All available core IDs."
+        cores = set()
+        for widget in self.widget_list:
+            core = self.get_core_id(widget)
+            if core is not None:
+                cores.add(core)
+        return cores
+
+    @cached_property
+    def is_multicore(self):
+        "Check if this topology is a multi-core topology."
+        return len(self.coreids) > 1
 
 class TplgGraph:
     "Topology components graph for drawing and searching components through pipelines."
@@ -586,6 +749,7 @@ class TplgGraph:
 
     def __init__(self, grouped_tplg: GroupedTplg):
         "Build graph from grouped topology data."
+        self.show_core = 'auto'
         self._tplg = grouped_tplg
         self._nodes_dict = TplgGraph._build_nodes_dict(grouped_tplg.widget_list)
         self._nodes_names_in_graph = TplgGraph._build_nodes_names_in_graph(grouped_tplg.graph_list, self._nodes_dict)
@@ -607,6 +771,12 @@ class TplgGraph:
         NOTE: if the node is not in graph, return the its "name".
         """
         return self._node_name_in_graph_from_name(node["widget"]["name"])
+
+    def _display_node_label(self, name: str, widget: Container):
+        sublabel = ""
+        if self.show_core == 'always' or (self.show_core == 'auto' and self._tplg.is_multicore):
+            sublabel += f'<BR ALIGN="CENTER"/><SUB>core:{GroupedTplg.get_core_id(widget, default=0)}</SUB>'
+        return f'<{name}{sublabel}>'
 
     def draw(self, outfile: str, outdir: str = '.', file_format: str = "png", live_view: bool = False):
         r"""Draw graph and write it to file.
@@ -634,7 +804,7 @@ class TplgGraph:
         for node in self._tplg.widget_list:
             name = self.node_name_in_graph(node)
             if name not in self._isolated: # skip isolated nodes.
-                graph.node(name)
+                graph.node(name, label=self._display_node_label(name, node))
         for edge in self._tplg.graph_list:
             graph.edge(edge["source"], edge["sink"])
         if live_view:
@@ -875,6 +1045,12 @@ if __name__ == "__main__":
         parser.add_argument('-F', '--format', type=str, default="png", help="output format for generated graph, check "
             "https://graphviz.gitlab.io/_pages/doc/info/output.html for all supported formats")
         parser.add_argument('-V', '--live_view', action="store_true", help="generate and view topology graph")
+        parser.add_argument('-c', '--show_core', choices=['never', 'auto', 'always'], default='auto',
+            help="""control the display of component core ID in topology graph, there are 3 modes:
+* never: will never show core ID.
+* auto: will show core ID only if it is multi-core (default).
+* always: will always show core ID even for single-core topology.
+""")
 
         return parser.parse_args()
 
@@ -928,6 +1104,7 @@ if __name__ == "__main__":
                 tplg.print_pcm_info()
             if 'graph' in dump_types:
                 graph = TplgGraph(tplg)
+                graph.show_core = cmd_args.show_core
                 graph.draw(file.stem, outdir=cmd_args.directory, file_format=cmd_args.format, live_view=cmd_args.live_view)
 
     main()
