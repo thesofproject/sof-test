@@ -157,6 +157,8 @@ remove_module snd_soc_intel_sof_maxim_common
 #-------------------------------------------
 remove_module snd_sof_probes
 remove_module snd_sof_ipc_test
+remove_module snd_sof_ipc_flood_test
+remove_module snd_sof_ipc_msg_injector
 remove_module snd_sof_dma_trace
 
 # snd_sof_nocodec dependencies re-ordered
