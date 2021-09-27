@@ -66,6 +66,9 @@ class clsSYSCardInfo():
         return name, idx
 
     def loadDMI(self):
+        """Parse /sys/class/dmi/id/modalias that contains all
+        /sys/class/dmi/id/* values combined in a single file
+        """
         self.dmi.clear()
         exit_code, output=subprocess.getstatusoutput("cat /sys/class/dmi/id/modalias")
         # grep exit 1 means nothing matched
@@ -80,6 +83,9 @@ class clsSYSCardInfo():
         pass
 
     def loadPCI(self):
+        """Parse all PCI devices with "audio" and "intel" in their names.
+        See alternative (and cleaner?) PCI scan in zephyr commit ed2d104baba9
+        """
         self.pci_lst.clear()
         exit_code, output=subprocess.getstatusoutput("sudo lspci -D |grep audio -i|grep intel -i")
         # grep exit 1 means nothing matched
@@ -90,10 +96,12 @@ class clsSYSCardInfo():
             pci_info['pci_id'] = line.split(' ')[0]
             tmp_output = subprocess.getoutput("sudo lspci -s %s -kx" % (pci_info['pci_id'])).splitlines()
             pci_info['name'] = tmp_output[1].split(':')[-1].strip()
+            # Find driver names
             for i in range(2, len(tmp_output)):
                 if tmp_output[i].split()[1].strip() == 'modules:' :
                     pci_info['module'] = tmp_output[i].split(':')[-1].strip()
                 elif tmp_output[i].split()[0].strip() == '00:':
+                    # 1st line of PCI config space in hex
                     tmp_line = tmp_output[i].split()
                     break
             pci_info['hw_id']="0x" + tmp_line[2] + tmp_line[1] + " 0x" + tmp_line[4] + tmp_line[3]
