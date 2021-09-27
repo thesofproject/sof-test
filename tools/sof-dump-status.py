@@ -135,8 +135,13 @@ class clsSYSCardInfo():
                     # 1st line of PCI config space in hex
                     tmp_line = tmp_output[i].split()
                     break
-            pci_info['hw_id']="0x" + tmp_line[2] + tmp_line[1] + " 0x" + tmp_line[4] + tmp_line[3]
-            pci_info['hw_name'] = self._pci_ids["0x" + tmp_line[4] + tmp_line[3]]
+            pci_dev_id = "0x" + tmp_line[4] + tmp_line[3]
+            pci_info['hw_id'] = "0x" + tmp_line[2] + tmp_line[1] + " " + pci_dev_id
+            try:
+                pci_info['hw_name'] = self._pci_ids[pci_dev_id]
+            except KeyError:
+                pci_info['hw_name'] = "PCI ID unknown by sof-dump-status.py"
+
             self.pci_lst.append(pci_info)
 
     def loadACPI(self):
