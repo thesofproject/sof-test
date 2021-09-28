@@ -868,7 +868,7 @@ if __name__ == "__main__":
         parser.add_argument('-t', '--tplgroot', type=str, help="load tplg file from tplg_root folder")
         parser.add_argument('-d', '--dump', type=str, help='dump specified topology information, '
             'if multiple information types are wanted, use "," to separate them, eg, `-d pcm,graph`')
-        parser.add_argument('filename', type=str, help='topology file name(s), ' \
+        parser.add_argument('filename', type=str, help='topology file name pattern(s), ' \
             'if multiple topology file names are specified, please use "," to separate them')
         # The below options are used to control generated graph
         parser.add_argument('-D', '--directory', type=str, default=".", help="output directory for generated graph")
@@ -882,15 +882,38 @@ if __name__ == "__main__":
         "Split comma-delimited arguements value."
         return [v.strip() for v in value.split(',')]
 
-    def get_tplg_paths(tplgroot: typing.Union[str, None], filenames: str) -> "list[Path]":
+    def do_glob(rootpath: Path, pattern: str):
+        # Path.glob() didn't implement for absolute path.
+        # This workaround just use the global root as the root path to transform the absolute path to relative path.
+        pattern_path = Path(pattern)
+        if pattern_path.is_absolute():
+            rootpath = Path(pattern_path.root)
+            pattern_path = pattern_path.relative_to(rootpath)
+        return rootpath.glob(os.fspath(pattern_path))
+
+    def get_tplg_paths(tplgroot: typing.Union[str, None], patterns: str) -> "list[Path]":
+        """Get topology file paths based on the directory and file patterns.
+
+        Parameters
+        ----------
+        tplgroot : `str | None`
+            Root directory for topology files, or `None` if unspecified.
+        patterns : `str`
+            Comma-delimited file name patterns.
+
+        NOTE
+        ----
+        1. Split patterns by comma.
+        2. If tplgroot is unspecified, use current working directory.
+        3. If pattern is absolute, ignore tplgroot and search matched files. Otherwise, search in tplgroot.
+        """
         rootpath = Path.cwd() if tplgroot is None else Path(tplgroot.strip())
         if not rootpath.is_dir():
             raise NotADirectoryError(rootpath)
-        return [
-            fullpath 
-            for filename in arg_split(filenames) 
-            for fullpath in rootpath.glob(filename) 
-            if fullpath.suffix == '.tplg'
+        return [tplgpath
+            for pattern in arg_split(patterns) 
+            for tplgpath in do_glob(rootpath, pattern) 
+            if tplgpath.suffix == '.tplg'
         ]
 
     def main():
