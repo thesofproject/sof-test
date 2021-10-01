@@ -119,11 +119,13 @@ main()
 		printf "\033[40;32m ---------- \033[0m\n"
 		printf "\033[40;32m starting test_%s \033[0m\n" "$t"
 		# set -x logs the test parameters
-		if ( set -x; "test_$t" ) ; then
-		    passed+=( "$t" )
-		else
-		    failures+=( "$t" )
-		fi
+		local ret=0
+		( set -x; "test_$t" ) || ret=$?
+		case "$ret" in
+			0) passed+=( "$t" ) ;;
+			2) skipped+=( "$t" ) ;;
+			*) failures+=( "$t" ) ;;
+		esac
 		durations["$t"]=$(($(date +%s) - start_time))
 
 		sleep "$time_delay"
@@ -139,8 +141,12 @@ print_results()
 	declare -p durations | sed -e 's/^declare -A//'
 
 	printf "\n\nPASS:"; printf ' %s;' "${passed[@]}"
+
 	if [ "${#failures[@]}" -gt 0 ]; then
 	    printf "\nFAIL:"; printf ' %s;' "${failures[@]}"
+	fi
+	if [ "${#skipped[@]}" -gt 0 ]; then
+	    printf "\nSKIP:"; printf ' %s;' "${skipped[@]}"
 	fi
 
 	printf "\n\n\033[40;32m test end with %d failed tests\033[0m\n\n" "${#failures[@]}"
