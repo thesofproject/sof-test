@@ -110,8 +110,11 @@ main()
 	    *) usage; exit 1 ;;
 	esac
 
+	declare -A durations
+	local start_time
 	for t in $testlist;
 	do
+		start_time=$(date +%s)
 		printf "\033[40;32m ---------- \033[0m\n"
 		printf "\033[40;32m ---------- \033[0m\n"
 		printf "\033[40;32m starting test_%s \033[0m\n" "$t"
@@ -121,6 +124,8 @@ main()
 		else
 		    failures+=( "$t" )
 		fi
+		durations["$t"]=$(($(date +%s) - start_time))
+
 		sleep "$time_delay"
 	done
 
@@ -130,6 +135,9 @@ main()
 
 print_results()
 {
+	printf "\n\nDurations in seconds:\n\t"
+	declare -p durations | sed -e 's/^declare -A//'
+
 	printf "\n\nPASS:"; printf ' %s;' "${passed[@]}"
 	if [ "${#failures[@]}" -gt 0 ]; then
 	    printf "\nFAIL:"; printf ' %s;' "${failures[@]}"
