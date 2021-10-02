@@ -31,9 +31,11 @@ if $cmd | grep -q " sof-audio.*Firmware.*version"; then
     # dump the debug info
     $cmd | grep "Firmware debug build" -A3 | head -n 12
     exit 0
-else
+
+else # failed, show some logs
+
     journalctl_cmd --lines 50 || true
-    printf ' ------\n  debugging with systemd journalctl  \n ---- \n'
-    systemctl status systemd-journald* || true
+    printf ' ------\n  Check journalctl status: \n ---- \n'
+    systemctl --no-pager status systemd-journald* || true
     die "Cannot find the sof audio version"
 fi
