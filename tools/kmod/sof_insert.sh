@@ -2,6 +2,13 @@
 # SPDX-License-Identifier: BSD-3-Clause
 # Copyright(c) 2018 Intel Corporation. All rights reserved.
 
+# HACK
+
+# No driver test HACK
+MYDIR=$(dirname "$0")
+"$MYDIR/sof_remove.sh"
+
+
 insert_module() {
 
     local MODULE="$1"; shift

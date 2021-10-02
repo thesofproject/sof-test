@@ -409,3 +409,11 @@ print_module_params()
     grep -H ^ /sys/module/*sof*/parameters/*
     echo "----------------------------------------"
 }
+
+
+# No driver test HACK
+if test -z "${ALREADY_REMOVED}"; then
+    # stop infinite source loop
+    export ALREADY_REMOVED=true
+    "$SCRIPT_HOME"/tools/kmod/sof_remove.sh
+fi
