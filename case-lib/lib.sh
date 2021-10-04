@@ -409,3 +409,19 @@ print_module_params()
     grep -H ^ /sys/module/*sof*/parameters/*
     echo "----------------------------------------"
 }
+
+# check if NTP Synchronized, if so return 0 otherwise return 1
+check_ntp_sync()
+{
+    # Check this device time is NTP Synchronized.
+    timedatectl show | grep -q "NTPSynchronized=yes"
+}
+
+re_enable_ntp_sync()
+{
+    # disable synchronization first
+    sudo timedatectl set-ntp false
+
+    # enable ntp sync. This will trigger initial synchronization to time server
+    sudo timedatectl set-ntp true
+}
