@@ -13,6 +13,8 @@
 ##    no error in kernel log
 ##
 
+set -e
+
 source $(dirname ${BASH_SOURCE[0]})/../case-lib/lib.sh
 
 OPT_NAME['c']='cnt'      OPT_DESC['c']='ipc loop count'
