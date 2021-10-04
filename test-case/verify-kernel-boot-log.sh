@@ -23,4 +23,21 @@ disable_kernel_check_point
 
 print_module_params
 
+# Check this device time is NTP Synchronized
+if check_ntp_sync; then
+    printf '\nTime Check: NTP Synchronized\n'
+else
+    timedatectl show
+    # try to disable/enable NTP once, this will trigger ntp sync twice,
+    # before stopping ntp and after enabling ntp.
+    re_enable_ntp_sync
+
+    if check_ntp_sync; then
+        printf '\nTime Check: NTP Synchronized after re-enabling ntp sync\n'
+    else
+        # If NTP is not synchronized, let this test fail
+        die "Time Check: NTP NOT Synchronized"
+    fi
+fi
+
 sof-kernel-log-check.sh
