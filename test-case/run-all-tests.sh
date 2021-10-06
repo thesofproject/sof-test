@@ -90,12 +90,13 @@ main()
 	# On Ctrl-C
 	trap interrupted_results INT
 
-	local tests_length=10 time_delay=3
+	local tests_length=10 time_delay=3 exit_first=false
 
-	while getopts "l:T:h" OPTION; do
+	while getopts "l:T:xh" OPTION; do
 	case "$OPTION" in
 		l) tests_length="$OPTARG" ;;
 		T) time_delay="$OPTARG" ;;
+		x) exit_first=true ;;
 		*) usage; exit 1 ;;
 		esac
 	done
@@ -124,7 +125,9 @@ main()
 		case "$ret" in
 			0) passed+=( "$t" ) ;;
 			2) skipped+=( "$t" ) ;;
-			*) failures+=( "$t" ) ;;
+			*) failures+=( "$t" )
+			   if $exit_first; then break; fi
+			   ;;
 		esac
 		durations["$t"]=$(($(date +%s) - start_time))
 
@@ -295,6 +298,7 @@ pass-through topology path to test caess.
 
 usage: $0 [options]
 		-h Show script usage
+		-x exit on first failure
 		-l 1 Very small test counts/loops/rounds (< 20 min)
 		-T time Delay between cases, default: 3s
 EOF
