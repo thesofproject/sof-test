@@ -1,0 +1,23 @@
+{
+  "cases": [
+    {
+      "name": "IPC TX Time",
+      "bpftrace": "../bpftrace_scripts/ipc_tx_time.bt",
+      "shell": "./sample_shell.sh",
+      "conditions": [
+        "@avg < 500"
+      ]
+    },
+    {
+      "name": "Suspend/Resume Time",
+      "bpftrace": "../bpftrace_scripts/suspend_resume_time.bt",
+      "shell": "../../test-case/check-suspend-resume.sh",
+      "conditions": [
+        "@avg[kretprobe:sof_resume, runtime] < 150000",
+        "@avg[kretprobe:sof_resume, system] < 200000",
+        "@avg[kretprobe:sof_suspend, runtime] < 50000",
+        "@avg[kretprobe:sof_suspend, system] < 1000"
+      ]
+    }
+  ]
+}

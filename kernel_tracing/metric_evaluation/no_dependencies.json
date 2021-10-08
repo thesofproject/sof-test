@@ -1,0 +1,12 @@
+{
+    "cases": [
+      {
+        "name": "Demo test",
+        "bpftrace": "./simple_bpftrace.bt",
+        "shell": ["sleep", "1"],
+        "conditions": [
+          "@demo_value == 42"
+        ]
+      }
+    ]
+  }
