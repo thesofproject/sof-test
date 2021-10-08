@@ -1,0 +1,7 @@
+// This is used to demo the metric evaluation script without requiring any
+// dependencies. Run `./test.py no_dependencies.json` to try it, and change
+// demo_value to see the failure output.
+
+BEGIN {
+    @demo_value = 42;
+}
