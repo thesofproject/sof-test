@@ -127,7 +127,8 @@ function func_exit_handler()
     fi
 
     # We must always print some 'Test Result' otherwise some callers
-    # will time out
+    # will time out. These strings must match (at least) Jenkins'
+    # expectations, see internal sof-framework/clsTestCase.py
     case $exit_status in
         0)
             dlogi "Test Result: PASS!"
@@ -136,7 +137,7 @@ function func_exit_handler()
             dlogi "Test Result: FAIL!"
         ;;
         2)
-            dlogi "Test Result: N/A!"
+            dlogi "Test Result: SKIP!"
         ;;
         *)
             dlogi "Unknown exit code: $exit_status"
