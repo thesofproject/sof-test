@@ -246,5 +246,6 @@ remove_module snd_hda_codec
 remove_module snd_hda_core
 remove_module snd_hwdep
 remove_module snd_compress
+remove_module snd_pcm_dmaengine
 remove_module snd_pcm
 
