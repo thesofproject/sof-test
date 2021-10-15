@@ -27,6 +27,13 @@ main()
 
     ntp_check
 
+    platform=$(sof-dump-status.py -p)
+    case "$platform" in
+        adl)
+            skip_test "$platform is under active development"
+            ;;
+    esac
+
     sof-kernel-log-check.sh
 }
 
