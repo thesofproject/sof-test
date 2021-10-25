@@ -434,7 +434,7 @@ set_alsa_settings()
     local PNAME="${1%_ZEPHYR}"
     dlogi "Run alsa setting for $PNAME"
     case $PNAME in
-        APL_UP2_NOCODEC | CML_RVP_NOCODEC | JSL_RVP_NOCODEC | TGLU_RVP_NOCODEC | ADLP_RVP_NOCODEC)
+        APL_UP2_NOCODEC | CML_RVP_NOCODEC | JSL_RVP_NOCODEC | TGLU_RVP_NOCODEC | ADLP_RVP_NOCODEC | TGLH_RVP_NOCODEC_ZEPHYR)
             # common nocodec alsa settings
             "$SCRIPT_HOME"/alsa_settings/CAVS_NOCODEC.sh
         ;;
