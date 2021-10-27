@@ -774,8 +774,9 @@ class TplgGraph:
 
     def _display_node_label(self, name: str, widget: Container):
         sublabel = ""
-        if self.show_core == 'always' or (self.show_core == 'auto' and self._tplg.is_multicore):
-            sublabel += f'<BR ALIGN="CENTER"/><SUB>core:{GroupedTplg.get_core_id(widget, default=0)}</SUB>'
+        core = GroupedTplg.get_core_id(widget)
+        if core is not None and (self.show_core == 'always' or (self.show_core == 'auto' and self._tplg.is_multicore)):
+            sublabel += f'<BR ALIGN="CENTER"/><SUB>core:{core}</SUB>'
         return f'<{name}{sublabel}>'
 
     def draw(self, outfile: str, outdir: str = '.', file_format: str = "png", live_view: bool = False):
