@@ -32,7 +32,7 @@ OPT_HAS_ARG['l']=1         OPT_VAL['l']=5
 OPT_NAME['c']='count'    OPT_DESC['c']='combine test pipeline count'
 OPT_HAS_ARG['c']=1         OPT_VAL['c']=2
 
-OPT_NAME['r']='loop'     OPT_DESC['r']='pause resume repeat count'
+OPT_NAME['r']='repeat'     OPT_DESC['r']='pause resume repeat count'
 OPT_HAS_ARG['r']=1         OPT_VAL['r']=5
 
 # pause/resume interval will be a random value bounded by the min and max values below
