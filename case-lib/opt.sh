@@ -10,9 +10,9 @@
 #    1: this option requires an extra argument
 #    0: this option behaves like boolean, and requires no argument
 # OPT_VAL:
-#    - the extra argument required if OPT_HAS_ARG=1
-#    - default boolean value 0/1 if OPT_HAS_ARG=0, if boolean option
-#      is specified in command line, default OPT_VAL will be flipped.
+#    - if OPT_HAS_ARG=1: the argument required and passed on the command line
+#    - if OPT_HAS_ARG=0: the default value as a 0/1 boolean. When the option
+#      is passed on the command line then OPT_VAL is flipped in place.
 # OPT_DESC: description for this option
 declare -A OPT_NAME OPT_HAS_ARG OPT_VAL OPT_DESC
 
@@ -51,11 +51,17 @@ func_opt_parse_option()
         do
             short_opt_str="$short_opt_str""$opt"
             short_opt_lst["-$opt"]="$opt"
+
             [ "$long_opt_str" ] && long_opt_str="$long_opt_str"','
             if [ "${OPT_NAME[$opt]}" ]; then
+
+                test -z "${long_opt_lst[--${OPT_NAME[$opt]}]}" ||
+                    die "Duplicate '--${OPT_NAME[$opt]}' option: ${OPT_DESC[$opt]}"
+
                 long_opt_str="$long_opt_str""${OPT_NAME[$opt]}"
                 long_opt_lst["--${OPT_NAME[$opt]}"]="$opt"
             fi
+
             # append ':' if this option requires an argument
             [ "${OPT_HAS_ARG[$opt]}" -ne 1 ] || {
                 short_opt_str=$short_opt_str':'
