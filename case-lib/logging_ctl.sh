@@ -44,15 +44,20 @@ _func_log_cmd()
 # without setting up the LOG_ROOT keyword, now create the log directory for it
 _func_log_directory()
 {
-    if [ "$LOG_ROOT" ]; then
+    # LOG_ROOT is the top of a single test run. SOF_LOGS_BASE is higher
+    # up and for all tests and all runs.
+    if [ -n "$LOG_ROOT" ]; then
         mkdir -p "$LOG_ROOT"
         return
     fi
 
+    # default value
+    : "${SOF_LOGS_BASE:=${SCRIPT_HOME}}"
+
     local case_name log_dir timetag
     case_name=$(basename "$SCRIPT_NAME")
     case_name=${case_name%.*}
-    log_dir="$SCRIPT_HOME/logs/$case_name"
+    log_dir="${SOF_LOGS_BASE}/logs/$case_name"
     timetag=$(date +%F"-"%T)"-$RANDOM"
     mkdir -p "$log_dir/$timetag"
     # now using the last link for the time tag
