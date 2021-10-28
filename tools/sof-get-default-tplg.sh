@@ -8,5 +8,5 @@
 # sof-apl-pcm512x.tplg will be returned
 #
 
-tplg_file=$(journalctl -k |grep -i topology |awk -F ':' '/tplg/ {print $NF;}'|tail -n 1)
+tplg_file=$(sudo journalctl -k |grep -i topology |awk -F ':' '/tplg/ {print $NF;}'|tail -n 1)
 [[ "$tplg_file" ]] && basename "$tplg_file" || echo ""
