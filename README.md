@@ -178,3 +178,7 @@ Note PAM security configuration is complex and
 distribution-specific. This was tested only on Ubuntu 20.04. See `man
 pam.d` or one of the PAM guides available on the Internet. Be careful
 not to make your system vulnerable.
+
+On systems using auditd, sof-test will also generate a huge amount of
+log. If you need to keep `audit`, check `man auditctl` to find how to
+filter out sudo noise.
