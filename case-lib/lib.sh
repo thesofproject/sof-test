@@ -356,6 +356,30 @@ func_lib_start_log_collect()
     sudo "${loggerCmd[@]}" > "$logfile" &
 }
 
+# -B 2 shows the header line when the first etrace message is an ERROR
+# -A 1 shows whether the ERROR is last or not.
+check_error_in_file()
+{
+    local platf; platf=$(sof-dump-status.py -p)
+
+    case "$platf" in
+        byt|bdw)
+            # Maybe downgrading this to WARN would be enough, see #799
+            #  src/trace/dma-trace.c:654  ERROR dtrace_add_event(): number of dropped logs = 8
+            dlogw 'not looking for ERROR on BYT/BDW because of known DMA issues #4333 and others'
+            return 0
+            ;;
+    esac
+
+    test -r "$1" || {
+        dloge "file NOT FOUND: '$1'"
+        return 1
+    }
+    if grep -B 2 -A 1 -E 'ERRO?R?' "$1"; then
+       return 1
+    fi
+}
+
 # Calling this function is often a mistake because the error message
 # from the actual sudo() function in hijack.sh is better: it is
 # guaranteed to print the command that needs sudo and give more

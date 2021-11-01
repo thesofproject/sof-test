@@ -256,8 +256,21 @@ main()
         }
     done
 
+    local OK=true
+
+    for f in "${stdout_files[@]}"; do
+        local tracef="$LOG_ROOT/logger.$f.txt"
+        check_error_in_file "$tracef" || {
+            OK=false; printf '\n'
+        }
+    done
+
     # Show all outputs even when everything went OK
-    print_logs_exit 0
+    if $OK; then
+        print_logs_exit 0
+    else
+        print_logs_exit 1 "^^ ERROR(s) found in firmware logs ^^"
+    fi
 }
 
 main "$@"
