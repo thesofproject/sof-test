@@ -56,12 +56,6 @@ ldcFile=$(find_ldc_file) || die ".ldc file not found!"
 
 dlogi "Found file: $(md5sum "$ldcFile"|awk '{print $2, $1;}')"
 
-# These filenames are kept for backward-compatibility
-# DMA trace
-data_file=$LOG_ROOT/logger.data.txt
-# stderr
-error_file=$LOG_ROOT/logger.error.txt
-
 # etrace shared memory mailbox, newer feature.
 etrace_file=$LOG_ROOT/logger.etrace.txt
 etrace_stderr_file=$LOG_ROOT/logger.etrace_stderr.txt
@@ -70,6 +64,12 @@ func_lib_check_sudo
 
 run_loggers()
 {
+    # These filenames are kept for backward-compatibility
+    # DMA trace
+    local data_file=$LOG_ROOT/logger.data.txt
+    # stderr
+    local error_file=$LOG_ROOT/logger.error.txt
+
     local etrace_exit
 
     # This test is not really supposed to run while the DSP is busy at
@@ -181,7 +181,7 @@ main()
         test -e "$tracef" || die "$tracef" not found
         # Other columns are optional
         head -n 1 "$tracef" | grep -q 'COMPONENT.*CONTENT'  ||
-            print_logs_exit 1 "Log header not found in ${data_file}"
+            print_logs_exit 1 "Log header not found in ${tracef}"
 
         # See initial message SOF PR #3281 / SOF commit 67a0a69
         grep -q 'dma-trace.c.*FW ABI.*tag.*hash' "$tracef" || {
@@ -204,7 +204,7 @@ main()
                 fi
             fi
 
-            print_logs_exit 1 "Initial FW ABI banner not found in ${data_file}"
+            print_logs_exit 1 "Initial FW ABI banner not found in ${tracef}"
         }
     done
 
