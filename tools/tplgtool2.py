@@ -139,7 +139,7 @@ class DapmType(enum.IntEnum):
     MUX = 2
     MIXER = 3
     PGA = 4
-    DRV = 5
+    OUT_DRV = 5
     ADC = 6
     DAC = 7
     SWITCH = 8
@@ -151,7 +151,7 @@ class DapmType(enum.IntEnum):
     DAI_OUT = 14
     DAI_LINK = 15
     BUFFER = 16
-    HEDULER = 17
+    SCHEDULER = 17
     EFFECT = 18
     SIGGEN = 19
     SRC = 20
@@ -485,7 +485,7 @@ class TplgBinaryFormat:
         )
         self._dapm_widget = Struct( # snd_soc_tplg_dapm_widget
             "size" / Int32ul,
-            "id" / Int32ul,
+            "id" / Enum(Int32ul, DapmType),
             "name" / String(self._id_name_maxlen, "ascii"),
             "sname" / String(self._id_name_maxlen, "ascii"),
             "reg" / Int32ul,
@@ -621,6 +621,11 @@ class GroupedTplg:
         if pcm["capture"] == 1:
             return "capture"
         return "None"
+
+    @staticmethod
+    def is_virtual_widget(widget: Container):
+        "Whether it is a virtual widget depends on its DAPM type."
+        return widget["widget"]["id"] in [DapmType.INPUT.name, DapmType.OUTPUT.name, DapmType.OUT_DRV.name]
 
     @staticmethod
     def get_core_id(widget: Container, default = None):
@@ -772,12 +777,25 @@ class TplgGraph:
         """
         return self._node_name_in_graph_from_name(node["widget"]["name"])
 
-    def _display_node_label(self, name: str, widget: Container):
+    def _display_node_attrs(self, name: str, widget: Container):
         sublabel = ""
+        attr = {}
         core = GroupedTplg.get_core_id(widget)
         if core is not None and (self.show_core == 'always' or (self.show_core == 'auto' and self._tplg.is_multicore)):
             sublabel += f'<BR ALIGN="CENTER"/><SUB>core:{core}</SUB>'
-        return f'<{name}{sublabel}>'
+        attr['label'] = f'<{name}{sublabel}>'
+        if GroupedTplg.is_virtual_widget(widget):
+            attr['style'] = "dotted"
+            attr['color'] = 'blue'
+        return attr
+
+    def _display_edge_attr(self, edge: Container):
+        attr = {}
+        if GroupedTplg.is_virtual_widget(self._nodes_dict[edge["source"]])\
+            or GroupedTplg.is_virtual_widget(self._nodes_dict[edge["sink"]]):
+            attr['style'] = "dotted"
+            attr['color'] = 'blue'
+        return attr
 
     def draw(self, outfile: str, outdir: str = '.', file_format: str = "png", live_view: bool = False):
         r"""Draw graph and write it to file.
@@ -805,9 +823,9 @@ class TplgGraph:
         for node in self._tplg.widget_list:
             name = self.node_name_in_graph(node)
             if name not in self._isolated: # skip isolated nodes.
-                graph.node(name, label=self._display_node_label(name, node))
+                graph.node(name, **self._display_node_attrs(name, node))
         for edge in self._tplg.graph_list:
-            graph.edge(edge["source"], edge["sink"])
+            graph.edge(edge["source"], edge["sink"], **self._display_edge_attr(edge))
         if live_view:
             # if run the tool over ssh, live view feature will be disabled
             if 'DISPLAY' not in os.environ.keys():
