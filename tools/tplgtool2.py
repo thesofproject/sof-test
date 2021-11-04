@@ -578,6 +578,8 @@ class GroupedTplg:
     "DAPM graph elements list."
     link_list: "list[Container]"
     "DAI/backend links list."
+    pipeline_widgets: "list[Container]"
+    "Pipeline widgets list."
 
     def __init__(self, raw_parsed_tplg: ListContainer):
         "Group topology blocks by their types."
@@ -585,6 +587,7 @@ class GroupedTplg:
         self.widget_list = []
         self.graph_list = []
         self.link_list = []
+        self.pipeline_widgets = []
         for item in raw_parsed_tplg:
             tplgtype = item["header"]["type"]
             blocks: ListContainer = item["blocks"]
@@ -592,6 +595,7 @@ class GroupedTplg:
                 self.pcm_list.extend(sorted(blocks, key=lambda pcm: pcm["pcm_id"]))
             elif tplgtype == TplgType.DAPM_WIDGET.name:
                 self.widget_list.extend(blocks)
+                self.pipeline_widgets.extend(block for block in blocks if block["widget"]["name"].startswith("PIPELINE."))
             elif tplgtype == TplgType.DAPM_GRAPH.name:
                 self.graph_list.extend(blocks)
             elif tplgtype == TplgType.MANIFEST.name:
@@ -599,6 +603,35 @@ class GroupedTplg:
                 self.manifest = blocks[0]
             elif tplgtype in [TplgType.DAI_LINK.name, TplgType.BACKEND_LINK.name]:
                 self.link_list.extend(sorted(blocks, key=lambda link: link["id"]))
+
+    __pipeline_widget_name_re = re.compile("PIPELINE.(\\d+)", re.RegexFlag.ASCII)
+    @staticmethod
+    def __get_pipeline_id_for_pipeline_widget(name: str):
+        "Get pipeline id for pipeline widget, like 2 of `PIPELINE.2.SSP0.OUT`."
+        return GroupedTplg.__pipeline_widget_name_re.match(name).group(1)
+
+    __widget_name_re = re.compile("([A-Za-z_ ]+)(\\d+)\\.(\\d+)", re.RegexFlag.ASCII)
+    @staticmethod
+    def get_pipeline_id_by_name(name: str):
+        r"""Get pipeline id by widget name.
+
+        NOTE
+        ----
+        The widget name should match pattern like: "<prefix><pipeline>.<index>", otherwise it return None. e.g.
+
+        - BUF1.0 -> 1
+        - PGA2.1 -> 2
+        - EQIIR10.2 -> 10
+        - PCM0P -> None
+        - SSP0.OUT -> None
+        - Dmic0 -> None
+        - ECHO REF 7 -> None
+        - PIPELINE.1.SSP1.OUT -> None
+        """
+        match = GroupedTplg.__widget_name_re.match(name)
+        if match is None:
+            return None
+        return match.group(2)
 
     @staticmethod
     def get_pcm_fmt(pcm: Container) -> "list[list[str]]":
@@ -628,17 +661,31 @@ class GroupedTplg:
         return widget["widget"]["id"] in [DapmType.INPUT.name, DapmType.OUTPUT.name, DapmType.OUT_DRV.name]
 
     @staticmethod
-    def get_core_id(widget: Container, default = None):
-        "Get widget core ID."
+    def get_priv_element(comp: Container, token: SofVendorToken, default = None):
+        "Get private element with specific token."
         try:
             return next(
                 elem["value"]
-                for vendor_array in widget["widget"]["priv"]
+                for vendor_array in comp["priv"]
                 for elem in vendor_array["elems"]
-                if elem["token"] == SofVendorToken.SOF_TKN_COMP_CORE_ID.name
+                if elem["token"] == token.name
             )
         except (KeyError, AttributeError, StopIteration):
             return default
+
+    @staticmethod
+    def get_core_id(widget: Container, default = None):
+        "Get widget core ID."
+        return GroupedTplg.get_priv_element(widget["widget"], SofVendorToken.SOF_TKN_COMP_CORE_ID, default)
+    
+    def is_dynamic_pipeline(self, pipeline_id: str):
+        "Check if the pipeline is a dynamic pipeline."
+        widget = next(
+            widget["widget"]
+            for widget in self.pipeline_widgets
+            if self.__get_pipeline_id_for_pipeline_widget(widget["widget"]["name"]) == pipeline_id
+        )
+        return bool(GroupedTplg.get_priv_element(widget, SofVendorToken.SOF_TKN_SCHED_DYNAMIC_PIPELINE, default=0))
 
     def print_pcm_info(self):
         r"""Print pcm info, like::
@@ -784,6 +831,10 @@ class TplgGraph:
         if core is not None and (self.show_core == 'always' or (self.show_core == 'auto' and self._tplg.is_multicore)):
             sublabel += f'<BR ALIGN="CENTER"/><SUB>core:{core}</SUB>'
         attr['label'] = f'<{name}{sublabel}>'
+        pipelines = self.get_pipelines_id(name)
+        if any(map(self._tplg.is_dynamic_pipeline, pipelines)):
+            attr['style'] = "dashed"
+            attr['color'] = 'orange'
         if GroupedTplg.is_virtual_widget(widget):
             attr['style'] = "dotted"
             attr['color'] = 'blue'
@@ -853,6 +904,45 @@ class TplgGraph:
     def _prefix_eq(name1: str, name2: str) -> bool:
         "Return true if the components have same prefix."
         return TplgGraph.get_comp_prefix(name1) == TplgGraph.get_comp_prefix(name2)
+
+    def get_pipelines_id(self, node_name: str):
+        r"""Get pipelines id by name and connection.
+
+        NOTE
+        ----
+        This is different from `GroupedTplg.get_pipeline_id_by_name`.
+        Because `TplgGraph` involves connection informations,
+        We can find connected widgets if the current widget name doesn't contain pipeline id.
+        Some of components like dai may involve multiple pipelines.
+        """
+        pipelines = set()
+        pipeline = GroupedTplg.get_pipeline_id_by_name(node_name)
+        if pipeline is not None:
+            # 1. prefer current node.
+            pipelines.add(pipeline)
+        else:
+            TplgGraph._get_pipelines_id_recursively(self._forward_edges, node_name, pipelines)
+            TplgGraph._get_pipelines_id_recursively(self._backward_edges, node_name, pipelines)
+        return pipelines
+
+    @staticmethod
+    def _get_pipelines_id_recursively(edges: "dict[str, list[str]]", node_name: str, pipelines: set):
+        "Used by `get_pipeline_id`."
+        next_candidates = edges[node_name]
+         # 2. prefer the direction where there is exactly one connected node.
+        if len(pipelines) == 1:
+            return
+        if len(pipelines) > 1 and len(next_candidates) == 1:
+            pipelines.clear()
+        # 3. prefer neighbor.
+        for next_node_name in next_candidates:
+            pipeline = GroupedTplg.get_pipeline_id_by_name(next_node_name)
+            if pipeline is not None:
+                pipelines.add(pipeline)
+        if not pipelines:
+            # 4. try recursive (deeper).
+            for next_node_name in next_candidates:
+                TplgGraph._get_pipelines_id_recursively(edges, next_node_name, pipelines)
 
     @staticmethod
     def _find_connected_node_recursively(edges: "dict[str, list[str]]", node_name: str, name_predicate, acc: "set[str]"):
