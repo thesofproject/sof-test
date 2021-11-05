@@ -92,6 +92,11 @@ run_loggers()
         die "timeout sof-logger returned unexpected: $loggerStatus"
     }
 
+    if is_zephyr; then
+        dlogi "Skipping etrace for now because it's totally different with Zephyr"
+        return 0
+    fi
+
     dlogi "Trying to get the etrace mailbox ..."
     dlogc \
     "sudo $loggerBin    -f 3 -l  $ldcFile  2>  $etrace_stderr_file  -o  $etrace_file"
@@ -121,7 +126,7 @@ print_logs_exit()
     test -z "$errmsg" || dloge "$errmsg"
 
     local bname
-    for ftype in data etrace error etrace_stderr; do
+    for ftype in "${stdout_files[@]}" "${stderr_files[@]}"; do
         printf '\n'
         bname="logger.$ftype.txt"
         dlogi "Log file $bname BEG::"
@@ -155,8 +160,13 @@ reload_drivers()
 main()
 {
     if is_zephyr; then
-        disable_kernel_check_point
-        skip_test "The SOF logger does not work with Zephyr yet, see issue #4420"
+        # Keeping these confusing DMA names because they're used in
+        # several other places.
+        stdout_files=(data)
+        stderr_files=(error)
+    else
+        stdout_files=(data  etrace)
+        stderr_files=(error etrace_stderr)
     fi
 
     reload_drivers
@@ -165,7 +175,7 @@ main()
 
     local f
 
-    for f in etrace_stderr error; do
+    for f in "${stderr_files[@]}"; do
         local stderr_file="$LOG_ROOT/logger.$f.txt"
         test -e "$stderr_file" || die "$stderr_file" not found
         if test -s "$stderr_file"; then
@@ -181,7 +191,7 @@ main()
     # Search for the log header, should be something like this:
     # TIMESTAMP  DELTA C# COMPONENT  LOCATION  CONTENT
     # then for the 'FW ABI' banner
-    for f in etrace data; do
+    for f in "${stdout_files[@]}"; do
         local tracef="$LOG_ROOT/logger.$f.txt"
         test -e "$tracef" || die "$tracef" not found
         # Other columns are optional
