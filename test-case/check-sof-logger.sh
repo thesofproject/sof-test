@@ -79,12 +79,18 @@ run_loggers()
     dlogi "Trying to get the DMA trace log with background sof-logger ..."
     dlogc \
     "sudo $loggerBin  -t -f 3 -l  $ldcFile  -o  $data_file  2>  $error_file  &"
-    sudo timeout -k 3 --preserve-status "$dma_collect_secs"  \
+    sudo timeout -k 3 "$dma_collect_secs"  \
          "$loggerBin" -t -f 3 -l "$ldcFile" \
          -o "$data_file" 2> "$error_file" & dmaPID=$!
 
     sleep "$dma_collect_secs"
-    wait "$dmaPID"
+    loggerStatus=0; wait "$dmaPID" || loggerStatus=$?
+
+    # 124 is the normal timeout exit status
+    test "$loggerStatus" -eq 124 || {
+        cat "$error_file"
+        die "timeout sof-logger returned unexpected: $loggerStatus"
+    }
 
     dlogi "Trying to get the etrace mailbox ..."
     dlogc \
@@ -155,8 +161,7 @@ main()
 
     reload_drivers
 
-    run_loggers ||
-        print_logs_exit 1 "Reading (e)trace failed, run_loggers returned $?"
+    run_loggers
 
     local f
 
