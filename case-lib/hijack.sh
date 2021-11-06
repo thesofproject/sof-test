@@ -35,6 +35,7 @@ function func_exit_handler()
         # get stuck somewhere. This hack seems to be enough to nudge the
         # system and force it to DMA a bit more logs: hopefully all the
         # logs relevant to the current test.
+        # See DMA issue https://github.com/thesofproject/sof/issues/4333
         # We must use a component that is available everywhere: pga
         for i in 1 2; do
             # Running this twice makes it very easy to observe the stuck
