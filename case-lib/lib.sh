@@ -140,10 +140,10 @@ func_lib_start_log_collect()
         return 3
     fi
 
-    local loggerCmd="$SOFLOGGER $logopt -l $ldcFile -o $logfile"
-    dlogi "Starting $loggerCmd"
+    local loggerCmd=("$SOFLOGGER" "$logopt" -l "$ldcFile" -o "$logfile")
+    dlogi "Starting ${loggerCmd[*]}"
     # Cleaned up by func_exit_handler() in hijack.sh
-    sudo "$loggerCmd" &
+    sudo "${loggerCmd[@]}" &
 }
 
 # Calling this function is often a mistake because the error message
