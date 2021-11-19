@@ -71,19 +71,19 @@ test_dir="/tmp"
 def_blob="$test_dir"/detertor_default_config.blob
 
 # get wov kcontrol ID
-wov_kctl_id=$(amixer controls |grep "Detector" |awk -F= '{print $2}' |cut -d"," -f1)
+wov_kctl_id=$(amixer -c "$SOFCARD" controls |grep "Detector" |awk -F= '{print $2}' |cut -d"," -f1)
 
 # get wov PGA volume kcontrol name
-wov_kctl_pga=$(amixer controls |grep "KWD Capture Volume" |awk -F= '{print $4}')
+wov_kctl_pga=$(amixer -c "$SOFCARD" controls |grep "KWD Capture Volume" |awk -F= '{print $4}')
 
 # adjust wov PGA volume
-amixer cset name="$wov_kctl_pga" 40
+amixer -c "$SOFCARD" cset name="$wov_kctl_pga" 40
 
 # store the default config blob
 _store_default_wov_config_bolb()
 {
     if [ ! -f "$def_blob" ]; then
-        sof-ctl -Dhw:0 -n "$wov_kctl_id" -r -o "$def_blob"
+        sof-ctl -Dhw:"$SOFCARD" -n "$wov_kctl_id" -r -o "$def_blob"
         dlogi "default blob:"
         cat "$def_blob"
     fi
@@ -99,7 +99,7 @@ _get_default_pt_hd()
 _restore_default_wov_config_bolb()
 {
     if [ -f "$def_blob" ]; then
-        sof-ctl -Dhw:0 -n "$wov_kctl_id" -r -s "$def_blob"
+        sof-ctl -Dhw:"$SOFCARD" -n "$wov_kctl_id" -r -s "$def_blob"
     fi
 }
 
@@ -114,7 +114,7 @@ _update_blob(){
     dlogi "kwd config blob is updated to:"
     cat "$new_blob"
     dlogi "write back the new kwd config blob"
-    sof-ctl -Dhw:0 -n "$wov_kctl_id" -r -s "$new_blob" >> /dev/null || die "Failed to write back the new kwd config bolb"
+    sof-ctl -Dhw:"$SOFCARD" -n "$wov_kctl_id" -r -s "$new_blob" >> /dev/null || die "Failed to write back the new kwd config bolb"
 }
 
 for i in $(seq 1 "$loop_cnt")
