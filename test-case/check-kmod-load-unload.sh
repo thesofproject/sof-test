@@ -22,8 +22,11 @@ set -e
 ##    check kernel log and find no errors
 ##
 
+TOPDIR="$(dirname "${BASH_SOURCE[0]}")"/..
+TOPDIR=$(cd "$TOPDIR" && pwd)
+
 # shellcheck source=case-lib/lib.sh
-source "$(dirname "${BASH_SOURCE[0]}")"/../case-lib/lib.sh
+source "${TOPDIR}"/case-lib/lib.sh
 
 OPT_NAME['l']='loop_cnt'
 OPT_DESC['l']='remove / insert module loop count -- per device'
