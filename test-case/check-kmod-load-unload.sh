@@ -74,7 +74,7 @@ do
     done
 
     dlogi "run kmod/sof-kmod-remove.sh"
-    sudo sof_remove.sh || die "remove modules error"
+    "$TOPDIR"/tools/kmod/sof_remove.sh || die "remove modules error"
 
     ## - 1a: check for errors after removal
     dlogi "checking for general errors after kmod unload with sof-kernel-log-check tool"
@@ -83,7 +83,7 @@ do
 
     setup_kernel_check_point
     dlogi "run kmod/sof_insert.sh"
-    sudo sof_insert.sh || die "insert modules error"
+    "$TOPDIR"/tools/kmod/sof_insert.sh || die "insert modules error"
 
     ## - 2a: check for errors after insertion
     dlogi "checking for general errors after kmod insert with sof-kernel-log-check tool"
