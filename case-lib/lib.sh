@@ -397,7 +397,7 @@ is_zephyr()
 
 logger_disabled()
 {
-    [[ ${OPT_VAL['s']} -eq 0 ]] || is_zephyr
+    [[ ${OPT_VAL['s']} -eq 0 ]]
 }
 
 print_module_params()
