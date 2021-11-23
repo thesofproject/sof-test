@@ -10,6 +10,9 @@ insert_module() {
         printf 'MODPROBE\t%s\t\t' "$MODULE"
         printf '%s ' "$@"
         printf '\n'
+        # If sudo is slow, it's probably because the 'account' service
+        # of the pam_unix.so module. Its version 1.5.1-7.fc34 tries to
+        # close() all file descriptors from 65535 to 0.
         sudo modprobe "$MODULE" "$@"
     else
         printf 'SKIP    \t%s \t(not in tree)\n' "$MODULE"
