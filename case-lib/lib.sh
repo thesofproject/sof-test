@@ -390,9 +390,15 @@ disable_kernel_check_point()
 
 is_zephyr()
 {
-    local manifest=/etc/sof/manifest.txt
-    test -e "$manifest" || return 1
-    jq '.version.firmwareType' "$manifest" | grep "zephyr"
+    local ldcFile
+    ldcFile=$(find_ldc_file) || {
+        dloge '.ldc file not found, assuming XTOS firmware'
+        return 1
+    }
+    local znum
+    znum=$(strings "$ldcFile" | grep -c -i zephyr)
+    # As of Nov. 2021, znum ~= 30 for Zephyr and 0 for XTOS
+    test "$znum" -gt 10
 }
 
 logger_disabled()
