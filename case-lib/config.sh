@@ -67,3 +67,7 @@ SUDO_LEVEL=${SUDO_LEVEL:-}
 # in CI, which is controlled by sof-framework. In manual run, user can
 # override the default value.
 SOF_TEST_INTERVAL=${SOF_TEST_INTERVAL:-5}
+
+# Logger is not always supported, we want sof-test to run even
+# without logger.
+LOGGER_MODE=${LOGGER_MODE:-true}
