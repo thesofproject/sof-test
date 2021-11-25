@@ -72,6 +72,7 @@ kill_trace_users
 
 # SOF CI has a dependency on usb audio
 remove_module snd_usb_audio
+remove_module snd_usbmidi_lib
 
 #-------------------------------------------
 # Top level devices
@@ -299,6 +300,9 @@ remove_module snd_intel_sdw_acpi
 remove_module snd_sof_intel_hda_mlink
 remove_module snd_hda_ext_core
 
+#-------------------------------------------
+# Remaining core ALSA/ASoC parts
+#-------------------------------------------
 remove_module snd_soc_core
 remove_module snd_hda_codec
 remove_module snd_hda_core
@@ -306,4 +310,12 @@ remove_module snd_hwdep
 remove_module snd_compress
 remove_module snd_pcm_dmaengine
 remove_module snd_pcm
-
+remove_module snd_ctl_led
+remove_module snd_seq_midi
+remove_module snd_seq_midi_event
+remove_module snd_rawmidi
+remove_module snd_seq
+remove_module snd_seq_device
+remove_module snd_timer
+remove_module snd
+remove_module soundcore
