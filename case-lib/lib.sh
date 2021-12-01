@@ -397,6 +397,9 @@ is_zephyr()
     jq '.version.firmwareType' "$manifest" | grep "zephyr"
 }
 
+# CI test HACK - DO NOT MERGE
+SOF_LOGGING=none
+
 logger_disabled()
 {
     local ldcFile
