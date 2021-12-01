@@ -79,6 +79,7 @@ fake_kern_error()
 
 }
 
+# Prints the .ldc file found on stdout, errors on stderr.
 find_ldc_file()
 {
     local ldcFile
@@ -87,6 +88,7 @@ find_ldc_file()
     # and then on the standard location.
     if [ -n "$SOFLDC" ]; then
         ldcFile="$SOFLDC"
+        >&2 dlogi "SOFLDC=${SOFLDC} overriding default locations"
     else
         local platf; platf=$(sof-dump-status.py -p) || {
             >&2 dloge "Failed to query platform with sof-dump-status.py"
@@ -98,7 +100,7 @@ find_ldc_file()
     fi
 
     [[ -e "$ldcFile" ]] || {
-        >&2 dloge "LDC file $ldcFile not found, check the SOFLDC environment variable or copy your sof-*.ldc to /etc/sof"
+        >&2 dlogi "LDC file $ldcFile not found"
         return 1
     }
     printf '%s' "$ldcFile"
@@ -397,7 +399,27 @@ is_zephyr()
 
 logger_disabled()
 {
-    [[ ${OPT_VAL['s']} -eq 0 ]]
+    local ldcFile
+    # Some firmware/OS configurations do not support logging.
+    ldcFile=$(find_ldc_file) || {
+        dlogi '.ldc dictionary file not found, SOF logs collection disabled'
+        return 0 # 0 is 'true'
+    }
+
+    # Disable logging when available...
+    if [ ${OPT_VAL['s']} -eq 0 ]; then
+        return 0
+    fi
+
+    # ... across all tests at once.
+    # In the future we should support SOF_LOGGING=etrace (only), see
+    # sof-test#726
+    if [ "x$SOF_LOGGING" == 'xnone' ]; then
+        dlogi 'SOF logs collection globally disabled by SOF_LOGGING=none'
+        return 0
+    fi
+
+    return 1
 }
 
 print_module_params()
