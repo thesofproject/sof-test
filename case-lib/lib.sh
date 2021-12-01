@@ -442,7 +442,23 @@ set_alsa_settings()
             # common nocodec_ci alsa settings
             "$SCRIPT_HOME"/alsa_settings/CAVS_NOCODEC_CI.sh
         ;;
-        *)
+        TGLH_0A5E_SDW | CML_SKU0983_SDW | TGLU_SKU0A3E_SDW | TGLU_RVP_SDW | ADLP_RVP_SDW)
+	    # common RT711 SDW setting
+	    "$SCRIPT_HOME"/alsa_settings/RT711_SDW.sh
+	;;
+        ADLP_RVP_HDA | CML_RVP_HDA | CML_SKU0955_HDA | TGLH_RVP_HDA | TGLH_0A70_HDA | TGLU_SKU09FB_HDA | TGLU_RVP_HDA | JSL_RVP_HDA | ICL_RVP_HDA)
+	    # common RT711 HDA setting
+	    "$SCRIPT_HOME"/alsa_settings/GENERIC_HDA.sh
+	;;
+        TGLU_SKU0A32_SDCA | TGLU_SKU0A32_SDCA)
+	    # common RT711 SDCA setting
+	    "$SCRIPT_HOME"/alsa_settings/RT711_SDCA.sh
+	;;
+        CML_HEL_RT5682 | TGLU_VOLT_SDW | BYT_MB_RT5682)
+	    # common RT5682 I2S setting
+	    "$SCRIPT_HOME"/alsa_settings/RT5682_I2S.sh
+	;;
+	*)
             # if script name is same as platform name, default case will handle all
             if [ -f "$SCRIPT_HOME"/alsa_settings/"$PNAME".sh ]; then
                 "$SCRIPT_HOME"/alsa_settings/"$PNAME".sh

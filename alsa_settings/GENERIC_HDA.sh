@@ -2,9 +2,9 @@ set -e
 
 # enable headset playback
 amixer -c sofhdadsp cset name='Master Playback Switch' 1
-amixer -c sofhdadsp cset name='Master Playback Volume' 70
+amixer -c sofhdadsp cset name='Master Playback Volume' 60
 amixer -c sofhdadsp cset name='Headphone Playback Switch' 1
-amixer -c sofhdadsp cset name='Headphone Playback Volume' 70
+amixer -c sofhdadsp cset name='Headphone Playback Volume' 80
 amixer -c sofhdadsp cset name='PGA1.0 1 Master Playback Volume' 32
 
 # enable HDMI
