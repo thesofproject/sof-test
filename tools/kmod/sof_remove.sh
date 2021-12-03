@@ -79,6 +79,7 @@ remove_module snd_usb_audio
 #-------------------------------------------
 remove_module snd_hda_intel
 remove_module snd_sof_pci_intel_tng
+remove_module snd_sof_pci_intel_skl
 remove_module snd_sof_pci_intel_apl
 remove_module snd_sof_pci_intel_cnl
 remove_module snd_sof_pci_intel_icl
