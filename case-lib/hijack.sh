@@ -37,12 +37,13 @@ function func_exit_handler()
         # logs relevant to the current test.
         # See DMA issue https://github.com/thesofproject/sof/issues/4333
         # We must use a component that is available everywhere: pga
+        local ldcf; ldcf=$(find_ldc_file)
         for i in 1 2; do
             # Running this twice makes it very easy to observe the stuck
             # lines bug: the "ipc" logs corresponding to this -F command
             # will appear _only once_ at the end of the slogger.txt DMA
             # trace!
-            sudo "$SOFLOGGER" -l "$(find_ldc_file)" -F info=pga > /dev/null ||
+            sudo "$SOFLOGGER" -l "${ldcf}" -F info=pga > /dev/null ||
                 test "$exit_status" -ne 0 || exit_status=1
         done
         # We _also_ need to wait for the trace_work() thread to run;
