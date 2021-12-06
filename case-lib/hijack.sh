@@ -38,7 +38,10 @@ function func_exit_handler()
         # See DMA issue https://github.com/thesofproject/sof/issues/4333
         # We must use a component that is available everywhere: pga
         local ldcf; ldcf=$(find_ldc_file)
-        for i in 1 2; do
+
+        # Zephyr does not support trace configuration, see
+        # https://github.com/thesofproject/sof/issues/5032
+        is_zephyr || for i in 1 2; do
             # Running this twice makes it very easy to observe the stuck
             # lines bug: the "ipc" logs corresponding to this -F command
             # will appear _only once_ at the end of the slogger.txt DMA
