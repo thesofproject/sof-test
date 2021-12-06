@@ -19,11 +19,6 @@ declare -A TPLG_IGNORE_LST
 # shellcheck disable=SC2034
 TPLG_IGNORE_LST['pcm']='HDA Digital'
 
-# Will be set by the lib function, don't need to set
-# Catches the last line of /var/log/kern.log, which will be used by
-#   sof-kernel-log-check.
-# KERNEL_CHECKPOINT
-
 # If not set will be automatically set by logging_ctl function
 # Test case log root
 # EXAMPLE: the log for test-case/check-ipc-flood.sh will be stored at
@@ -63,7 +58,15 @@ SUDO_LEVEL=${SUDO_LEVEL:-}
 #
 # NO_BT_MODE=true
 
-# Test interval between two test cases, the default value is 5 seconds
-# in CI, which is controlled by sof-framework. In manual run, user can
-# override the default value.
+# SOF_TEST_INTERVAL informs sof-test of how long the external test
+# runner waits between the end of one sof-test and the start of the next
+# sof-test. sof-test uses this value to assign the corresponding kernel
+# logs "no man's land" to the second test, which can be confusing (see
+# for instance https://github.com/thesofproject/sof/issues/5032) but
+# safer: it makes sure no kernel error escapes.
+# See initial review in https://github.com/thesofproject/sof-test/pull/639
+#
+# The default value must be 5s because 5s is the inter-test delay
+# waited by the internal test runner used by sof/jenkins CI and that
+# test runner does not define SOF_TEST_INTERVAL (internal bug 158)
 SOF_TEST_INTERVAL=${SOF_TEST_INTERVAL:-5}
