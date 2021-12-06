@@ -226,35 +226,6 @@ ignore_str="$ignore_str"'|(usb|hub) .+: disabled by hub \(EMI\?\), re-enabling\.
 # BugLink: https://github.com/thesofproject/sof-test/issues/617
 ignore_str="$ignore_str"'|igb 0000:..:..\..*'
 
-# Test cases on some platforms fail because the boot retry message:
-#
-#    sof-audio-pci 0000:00:1f.3: status = 0x00000000 panic = 0x00000000
-#    ...
-#    Attempting iteration 1 of Core En/ROM load...
-#
-# Despite the real boot failure the retry message is not at the error
-# level until after the last try. However we still use kern.log for now
-# and it has no log levels, so this may unfortunately hide this same
-# message at the 'error' level until we switch to journalctl
-# --priority. Hopefully other issues will cause the test to fail in that
-# case.
-#
-# Buglink: https://github.com/thesofproject/sof/issues/3395
-ignore_str="$ignore_str"'|sof-audio-pci 0000:00:..\..: status = 0x[0-f]{8} panic = 0x[0-f]{8}'
-
-# There will be debug logs at each failed initializaiton of DSP before Linux 5.9
-#   sof-audio-pci 0000:00:1f.3: error: cl_dsp_init: timeout HDA_DSP_SRAM_REG_ROM_STATUS read
-#   sof-audio-pci 0000:00:1f.3: error: status = 0x00000000 panic = 0x00000000
-#   sof-audio-pci 0000:00:1f.3: error: Error code=0xffffffff: FW status=0xffffffff
-#   sof-audio-pci 0000:00:1f.3: error: iteration 0 of Core En/ROM load failed: -110
-# We will reinit DSP if it is failed to init, and retry 3 times, so the errors in
-# debug logs at the frist and second retry can be ignored.
-# Check https://github.com/thesofproject/linux/pull/1676 for more information.
-# Fixed by https://github.com/thesofproject/linux/pull/2382
-ignore_str="$ignore_str"'|error: iteration [01]'
-ignore_str="$ignore_str"'|error: status'
-ignore_str="$ignore_str"'|error: cl_dsp_init: timeout HDA_DSP_SRAM_REG_ROM_STATUS read'
-
 # asix error in TGLH_0A5E_SDW, TGLH_RVP_HDA
 # kernel: asix 3-3.1:1.0 enx000ec65356e1: asix_rx_fixup() Bad Header Length 0x0, offset 4
 # kernel: asix 3-12.1:1.0 enx000ec668ad2a: asix_rx_fixup() ...
