@@ -42,9 +42,12 @@ fi
 
 setup_kernel_check_point()
 {
-    # Make the check point $SOF_TEST_INTERVAL second(s) earlier to avoid log loss.
-    # Note this may lead to an error caused by one test appear in the next one.
-    KERNEL_CHECKPOINT=$(($(date +%s) - SOF_TEST_INTERVAL))
+    # Make the check point $SOF_TEST_INTERVAL second(s) earlier to avoid
+    # log loss.  Note this may lead to an error caused by one test
+    # appear in the next one, see comments in config.sh.  Add 3 extra
+    # second to account for our own, sof-test delays after PASS/FAIL
+    # decision: time spent collecting logs etc.
+    KERNEL_CHECKPOINT=$(($(date +%s) - SOF_TEST_INTERVAL - 3))
 }
 
 # This function adds a fake error to dmesg (which is always saved by
