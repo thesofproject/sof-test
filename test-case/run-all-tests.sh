@@ -95,7 +95,9 @@ main()
 	while getopts "l:T:xh" OPTION; do
 	case "$OPTION" in
 		l) tests_length="$OPTARG" ;;
-		T) time_delay="$OPTARG" ;;
+		T) time_delay="$OPTARG"
+		   export SOF_TEST_INTERVAL="$OPTARG"
+		   ;;
 		x) exit_first=true ;;
 		*) usage; exit 1 ;;
 		esac
