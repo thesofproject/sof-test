@@ -51,6 +51,9 @@ suspend-resume
 suspend-resume-with-playback
 suspend-resume-with-capture"
 
+# Requires Octave
+testlist="$testlist volume_levels"
+
 # To focus on some particular tests edit and rename this to
 # 'testlist'. Last definition wins.
 # shellcheck disable=SC2034
@@ -63,9 +66,6 @@ capture_d1l100r1
 tplg-binary
 sof-logger
 '
-
-# Requires Octave
-testlist="$testlist volume_levels"
 
 main()
 {
