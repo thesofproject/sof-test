@@ -436,10 +436,10 @@ logger_disabled()
 print_module_params()
 {
     echo "--------- Printing module parameters ----------"
-    grep -H ^ /sys/module/snd_intel_dspcfg/parameters/*
+    grep -H ^ /sys/module/snd_intel_dspcfg/parameters/* || true
 
     # for all the *sof* modules
-    grep -H ^ /sys/module/*sof*/parameters/*
+    grep -H ^ /sys/module/*sof*/parameters/* || true
     echo "----------------------------------------"
 }
 
