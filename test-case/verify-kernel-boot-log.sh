@@ -50,7 +50,7 @@ wait_is_system_running()
         systemctl "$manager" --no-pager --failed
         # in a cleaner future we should:
         #
-        #   die "Some services are not running correctly"
+        die "Some services are not running correctly"
         #
         # Hint: apt remove snapd
     }
