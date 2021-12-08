@@ -25,6 +25,10 @@ main()
 
     print_module_params
 
+    wait_is_system_running --system
+    [ "$(id -un)" = root ] ||
+        wait_is_system_running --user
+
     ntp_check
 
     platform=$(sof-dump-status.py -p)
@@ -35,6 +39,18 @@ main()
     esac
 
     sof-kernel-log-check.sh
+}
+
+wait_is_system_running()
+{
+    local manager="$1"
+
+    printf 'systemctl %s --wait is-system-running: ' "$manager"
+    systemctl "$manager" --wait is-system-running || {
+        systemctl "$manager" --no-pager --failed
+
+        die "Some services are not running correctly"
+    }
 }
 
 ntp_check()
