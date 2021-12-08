@@ -46,7 +46,7 @@ function func_exit_handler()
             # lines bug: the "ipc" logs corresponding to this -F command
             # will appear _only once_ at the end of the slogger.txt DMA
             # trace!
-            sudo "$SOFLOGGER" -l "${ldcf}" -F info=pga > /dev/null ||
+            sudo "$SOFLOGGER" -l "${ldcf}" -F info=pga -i /dev/null -o /dev/null ||
                 test "$exit_status" -ne 0 || exit_status=1
         done
         # We _also_ need to wait for the trace_work() thread to run;
