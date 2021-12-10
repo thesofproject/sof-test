@@ -20,6 +20,9 @@ source "$(dirname "${BASH_SOURCE[0]}")"/../case-lib/lib.sh
 
 main()
 {
+    printf 'System booted at: '; uptime -s
+    journalctl -b | head -n 3
+
     func_opt_parse_option "$@"
     disable_kernel_check_point
 
