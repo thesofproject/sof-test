@@ -100,8 +100,10 @@ run_loggers()
     dlogi "Trying to get the etrace mailbox ..."
     dlogc \
     "sudo $loggerBin    -f 3 -l  $ldcFile  2>  $etrace_stderr_file  -o  $etrace_file"
-    sudo "$loggerBin"   -f 3 -l "$ldcFile" 2> "$etrace_stderr_file" -o "$etrace_file" ||
+    sudo "$loggerBin"   -f 3 -l "$ldcFile" 2> "$etrace_stderr_file" -o "$etrace_file" || {
         etrace_exit=$?
+        cat "$etrace_stderr_file" >&2
+    }
 
     printf '\n'
 
