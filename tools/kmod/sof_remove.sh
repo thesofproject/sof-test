@@ -216,6 +216,7 @@ remove_module snd_soc_max98357a
 remove_module snd_soc_max98373_sdw
 remove_module snd_soc_max98373_i2c
 remove_module snd_soc_max98373
+remove_module snd_soc_max98390
 
 remove_module snd_soc_hdac_hda
 remove_module snd_soc_hdac_hdmi
