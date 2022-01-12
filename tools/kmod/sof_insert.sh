@@ -34,9 +34,24 @@ sudo true
 
 insert_module snd_soc_da7213
 insert_module snd_soc_da7219
+insert_module snd_soc_pcm512x_i2c
+insert_module snd_soc_wm8804_i2c
+
 insert_module snd_soc_rt274
 insert_module snd_soc_rt286
 insert_module snd_soc_rt298
+
+insert_module snd_soc_rt700
+insert_module snd_soc_rt711
+insert_module snd_soc_rt1308
+insert_module snd_soc_rt1308_sdw
+insert_module snd_soc_rt715
+insert_module snd_soc_rt711_sdca
+insert_module snd_soc_rt1316_sdw
+insert_module snd_soc_rt715_sdca
+insert_module snd_soc_sdw_mockup
+
+insert_module snd_soc_rt1011
 insert_module snd_soc_rt5640
 insert_module snd_soc_rt5645
 insert_module snd_soc_rt5651
@@ -47,20 +62,12 @@ insert_module snd_soc_rt5677_spi
 insert_module snd_soc_rt5682_i2c
 insert_module snd_soc_rt5682_sdw
 
-insert_module snd_soc_pcm512x_i2c
-insert_module snd_soc_wm8804_i2c
-insert_module snd_soc_max98357a
 insert_module snd_soc_max98090
-insert_module snd_soc_max98373
-insert_module snd_soc_max98373_i2c
+insert_module snd_soc_ts3a227e
+insert_module snd_soc_max98357a
 insert_module snd_soc_max98373_sdw
-
-insert_module snd_soc_rt700
-insert_module snd_soc_rt711
-insert_module snd_soc_rt1308
-insert_module snd_soc_rt1308_sdw
-insert_module snd_soc_rt715
-insert_module snd_soc_rt1011
+insert_module snd_soc_max98373_i2c
+insert_module snd_soc_max98390
 
 # insert top-level ACPI/PCI SOF drivers. They will register SOF components and
 # load machine drivers as needed. Do not insert any other sort of audio module,
