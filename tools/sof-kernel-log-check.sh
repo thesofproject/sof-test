@@ -264,6 +264,11 @@ case "$platform" in
         # i915 0000:00:02.0: [drm] *ERROR* AUX A/DDI A/PHY A: not done (status 0xad4003ff)
         ignore_str="$ignore_str"'|i915 [[:digit:].:]+: \[drm\] \*ERROR\* AUX .+'
         ;;
+	tgl)
+        # Bug Report: https://github.com/thesofproject/sof-test/issues/838
+        # New TGLU_UP_HDA_ZEPHYR device reporting "TPM interrupt not working" errors.
+        ignore_str="$ignore_str"'|kernel: tpm tpm0: \[Firmware Bug\]: TPM interrupt not working, polling instead'
+        ;;
     ehl)
 	# i915 crtc logs can be ignored
 	# origin logs seen on EHL_RVP_I2S platforms
