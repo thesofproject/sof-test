@@ -4,6 +4,16 @@ set -e
 
 mydir=$(cd "$(dirname "$0")"; pwd)
 
+ubuntu_warning()
+{
+cat <<EOF
+
+    Disclaimer: this script is tested only on a somewhat recent Ubuntu version.
+    On other distributions your mileage may vary.
+
+EOF
+}
+
 # enable dynamic debug logs for SOF modules
 DYNDBG="/etc/modprobe.d/sof-dyndbg.conf"
 
@@ -44,6 +54,16 @@ func_check_exec_binary() {
         check_res=1
     fi
 }
+
+main()
+{
+    ubuntu_warning
+}
+
+main "$@"
+
+# All code should be moved to a function eventually:
+# https://github.com/thesofproject/sof-test/issues/740
 
 out_str="" check_res=0
 printf "Checking for some OS packages:\t\t"
