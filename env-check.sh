@@ -17,7 +17,7 @@ EOF
 # enable dynamic debug logs for SOF modules
 DYNDBG="/etc/modprobe.d/sof-dyndbg.conf"
 
-# check for the system package
+# This works only for packages that have an executable of the same name.
 func_check_pkg(){
     if command -v "$1" >/dev/null; then
         return
@@ -26,6 +26,20 @@ func_check_pkg(){
         check_res=1
     fi
 }
+
+func_check_dpkg()
+{
+    command -v dpkg >/dev/null || {
+        out_str="${out_str}\tNot a dpkg-based OS, cannot check \e[31m $1 \e[0m package\n"
+        check_res=1; return
+    }
+
+    dpkg -s "$1" >& /dev/null || {
+        out_str="${out_str}\tPlease install the \e[31m $1 \e[0m package\n"
+        check_res=1
+    }
+}
+
 
 func_check_python_pkg(){
     if command -v python3 >/dev/null; then
@@ -92,9 +106,9 @@ fi
 # octave packages are required only for check-volume-levels.sh
 # Good to check upfront but this can be optional requirement
 out_str="" check_res=0
-func_check_pkg octave
-func_check_pkg octave-signal
-func_check_pkg octave-io
+func_check_dpkg octave
+func_check_dpkg octave-signal
+func_check_dpkg octave-io
 if [ $check_res -eq 0 ]; then
     printf "pass for Octave packages\n"
 else
