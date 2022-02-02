@@ -187,6 +187,12 @@ test_pcm_list()
 }
 test_sof-logger()
 {
+	( set +x
+	if [ "$SOF_LOGGING" = 'none' ]; then
+	    printf '$''SOF_LOGGING=none, skipping check-sof-logger.sh\n'
+	fi )
+	return 2
+
 	"$mydir"/check-sof-logger.sh
 }
 test_ipc-flood()
