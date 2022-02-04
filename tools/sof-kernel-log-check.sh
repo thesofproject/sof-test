@@ -264,21 +264,21 @@ case "$platform" in
         # i915 0000:00:02.0: [drm] *ERROR* AUX A/DDI A/PHY A: not done (status 0xad4003ff)
         ignore_str="$ignore_str"'|i915 [[:digit:].:]+: \[drm\] \*ERROR\* AUX .+'
         ;;
-	tgl)
+    tgl)
         # Bug Report: https://github.com/thesofproject/sof-test/issues/838
         # New TGLU_UP_HDA_ZEPHYR device reporting "TPM interrupt not working" errors.
         ignore_str="$ignore_str"'|kernel: tpm tpm0: \[Firmware Bug\]: TPM interrupt not working, polling instead'
-	# 'failed to change power setting' and other errors observed at
-	# boot time on one TGLU_VOLT_SDW. Internal issue #174.  GOODIX
-	# touchscreen
-	# /sys/devices/pci0000:00/0000:00:15.1/i2c_designware.1/i2c-1/i2c-GDIX0000:00
-	ignore_str="$ignore_str"'|kernel: i2c_hid_acpi i2c-GDIX0000:00'
+        # 'failed to change power setting' and other errors observed at
+        # boot time on one TGLU_VOLT_SDW. Internal issue #174.  GOODIX
+        # touchscreen
+        # /sys/devices/pci0000:00/0000:00:15.1/i2c_designware.1/i2c-1/i2c-GDIX0000:00
+        ignore_str="$ignore_str"'|kernel: i2c_hid_acpi i2c-GDIX0000:00'
         ;;
     ehl)
-	# i915 crtc logs can be ignored
-	# origin logs seen on EHL_RVP_I2S platforms
-	# i915 0000:00:02.0: [drm] *ERROR* Suspending crtc's failed with -22
-	ignore_str="$ignore_str""|i915 [[:digit:].:]+: \[drm\] \*ERROR\* Suspending crtc's failed with -[[:digit:]]+"
+        # i915 crtc logs can be ignored
+        # origin logs seen on EHL_RVP_I2S platforms
+        # i915 0000:00:02.0: [drm] *ERROR* Suspending crtc's failed with -22
+        ignore_str="$ignore_str""|i915 [[:digit:].:]+: \[drm\] \*ERROR\* Suspending crtc's failed with -[[:digit:]]+"
 esac
 
 # below are new error level kernel logs from journalctl --priority=err
