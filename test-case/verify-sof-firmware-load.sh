@@ -22,6 +22,13 @@ func_opt_parse_option "$@"
 
 setup_kernel_check_point
 
+( set +x
+    if [ "$SOF_VERSION_CHECK" = 'none' ]; then
+        printf '$''SOF_VERSION_CHECK=none, skipping verify-sof-firmware-load.sh\n'
+        exit 2
+    fi
+)
+
 cmd="journalctl_cmd"
 
 dlogi "Checking SOF Firmware load info in kernel log"

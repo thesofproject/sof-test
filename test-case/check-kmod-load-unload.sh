@@ -90,12 +90,19 @@ do
     sof-kernel-log-check.sh "$KERNEL_CHECKPOINT" ||
         die "Found error(s) in kernel log after module insertion"
 
-    dlogi "checking if firmware is loaded successfully"
-    "$(dirname "${BASH_SOURCE[0]}")"/verify-sof-firmware-load.sh ||
-         die "Failed to load firmware after module insertion"
+    ( set +x
+      if [ "$SOF_VERSION_CHECK" = 'none' ]; then
+	  printf '$''SOF_VERSION_CHECK=none, skipping verify-sof-firmware-load.sh\n'
+	  dlogi "==== firmware boot check skipped: $idx of $loop_cnt ===="
+      else
+	  dlogi "checking if firmware is loaded successfully"
+	  "$(dirname "${BASH_SOURCE[0]}")"/verify-sof-firmware-load.sh ||
+              die "Failed to load firmware after module insertion"
+	  dlogi "==== firmware boot complete: $idx of $loop_cnt ===="
+      fi
+    )
 
     # successful remove/insert module pass
-    dlogi "==== firmware boot complete: $idx of $loop_cnt ===="
 
     # After the last module insertion, it still takes about 10s for 'aplay -l' to show device
     # list. We need to wait before aplay can function. Here, wait dsp status to suspend to

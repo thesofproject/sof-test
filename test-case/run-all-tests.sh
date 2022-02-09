@@ -21,6 +21,7 @@ very_short_tests()
 
 
 testlist="
+firmware-load
 tplg-binary
 pcm_list
 sof-logger
