@@ -20,6 +20,9 @@ source "$(dirname "${BASH_SOURCE[0]}")"/../case-lib/lib.sh
 
 func_opt_parse_option "$@"
 
+# We don't use KERNEL_CHECKPOINT in this test. FIXME: (re)move this line
+# after checking how this line interferes with other tests invoking us
+# (e.g.: load-unload test)
 setup_kernel_check_point
 
 cmd="journalctl_cmd"
