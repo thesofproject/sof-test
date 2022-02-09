@@ -22,7 +22,10 @@ insert_module() {
 # Test sudo first, not after dozens of SKIP
 sudo true
 
-
+# Modules parameters can be passed here as a quick and purely local
+# hack.  Be conscious of unexpected interactions with "official"
+# parameters located in /etc/modprobe.d/*.conf
+#
 # This is not required unless you want to change the default flags.
 # For the list of flags search:   git -C linux grep SOF_DBG_
 # Warning: the DMA trace can be forced ON in Kconfig and
@@ -72,8 +75,15 @@ insert_module snd_soc_max98390
 # insert top-level ACPI/PCI SOF drivers. They will register SOF components and
 # load machine drivers as needed. Do not insert any other sort of audio module,
 # code dependencies will be used to load the relevant modules.
+insert_module snd_sof_acpi
+
 insert_module snd_sof_acpi_intel_byt
 insert_module snd_sof_acpi_intel_bdw
+
+# Module parameters can be passed here as a quick and purely local hack.
+# Be conscious of unexpected interactions with "official" parameters
+# located in /etc/modprobe.d/*.conf
+insert_module snd_sof_pci # ipc_type=1 # sof_pci_debug=1 ...
 
 insert_module snd_sof_pci_intel_tng
 insert_module snd_sof_pci_intel_apl
@@ -81,8 +91,6 @@ insert_module snd_sof_pci_intel_cnl
 insert_module snd_sof_pci_intel_icl
 insert_module snd_sof_pci_intel_tgl
 
-insert_module snd_sof_acpi
-insert_module snd_sof_pci
 
 # USB
 insert_module snd_usb_audio
