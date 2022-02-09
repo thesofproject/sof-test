@@ -5,11 +5,11 @@ set -e
 ##
 ## Case Name: verify-sof-firmware-load
 ## Description:
-##    Check if the SOF fw loaded successfully in the kernel logs
-## Case step:
-##    Check kernel logs to search fw load info
+##    Check if /sys/kernel/debug/sof/fw_version exists
 ## Expect result:
-##    Get fw version info in dmesg
+##    /sys/kernel/debug/sof/fw_version exists
+##
+##    When found, also show the firmware version(s) found in the kernel logs
 ##    sof-audio-pci 0000:00:0e.0: Firmware info: version 1:1:0-e5fe2
 ##    sof-audio-pci 0000:00:0e.0: Firmware: ABI 3:11:0 Kernel ABI 3:11:0
 ##
@@ -27,18 +27,29 @@ setup_kernel_check_point
 
 cmd="journalctl_cmd"
 
-dlogi "Checking SOF Firmware load info in kernel log"
+# TODO: move this to main()
+dlogi "Showing all SOF Firmware version(s) in kernel log (mind the timestamps!)"
 if $cmd | grep -q " sof-audio.*Firmware.*version"; then
     # dump the version info and ABI info
     $cmd | grep "Firmware info" -A1 | head -n 12
     # dump the debug info
     $cmd | grep "Firmware debug build" -A3 | head -n 12
-    exit 0
+fi
 
-else # failed, show some logs
+main()
+{
+    local fw_version=/sys/kernel/debug/sof/fw_version
 
+    if sudo test -e "$fw_version"; then
+        printf '  ------ %s found  ----\n' "$fw_version"
+        exit 0
+    fi
+
+    # failed, show some logs
     journalctl_cmd --lines 50 || true
     printf ' ------\n  Check journalctl status: \n ---- \n'
     systemctl --no-pager status systemd-journald* || true
-    die "Cannot find the sof audio version"
-fi
+    die "Cannot find ${fw_version}"
+}
+
+main "$@"
