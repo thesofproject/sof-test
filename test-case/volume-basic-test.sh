@@ -15,10 +15,11 @@
 ##
 
 # source from the relative path of current folder
-source $(dirname ${BASH_SOURCE[0]})/../case-lib/lib.sh
+# shellcheck source=case-lib/lib.sh
+source "$(dirname "${BASH_SOURCE[0]}")"/../case-lib/lib.sh
 
 volume_array=("0%" "10%" "20%" "30%" "40%" "50%" "60%" "70%" "80%" "90%" "100%")
-OPT_NAME['t']='tplg'     OPT_DESC['t']='tplg file, default value is env TPLG: $TPLG'
+OPT_NAME['t']='tplg'     OPT_DESC['t']='tplg file, default value is env TPLG: $''TPLG'
 OPT_HAS_ARG['t']=1         OPT_VAL['t']="$TPLG"
 
 OPT_NAME['l']='loop'     OPT_DESC['l']='loop count'
@@ -51,13 +52,13 @@ dev=$(func_pipeline_parse_value 0 dev)
 
 dlogc "aplay -D $dev -c $channel -r $rate -f $fmt /dev/zero &"
 # play into background, this will wake up DSP and IPC. Need to clean after the test
-aplay -D $dev -c $channel -r $rate -f $fmt /dev/zero &
+aplay -D "$dev" -c "$channel" -r "$rate" -f "$fmt" /dev/zero &
 
 sleep 1
 [[ ! $(pidof aplay) ]] && die "$pid process is terminated too early"
 
 sofcard=${SOFCARD:-0}
-pgalist=($(amixer -c$sofcard controls | grep -i PGA | sed 's/ /_/g;' | awk -Fname= '{print $2}'))
+pgalist=($(amixer -c"$sofcard" controls | grep -i PGA | sed 's/ /_/g;' | awk -Fname= '{print $2}'))
 dlogi "pgalist number = ${#pgalist[@]}"
 [[ ${#pgalist[@]} -eq 0 ]] && func_error_exit "No PGA control is available"
 
@@ -68,21 +69,21 @@ do
     # TODO: need to check command effect
     for i in "${pgalist[@]}"
     do
-        volctrl=$(echo $i | sed 's/_/ /g;')
+        volctrl=$(echo "$i" | sed 's/_/ /g;')
         dlogi "$volctrl"
 
         for vol in ${volume_array[@]}; do
             dlogc "amixer -c$sofcard cset name='$volctrl' $vol"
-            amixer -c$sofcard cset name="$volctrl" $vol > /dev/null
-            [[ $? -ne 0 ]] && func_error_exit "amixer return error, test failed"
+            amixer -c"$sofcard" cset name="$volctrl" "$vol" > /dev/null ||
+                              func_error_exit "amixer return error, test failed"
         done
     done
 
     sleep 1
 
     dlogi "check dmesg for error"
-    sof-kernel-log-check.sh "$KERNEL_CHECKPOINT"
-    [[ $? -ne 0 ]] && func_error_exit "dmesg has errors!"
+    sof-kernel-log-check.sh "$KERNEL_CHECKPOINT" ||
+                      func_error_exit "dmesg has errors!"
 done
 
 #clean up background aplay
