@@ -60,7 +60,7 @@ sleep 1
 sofcard=${SOFCARD:-0}
 pgalist=($(amixer -c"$sofcard" controls | grep -i PGA | sed 's/ /_/g;' | awk -Fname= '{print $2}'))
 dlogi "pgalist number = ${#pgalist[@]}"
-[[ ${#pgalist[@]} -eq 0 ]] && func_error_exit "No PGA control is available"
+[[ ${#pgalist[@]} -ne 0 ]] || skip_test "No PGA control is available"
 
 for i in $(seq 1 $maxloop)
 do
