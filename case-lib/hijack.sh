@@ -107,7 +107,7 @@ function func_exit_handler()
     # now force kill target process which maybe block the script quit
     if [ ${#cmd_lst[@]} -gt 0 ]; then
         local line
-        dlogw "Process(es) started by $SCRIPT_NAME are still active, kill these process(es):"
+        dlogw "Process(es) started by $SCRIPT_NAME are still active, killing these process(es):"
         for line in "${cmd_lst[@]}"
         do
             dlogw "Catch pid: $line"
