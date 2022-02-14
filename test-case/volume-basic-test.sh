@@ -58,7 +58,7 @@ sleep 1
 [[ ! $(pidof aplay) ]] && die "$pid process is terminated too early"
 
 sofcard=${SOFCARD:-0}
-pgalist=($(amixer -c"$sofcard" controls | grep -i PGA | sed 's/ /_/g;' | awk -Fname= '{print $2}'))
+pgalist=($(amixer -c"$sofcard" controls | grep "[0-9]\.[0-9]" | sed 's/ /_/g;' | awk -Fname= '{print $2}'))
 dlogi "pgalist number = ${#pgalist[@]}"
 [[ ${#pgalist[@]} -ne 0 ]] || skip_test "No PGA control is available"
 
