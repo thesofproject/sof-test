@@ -91,8 +91,11 @@ do
         die "Found error(s) in kernel log after module insertion"
 
     dlogi "checking if firmware is loaded successfully"
-    "$(dirname "${BASH_SOURCE[0]}")"/verify-sof-firmware-load.sh ||
+    if sof_firmware_boot_complete --since=@"$KERNEL_CHECKPOINT"; then
+        grep_firmware_info_in_logs --since=@"$KERNEL_CHECKPOINT"
+    else
          die "Failed to load firmware after module insertion"
+    fi
 
     # successful remove/insert module pass
     dlogi "==== firmware boot complete: $idx of $loop_cnt ===="
