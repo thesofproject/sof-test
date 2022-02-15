@@ -395,6 +395,13 @@ disable_kernel_check_point()
     KERNEL_CHECKPOINT="disabled"
 }
 
+# "$@" is optional, usually: --since=@"$epoch_checkpoint"
+# shellcheck disable=SC2120
+sof_firmware_boot_complete()
+{
+    journalctl_cmd "$@" --grep 'sof.*firmware[[:blank:]]*boot[[:blank:]]*complete'
+}
+
 is_zephyr()
 {
     local ldcFile
