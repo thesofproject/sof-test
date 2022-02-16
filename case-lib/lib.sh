@@ -443,6 +443,17 @@ print_module_params()
     echo "----------------------------------------"
 }
 
+# "$@" is optional, typically: --since=@"$epoch".
+# shellcheck disable=SC2120
+grep_firmware_info_in_logs()
+{
+    # dump the version info and ABI info
+    # "head -n" makes this compatible with set -e.
+    journalctl_cmd "$@" | grep "Firmware info" -A1 | head -n 12
+    # dump the debug info
+    journalctl_cmd "$@" | grep "Firmware debug build" -A3 | head -n 12
+}
+
 # check if NTP Synchronized, if so return 0 otherwise return 1
 check_ntp_sync()
 {

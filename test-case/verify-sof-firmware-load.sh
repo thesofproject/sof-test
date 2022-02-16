@@ -26,10 +26,8 @@ cmd="journalctl_cmd"
 
 dlogi "Checking SOF Firmware load info in kernel log"
 if $cmd | grep -q " sof-audio.*Firmware.*version"; then
-    # dump the version info and ABI info
-    $cmd | grep "Firmware info" -A1 | head -n 12
-    # dump the debug info
-    $cmd | grep "Firmware debug build" -A3 | head -n 12
+
+    grep_firmware_info_in_logs
     exit 0
 
 else # failed, show some logs
