@@ -25,7 +25,7 @@ setup_kernel_check_point
 cmd="journalctl_cmd"
 
 dlogi "Checking SOF Firmware load info in kernel log"
-if $cmd | grep -q " sof-audio.*Firmware.*version"; then
+if sof_firmware_boot_complete; then
 
     grep_firmware_info_in_logs
     exit 0
