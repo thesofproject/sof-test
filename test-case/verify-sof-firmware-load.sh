@@ -35,5 +35,5 @@ else # failed, show some logs
     journalctl_cmd --lines 50 || true
     printf ' ------\n  Check journalctl status: \n ---- \n'
     systemctl --no-pager status systemd-journald* || true
-    die "Cannot find the sof audio version"
+    die "Cannot find any 'sof boot complete' message in logs since boot time"
 fi
