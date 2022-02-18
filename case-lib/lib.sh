@@ -40,6 +40,41 @@ if [ ! "$SOFCARD" ]; then
 		awk '/sof-[a-z]/ && $1 ~ /^[0-9]+$/ { $1=$1; print $1; exit 0;}')
 fi
 
+# Arguments:
+#
+#   - poll interval in secs
+#   - timeout in secs, rounded up to the next interval
+#   - command and arguments
+#
+poll_wait_for()
+{
+    test $# -ge 3 ||
+        die "poll_wait_for() invoked with $# arguments"
+
+    local ival="$1"; shift
+    local maxtime="$1"; shift
+
+    printf "Polling '%s' every ${ival}s for ${maxtime}s\n" "$*"
+
+    local waited=0 attempts=1 pass=true
+    while ! "$@"; do
+        if [ "$waited" -ge "$maxtime" ]; then
+            pass=false
+            break;
+        fi
+        sleep "$ival"
+        : $((attempts++));  waited=$((waited+ival))
+    done
+    local timeinfo="${waited}s and ${attempts} attempts"
+    if $pass; then
+        printf "Completed '%s' after ${timeinfo}\n" "$*"
+    else
+        >&2 printf "Command '%s' timed out after ${timeinfo}\n" "$*"
+    fi
+
+    $pass
+}
+
 setup_kernel_check_point()
 {
     # Make the check point $SOF_TEST_INTERVAL second(s) earlier to avoid
