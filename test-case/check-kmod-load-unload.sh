@@ -91,7 +91,8 @@ do
         die "Found error(s) in kernel log after module insertion"
 
     dlogi "checking if firmware is loaded successfully"
-    if sof_firmware_boot_complete --since=@"$KERNEL_CHECKPOINT"; then
+    # Check every 1s for 10s
+    if poll_wait_for 1 10 sof_firmware_boot_complete --since=@"$KERNEL_CHECKPOINT"; then
         grep_firmware_info_in_logs --since=@"$KERNEL_CHECKPOINT"
     else
          die "Failed to load firmware after module insertion"
