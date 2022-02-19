@@ -142,7 +142,18 @@ ps_checks()
         func_error_exit "Caught abnormal process status of aplay"
 }
 
+main()
+{
+    local platf; platf=$("${TESTDIR}"/tools/sof-dump-status.py --platform)
+    if [ "$platf" = bdw ] && [ "$f_arg" != 'p' ] && ! is_zephyr; then
+        skip_test \
+            "multi-capture disabled on BDW https://github.com/thesofproject/sof/issues/3170"
+    fi
+}
 
+main "$@"
+
+# TODO: move this to main() https://github.com/thesofproject/sof-test/issues/740
 for i in $(seq 1 $loop_cnt)
 do
     # set up checkpoint for each iteration
