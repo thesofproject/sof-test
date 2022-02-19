@@ -34,8 +34,10 @@
 
 set -e
 
+TESTDIR="$(dirname "${BASH_SOURCE[0]}")"/..
+
 # shellcheck source=case-lib/lib.sh
-source "$(dirname "${BASH_SOURCE[0]}")"/../case-lib/lib.sh
+source "${TESTDIR}"/case-lib/lib.sh
 
 OPT_NAME['t']='tplg'     OPT_DESC['t']='Topology path, default to environment variable: TPLG'
 OPT_HAS_ARG['t']=1         OPT_VAL['t']="$TPLG"
