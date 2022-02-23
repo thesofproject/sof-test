@@ -149,6 +149,7 @@ remove_module snd_soc_skl_hda_dsp
 remove_module snd_soc_sdw_rt700
 remove_module snd_soc_sdw_rt711_rt1308_rt715
 remove_module snd_soc_sof_sdw
+remove_module snd_soc_sof_es8336
 remove_module snd_soc_ehl_rt5660
 remove_module snd_soc_intel_hda_dsp_common
 remove_module snd_soc_intel_sof_maxim_common
@@ -210,6 +211,9 @@ remove_module snd_soc_rl6347a
 
 remove_module snd_soc_wm8804_i2c
 remove_module snd_soc_wm8804
+
+remove_module snd_soc_es8316
+remove_module snd_soc_es8326
 
 remove_module snd_soc_max98090
 remove_module snd_soc_ts3a227e
