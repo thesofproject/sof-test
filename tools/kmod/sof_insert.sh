@@ -72,6 +72,9 @@ insert_module snd_soc_max98373_sdw
 insert_module snd_soc_max98373_i2c
 insert_module snd_soc_max98390
 
+insert_module snd_soc_es8316
+insert_module snd_soc_es8326
+
 # insert top-level ACPI/PCI SOF drivers. They will register SOF components and
 # load machine drivers as needed. Do not insert any other sort of audio module,
 # code dependencies will be used to load the relevant modules.
