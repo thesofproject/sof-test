@@ -19,7 +19,7 @@ source "$(dirname "${BASH_SOURCE[0]}")"/../case-lib/lib.sh
 
 func_opt_parse_option "$@"
 
-setup_kernel_check_point
+disable_kernel_check_point
 
 cmd="journalctl_cmd"
 
