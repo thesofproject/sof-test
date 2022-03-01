@@ -5,13 +5,12 @@ set -e
 ##
 ## Case Name: verify-sof-firmware-load
 ## Description:
-##    Check if the SOF fw loaded successfully in the kernel logs
+##    Check if the SOF fw loaded successfully at least once in the whole
+##    kernel logs. This test can PASS after unloading the drivers!
 ## Case step:
 ##    Check kernel logs to search fw load info
 ## Expect result:
-##    Get fw version info in dmesg
-##    sof-audio-pci 0000:00:0e.0: Firmware info: version 1:1:0-e5fe2
-##    sof-audio-pci 0000:00:0e.0: Firmware: ABI 3:11:0 Kernel ABI 3:11:0
+##    'sof boot complete' found at least once in the kernel logs
 ##
 
 # source from the relative path of current folder
@@ -27,13 +26,21 @@ cmd="journalctl_cmd"
 dlogi "Checking SOF Firmware load info in kernel log"
 if sof_firmware_boot_complete; then
 
+    # Show messages again but with wallclock timestamps
+    # that can be matched with the ktimes just printed.
+    sof_firmware_boot_complete --output=short
+
+    # On some systems 'firmware boot complete' can be printed again on
+    # every resume from D3. These versions are printed only when the
+    # kernel driver is loaded.
     grep_firmware_info_in_logs
     exit 0
 
 else # failed, show some logs
 
-    journalctl_cmd --lines 50 || true
     printf ' ------\n  Check journalctl status: \n ---- \n'
     systemctl --no-pager status systemd-journald* || true
+    journalctl_cmd --lines 50 || true
+
     die "Cannot find any 'sof boot complete' message in logs since boot time"
 fi
