@@ -86,6 +86,8 @@ function func_exit_handler()
     fi
 
     if [[ "$KERNEL_CHECKPOINT" =~ ^[0-9]{10} ]]; then
+        # Do not collect the entire duration of the test but only the
+        # last iteration.
         journalctl_cmd --since=@"$KERNEL_CHECKPOINT" > "$LOG_ROOT/dmesg.txt"
     elif [[ "$KERNEL_CHECKPOINT" == "disabled" ]]; then
         journalctl_cmd > "$LOG_ROOT/dmesg.txt"
