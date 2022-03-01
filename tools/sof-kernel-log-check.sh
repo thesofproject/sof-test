@@ -126,7 +126,11 @@
 # Append some garbage to an ignore pattern to turn it off. Much easier
 # than deleting it.
 
-begin_timestamp=${1:-0}
+# Don't look at journalctl logs before this time in seconds since
+# 1970. Defaults to zero which is a no-op because we always use -k or
+# -b.
+begin_timestamp=${1:-0000000000}
+
 declare ignore_str
 
 # pwd resolves relative paths
@@ -376,7 +380,7 @@ ignore_str="$ignore_str"'|iwlwifi [[:digit:].:]+: '
 if [[ $begin_timestamp =~ ^[0-9]{10} ]]; then
     cmd="journalctl_cmd --since=@$begin_timestamp"
 else
-    cmd="journalctl_cmd"
+    die "Invalid begin_timestamp $1 argument: $begin_timestamp"
 fi
 
 declare -p cmd
@@ -388,6 +392,7 @@ else
 fi
 
 [[ -z "$err" ]] || {
+    type journalctl_cmd
     echo "$(date -u '+%Y-%m-%d %T %Z')" "[ERROR]" "Caught kernel log error"
     echo "===========================>>"
     echo "$err"
