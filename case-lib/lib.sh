@@ -82,7 +82,14 @@ setup_kernel_check_point()
     # appear in the next one, see comments in config.sh.  Add 3 extra
     # second to account for our own, sof-test delays after PASS/FAIL
     # decision: time spent collecting logs etc.
-    KERNEL_CHECKPOINT=$(($(date +%s) - SOF_TEST_INTERVAL - 3))
+    if [ -z "$KERNEL_CHECKPOINT" ]; then
+        KERNEL_CHECKPOINT=$(($(date +%s) - SOF_TEST_INTERVAL - 3))
+    else
+        # Not the first time we are called so this is a test
+        # _iteration_. Add just one extra second in case a test makes
+        # the mistake to call this function _after_ checking the logs.
+        KERNEL_CHECKPOINT=$(($(date +%s) - 1))
+    fi
 }
 
 # This function adds a fake error to dmesg (which is always saved by
@@ -425,6 +432,8 @@ journalctl_cmd()
      --no-hostname "$@"
 }
 
+# Force the exit handler to collect all the logs since boot time instead
+# of just the last test iteration.
 disable_kernel_check_point()
 {
     KERNEL_CHECKPOINT="disabled"
