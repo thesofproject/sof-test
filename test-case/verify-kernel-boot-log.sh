@@ -37,7 +37,7 @@ main()
     platform=$(sof-dump-status.py -p)
     case "$platform" in
         adl)
-            skip_test "$platform is under active development"
+            skip_test "internal #99: missing GPU firmware and others on $platform"
             ;;
     esac
 
