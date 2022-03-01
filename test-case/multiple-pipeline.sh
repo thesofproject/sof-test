@@ -105,7 +105,7 @@ func_run_pipeline_with_type()
 
         dlogi "Testing: $pcm [$dev]"
 
-        "${APP_LST[$1]}" -D "$dev" -c "$channel" -r "$rate" -f "$fmt" "${DEV_LST[$1]}" -q &
+        "${APP_LST[${1%% *}]}" -D "$dev" -c "$channel" -r "$rate" -f "$fmt" "${DEV_LST[${1%% *}]}" -q &
 
         : $((tmp_count--))
         if [ "$tmp_count" -le 0 ]; then return 0; fi
@@ -170,7 +170,7 @@ do
         'c')
             tmp_count=$max_count
             func_run_pipeline_with_type "capture"
-            func_run_pipeline_with_type "playback"
+            func_run_pipeline_with_type "playback & ~smart_amp"
             ;;
         *)
             die "Wrong -f argument $f_arg, see -h"
