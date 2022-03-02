@@ -56,7 +56,7 @@ rnd_range=$((rnd_max - rnd_min))
 [[ $rnd_range -le 0 ]] && dlogw "Error random range scope [ min:$rnd_min - max:$rnd_max ]" && exit 2
 
 tplg=${OPT_VAL['t']}
-func_pipeline_export "$tplg" "type:any"
+func_pipeline_export "$tplg" "type:any & ~pcm:Amplifier Reference"
 
 logger_disabled || func_lib_start_log_collect
 
