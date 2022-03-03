@@ -84,10 +84,15 @@ APP_LST['capture']='arecord_opts'
 DEV_LST['capture']='/dev/null'
 
 # define for load pipeline
+# args: $1: playback or capture
+#       $2: optional filter
 func_run_pipeline_with_type()
 {
+    local direction="$1"
+    local opt_filter
+    [ -n "$2" ] && opt_filter="& $2"
     [[ $tmp_count -le 0 ]] && return
-    func_pipeline_export "$tplg" "type:$1"
+    func_pipeline_export "$tplg" "type:$direction $opt_filter"
     local -a idx_lst
     if [ ${OPT_VAL['r']} -eq 0 ]; then
         idx_lst=("$(seq 0 $((PIPELINE_COUNT - 1)))")
@@ -105,7 +110,7 @@ func_run_pipeline_with_type()
 
         dlogi "Testing: $pcm [$dev]"
 
-        "${APP_LST[$1]}" -D "$dev" -c "$channel" -r "$rate" -f "$fmt" "${DEV_LST[$1]}" -q &
+        "${APP_LST[$direction]}" -D "$dev" -c "$channel" -r "$rate" -f "$fmt" "${DEV_LST[$direction]}" -q &
 
         : $((tmp_count--))
         if [ "$tmp_count" -le 0 ]; then return 0; fi
@@ -165,11 +170,11 @@ do
         'p' | 'a')
             tmp_count=$max_count
             func_run_pipeline_with_type "playback"
-            func_run_pipeline_with_type "capture"
+            func_run_pipeline_with_type "capture" "~pcm:Amplifier Reference"
             ;;
         'c')
             tmp_count=$max_count
-            func_run_pipeline_with_type "capture"
+            func_run_pipeline_with_type "capture" "~pcm:Amplifier Reference"
             func_run_pipeline_with_type "playback"
             ;;
         *)
