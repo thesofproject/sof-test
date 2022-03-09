@@ -67,9 +67,11 @@ tplg=${OPT_VAL['t']}
 f_arg=${OPT_VAL['f']}
 logger_disabled || func_lib_start_log_collect
 
+# skip the Echo Reference pipeline
+MULTI_PIPELINE_FILTER='~pcm:Amplifier Reference'
 max_count=0
 # this line will help to get $PIPELINE_COUNT
-func_pipeline_export "$tplg" "type:any"
+func_pipeline_export "$tplg" "type:any & ${MULTI_PIPELINE_FILTER}"
 # acquire pipeline count that will run in parallel, if the number of pipeline
 # in topology is less than the required pipeline count, all pipeline will be started.
 [[ $PIPELINE_COUNT -gt ${OPT_VAL['c']} ]] && max_count=${OPT_VAL['c']} || max_count=$PIPELINE_COUNT
@@ -170,11 +172,11 @@ do
         'p' | 'a')
             tmp_count=$max_count
             func_run_pipeline_with_type "playback"
-            func_run_pipeline_with_type "capture" "~pcm:Amplifier Reference"
+            func_run_pipeline_with_type "capture" "${MULTI_PIPELINE_FILTER}"
             ;;
         'c')
             tmp_count=$max_count
-            func_run_pipeline_with_type "capture" "~pcm:Amplifier Reference"
+            func_run_pipeline_with_type "capture" "${MULTI_PIPELINE_FILTER}"
             func_run_pipeline_with_type "playback"
             ;;
         *)
