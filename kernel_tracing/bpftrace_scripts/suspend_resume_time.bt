@@ -1,0 +1,29 @@
+// SPDX-License-Identifier: BSD-3-Clause
+// Copyright(c) 2022 Intel Corporation. All rights reserved.
+
+
+// This tracks the time it takes for runtime and system suspend/resume
+// It prints out timings as they happen, and will generate a histogram
+// when you stop the script with ctrl-c
+
+// Use the `test-case/check-suspend-resume.sh` script to try this out
+
+kprobe:sof_resume, kprobe:sof_suspend {
+  // When the function enters, we record a timestamp and the type
+  @start = nsecs;
+  @type = arg1 ? "runtime" : "system";
+  printf("%s (%s) started\n", probe, @type);
+}
+
+kretprobe:sof_resume, kretprobe:sof_suspend {
+  // When the function returns, we use the saved timestamp to determine execution time
+  printf("%s (%s) finished, took %d nsecs\n", probe, @type, nsecs - @start);
+  @usecs[probe, @type] = hist((nsecs - @start) / 1000);
+  @avg[probe, @type] = avg((nsecs - @start) / 1000);
+}
+
+END {
+  // Clean up variables that shouldn't be printed
+  delete(@start);
+  delete(@type);
+}
