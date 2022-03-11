@@ -375,6 +375,9 @@ ignore_str="$ignore_str"'|elan_i2c i2c-ELAN0000:.*: failed to read current power
 # iwlwifi 0000:00:14.3: No beacon heard and the time event is over already...
 ignore_str="$ignore_str"'|iwlwifi [[:digit:].:]+: '
 
+# This can happen when starting snapd at boot time or when re-installing it.
+# https://github.com/thesofproject/sof-test/issues/874
+ignore_str="$ignore_str"'|I/O error, dev loop., sector 0 op 0x0:.READ. flags 0x80700'
 
 #
 # SDW related logs
