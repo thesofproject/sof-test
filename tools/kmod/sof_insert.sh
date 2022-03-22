@@ -89,6 +89,7 @@ insert_module snd_sof_acpi_intel_bdw
 insert_module snd_sof_pci # ipc_type=1 # sof_pci_debug=1 ...
 
 insert_module snd_sof_pci_intel_tng
+insert_module snd_sof_pci_intel_skl
 insert_module snd_sof_pci_intel_apl
 insert_module snd_sof_pci_intel_cnl
 insert_module snd_sof_pci_intel_icl
