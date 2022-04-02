@@ -77,6 +77,9 @@ OPT_HAS_ARG['t']=1               OPT_VAL['t']="$TPLG"
 OPT_NAME['P']='filter_string'    OPT_DESC['P']='run this case on specified pipelines'
 OPT_HAS_ARG['P']=1               OPT_VAL['P']='id:any'
 
+OPT_NAME['T']='type'             OPT_DESC['T']="specify the sleep type for suspend/resume:s2idle/deep"
+OPT_HAS_ARG['T']=1               OPT_VAL['T']=""
+
 func_opt_parse_option "$@"
 
 repeat_count=${OPT_VAL['l']}
@@ -98,6 +101,11 @@ case $test_mode in
         die "Invalid test mode: $test_mode. Accepted test mode: playback; capture"
     ;;
 esac
+
+# only run suspend/resume once for each loop.
+# Use system default value if no sleep type is specified
+sleep_opts="-l 1"
+[ -z "${OPT_VAL['T']}" ] || sleep_opts+=" -T ${OPT_VAL['T']}"
 
 [[ -z $file_name ]] && file_name=$dummy_file
 
@@ -143,7 +151,7 @@ do
                 exit 1
             }
             # enter suspend-resume cycle once per pause instance
-            set retval [catch { exec bash $CASEDIR/check-suspend-resume.sh -l 1 } msg]
+            set retval [catch { exec bash $CASEDIR/check-suspend-resume.sh $sleep_opts } msg]
             # prints logs from suspend-resume test
             puts \$msg
             puts "Finished suspend-resume test"
