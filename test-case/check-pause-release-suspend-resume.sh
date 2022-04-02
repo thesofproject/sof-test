@@ -80,6 +80,9 @@ OPT_HAS_ARG['P']=1               OPT_VAL['P']='id:any'
 OPT_NAME['T']='type'             OPT_DESC['T']="specify the sleep type for suspend/resume:s2idle/deep"
 OPT_HAS_ARG['T']=1               OPT_VAL['T']=""
 
+OPT_NAME['d']='delay'            OPT_DESC['d']='delay time before pausing aplay/arecord process, unit is ms'
+OPT_HAS_ARG['d']=1               OPT_VAL['d']='2000'
+
 func_opt_parse_option "$@"
 
 repeat_count=${OPT_VAL['l']}
@@ -87,6 +90,7 @@ interval=${OPT_VAL['i']}
 test_mode=${OPT_VAL['m']}
 file_name=${OPT_VAL['F']}
 tplg=${OPT_VAL['t']}
+delay=${OPT_VAL['d']}
 
 case $test_mode in
     "playback")
@@ -136,7 +140,9 @@ do
     expect {
         "#*+*\%" {
             # audio stream (aplay or arecord) is active now and playing
-            puts "\r===== (\$i/$repeat_count) pb_pbm: Pause $cmd, then wait for ===== "
+            # delay time before pausing aplay/arecord process
+            after $delay
+	    puts "\r===== (\$i/$repeat_count) pb_pbm: Pause $cmd, then wait for ===== "
             puts "\r(\$i/$repeat_count) pb_pbm: $interval ms after pause"
             send " "
             after $interval
