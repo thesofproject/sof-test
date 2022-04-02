@@ -65,8 +65,8 @@ OPT_HAS_ARG['F']=1               OPT_VAL['F']=''
 OPT_NAME['l']='loop'             OPT_DESC['l']='loop count'
 OPT_HAS_ARG['l']=1               OPT_VAL['l']=5
 
-OPT_NAME['i']='sleep-period'     OPT_DESC['i']='sleep period of aplay, unit is ms'
-OPT_HAS_ARG['i']=1               OPT_VAL['i']='100'
+OPT_NAME['i']='interval'         OPT_DESC['i']='interval before checking the aplay/arecord status after pause/release'
+OPT_HAS_ARG['i']=1               OPT_VAL['i']='500'
 
 OPT_NAME['s']='sof-logger'       OPT_DESC['s']="Open sof-logger trace the data will store at $LOG_ROOT"
 OPT_HAS_ARG['s']=0               OPT_VAL['s']=1
@@ -80,7 +80,7 @@ OPT_HAS_ARG['P']=1               OPT_VAL['P']='id:any'
 func_opt_parse_option "$@"
 
 repeat_count=${OPT_VAL['l']}
-sleep_period=${OPT_VAL['i']}
+interval=${OPT_VAL['i']}
 test_mode=${OPT_VAL['m']}
 file_name=${OPT_VAL['F']}
 tplg=${OPT_VAL['t']}
@@ -125,14 +125,13 @@ do
     expect <<AUDIO
     spawn $cmd -D $dev -r $rate -c $channel -f $fmt -vv -i $file_name -q
     set i 1
-    set sleep_t $sleep_period
     expect {
         "#*+*\%" {
             # audio stream (aplay or arecord) is active now and playing
             puts "\r===== (\$i/$repeat_count) pb_pbm: Pause $cmd, then wait for ===== "
-            puts "\r(\$i/$repeat_count) pb_pbm: $sleep_t ms after pause"
+            puts "\r(\$i/$repeat_count) pb_pbm: $interval ms after pause"
             send " "
-            after \$sleep_t
+            after $interval
             puts "Finished sleep. Confirming $cmd is paused."
             # check audio stream status --- R == paused, else == not paused
             set retval [catch { exec ps -C $cmd -o state --no-header } state]
@@ -156,9 +155,9 @@ do
             }
             # sucessful suspend/resume cycle, now release audio stream
             puts "\r(\$i/$repeat_count) pb_pbm: Release $cmd, then wait for"
-            puts "\r(\$i/$repeat_count) pb_pbm: \$sleep_t ms after resume"
+            puts "\r(\$i/$repeat_count) pb_pbm: $interval ms after resume"
             send " "
-            after \$sleep_t
+            after $interval
             puts "Finished sleep after resume"
             incr i
             if { \$i > $repeat_count } { exit 0 }
