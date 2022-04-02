@@ -47,7 +47,9 @@ kmod-load-unload
 kmod-load-unload-after-playback
 suspend-resume
 suspend-resume-with-playback
-suspend-resume-with-capture"
+suspend-resume-with-capture
+pause-release-suspend-resume-with-playback
+pause-release-suspend-resume-with-capture"
 
 # Requires Octave
 testlist="$testlist volume_levels"
@@ -294,6 +296,14 @@ test_suspend-resume-with-playback()
 test_suspend-resume-with-capture()
 {
 	"$mydir"/check-suspend-resume-with-audio.sh -l "$small_loop" -m capture
+}
+test_pause-release-suspend-resume-with-playback()
+{
+        "$mydir"/check-pause-release-suspend-resume.sh -l "$small_loop" -m playback
+}
+test_pause-release-suspend-resume-with-capture()
+{
+        "$mydir"/check-pause-release-suspend-resume.sh -l "$small_loop" -m capture
 }
 
 usage()
