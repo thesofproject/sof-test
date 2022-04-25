@@ -383,6 +383,9 @@ ignore_str="$ignore_str"'|I/O error, dev loop., sector 0 op 0x0:.READ. flags 0x8
 # https://github.com/thesofproject/sof-test/issues/888
 ignore_str="$ignore_str"'|nvme0: Admin Cmd\(0x[[:digit:]]+\), I/O Error \(sct 0x0 / sc 0x2\)'
 
+# EDAC pnd2 related error occurs after upgrading Ubuntu to 22.04 LTS on APL UP board
+ignore_str="$ignore_str"'|EDAC pnd2: Failed to register device with error -22'
+
 #
 # SDW related logs
 #
