@@ -51,10 +51,11 @@ set -e
 ##  * No unexpected errors should be present in dmesg during or after test
 ##      completion.
 
-source $(dirname ${BASH_SOURCE[0]})/../case-lib/lib.sh
+# shellcheck source=case-lib/lib.sh
+source "$(dirname "${BASH_SOURCE[0]}")"/../case-lib/lib.sh
 
-OPT_NAME['m']='mode'         OPT_DESC['m']='test mode. Example: playback; capture'
-OPT_HAS_ARG['m']=1             OPT_VAL['m']='playback'
+OPT_NAME['m']='mode'             OPT_DESC['m']='test mode. Example: playback; capture'
+OPT_HAS_ARG['m']=1               OPT_VAL['m']='playback'
 
 OPT_NAME['p']='pcm'          OPT_DESC['p']='audio pcm. Example: hw:0,0'
 OPT_HAS_ARG['p']=1             OPT_VAL['p']='hw:0,0'
@@ -68,17 +69,17 @@ OPT_HAS_ARG['c']=1             OPT_VAL['c']='2'
 OPT_NAME['r']='rate'         OPT_DESC['r']='audio rate'
 OPT_HAS_ARG['r']=1             OPT_VAL['r']='48000'
 
-OPT_NAME['F']='file'         OPT_DESC['F']='file name. Example: /dev/zero; /dev/null'
-OPT_HAS_ARG['F']=1             OPT_VAL['F']=''
+OPT_NAME['F']='file'             OPT_DESC['F']='file name. Example: /dev/zero; /dev/null'
+OPT_HAS_ARG['F']=1               OPT_VAL['F']=''
 
-OPT_NAME['l']='loop'         OPT_DESC['l']='loop count'
-OPT_HAS_ARG['l']=1             OPT_VAL['l']=5
+OPT_NAME['l']='loop'             OPT_DESC['l']='loop count'
+OPT_HAS_ARG['l']=1               OPT_VAL['l']=5
 
-OPT_NAME['i']='sleep-period' OPT_DESC['i']='sleep period of aplay, unit is ms'
-OPT_HAS_ARG['i']=1             OPT_VAL['i']='100'
+OPT_NAME['i']='sleep-period'     OPT_DESC['i']='sleep period of aplay, unit is ms'
+OPT_HAS_ARG['i']=1               OPT_VAL['i']='100'
 
-OPT_NAME['s']='sof-logger'   OPT_DESC['s']="Open sof-logger trace the data will store at $LOG_ROOT"
-OPT_HAS_ARG['s']=0             OPT_VAL['s']=1
+OPT_NAME['s']='sof-logger'       OPT_DESC['s']="Open sof-logger trace the data will store at $LOG_ROOT"
+OPT_HAS_ARG['s']=0               OPT_VAL['s']=1
 
 func_opt_parse_option "$@"
 
@@ -114,8 +115,6 @@ setup_kernel_check_point
 
 dlogi "Entering audio stream expect script with: $cmd -D $pcm -r $rate -c $channel -f $fmt -vv -i $dummy_file -q"
 dlogi "Will enter suspend-resume cycle during paused period of audio stream process"
-
-rm -rf /tmp/sof-test.lock
 
 # expect is tcl language script
 #   catch: Evaluate script and trap exceptional returns
@@ -172,13 +171,8 @@ expect {
 }
 AUDIO
 
-ret=$?
-#flush the output
-echo
-if [ $ret -ne 0 ]; then
-    sof-process-kill.sh
-    [[ $? -ne 0 ]] && dlogw "Kill process catch error"
-    exit $ret
+if [ "$?" -ne 0 ]; then
+    sof-process-kill.sh || dlogw "Kill process catch error"
+    exit 1
 fi
-sof-kernel-log-check.sh "$KERNEL_CHECKPOINT"
-exit $?
+sof-kernel-log-check.sh "$KERNEL_CHECKPOINT" || die "Caught error in kernel log"
