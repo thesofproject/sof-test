@@ -54,20 +54,10 @@ set -e
 # shellcheck source=case-lib/lib.sh
 source "$(dirname "${BASH_SOURCE[0]}")"/../case-lib/lib.sh
 
+CASEDIR=$(dirname "${BASH_SOURCE[0]}")
+
 OPT_NAME['m']='mode'             OPT_DESC['m']='test mode. Example: playback; capture'
 OPT_HAS_ARG['m']=1               OPT_VAL['m']='playback'
-
-OPT_NAME['p']='pcm'          OPT_DESC['p']='audio pcm. Example: hw:0,0'
-OPT_HAS_ARG['p']=1             OPT_VAL['p']='hw:0,0'
-
-OPT_NAME['f']='fmt'          OPT_DESC['f']='audio format value'
-OPT_HAS_ARG['f']=1             OPT_VAL['f']='S16_LE'
-
-OPT_NAME['c']='channel'      OPT_DESC['c']='audio channel count'
-OPT_HAS_ARG['c']=1             OPT_VAL['c']='2'
-
-OPT_NAME['r']='rate'         OPT_DESC['r']='audio rate'
-OPT_HAS_ARG['r']=1             OPT_VAL['r']='48000'
 
 OPT_NAME['F']='file'             OPT_DESC['F']='file name. Example: /dev/zero; /dev/null'
 OPT_HAS_ARG['F']=1               OPT_VAL['F']=''
@@ -81,16 +71,19 @@ OPT_HAS_ARG['i']=1               OPT_VAL['i']='100'
 OPT_NAME['s']='sof-logger'       OPT_DESC['s']="Open sof-logger trace the data will store at $LOG_ROOT"
 OPT_HAS_ARG['s']=0               OPT_VAL['s']=1
 
+OPT_NAME['t']='tplg'             OPT_DESC['t']='tplg file, default value is env TPLG: $''TPLG'
+OPT_HAS_ARG['t']=1               OPT_VAL['t']="$TPLG"
+
+OPT_NAME['P']='filter_string'    OPT_DESC['P']='run this case on specified pipelines'
+OPT_HAS_ARG['P']=1               OPT_VAL['P']='id:any'
+
 func_opt_parse_option "$@"
 
-pcm=${OPT_VAL['p']}
-fmt=${OPT_VAL['f']}
-channel=${OPT_VAL['c']}
-rate=${OPT_VAL['r']}
 repeat_count=${OPT_VAL['l']}
 sleep_period=${OPT_VAL['i']}
 test_mode=${OPT_VAL['m']}
 file_name=${OPT_VAL['F']}
+tplg=${OPT_VAL['t']}
 
 case $test_mode in
     "playback")
@@ -113,66 +106,71 @@ logger_disabled || func_lib_start_log_collect
 
 setup_kernel_check_point
 
-dlogi "Entering audio stream expect script with: $cmd -D $pcm -r $rate -c $channel -f $fmt -vv -i $dummy_file -q"
-dlogi "Will enter suspend-resume cycle during paused period of audio stream process"
+func_pipeline_export "$tplg" "type:$test_mode & ${OPT_VAL['P']}"
 
-# expect is tcl language script
-#   catch: Evaluate script and trap exceptional returns
-#   after ms: Ms must be an integer giving a time in milliseconds.
-#       The command sleeps for ms milliseconds and then returns.
-expect <<AUDIO
-spawn $cmd -D $pcm -r $rate -c $channel -f $fmt -vv -i $dummy_file -q
-set i 1
-set sleep_t $sleep_period
-expect {
-    "#*+*\%" {
-        #audio stream (aplay or arecord) is active now and playing
-        puts "\r===== (\$i/$repeat_count) pb_pbm: Pause $cmd, then wait for ===== "
-        puts "\r(\$i/$repeat_count) pb_pbm: $sleep_t ms after pause"
-        send " "
-        after \$sleep_t
-        puts "Finished sleep. Confirming $cmd is paused."
+for idx in $(seq 0 $((PIPELINE_COUNT - 1)))
+do
+    channel=$(func_pipeline_parse_value "$idx" channel)
+    rate=$(func_pipeline_parse_value "$idx" rate)
+    fmt=$(func_pipeline_parse_value "$idx" fmt)
+    dev=$(func_pipeline_parse_value "$idx" dev)
 
-        #check audio stream status --- R == paused, else == not paused
-        set retval [catch { exec ps -C $cmd -o state --no-header } state]
-        puts "$cmd state = \$state"
+    dlogi "Entering audio stream expect script with: $cmd -D $dev -r $rate -c $channel -f $fmt -vv -i $file_name -q"
+    dlogi "Will enter suspend-resume cycle during paused period of audio stream process"
 
-        if {[string equal \$state "R"] != 0} {
-            puts "$cmd is paused, will now enter suspend-resume cycle"
-        } else {
-            puts "$cmd is not paused. Exiting test and failing."
-            exit 1
+    # expect is tcl language script
+    # catch: Evaluate script and trap exceptional returns
+    # after ms: Ms must be an integer giving a time in milliseconds.
+    # The command sleeps for ms milliseconds and then returns.
+    expect <<AUDIO
+    spawn $cmd -D $dev -r $rate -c $channel -f $fmt -vv -i $file_name -q
+    set i 1
+    set sleep_t $sleep_period
+    expect {
+        "#*+*\%" {
+            # audio stream (aplay or arecord) is active now and playing
+            puts "\r===== (\$i/$repeat_count) pb_pbm: Pause $cmd, then wait for ===== "
+            puts "\r(\$i/$repeat_count) pb_pbm: $sleep_t ms after pause"
+            send " "
+            after \$sleep_t
+            puts "Finished sleep. Confirming $cmd is paused."
+            # check audio stream status --- R == paused, else == not paused
+            set retval [catch { exec ps -C $cmd -o state --no-header } state]
+            puts "$cmd state = \$state"
+            if {[string equal \$state "R"] != 0} {
+                puts "$cmd is paused, will now enter suspend-resume cycle"
+            } else {
+                puts "$cmd is not paused. Exiting test and failing."
+                exit 1
+            }
+            # enter suspend-resume cycle once per pause instance
+            set retval [catch { exec bash $CASEDIR/check-suspend-resume.sh -l 1 } msg]
+            # prints logs from suspend-resume test
+            puts \$msg
+            puts "Finished suspend-resume test"
+            if { \$retval } {
+                puts "suspend resume cycle has failed."
+                set error_code [lindex \$::errorCode {2}]
+                puts "errorCode was: \$error_code"
+                exit 1
+            }
+            # sucessful suspend/resume cycle, now release audio stream
+            puts "\r(\$i/$repeat_count) pb_pbm: Release $cmd, then wait for"
+            puts "\r(\$i/$repeat_count) pb_pbm: \$sleep_t ms after resume"
+            send " "
+            after \$sleep_t
+            puts "Finished sleep after resume"
+            incr i
+            if { \$i > $repeat_count } { exit 0 }
+            exp_continue
         }
-
-        #enter suspend-resume cycle once per pause instance
-        set retval [catch { exec bash check-suspend-resume.sh -l 1 } msg]
-
-        #prints logs from suspend-resume test
-        puts \$msg
-        puts "Finished suspend-resume test"
-        if { \$retval } {
-            puts "suspend resume cycle has failed."
-            set error_code [lindex \$::errorCode {2}]
-            puts "errorCode was: \$error_code"
-            exit 1
-        }
-
-        #sucessful suspend/resume cycle, now release audio stream
-        puts "\r(\$i/$repeat_count) pb_pbm: Release $cmd, then wait for"
-        puts "\r(\$i/$repeat_count) pb_pbm: \$sleep_t ms after resume"
-        send " "
-        after \$sleep_t
-
-        puts "Finished sleep after resume"
-        incr i
-        if { \$i > $repeat_count } { exit 0 }
-        exp_continue
     }
-}
 AUDIO
 
-if [ "$?" -ne 0 ]; then
-    sof-process-kill.sh || dlogw "Kill process catch error"
-    exit 1
-fi
+    if [ "$?" -ne 0 ]; then
+        sof-process-kill.sh || dlogw "Kill process catch error"
+        exit 1
+    fi
+done
+
 sof-kernel-log-check.sh "$KERNEL_CHECKPOINT" || die "Caught error in kernel log"
