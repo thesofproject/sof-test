@@ -83,16 +83,18 @@ OPT_HAS_ARG['T']=1               OPT_VAL['T']=""
 OPT_NAME['d']='delay'            OPT_DESC['d']='delay time before pausing aplay/arecord process, unit is ms'
 OPT_HAS_ARG['d']=1               OPT_VAL['d']='2000'
 
-func_opt_parse_option "$@"
+parse_param()
+{
+    func_opt_parse_option "$@"
 
-repeat_count=${OPT_VAL['l']}
-interval=${OPT_VAL['i']}
-test_mode=${OPT_VAL['m']}
-file_name=${OPT_VAL['F']}
-tplg=${OPT_VAL['t']}
-delay=${OPT_VAL['d']}
+    repeat_count=${OPT_VAL['l']}
+    interval=${OPT_VAL['i']}
+    test_mode=${OPT_VAL['m']}
+    file_name=${OPT_VAL['F']}
+    tplg=${OPT_VAL['t']}
+    delay=${OPT_VAL['d']}
 
-case $test_mode in
+    case $test_mode in
     "playback")
         cmd=aplay
         dummy_file=/dev/zero
@@ -104,24 +106,18 @@ case $test_mode in
     *)
         die "Invalid test mode: $test_mode. Accepted test mode: playback; capture"
     ;;
-esac
+    esac
 
-# only run suspend/resume once for each loop.
-# Use system default value if no sleep type is specified
-sleep_opts="-l 1"
-[ -z "${OPT_VAL['T']}" ] || sleep_opts+=" -T ${OPT_VAL['T']}"
+    # only run suspend/resume once for each loop.
+    # Use system default value if no sleep type is specified
+    sleep_opts="-l 1"
+    [ -z "${OPT_VAL['T']}" ] || sleep_opts+=" -T ${OPT_VAL['T']}"
 
-[[ -z $file_name ]] && file_name=$dummy_file
+    [[ -z "$file_name" ]] && file_name="$dummy_file"
+}
 
-
-logger_disabled || func_lib_start_log_collect
-
-setup_kernel_check_point
-
-func_pipeline_export "$tplg" "type:$test_mode & ${OPT_VAL['P']}"
-
-for idx in $(seq 0 $((PIPELINE_COUNT - 1)))
-do
+run_test()
+{
     channel=$(func_pipeline_parse_value "$idx" channel)
     rate=$(func_pipeline_parse_value "$idx" rate)
     fmt=$(func_pipeline_parse_value "$idx" fmt)
@@ -179,11 +175,26 @@ do
         }
     }
 AUDIO
+}
 
-    if [ "$?" -ne 0 ]; then
-        sof-process-kill.sh || dlogw "Kill process catch error"
-        exit 1
-    fi
-done
+main()
+{
+    parse_param "$@"
 
-sof-kernel-log-check.sh "$KERNEL_CHECKPOINT" || die "Caught error in kernel log"
+    logger_disabled || func_lib_start_log_collect
+
+    setup_kernel_check_point
+
+    func_pipeline_export "$tplg" "type:$test_mode & ${OPT_VAL['P']}"
+
+    for idx in $(seq 0 $((PIPELINE_COUNT - 1)))
+    do
+        run_test || {
+	    sof-process-kill.sh || dlogw "sof-process-kill.sh cleanup failed"
+            exit 1
+        }
+    done
+    sof-kernel-log-check.sh "$KERNEL_CHECKPOINT" || die "Caught error in kernel log"
+}
+
+main "$@"
