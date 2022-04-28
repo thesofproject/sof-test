@@ -50,6 +50,10 @@ function func_exit_handler()
         # BOTH are needed. The bug is not just a delay.
         sleep 1
 
+        # $logfile is defined in a different file (lib.sh)
+        # shellcheck disable=SC2154
+        logfile="$logfile"
+
         local loggerBin wcLog; loggerBin=$(basename "$SOFLOGGER")
         # We need this to avoid the confusion of a "Terminated" message
         # without context.
@@ -65,8 +69,6 @@ function func_exit_handler()
             exit_status=1
         fi
 
-        # $logfile is defined in a different file (lib.sh)
-        # shellcheck disable=SC2154
         if test -e "$logfile"; then
 
             wcLog=$(wc -l "$logfile") # show both line count and filename
