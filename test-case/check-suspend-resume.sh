@@ -19,7 +19,8 @@ set -e
 ##    check kernel log and find no errors
 ##
 
-source $(dirname ${BASH_SOURCE[0]})/../case-lib/lib.sh
+# shellcheck source=case-lib/lib.sh
+source "$(dirname "${BASH_SOURCE[0]}")"/../case-lib/lib.sh
 
 random_min=3    # wait time should >= 3 for other device wakeup from sleep
 random_max=20
