@@ -82,8 +82,8 @@ do
     setup_kernel_check_point
     sleep_count=$(cat /sys/power/wakeup_count)
     dlogc "Run the command: rtcwake -m mem -s ${sleep_lst[$i]}"
-    sudo rtcwake -m mem -s ${sleep_lst[$i]}
-    [[ $? -ne 0 ]] && die "rtcwake return value error"
+    sudo rtcwake -m mem -s "${sleep_lst[$i]}" ||
+        die "rtcwake returned $?"
     dlogc "sleep for ${wait_lst[$i]}"
     sleep ${wait_lst[$i]}
     dlogi "Check for the kernel log status"
