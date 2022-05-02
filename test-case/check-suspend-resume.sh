@@ -46,7 +46,10 @@ type=${OPT_VAL['T']}
 # switch type
 if [ "$type" ]; then
     # check for type value effect
-    [[ ! "$(cat /sys/power/mem_sleep|grep $type)" ]] && dloge "useless type option" && exit 2
+    grep -q "$type" /sys/power/mem_sleep || {
+        grep -H '^' /sys/power/mem_sleep
+        skip_test "Unsupported sleep type argument: $type"
+    }
     dlogc "sudo bash -c 'echo $type > /sys/power/mem_sleep'"
     sudo bash -c "'echo $type > /sys/power/mem_sleep'"
 fi
