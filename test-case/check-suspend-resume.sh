@@ -48,7 +48,7 @@ if [ "$type" ]; then
     # check for type value effect
     grep -q "$type" /sys/power/mem_sleep || {
         grep -H '^' /sys/power/mem_sleep
-        skip_test "Unsupported sleep type argument: $type"
+        die "Unsupported sleep type argument: $type"
     }
     dlogc "echo $type > /sys/power/mem_sleep"
     echo "$type" | >/dev/null sudo tee -a /sys/power/mem_sleep
