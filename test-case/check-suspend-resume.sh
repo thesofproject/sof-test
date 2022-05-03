@@ -50,8 +50,8 @@ if [ "$type" ]; then
         grep -H '^' /sys/power/mem_sleep
         skip_test "Unsupported sleep type argument: $type"
     }
-    dlogc "sudo bash -c 'echo $type > /sys/power/mem_sleep'"
-    sudo bash -c "'echo $type > /sys/power/mem_sleep'"
+    dlogc "echo $type > /sys/power/mem_sleep"
+    echo "$type" | >/dev/null sudo tee -a /sys/power/mem_sleep
 fi
 dlogi "Current suspend/resume type mode: $(cat /sys/power/mem_sleep)"
 
