@@ -80,12 +80,14 @@ fi
 sleep 1
 
 expected_wakeup_count=$(cat /sys/power/wakeup_count)
+expected_stats_success=$(cat /sys/power/suspend_stats/success)
 for i in $(seq 1 $loop_count)
 do
     dlogi "===== Round($i/$loop_count) ====="
     # set up checkpoint for each iteration
     setup_kernel_check_point
     expected_wakeup_count=$((expected_wakeup_count+1))
+    expected_stats_success=$((expected_stats_success+1))
     dlogc "Run the command: rtcwake -m mem -s ${sleep_lst[$i]}"
     sudo rtcwake -m mem -s "${sleep_lst[$i]}" ||
         die "rtcwake returned $?"
@@ -96,10 +98,13 @@ do
     sof-kernel-log-check.sh "$KERNEL_CHECKPOINT" || die "Caught error in kernel log"
     # check wakeup count correct
     wake_count=$(cat /sys/power/wakeup_count)
-    dlogi "Check for the wakeup_count"
+    stats_success=$(cat /sys/power/suspend_stats/success)
+    dlogi "Check for wakeup_count and suspend_stats"
     [ "$wake_count" -eq "$expected_wakeup_count" ] || {
         dlogw "/sys/power/wakeup_count is $wake_count, expected $expected_wakeup_count"
         expected_wakeup_count=${wake_count}
     }
+    [ "$stats_success" -eq "$expected_stats_success" ] ||
+        suspend_die "/sys/power/suspend_stats/success is $stats_success, expected $expected_stats_success"
 done
 
