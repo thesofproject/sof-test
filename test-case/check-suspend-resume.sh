@@ -79,12 +79,13 @@ fi
 # TODO: remove this after issue fixed.
 sleep 1
 
+expected_wakeup_count=$(cat /sys/power/wakeup_count)
 for i in $(seq 1 $loop_count)
 do
     dlogi "===== Round($i/$loop_count) ====="
     # set up checkpoint for each iteration
     setup_kernel_check_point
-    sleep_count=$(cat /sys/power/wakeup_count)
+    expected_wakeup_count=$((expected_wakeup_count+1))
     dlogc "Run the command: rtcwake -m mem -s ${sleep_lst[$i]}"
     sudo rtcwake -m mem -s "${sleep_lst[$i]}" ||
         die "rtcwake returned $?"
@@ -96,6 +97,9 @@ do
     # check wakeup count correct
     wake_count=$(cat /sys/power/wakeup_count)
     dlogi "Check for the wakeup_count"
-    [[ $wake_count -ge $sleep_count ]] || die "suspend/resume didn't happen, because /sys/power/wakeup_count does not increase"
+    [ "$wake_count" -eq "$expected_wakeup_count" ] || {
+        dlogw "/sys/power/wakeup_count is $wake_count, expected $expected_wakeup_count"
+        expected_wakeup_count=${wake_count}
+    }
 done
 
