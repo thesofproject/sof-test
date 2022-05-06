@@ -74,6 +74,53 @@ else
     done
 fi
 
+save_initial_stats()
+{
+    printf '\n\n'
+
+    INITIAL_DBG_SOURCES="$LOG_ROOT"/initial_wakeup_sources.txt
+    sudo cat /sys/kernel/debug/wakeup_sources | sudo tee "$INITIAL_DBG_SOURCES"
+
+    INITIAL_STATS="$LOG_ROOT"/initial_suspend_stats.txt
+    grep ^ /sys/power/suspend_stats/*fail* |
+        sudo tee "$INITIAL_STATS" > /dev/null
+
+    if grep -E ':[[:digit:]]+$' "$INITIAL_STATS" | grep -q -v ':0$'; then
+        dlogw "Starting test with earlier suspend failures!"
+    fi
+    printf '\n'
+
+    find /sys/devices -wholename '*/power/wakeup' -print0 |
+        xargs --null grep -H 'enabled'; printf '\n'
+    dlogi "Note many of the devices above are typically buses, not actual devices"
+    dlogi "https://docs.kernel.org/driver-api/pm/devices.html#sys-devices-power-wakeup-files"
+    printf '\n'
+    lspci;    printf '\n'
+    lsusb -t; printf '\n\n'
+}
+
+check_suspend_fails()
+{
+    diff -u "$INITIAL_STATS" <(grep ^ /sys/power/suspend_stats/*fail*)
+}
+
+dump_stats()
+{
+    printf '\n'
+    grep ^ /sys/power/suspend_stats/*
+    printf '\n'
+    sudo cat /sys/kernel/debug/wakeup_sources | head -n 1
+    diff -u "$INITIAL_DBG_SOURCES" <(sudo cat /sys/kernel/debug/wakeup_sources) ||
+        true
+    printf '\n'
+}
+
+dump_and_die()
+{
+    dump_stats
+    die "$@"
+}
+
 # This is used to workaround https://github.com/thesofproject/sof-test/issues/650,
 # which may be caused by kernel issue or unstable network connection.
 # TODO: remove this after issue fixed.
@@ -81,6 +128,7 @@ sleep 1
 
 expected_wakeup_count=$(cat /sys/power/wakeup_count)
 expected_stats_success=$(cat /sys/power/suspend_stats/success)
+save_initial_stats
 for i in $(seq 1 $loop_count)
 do
     dlogi "===== Round($i/$loop_count) ====="
@@ -90,21 +138,25 @@ do
     expected_stats_success=$((expected_stats_success+1))
     dlogc "Run the command: rtcwake -m mem -s ${sleep_lst[$i]}"
     sudo rtcwake -m mem -s "${sleep_lst[$i]}" ||
-        die "rtcwake returned $?"
+        dump_and_die "rtcwake returned $?"
     dlogc "sleep for ${wait_lst[$i]}"
     sleep ${wait_lst[$i]}
     dlogi "Check for the kernel log status"
     # check kernel log for each iteration to catch issues
-    sof-kernel-log-check.sh "$KERNEL_CHECKPOINT" || die "Caught error in kernel log"
+    sof-kernel-log-check.sh "$KERNEL_CHECKPOINT" || dump_and_die "Caught error in kernel log"
     # check wakeup count correct
     wake_count=$(cat /sys/power/wakeup_count)
     stats_success=$(cat /sys/power/suspend_stats/success)
     dlogi "Check for wakeup_count and suspend_stats"
     [ "$wake_count" -eq "$expected_wakeup_count" ] || {
+        dump_stats
         dlogw "/sys/power/wakeup_count is $wake_count, expected $expected_wakeup_count"
+        printf '\n'
         expected_wakeup_count=${wake_count}
     }
     [ "$stats_success" -eq "$expected_stats_success" ] ||
-        suspend_die "/sys/power/suspend_stats/success is $stats_success, expected $expected_stats_success"
+        dump_and_die "/sys/power/suspend_stats/success is $stats_success, expected $expected_stats_success"
+    check_suspend_fails || dump_and_die "some failure counts have changed"
+
 done
 
