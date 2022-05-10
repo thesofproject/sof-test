@@ -8,19 +8,32 @@ import re
 import sys
 import typing
 from collections import defaultdict
-from construct import this, Container, ListContainer, Struct, Const, Switch, Select, Array, Bytes, GreedyBytes, GreedyRange, FocusedSeq, Pass, Padded, Padding, Prefixed, String, Flag, Byte, Int16ul, Int32ul, Int64ul, Terminated
+from construct import this, Container, ListContainer, Struct, Switch, Select, Array, Bytes, GreedyBytes, GreedyRange, FocusedSeq, Pass, Padded, Padding, Prefixed, Flag, Byte, Int16ul, Int32ul, Int64ul, Terminated
 from dataclasses import dataclass
 from functools import cached_property, partial
 
-def __enum_dict(enumtype) -> dict:
-    return dict((e.name, e.value) for e in enumtype)
+# Pylint complain about the missing names even in conditional import.
+# pylint: disable=E0611
+if construct.version < (2, 9, 0):
+    from construct import Const, String
 
-# here is a workaround to make Enum/FlagsEnum accept enum type, like construct 2.9
-def Enum(subcon, enumtype):
-    return construct.Enum(subcon, default=Pass, **__enum_dict(enumtype))
+    def __enum_dict(enumtype):
+        return dict((e.name, e.value) for e in enumtype)
+    # here is a workaround to make Enum/FlagsEnum accept enum type, like construct 2.9
+    def Enum(subcon, enumtype):
+        return construct.Enum(subcon, default=Pass, **__enum_dict(enumtype))
+    def FlagsEnum(subcon, enumtype):
+        return construct.FlagsEnum(subcon, **__enum_dict(enumtype))
 
-def FlagsEnum(subcon, enumtype):
-    return construct.FlagsEnum(subcon, **__enum_dict(enumtype))
+if construct.version >= (2, 9, 0):
+    # https://github.com/construct/construct/blob/master/docs/transition29.rst
+    # Pylint complain about the argument reodering
+    # pylint: disable=E0102,W1114
+    from construct import PaddedString as String
+    from construct import Enum, FlagsEnum
+
+    def Const(subcon, value):
+        return construct.Const(value, subcon)
 
 def CompleteRange(subcon):
     "like GreedyRange, but will report error if anything left in stream."
