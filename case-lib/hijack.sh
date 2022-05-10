@@ -61,16 +61,18 @@ function func_exit_handler()
         sudo pkill -TERM "$loggerBin" || {
             dloge "sof-logger was already dead"
             if is_zephyr; then
-                dloge 'Downgrading test failure to SKIP because of known'
+                dloge 'Downgrading sof-logger failure to SKIP because of known'
                 dloge 'issue https://github.com/thesofproject/sof/issues/5352'
                 # Pretend we got at least one line of logs to fool the
                 # next check
                 printf \
    'https://github.com/thesofproject/sof/issues/5352\n' |
                     sudo tee -a "$logfile"
-                exit_status=2
-            else
-                exit_status=1
+                if [ $exit_status = 0 ]; then
+                   exit_status=2 # skip
+                fi
+            else # 5352 corruption affects only Zephyr for some unknown reason
+                exit_status=1 # fail
             fi
         }
         sleep 1s
