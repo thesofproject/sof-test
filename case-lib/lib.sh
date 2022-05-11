@@ -532,6 +532,8 @@ grep_firmware_info_in_logs()
     # dump the version info and ABI info
     # "head -n" makes this compatible with set -e.
     journalctl_cmd "$@" | grep "Firmware info" -A1 | head -n 12
+    # For dumping the firmware information when DUT runs IPC4 mode 
+    journalctl_cmd "$@" | grep "firmware version" -A1 | head -n 12
     # dump the debug info
     journalctl_cmd "$@" | grep "Firmware debug build" -A3 | head -n 12
 }
