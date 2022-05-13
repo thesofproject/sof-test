@@ -96,7 +96,7 @@ save_initial_stats()
     dlogi "https://docs.kernel.org/driver-api/pm/devices.html#sys-devices-power-wakeup-files"
     printf '\n'
     lspci;    printf '\n'
-    lsusb -t; printf '\n\n'
+    lsusb -tvv; printf '\n\n'
 }
 
 check_suspend_fails()
