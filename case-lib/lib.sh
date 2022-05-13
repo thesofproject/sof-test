@@ -474,7 +474,7 @@ ipc4_used()
     # If the value of file ipc_type is:
     # 0: DUT runs IPC3 mode, ipc_used return 1(false)
     # 1: DUT runs IPC4 mode, ipc4_used return 0(true)
-    [ $ipc_type -eq 1 ] || {
+    [ "$ipc_type" -eq 1 ] || {
         return 1
     }
     return 0
