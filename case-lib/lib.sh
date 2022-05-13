@@ -152,6 +152,24 @@ find_ldc_file()
 }
 
 SOF_LOG_COLLECT=0
+# This function starts a logger in the background using '&'
+#
+# 0. Without any argument is it used to read the DMA trace
+# continuously from /sys/kernel/debug/sof/trace.
+#
+# 1. It is also invoked at the end of a test with an argument other than
+# '0' for a one-shot collection of the shared memory 'etrace' in the
+# same directory. In that second usage, the caller is expected to sleep
+# a little bit while the collection happens in the "pseudo-background".
+#
+# Note the sof-logger is not able to "stream" logs from the 'etrace'
+# ring buffer (nor from any ring buffer), it can only take a snapshot of
+# that ring buffer. For the DMA trace, the Linux kernel implements the
+# streaming feature. See
+# https://github.com/thesofproject/linux/issues/3275 for more info.
+#
+# Zephyr's cavstool.py implements streaming and is able to read
+# continously from the etrace ring buffer.
 func_lib_start_log_collect()
 {
     local is_etrace=${1:-0} ldcFile
