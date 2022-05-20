@@ -94,7 +94,7 @@ insert_module snd_sof_pci_intel_apl
 insert_module snd_sof_pci_intel_cnl
 insert_module snd_sof_pci_intel_icl
 insert_module snd_sof_pci_intel_tgl
-
+insert_module snd_sof_pci_intel_mtl
 
 # USB
 insert_module snd_usb_audio
