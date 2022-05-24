@@ -75,6 +75,32 @@ poll_wait_for()
     $pass
 }
 
+
+storage_checks()
+{
+    local megas max_sync
+    local platf; platf=$(sof-dump-status.py -p)
+
+    case "$platf" in
+        # Some cheap and old BYTs with eMMC do 10MB/s write or less
+        byt|apl) megas=20 ; max_sync=15 ;;
+        *) megas=100; max_sync=5 ;;
+    esac
+
+    ( set -x
+      # Thanks to CONT this does not actually timeout; it only returns a
+      # non-zero exit status when taking too long.
+      time timeout -s CONT "$max_sync" sudo sync || return $?
+      # Spend a few seconds to test and show the current write speed
+      timeout -s CONT 5 dd if=/dev/zero of=~/HD_TEST_DELETE_ME bs=1M count="$megas" conv=fsync ||
+          return $?
+      time timeout -s CONT "$max_sync" sudo sync
+    ) || return $?
+
+    rm ~/HD_TEST_DELETE_ME
+}
+
+
 setup_kernel_check_point()
 {
     # Make the check point $SOF_TEST_INTERVAL second(s) earlier to avoid
