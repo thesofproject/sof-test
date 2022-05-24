@@ -100,6 +100,8 @@ function func_exit_handler()
 
     fi
 
+    storage_checks || exit_status=1
+
     if [[ "$KERNEL_CHECKPOINT" =~ ^[0-9]{10} ]]; then
         # Do not collect the entire duration of the test but only the
         # last iteration.
