@@ -83,7 +83,7 @@ storage_checks()
 
     case "$platf" in
         # Some cheap and old BYTs with eMMC do 10MB/s write or less
-        byt|apl) megas=20 ; max_sync=15 ;;
+        byt) megas=20 ; max_sync=15 ;;
         *) megas=100; max_sync=5 ;;
     esac
 
