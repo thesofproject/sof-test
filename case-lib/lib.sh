@@ -82,8 +82,8 @@ storage_checks()
     local platf; platf=$(sof-dump-status.py -p)
 
     case "$platf" in
-        # Some cheap and old BYTs with eMMC do 10MB/s write or less
-        byt) megas=20 ; max_sync=15 ;;
+        # Some cheap and old BYTs with eMMC do 2MB/s write or less!
+        byt) megas=4 ; max_sync=25 ;;
         *) megas=100; max_sync=5 ;;
     esac
 
