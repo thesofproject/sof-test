@@ -137,6 +137,9 @@ print_logs_exit()
         printf '\n'
     done
     test -z "$errmsg" || dloge "$errmsg"
+
+    sof-kernel-log-check.sh "$KERNEL_CHECKPOINT" || exit_code=1
+
     exit "$exit_code"
 }
 
