@@ -17,6 +17,9 @@ func_pipeline_export()
     # For legacy HDA platform, there is no topology, we have to export pipeline
     # parameters from proc file system.
     is_sof_used || {
+        [ "$FALLBACK_TO_PROC" == "true" ] ||
+            die "No SOF sound card found and fallback mode disabled, failing."
+
         filter_str="$2"
         dlogi "No SOF sound card found, exporting pipeline parameters from proc file system"
         tmp_pipeline_params=$(mktemp /tmp/pipeline-params.XXXXXXXX)

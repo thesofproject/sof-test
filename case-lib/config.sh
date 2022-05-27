@@ -70,3 +70,14 @@ SUDO_LEVEL=${SUDO_LEVEL:-}
 # waited by the internal test runner used by sof/jenkins CI and that
 # test runner does not define SOF_TEST_INTERVAL (internal bug 158)
 SOF_TEST_INTERVAL=${SOF_TEST_INTERVAL:-5}
+
+# If we don't have SOF card in the system in SOF test, the default fallback
+# to test pipelines from /proc behavior will cause false positive, because
+# we are testing USB sound card or Nvidia HDMI under this condition.
+#
+# This option is used to control the fallback behavior. It should be set
+# to 'false' for SOF test,  and set to 'true' for legacy HDA test.
+#
+# Refer to: https://github.com/thesofproject/sof-test/issues/471 and
+# https://github.com/thesofproject/sof-test/issues/913 for more information.
+FALLBACK_TO_PROC=${FALLBACK_TO_PROC:-false}
