@@ -100,6 +100,8 @@ function func_exit_handler()
 
     fi
 
+    stop_test || exit_status=1
+
     storage_checks || exit_status=1
 
     if [[ "$KERNEL_CHECKPOINT" =~ ^[0-9]{10} ]]; then

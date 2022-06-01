@@ -40,6 +40,121 @@ if [ ! "$SOFCARD" ]; then
 		awk '/sof-[a-z]/ && $1 ~ /^[0-9]+$/ { $1=$1; print $1; exit 0;}')
 fi
 
+
+_SOF_TEST_LOCK_FILE=/tmp/sof-test-card"$SOFCARD".lock
+
+# This implements two important features:
+#
+# 1. Log the start of each test with the current ktime in journalctl.
+#
+# 2. Tries to detect concurrent sof-test instances. This is performed
+#    using (hopefully) atomic filesystem operations and a shared
+#    /tmp/sof-test-cardN.lock file that contains the process ID.  It's
+#    some kind of a mutex except it's systematically "stolen" to avoid
+#    deadlocks after a crash and increase the chances of more tests
+#    failing when running concurrently. Past experience before this code
+#    showed surprisingly high PASS rates when testing concurrently! (and
+#    unvoluntarily).
+#
+#    `ln` and `mv` are used and hopefully atomic. It's almost sure they
+#    are at the filesystem level but it can also depend on the coreutils
+#    version according to the latest rumours. Even if they're not, the
+#    race window is super small. Even if this code fails to detect
+#    concurrency 1% of the time, detecting it 99% of the time is much
+#    more than enough to spot reservation problems.
+#
+start_test()
+{
+    if is_subtest; then
+        return 0
+    fi
+
+    test -z "${SOF_TEST_TOP_PID}" || {
+        dlogw "SOF_TEST_TOP_PID=${SOF_TEST_TOP_PID} already defined, multiple lib.sh inclusions?"
+        return 0
+    }
+
+    export SOF_TEST_TOP_PID="$$"
+    local prefix; prefix="ktime=$(ktime) sof-test PID=${SOF_TEST_TOP_PID}"
+    local ftemp; ftemp=$(mktemp --tmpdir sof-test-XXXXX)
+    printf '%s' "${SOF_TEST_TOP_PID}" > "$ftemp"
+
+    # `ln` is supposedly atomic. `mv --no-clobber` is even more likely
+    # to be atomic (depending on the coreutils version, see above) but
+    # it fails with... an exit status 0!  Useless :-(
+    ln "$ftemp" "${_SOF_TEST_LOCK_FILE}" || {
+        local lock_pid; lock_pid=$(head -n 1 "${_SOF_TEST_LOCK_FILE}")
+
+        if [ "${SOF_TEST_TOP_PID}" = "$lock_pid" ]; then
+            # Internal error
+            die "${_SOF_TEST_LOCK_FILE} with ${SOF_TEST_TOP_PID} already exists?!"
+        fi
+
+        # Assume this was left-over after a crash, keep running.
+        # If another test is really running concurrently then stealing
+        # the lock increases the chances of BOTH failing.
+        local err_msg
+        err_msg=$(printf '%s: %s already taken by PID %s! Stealing it...' \
+                  "$prefix" "${_SOF_TEST_LOCK_FILE}" "$lock_pid")
+        ln -f "$ftemp" "${_SOF_TEST_LOCK_FILE}"
+        dloge "$err_msg"
+        logger -p user.err "$err_msg"
+    }
+    rm "$ftemp"
+
+    local start_msg="$prefix: starting"
+    dlogi "$start_msg"
+    logger -p user.info "$start_msg"
+
+}
+
+# See high-level description in start_test header above
+#
+stop_test()
+{
+    if is_subtest; then
+        return 0
+    fi
+
+    local ftemp; ftemp=$(mktemp --tmpdir sof-test-XXXXX)
+    local prefix; prefix="ktime=$(ktime) sof-test PID=${SOF_TEST_TOP_PID}"
+    local err_msg
+
+    # rename(3) is atomic. `mv` hopefully is too.
+    mv "${_SOF_TEST_LOCK_FILE}" "$ftemp" || {
+        err_msg="$prefix: lock file ${_SOF_TEST_LOCK_FILE} already removed! Concurrent testing?"
+        dloge "$err_msg"
+        logger -p user.err "$err_msg"
+        return 1
+    }
+    printf '%s' "$SOF_TEST_TOP_PID" > "$ftemp".2
+
+    diff -u "$ftemp".2 "$ftemp" || {
+        err_msg="$prefix: unexpected value in ${_SOF_TEST_LOCK_FILE}! Concurrent testing?"
+        dloge "$err_msg"
+        logger -p user.err "$err_msg"
+        return 1
+    }
+
+    local end_msg
+    end_msg="$prefix: ending"
+
+    dlogi "$end_msg"
+    logger -p user.info "$end_msg"
+
+    rm "$ftemp" "$ftemp".2
+}
+
+
+ktime()
+{
+    # Keep it coarse because of various delays.
+    # TODO: does CLOCK_MONOTONIC match dmesg exactly?
+    python3 -c \
+       'import time; print("%d" % time.clock_gettime(time.CLOCK_MONOTONIC))'
+}
+
+
 # Arguments:
 #
 #   - poll interval in secs
@@ -624,3 +739,5 @@ set_alsa_settings()
         ;;
     esac
 }
+
+start_test
