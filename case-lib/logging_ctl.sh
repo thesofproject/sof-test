@@ -1,5 +1,16 @@
 #!/bin/bash
 
+is_subtest()
+{
+    # PPID: The process ID of the shell's parent.
+    # get current script parent process name
+    local ppcmd
+    ppcmd=$(ps -p $PPID -o cmd --noheader|awk '{print $2;}')
+    local ext_message="" cmd
+    # confirm this script is loaded by other script, and add the flag for it
+    file "$ppcmd" 2>/dev/null |grep -q 'shell script'
+}
+
 # using aliases to cover log defines --- more like C log functions
 _func_log_cmd()
 {
@@ -26,13 +37,11 @@ _func_log_cmd()
     # open aliases for script, so it can use the dlogx commands instead of
     # writing functions
     shopt -s expand_aliases
-    # PPID: The process ID of the shell's parent.
-    # get current script parent process name
-    local ppcmd
-    ppcmd=$(ps -p $PPID -o cmd --noheader|awk '{print $2;}')
-    local ext_message="" cmd
-    # confirm this script is loaded by other script, and add the flag for it
-    file "$ppcmd" 2>/dev/null |grep -q 'shell script' && ext_message=" Sub-Test:"
+
+    if is_subtest; then
+        ext_message=" Sub-Test:"
+    fi
+
     for key in "${!LOG_LIST[@]}";
     do
         # dymaic alias the command with different content
