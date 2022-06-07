@@ -109,8 +109,11 @@ dump_stats()
     printf '\n'
     grep ^ /sys/power/suspend_stats/*
     printf '\n'
+    # Show colunm names
     sudo cat /sys/kernel/debug/wakeup_sources | head -n 1
-    diff -u "$INITIAL_DBG_SOURCES" <(sudo cat /sys/kernel/debug/wakeup_sources) ||
+    # identical is most likely a bug!
+    sudo diff -u --report-identical-files \
+         "$INITIAL_DBG_SOURCES" /sys/kernel/debug/wakeup_sources ||
         true
     printf '\n'
 }
