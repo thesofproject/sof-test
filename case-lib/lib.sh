@@ -199,7 +199,7 @@ storage_checks()
     case "$platf" in
         # Some cheap and old BYTs with eMMC do 2MB/s write or less!
         byt) megas=4 ; max_sync=25 ;;
-        *) megas=100; max_sync=5 ;;
+        *) megas=100; max_sync=7 ;;
     esac
 
     ( set -x
