@@ -19,8 +19,9 @@ set -e
 ##    check kernel log and find no errors
 ##
 
+TOPDIR=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 # shellcheck source=case-lib/lib.sh
-source "$(dirname "${BASH_SOURCE[0]}")"/../case-lib/lib.sh
+source "$TOPDIR"/case-lib/lib.sh
 
 random_min=3    # wait time should >= 3 for other device wakeup from sleep
 random_max=20
@@ -124,16 +125,26 @@ dump_and_die()
     die "$@"
 }
 
+main()
+{
 # This is used to workaround https://github.com/thesofproject/sof-test/issues/650,
 # which may be caused by kernel issue or unstable network connection.
 # TODO: remove this after issue fixed.
-sleep 1
+    sleep 1
 
-expected_wakeup_count=$(cat /sys/power/wakeup_count)
-expected_stats_success=$(cat /sys/power/suspend_stats/success)
-save_initial_stats
-for i in $(seq 1 $loop_count)
-do
+    expected_wakeup_count=$(cat /sys/power/wakeup_count)
+    expected_stats_success=$(cat /sys/power/suspend_stats/success)
+    save_initial_stats
+    for i in $(seq 1 $loop_count)
+    do
+        sleep_once "$i"
+    done
+}
+
+sleep_once()
+{
+    local i="$1"
+
     dlogi "===== Round($i/$loop_count) ====="
     # set up checkpoint for each iteration
     setup_kernel_check_point
@@ -160,6 +171,6 @@ do
     [ "$stats_success" -eq "$expected_stats_success" ] ||
         dump_and_die "/sys/power/suspend_stats/success is $stats_success, expected $expected_stats_success"
     check_suspend_fails || dump_and_die "some failure counts have changed"
+}
 
-done
-
+main "$@"
