@@ -35,6 +35,9 @@ OPT_HAS_ARG['T']=1         OPT_VAL['T']=""
 OPT_NAME['S']='sleep'    OPT_DESC['S']='suspend/resume command:rtcwake sleep duration'
 OPT_HAS_ARG['S']=1         OPT_VAL['S']=5
 
+OPT_NAME['u']='unload-audio'  OPT_DESC['u']='unload audio modules for the test'
+OPT_HAS_ARG['u']=0            OPT_VAL['u']=0
+
 OPT_NAME['w']='wait'     OPT_DESC['w']='idle time after suspend/resume wakeup'
 OPT_HAS_ARG['w']=1         OPT_VAL['w']=5
 
@@ -132,6 +135,21 @@ main()
 # TODO: remove this after issue fixed.
     sleep 1
 
+    local keep_modules=true already_unloaded=false
+
+    if [ ${OPT_VAL['u']} = 1 ]; then
+        keep_modules=false
+    fi
+
+    sudo lsmod | grep -q snd.sof || {
+        already_unloaded=true
+        $keep_modules ||
+            dlogw 'modules already unloaded, ignoring option -u!'
+    }
+
+    $already_unloaded || $keep_modules || "$TOPDIR"/tools/kmod/sof_remove.sh ||
+        die "Failed to unload audio drivers"
+
     expected_wakeup_count=$(cat /sys/power/wakeup_count)
     expected_stats_success=$(cat /sys/power/suspend_stats/success)
     save_initial_stats
@@ -139,6 +157,11 @@ main()
     do
         sleep_once "$i"
     done
+
+    $already_unloaded || $keep_modules || "$TOPDIR"/tools/kmod/sof_insert.sh ||
+        die "Failed to reload audio drivers"
+    sof-kernel-log-check.sh "$KERNEL_CHECKPOINT" ||
+        die "Found kernel error after reloading audio drivers"
 }
 
 sleep_once()
