@@ -197,8 +197,9 @@ storage_checks()
     local platf; platf=$(sof-dump-status.py -p)
 
     case "$platf" in
-        # Some cheap and old BYTs with eMMC do 2MB/s write or less!
-        byt) megas=4 ; max_sync=25 ;;
+        # BYT Minnowboards run from SD cards.
+        # BSW Cyan has pretty bad eMMC too.
+        byt|cht) megas=4 ; max_sync=25 ;;
         *) megas=100; max_sync=7 ;;
     esac
 
