@@ -656,7 +656,7 @@ logger_disabled()
     # ... across all tests at once.
     # In the future we should support SOF_LOGGING=etrace (only), see
     # sof-test#726
-    if [ "x$SOF_LOGGING" == 'xnone' ]; then
+    if [ "$SOF_LOGGING" == 'none' ]; then
         dlogi 'SOF logs collection globally disabled by SOF_LOGGING=none'
         return 0
     fi
