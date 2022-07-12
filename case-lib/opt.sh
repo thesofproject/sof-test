@@ -176,7 +176,7 @@ func_opt_parse_option()
             [[ "$TPLG" ]] && printf "TPLG=%s" "$TPLG "
             printf "%s %s\n" "$SCRIPT_NAME" "$SCRIPT_PRAM"
             printf 'Commit:\n'
-            git -C "$SCRIPT_HOME" log --oneline --decorate -n 5
+            git -C "$SCRIPT_HOME" log --oneline --decorate -n 5 || true
         } >> "$LOG_ROOT/version.txt"
     fi
 
