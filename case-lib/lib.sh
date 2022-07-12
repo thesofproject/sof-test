@@ -349,10 +349,11 @@ func_lib_start_log_collect()
 
     # The logger does not like empty '' arguments and $logopt can be
     # shellcheck disable=SC2206
-    local loggerCmd=("$SOFLOGGER" $logopt -l "$ldcFile" -o "$logfile")
+    local loggerCmd=("$SOFLOGGER" $logopt -l "$ldcFile")
     dlogi "Starting ${loggerCmd[*]}"
     # Cleaned up by func_exit_handler() in hijack.sh
-    sudo "${loggerCmd[@]}" &
+    # shellcheck disable=SC2024
+    sudo "${loggerCmd[@]}" > "$logfile" &
 }
 
 # Calling this function is often a mistake because the error message

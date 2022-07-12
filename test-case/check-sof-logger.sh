@@ -78,10 +78,11 @@ run_loggers()
 
     dlogi "Trying to get the DMA trace log with background sof-logger ..."
     dlogc \
-    "sudo $loggerBin  -t -f 3 -l  $ldcFile  -o  $data_file  2>  $error_file  &"
+    "sudo $loggerBin  -t -f 3 -l  $ldcFile   >  $data_file  2>  $error_file  &"
+    # shellcheck disable=SC2024
     sudo timeout -k 3 "$dma_collect_secs"  \
          "$loggerBin" -t -f 3 -l "$ldcFile" \
-         -o "$data_file" 2> "$error_file" & dmaPID=$!
+          > "$data_file" 2> "$error_file" & dmaPID=$!
 
     sleep "$dma_collect_secs"
     loggerStatus=0; wait "$dmaPID" || loggerStatus=$?
@@ -99,8 +100,9 @@ run_loggers()
 
     dlogi "Trying to get the etrace mailbox ..."
     dlogc \
-    "sudo $loggerBin    -f 3 -l  $ldcFile  2>  $etrace_stderr_file  -o  $etrace_file"
-    sudo "$loggerBin"   -f 3 -l "$ldcFile" 2> "$etrace_stderr_file" -o "$etrace_file" || {
+    "sudo $loggerBin    -f 3 -l  $ldcFile  2>  $etrace_stderr_file   >  $etrace_file"
+    # shellcheck disable=SC2024
+    sudo "$loggerBin"   -f 3 -l "$ldcFile" 2> "$etrace_stderr_file"  > "$etrace_file" || {
         etrace_exit=$?
         cat "$etrace_stderr_file" >&2
     }
