@@ -115,18 +115,22 @@ func_pause_resume_pipeline()
     #   after ms: Ms must be an integer giving a time in milliseconds.
     #       The command sleeps for ms milliseconds and then returns.
     dlogi "$pcm to command: $cmd -D $dev -r $rate -c $channel -f $fmt -vv -i $file -q"
+
+    # NOTE: Purposely we don't handle 'Volume MAX' case. So that the MAX output can fall into
+    #       'anything else' case and error out.
+    # FIXME: share this expect script as a common function
     expect <<END &
 spawn $cmd -D $dev -r $rate -c $channel -f $fmt -vv -i $file -q
 set i 1
 expect {
-    "*#*+*\%" {
+    -re "#.*\%\r" {
         set sleep_t [expr int([expr rand() * $rnd_range]) + $rnd_min ]
         puts "\r(\$i/$repeat_count) pcm'$pcm' cmd'$cmd' id'$idx': Wait for \$sleep_t ms before pause"
         send " "
         after \$sleep_t
         exp_continue
     }
-    "*PAUSE*" {
+    "=== PAUSE ===" {
         set sleep_t [expr int([expr rand() * $rnd_range]) + $rnd_min ]
         puts "\r(\$i/$repeat_count) pcm'$pcm' cmd'$cmd' id'$idx': Wait for \$sleep_t ms before resume"
         send " "
@@ -134,6 +138,20 @@ expect {
         incr i
         if { \$i > $repeat_count } { exit 0 }
         exp_continue
+    }
+    -re ".*\:.*\n"|"Hardware PCM card.*\n" {
+        puts "\rexpect ignore dump-hw-params"
+        after 10
+        exp_continue
+    }
+    default {
+        puts "\rError: timeout or eof detected, exit 1"
+        exit 1
+    }
+# this is conventional default, anything else hit here
+    "^?*\n" {
+        puts "\rError: unexpected output detected, exit 1. $expect_out(0,string)"
+        exit 1
     }
 }
 exit 1
