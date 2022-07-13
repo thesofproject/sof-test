@@ -126,6 +126,10 @@ rm -rf /tmp/sof-test.lock
 #   catch: Evaluate script and trap exceptional returns
 #   after ms: Ms must be an integer giving a time in milliseconds.
 #       The command sleeps for ms milliseconds and then returns.
+# FIXME: this test was broken by 46dadd0 ("Add mutual exclusion and journalctl logging")
+#       because it never was compatible with is_subtest()
+# FIXME: Need to handle more of aplay/arecord output. Need to apply similar fix with
+#       check-pause-resume.sh, multiple-pause-resume.sh
 expect <<AUDIO
 spawn $cmd -D $pcm -r $rate -c $channel -f $fmt -vv -i $dummy_file -q
 set i 1
