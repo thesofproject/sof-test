@@ -155,13 +155,12 @@ reload_drivers()
 
     # The DSP may unfortunately need multiple retries to boot, see
     # https://github.com/thesofproject/sof/issues/3395
-    dlogi "Waiting a few seconds for the DSP to fully boot and then suspend"
+    dlogi "Polling /sys/kernel/debug/sof/etrace, waiting for DSP boot..."
     for i in $(seq 1 5); do
         if sudo test -e /sys/kernel/debug/sof/etrace; then break; fi
         sleep 1
     done
-    # Now give enough time to go to D3 suspend
-    sleep 4
+    dlogi "Found /sys/kernel/debug/sof/etrace."
 }
 
 main()
