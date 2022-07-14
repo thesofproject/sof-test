@@ -75,6 +75,11 @@ insert_module snd_soc_max98390
 insert_module snd_soc_es8316
 insert_module snd_soc_es8326
 
+insert_module snd_soc_wm8960
+
+# core SOF driver
+insert_module snd_sof
+
 # insert top-level ACPI/PCI SOF drivers. They will register SOF components and
 # load machine drivers as needed. Do not insert any other sort of audio module,
 # code dependencies will be used to load the relevant modules.
@@ -95,6 +100,17 @@ insert_module snd_sof_pci_intel_cnl
 insert_module snd_sof_pci_intel_icl
 insert_module snd_sof_pci_intel_tgl
 insert_module snd_sof_pci_intel_mtl
+
+# OF driver
+insert_module snd_sof_of
+
+# helper drivers
+insert_module imx_common
+insert_module snd_sof_xtensa_dsp
+
+# i.MX specific drivers
+insert_module snd_sof_imx8
+insert_module snd_sof_imx8m
 
 # USB
 insert_module snd_usb_audio

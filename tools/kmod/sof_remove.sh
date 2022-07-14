@@ -88,6 +88,13 @@ remove_module snd_sof_pci_intel_mtl
 remove_module snd_sof_acpi_intel_byt
 remove_module snd_sof_acpi_intel_bdw
 
+#-------------------------------------------
+# Top level devices
+# i.MX-specific drivers
+#-------------------------------------------
+remove_module snd_sof_imx8
+remove_module snd_sof_imx8m
+
 #--------------------------------------------------
 # With older kernels this is in use by snd_sof_pci,
 # see https://github.com/thesofproject/linux/pull/2683
@@ -100,6 +107,7 @@ remove_module snd_sof_intel_hda_common || true
 remove_module snd_sof_acpi
 remove_module snd_sof_pci
 remove_module snd_sof_intel_atom
+remove_module imx_common
 
 #-------------------------------------------
 # legacy drivers (not used but loaded)
@@ -164,6 +172,11 @@ remove_module snd_sof_ipc_test
 remove_module snd_sof_ipc_flood_test
 remove_module snd_sof_ipc_msg_injector
 remove_module snd_sof_dma_trace
+
+#-------------------------------------------
+# SOF OF driver
+#-------------------------------------------
+remove_module snd_sof_of
 
 # snd_sof_nocodec dependencies re-ordered
 # in https://github.com/thesofproject/linux/pull/2800
@@ -231,6 +244,8 @@ remove_module snd_soc_dmic
 
 remove_module snd_hda_codec_realtek
 remove_module snd_hda_codec_generic
+
+remove_module snd_soc_wm8960
 
 #-------------------------------------------
 # Remaining core SOF parts
