@@ -160,8 +160,6 @@ reload_drivers()
         if sudo test -e /sys/kernel/debug/sof/etrace; then break; fi
         sleep 1
     done
-    # Now give enough time to go to D3 suspend
-    sleep 4
 }
 
 main()
