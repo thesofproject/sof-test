@@ -74,17 +74,17 @@ run_loggers()
 
     # This test is not really supposed to run while the DSP is busy at
     # the same time, so $data_file will hopefully not be long.
-    local dma_collect_secs=2
+    local collect_secs=2
 
     dlogi "Trying to get the DMA trace log with background sof-logger ..."
     dlogc \
     "sudo $loggerBin  -t -f 3 -l  $ldcFile   >  $data_file  2>  $error_file  &"
     # shellcheck disable=SC2024
-    sudo timeout -k 3 "$dma_collect_secs"  \
+    sudo timeout -k 3 "$collect_secs"  \
          "$loggerBin" -t -f 3 -l "$ldcFile" \
           > "$data_file" 2> "$error_file" & dmaPID=$!
 
-    sleep "$dma_collect_secs"
+    sleep "$collect_secs"
     loggerStatus=0; wait "$dmaPID" || loggerStatus=$?
 
     # 124 is the normal timeout exit status
