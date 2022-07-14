@@ -2,8 +2,12 @@
 
 import subprocess
 import os
+from collections import namedtuple
 from common import format_pipeline, export_pipeline
 
+# DT-specific data
+FirmwareInfo = namedtuple("FirmwareInfo", ["fw_name"])
+DT_PLATFORM_INFO = {"i.MX8QM": FirmwareInfo(fw_name="imx8")}
 
 def read_file(filepath):
     with open(filepath, "r") as f_handle:
@@ -456,6 +460,14 @@ if __name__ == "__main__":
 
     sysinfo = clsSYSCardInfo()
     if ret_args['platform'] is True:
+        # check to see if we're on a DT-based platform
+        sysinfo.loadDT()
+
+        if sysinfo.dt_info:
+            # print the fw name mapped to soc_id
+            print(DT_PLATFORM_INFO[sysinfo.dt_info["soc_id"]].fw_name)
+            exit(0)
+
         sysinfo.loadPCI()
         mach_name = None
         for pci_info in sysinfo.pci_lst:
