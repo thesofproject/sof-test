@@ -14,6 +14,7 @@ def read_file(filepath):
 
 class clsSYSCardInfo():
     def __init__(self):
+        self.dt_info = {}
         self.dmi={}
         self.pci_lst=[]
         self.acpi_lst=[]
@@ -89,6 +90,14 @@ class clsSYSCardInfo():
             name, idx = self._convert_dmi_type(line)
             self.dmi[name] = line[idx:]
         pass
+
+    def loadDT(self):
+        soc_id_filepath = "/sys/devices/soc0/soc_id"
+        try:
+            self.dt_info["soc_id"] = read_file(soc_id_filepath).strip()
+        except IOError:
+            # if we can't read the soc_id then dt_info should just remain empty
+            self.dt_info = {}
 
     def loadPCI(self):
         """Parse all PCI devices with "audio" and "intel" in their names.
