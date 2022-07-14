@@ -6,8 +6,9 @@ from collections import namedtuple
 from common import format_pipeline, export_pipeline
 
 # DT-specific data
-FirmwareInfo = namedtuple("FirmwareInfo", ["fw_name"])
-DT_PLATFORM_INFO = {"i.MX8QM": FirmwareInfo(fw_name="imx8")}
+FirmwareInfo = namedtuple("FirmwareInfo", ["fw_name", "device_name"])
+DT_PLATFORM_INFO = {"i.MX8QM": FirmwareInfo(fw_name="imx8", device_name="556e8000.dsp")}
+
 
 def read_file(filepath):
     with open(filepath, "r") as f_handle:
@@ -237,6 +238,22 @@ class clsSYSCardInfo():
             return
         self.sys_power['wakeup_count']=output
         self.sys_power['run_status'] = []
+
+        # check to see if we're on a DT-based platform
+        self.loadDT()
+
+        if self.dt_info:
+            # extract the device name mapped to soc_id
+            device_name = DT_PLATFORM_INFO[self.dt_info["soc_id"]].device_name
+
+            # read the runtime status of the device
+            runtime_status = read_file("/sys/bus/platform/devices/"
+                                       "{}/power/runtime_status".format(device_name)).strip()
+
+            self.sys_power['run_status']\
+                .append({'map_id': self.dt_info['soc_id'], 'status': runtime_status})
+
+            return
 
         # ACPI devices need to be added first since the other scripts using the dsp_status
         # assume the device we care about has the index 0 in the sys_power.['run_status']
