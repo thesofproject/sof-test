@@ -4,6 +4,14 @@ import subprocess
 import os
 from common import format_pipeline, export_pipeline
 
+
+def read_file(filepath):
+    with open(filepath, "r") as f_handle:
+        file_content = f_handle.read()
+
+    return file_content
+
+
 class clsSYSCardInfo():
     def __init__(self):
         self.dmi={}
