@@ -149,7 +149,7 @@ expect {
         }
 
         #enter suspend-resume cycle once per pause instance
-        set retval [catch { exec bash check-suspend-resume.sh -l 1 } msg]
+        set retval [catch { exec ${TOPDIR}/test-case/check-suspend-resume.sh -l 1 } msg]
 
         #prints logs from suspend-resume test
         puts \$msg
