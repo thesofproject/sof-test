@@ -76,7 +76,21 @@ run_loggers()
     # the same time, so $data_file will hopefully not be long.
     local collect_secs=2
 
-    dlogi "Trying to get the DMA trace log with background sof-logger ..."
+    if is_zephyr; then
+        local cavstool
+        cavstool=$(type -p cavstool.py)
+
+        dlogi "Trying to get Zephyr logs from etrace with background $cavstool ..."
+        dlogc \
+          "sudo  $cavstool  --log-only >  $etrace_file  2>&1"
+        # Firmware messages are on stdout and local messages on
+        # stderr. Merge them and then grep ERROR below.
+        # shellcheck disable=SC2024
+        sudo timeout -k 3 "$collect_secs" \
+           "$cavstool" --log-only > "$etrace_file" 2>&1 & cavstoolPID=$!
+    fi
+
+    dlogi "Trying to get the DMA .ldc trace log with background sof-logger ..."
     dlogc \
     "sudo $loggerBin  -t -f 3 -l  $ldcFile   >  $data_file  2>  $error_file  &"
     # shellcheck disable=SC2024
@@ -85,8 +99,8 @@ run_loggers()
           > "$data_file" 2> "$error_file" & dmaPID=$!
 
     sleep "$collect_secs"
-    loggerStatus=0; wait "$dmaPID" || loggerStatus=$?
 
+    loggerStatus=0; wait "$dmaPID" || loggerStatus=$?
     # 124 is the normal timeout exit status
     test "$loggerStatus" -eq 124 || {
         cat "$error_file"
@@ -94,11 +108,18 @@ run_loggers()
     }
 
     if is_zephyr; then
-        dlogi "Skipping etrace for now because it's totally different with Zephyr"
+        loggerStatus=0; wait "$cavstoolPID" || loggerStatus=$?
+        test "$loggerStatus" -eq 124 || {
+            cat "$error_file"
+            die "timeout $cavstool returned unexpected: $loggerStatus"
+        }
+        ( set -x
+          grep -i ERROR "$etrace_file" > "$etrace_stderr_file"
+        ) || true
         return 0
     fi
 
-    dlogi "Trying to get the etrace mailbox ..."
+    dlogi "Trying to get the .ldc log from the etrace mailbox ..."
     dlogc \
     "sudo $loggerBin    -f 3 -l  $ldcFile  2>  $etrace_stderr_file   >  $etrace_file"
     # shellcheck disable=SC2024
@@ -165,18 +186,13 @@ reload_drivers()
 
 main()
 {
-    if is_zephyr; then
-        # Keeping these confusing DMA names because they're used in
-        # several other places.
-        stdout_files=(data)
-        stderr_files=(error)
-    else
-        stdout_files=(data  etrace)
-        stderr_files=(error etrace_stderr)
-    fi
+    # Keeping these confusing DMA names because they're used in
+    # several other places.
+    stdout_files=(data  etrace)
+    stderr_files=(error etrace_stderr)
 
     reload_drivers
-
+    # cavstool is now racing against D3
     run_loggers
 
     local f
@@ -200,12 +216,24 @@ main()
     for f in "${stdout_files[@]}"; do
         local tracef="$LOG_ROOT/logger.$f.txt"
         test -e "$tracef" || die "$tracef" not found
-        # Other columns are optional
-        head -n 1 "$tracef" | grep -q 'COMPONENT.*CONTENT'  ||
+
+        local tool_banner boot_banner
+        if is_zephyr && [ "$f" = 'etrace' ]; then
+            # cavstool
+            tool_banner=':cavs-fw:'
+            boot_banner='FW ABI.*tag.*zephyr'
+        else
+            # sof-logger
+            # Other columns besides COMPONENT and CONTENT are optional
+            tool_banner='COMPONENT.*CONTENT'
+            boot_banner='dma-trace.c.*FW ABI.*tag.*hash'
+        fi
+
+        head -n 1 "$tracef" | grep -q "$tool_banner"  ||
             print_logs_exit 1 "Log header not found in ${tracef}"
 
         # See initial message SOF PR #3281 / SOF commit 67a0a69
-        grep -q 'dma-trace.c.*FW ABI.*tag.*hash' "$tracef" || {
+        grep -i -q "$boot_banner" "$tracef" || {
 
             # Workaround for DMA trace bug
             # https://github.com/thesofproject/sof/issues/4333
