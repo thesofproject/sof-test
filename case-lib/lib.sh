@@ -558,13 +558,13 @@ aplay_opts()
 {
     dlogc "aplay $SOF_ALSA_OPTS $SOF_APLAY_OPTS $*"
     # shellcheck disable=SC2086
-    aplay $SOF_ALSA_OPTS $SOF_APLAY_OPTS "$@"
+    axfer transfer playback $SOF_ALSA_OPTS $SOF_APLAY_OPTS "$@"
 }
 arecord_opts()
 {
     dlogc "arecord $SOF_ALSA_OPTS $SOF_ARECORD_OPTS $*"
     # shellcheck disable=SC2086
-    arecord $SOF_ALSA_OPTS $SOF_ARECORD_OPTS "$@"
+    axfer transfer capture $SOF_ALSA_OPTS $SOF_ARECORD_OPTS "$@"
 }
 
 die()
