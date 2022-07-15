@@ -172,6 +172,10 @@ expect {
         if { \$i > $repeat_count } { exit 0 }
         exp_continue
     }
+    default {
+        puts "aplay exited or we timed out"
+        exit 1
+    }
 }
 AUDIO
 
