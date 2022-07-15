@@ -20,7 +20,7 @@ main()
     local tplg_file
 
     # Find the most recently loaded
-    tplg_file=$(sudo journalctl -q -k -g 'loading topology' |
+    tplg_file=$(sudo journalctl -q -k | grep -i 'loading topology' |
                 awk -F: '{ topo=$NF; } END { print topo }'
              )
 
