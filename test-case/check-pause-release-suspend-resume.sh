@@ -51,7 +51,10 @@ set -e
 ##  * No unexpected errors should be present in dmesg during or after test
 ##      completion.
 
-source $(dirname ${BASH_SOURCE[0]})/../case-lib/lib.sh
+TOPDIR=$(cd "$(dirname "${BASH_SOURCE[0]}")"/..; pwd)
+
+# shellcheck source=case-lib/lib.sh
+source "$TOPDIR"/case-lib/lib.sh
 
 OPT_NAME['m']='mode'         OPT_DESC['m']='test mode. Example: playback; capture'
 OPT_HAS_ARG['m']=1             OPT_VAL['m']='playback'
@@ -176,9 +179,8 @@ ret=$?
 #flush the output
 echo
 if [ $ret -ne 0 ]; then
-    sof-process-kill.sh
-    [[ $? -ne 0 ]] && dlogw "Kill process catch error"
+    sof-process-kill.sh ||
+        dlogw "Kill process catch error"
     exit $ret
 fi
 sof-kernel-log-check.sh "$KERNEL_CHECKPOINT"
-exit $?
