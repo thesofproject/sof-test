@@ -604,7 +604,7 @@ disable_kernel_check_point()
 # shellcheck disable=SC2120
 sof_firmware_boot_complete()
 {
-    journalctl_cmd "$@" --grep 'sof.*firmware[[:blank:]]*boot[[:blank:]]*complete'
+    journalctl_cmd "$@" | grep -i 'sof.*firmware[[:blank:]]*boot[[:blank:]]*complete'
 }
 
 is_zephyr()
