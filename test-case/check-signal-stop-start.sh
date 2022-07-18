@@ -44,11 +44,11 @@ logger_disabled || func_lib_start_log_collect
 
 case $test_mode in
     "playback")
-        cmd=aplay
+        cmd="axfer transfer playback"
         dummy_file=/dev/zero
     ;;
     "capture")
-        cmd=arecord
+        cmd="axfer transfer capture"
         dummy_file=/dev/null
     ;;
     *)
@@ -64,15 +64,18 @@ func_stop_start_pipeline()
     while ( [ $i -le $count ] && [ "$(ps -p $pid --no-header)" ] )
     do
         # check aplay/arecord process state
-        sof-process-state.sh $cmd >/dev/null
+        sof-process-state.sh axfer >/dev/null
         if [ $? -ne 0 ]; then
-            "$cmd process is in an abnormal status"
+            "axfer process is in an abnormal status"
             kill -9 $pid && wait $pid 2>/dev/null
             exit 1
         fi
         dlogi "Stop/start count: $i"
         # stop the pipeline
-        kill -SIGSTOP $pid
+        # Fred: SIGSTOP for stop, SIGTSTP for pause
+        #       SIGCONT for resume for both of them
+        #kill -SIGSTOP $pid
+        kill -SIGTSTP $pid
         sleep $interval
         # start the pipeline
         kill -SIGCONT $pid
