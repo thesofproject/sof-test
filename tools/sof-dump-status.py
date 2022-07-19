@@ -6,8 +6,10 @@ from collections import namedtuple
 from common import format_pipeline, export_pipeline
 
 # DT-specific data
-FirmwareInfo = namedtuple("FirmwareInfo", ["fw_name", "device_name"])
-DT_PLATFORM_INFO = {"i.MX8QM": FirmwareInfo(fw_name="imx8", device_name="556e8000.dsp")}
+FirmwareInfo = namedtuple("FirmwareInfo", ["fw_name", "device_name", "fw_path"])
+DT_PLATFORM_INFO = {"i.MX8QM": FirmwareInfo(fw_name="imx8",
+                                            device_name="556e8000.dsp",
+                                            fw_path="/lib/firmware/imx/sof")}
 
 
 def read_file(filepath):
@@ -573,6 +575,13 @@ if __name__ == "__main__":
     # key is used. Here we output firmware path according to kernel's
     # match table.
     if ret_args.get('fwpath') is True:
+        # check to see if we're on a DT-based platform
+        sysinfo.loadDT()
+
+        if sysinfo.dt_info:
+            print(DT_PLATFORM_INFO[sysinfo.dt_info["soc_id"]].fw_path)
+            exit(0)
+
         def is_community_board(board, community_boards):
             for elem in community_boards:
                 if match_board(elem, board):
