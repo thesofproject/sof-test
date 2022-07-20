@@ -16,10 +16,11 @@ kprobe:sof_resume, kprobe:sof_suspend {
 }
 
 kretprobe:sof_resume, kretprobe:sof_suspend {
+  @duration = nsecs - @start;
   // When the function returns, we use the saved timestamp to determine execution time
-  printf("%s (%s) finished, took %d nsecs\n", probe, @type, nsecs - @start);
-  @usecs[probe, @type] = hist((nsecs - @start) / 1000);
-  @avg[probe, @type] = avg((nsecs - @start) / 1000);
+  printf("%s (%s) finished, took %d nsecs\n", probe, @type, @duration);
+  @usecs[probe, @type] = hist(@duration / 1000);
+  @avg[probe, @type] = avg(@duration / 1000);
 }
 
 END {

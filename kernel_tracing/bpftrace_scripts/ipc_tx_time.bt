@@ -6,25 +6,27 @@
 // when you stop the script with ctrl-c
 
 kprobe:sof_ipc_tx_message {
+  // Save time right away as it changes during bpftrace script execution
+  @nsecs = nsecs;
   if (@start != 0 ) {
     printf("ERROR: overlapping tx");
     exit();
   }
-  @start = nsecs;
+  @start = @nsecs;
   // We could get also the name of the device and other properties from the args,
   // but we'd need to enable DEBUG_INFO and DEBUG_INFO_BTF to get the types
   // It would allow us to sort timings by device for example
-  printf("tx started\n");
 }
 
 kretprobe:sof_ipc_tx_message {
-  printf("tx finished, took %d nsecs\n", nsecs - @start);
-  @usecs = hist((nsecs - @start) / 1000);
-  @avg = avg((nsecs - @start) / 1000);
+  @duration = nsecs - @start;
+  @usecs = hist(@duration / 1000);
+  @avg = avg(@duration / 1000);
   @start = 0;
 }
 
 END {
   // Clean up variables that shouldn't be printed
   delete(@start);
+  delete(@duration);
 }
