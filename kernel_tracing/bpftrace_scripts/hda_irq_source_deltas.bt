@@ -4,10 +4,12 @@
 // This collects the deltas between irqs from each source
 
 tracepoint:sof_intel:sof_intel_hda_irq {
+  // Save time right away as it changes during bpftrace script execution
+  @nsecs = nsecs;
   if (@times[str(args->source)]) {
-    @delta_usecs[str(args->source)] = hist((nsecs - @times[str(args->source)]) / 1000);
+    @delta_usecs[str(args->source)] = hist((@nsecs - @times[str(args->source)]) / 1000);
   }
-  @times[str(args->source)] = nsecs;
+  @times[str(args->source)] = @nsecs;
 }
 
 END {
