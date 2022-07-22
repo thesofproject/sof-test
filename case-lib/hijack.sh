@@ -55,8 +55,17 @@ function func_exit_handler()
         logfile="$logfile"
 
         local loggerBin wcLog; loggerBin=$(basename "$SOFLOGGER")
-        # We need this to avoid the confusion of a "Terminated" message
+        local cavstoolBin=cavstool.py
+
+        # We need this dlogi to avoid the confusion of a "Terminated" message
         # without context.
+        if is_zephyr; then
+            dlogi "pkill -TERM -f $cavstoolBin"
+            sudo pkill -TERM -f "$cavstoolBin" || {
+            dloge "cavstool.py was already dead"
+                exit_status=1
+            }
+        fi
         dlogi "pkill -TERM $loggerBin"
         sudo pkill -TERM "$loggerBin" || {
             dloge "sof-logger was already dead"
@@ -76,11 +85,16 @@ function func_exit_handler()
             fi
         }
         sleep 1s
-        if pgrep "$loggerBin"; then
-            dloge "$loggerBin resisted pkill -TERM, using -KILL"
-            sudo pkill -KILL "$loggerBin"
-            exit_status=1
-        fi
+
+        local logtool
+        for logtool in "$cavstoolBin" "$loggerBin"
+        do
+            if pgrep -f "$logtool"; then
+                dloge "$logtool resisted pkill -TERM, using -KILL"
+                sudo pkill -KILL -f "$logtool"
+                exit_status=1
+            fi
+        done
 
         if test -e "$logfile"; then
 
