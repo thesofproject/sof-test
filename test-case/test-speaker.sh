@@ -15,6 +15,9 @@
 ##       hear "front left" from the front left speaker.
 ##
 
+# Hijacking temporarily to get new test to run on CI
+exec  $(dirname ${BASH_SOURCE[0]})/sof_io_read-ftrace.sh
+
 source $(dirname ${BASH_SOURCE[0]})/../case-lib/lib.sh
 
 OPT_NAME['t']='tplg'     OPT_DESC['t']='tplg file, default value is env TPLG: $TPLG'
