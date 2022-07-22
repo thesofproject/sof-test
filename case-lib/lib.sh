@@ -353,7 +353,18 @@ func_lib_start_log_collect()
 
     if [ "X$is_etrace" == "X0" ];then
         logfile=$LOG_ROOT/slogger.txt
+
+        # start cavstool in the background to collect the etrace.
+        # Since cavstool can follow a ring buffer in etrace, so it should be
+        # started at the start of the test and we would not miss any Zephyr logs.
+        # FIXME (new) sof SOF bug #6039
+	is_zephyr && func_cavstool_etrace_collect
     else
+        # cavstool starts at the beginning of the test, we don't need to start
+        # it again. We only need to start sof-logger to collect the etrace logs
+        # only for the non-zephyr platforms at the end of a test.
+        is_zephyr && return 0
+
         logfile=$LOG_ROOT/etrace.txt
         logopt=""
     fi
