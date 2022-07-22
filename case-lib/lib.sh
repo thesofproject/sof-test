@@ -293,6 +293,25 @@ find_ldc_file()
     printf '%s' "$ldcFile"
 }
 
+func_cavstool_etrace_collect()
+{
+    local clogopt="--log-only --verbose"
+    local clogfile=$LOG_ROOT/etrace.txt
+
+    if [ -z "$CAVSTOOL" ]; then
+        CAVSTOOL=$(command -v cavstool.py) || {
+            dlogw 'No cavstool.py found in PATH'
+            return 1
+        }
+    fi
+
+    local cavstoolCmd=("$CAVSTOOL" "$clogopt")
+    dlogi "Starting ${cavstoolCmd[*]}"
+    # Cleaned up by func_exit_handler() in hijack.sh
+    # shellcheck disable=SC2024
+    sudo "${cavstoolCmd[@]}" >& "$clogfile" &
+}
+
 SOF_LOG_COLLECT=0
 # This function starts a logger in the background using '&'
 #
