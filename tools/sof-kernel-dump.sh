@@ -1,5 +1,10 @@
 #!/bin/bash
 
+# FIXME: replace calls to this complex and buggy script with much
+# simpler calls to `journalctl -k` which has a slightly different (but
+# customizable) format; a few extra messages and most importantly: never
+# rotates and never loses the first 'Linux version' line.
+
 # dump the kernel information from target
 last_order=${1:-0}
 # check whether parameter 1 has the Non-Number
