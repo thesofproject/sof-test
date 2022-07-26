@@ -177,20 +177,25 @@ SUDO_LEVEL=""
 # overwrite the sudo command, sudo in the script can direct using sudo command
 sudo()
 {
+    local cmd=( "$@" )
+
     func_hijack_setup_sudo_level || true
     local cmd
     case $SUDO_LEVEL in
-        '0')    cmd="$*" # as root
+        '0')    "${cmd[@]}" # as root
+                return $?
         ;;
-        '1')    cmd="$SUDO_CMD env 'PATH=$PATH' $*" # sudo without passwd
+        '1')    "$SUDO_CMD" env PATH="$PATH" "${cmd[@]}" # sudo without passwd
+                return $?
         ;;
-        '2')    cmd="echo '$SUDO_PASSWD' | $SUDO_CMD -S env 'PATH=$PATH' $*" # sudo need passwd
+        # sudo need passwd
+        '2')    echo "$SUDO_PASSWD" | "$SUDO_CMD" --stdin env PATH="$PATH" "${cmd[@]}"
+                return $?
         ;;
         *)      # without sudo permission
             dlogw "Need root privilege to run $*"
-            return 2
+            return 1
     esac
-    eval "$cmd"
 }
 
 func_hijack_setup_sudo_level()
