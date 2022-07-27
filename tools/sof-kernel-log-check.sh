@@ -267,6 +267,10 @@ case "$platform" in
         # i915 0000:00:02.0: [drm] *ERROR* AUX A/DDI A/PHY A: did not complete or timeout within 10ms (status 0xad4003ff)
         # i915 0000:00:02.0: [drm] *ERROR* AUX A/DDI A/PHY A: not done (status 0xad4003ff)
         ignore_str="$ignore_str"'|i915 [[:digit:].:]+: \[drm\] \*ERROR\* AUX .+'
+        # i915 Unclaimed access detected, something to do with DMC in ADL
+        # unclaimed access happens when try to read/write something that is powered down
+        # issue link : internal issue #243
+        ignore_str="$ignore_str"'|i915 [[:digit:].:]+: \[drm\] \*ERROR\* Unclaimed access detected .+'
         ;;
     tgl)
         # Bug Report: https://github.com/thesofproject/sof-test/issues/838
