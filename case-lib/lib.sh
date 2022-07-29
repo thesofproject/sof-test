@@ -363,7 +363,7 @@ check_error_in_file()
     local platf; platf=$(sof-dump-status.py -p)
 
     case "$platf" in
-        byt|bdw)
+        byt|bdw|bsw)
             # Maybe downgrading this to WARN would be enough, see #799
             #  src/trace/dma-trace.c:654  ERROR dtrace_add_event(): number of dropped logs = 8
             dlogw 'not looking for ERROR on BYT/BDW because of known DMA issues #4333 and others'
