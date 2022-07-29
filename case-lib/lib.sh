@@ -356,8 +356,6 @@ func_lib_start_log_collect()
     sudo "${loggerCmd[@]}" > "$logfile" &
 }
 
-# -B 2 shows the header line when the first etrace message is an ERROR
-# -A 1 shows whether the ERROR is last or not.
 check_error_in_file()
 {
     local platf; platf=$(sof-dump-status.py -p)
@@ -375,7 +373,11 @@ check_error_in_file()
         dloge "file NOT FOUND: '$1'"
         return 1
     }
-    if grep -B 2 -A 1 -E 'ERRO?R?' "$1"; then
+    # -B 2 shows the header line when the first etrace message is an ERROR
+    # -A 1 shows whether the ERROR is last or not.
+    if (set -x
+        grep -B 2 -A 1 -i -w -e 'ERR' -e 'ERROR' "$1"
+       ); then
        return 1
     fi
 }
