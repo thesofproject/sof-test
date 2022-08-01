@@ -276,6 +276,10 @@ case "$platform" in
         # Bug Report: https://github.com/thesofproject/sof-test/issues/838
         # New TGLU_UP_HDA_ZEPHYR device reporting "TPM interrupt not working" errors.
         ignore_str="$ignore_str"'|kernel: tpm tpm0: \[Firmware Bug\]: TPM interrupt not working, polling instead'
+
+	# Errors reported on Dell SKU 0A32 early versions
+	ignore_str="$ignore_str"'|pci 0000:00:07\..: DPC: RP PIO log size 0 is invalid'
+	ignore_str="$ignore_str"'|int3472-discrete INT3472:00: INT3472 seems to have no dependents'
         ;;
     ehl)
         # i915 crtc logs can be ignored
