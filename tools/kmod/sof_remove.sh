@@ -139,6 +139,7 @@ remove_module snd_soc_acpi_intel_match
 remove_module snd_soc_sof_rt5682
 remove_module snd_soc_sof_da7219_max98373
 remove_module snd_soc_sst_bdw_rt5677_mach
+remove_module snd_soc_bdw_rt286
 remove_module snd_soc_sst_broadwell
 remove_module snd_soc_sst_bxt_da7219_max98357a
 remove_module snd_soc_sst_sof_pcm512x
