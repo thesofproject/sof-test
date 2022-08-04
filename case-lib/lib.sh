@@ -199,7 +199,7 @@ storage_checks()
     case "$platf" in
         # BYT Minnowboards run from SD cards.
         # BSW Cyan has pretty bad eMMC too.
-        byt|cht) megas=4 ; max_sync=25 ;;
+        byt|cht|ehl) megas=4 ; max_sync=25 ;;
         *) megas=100; max_sync=7 ;;
     esac
 
