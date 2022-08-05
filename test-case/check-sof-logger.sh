@@ -189,6 +189,8 @@ main()
     # Keeping these confusing DMA names because they're used in
     # several other places.
     stdout_files=(data  etrace)
+    # This is not actually stderr for cavstool, see comment at cavstool
+    # invocation
     stderr_files=(error etrace_stderr)
 
     reload_drivers
@@ -203,7 +205,7 @@ main()
         if test -s "$stderr_file"; then
             print_logs_exit 1 "stderr $stderr_file is not empty"
         fi
-        printf 'GOOD: %s was empty, no stderr output from that sof-logger instance\n' \
+        printf 'GOOD: %s was empty, no (std)err(or) output from that logger\n' \
                logger."$f".txt > "$stderr_file"
     done
 
