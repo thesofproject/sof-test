@@ -1,21 +1,11 @@
 set -e
 
-# SSP playback
-amixer -c sofnocodec cset name='PGA1.0 1 Master Playback Volume' 32
-amixer -c sofnocodec cset name='PGA3.0 3 Master Playback Volume' 32
-amixer -c sofnocodec cset name='PGA5.0 5 Master Playback Volume' 32
+# to set the volume as 0dB we have to use the scontrol interface
+amixer -Dhw:0 scontrols | sed -e "s/^.*'\(.*\)'.*/\1/" | while read -r mixer_name; do
+     amixer -Dhw:0 -- sset "$mixer_name" 0dB;
+done
 
-# SSP capture
-amixer -c sofnocodec cset name='PGA2.0 2 Master Capture Switch' on
-amixer -c sofnocodec cset name='PGA2.0 2 Master Capture Volume' 50
-
-amixer -c sofnocodec cset name='PGA4.0 4 Master Capture Switch' on
-amixer -c sofnocodec cset name='PGA4.0 4 Master Capture Volume' 50
-
-amixer -c sofnocodec cset name='PGA6.0 6 Master Capture Switch' on
-amixer -c sofnocodec cset name='PGA6.0 6 Master Capture Volume' 50
-
-# DMIC capture
-amixer -c sofnocodec cset name='Dmic0 Capture Switch' on
-amixer -c sofnocodec cset name='Dmic0 Capture Volume' 50
-amixer -c sofnocodec cset name='Dmic1 2nd Capture Volume' 50
+# to turn the switches on we have to use the control interface
+amixer -Dhw:0 controls | grep Switch | sed -e 's/.*numid=\([^,]*\),.*/\1/' | while read -r i; do
+    amixer -Dhw:0 cset numid=$i on;
+done
