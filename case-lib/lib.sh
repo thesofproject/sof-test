@@ -745,6 +745,13 @@ re_enable_ntp_sync()
 # param1: platform name
 set_alsa_settings()
 {
+    # If MODEL is defined, set proper gain for the platform
+    if [ -z "$1" ]; then
+	# treat as warning only
+	dlogw "NO MODEL is defined. Please define MODEL to run alsa_settings/MODEL.sh"
+	return 0
+    fi
+
     # ZEPHYR platform shares same tplg, remove '_ZEPHYR' from platform name
     local PNAME="${1%_ZEPHYR}"
     dlogi "Run alsa setting for $PNAME"

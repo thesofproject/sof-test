@@ -59,13 +59,7 @@ then
 fi
 
 # If MODEL is defined, set proper gain for the platform
-if [ -z "$MODEL" ]; then
-    # treat as warning only
-    dlogw "NO MODEL is defined. Please define MODEL to run alsa_settings/MODEL.sh"
-else
-    #dlogi "apply alsa settings for alsa_settings/MODEL.sh"
-    set_alsa_settings "$MODEL"
-fi
+set_alsa_settings "$MODEL"
 
 logger_disabled || func_lib_start_log_collect
 
