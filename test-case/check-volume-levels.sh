@@ -90,6 +90,8 @@ main () {
     fi
 
     sof-kernel-log-check.sh "$KERNEL_CHECKPOINT"
+
+    set_alsa_settings "$MODEL"
 }
 
 #

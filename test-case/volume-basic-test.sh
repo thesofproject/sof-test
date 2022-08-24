@@ -89,4 +89,6 @@ done
 #clean up background aplay
 pkill -9 aplay
 
+set_alsa_settings "$MODEL"
+
 exit 0
