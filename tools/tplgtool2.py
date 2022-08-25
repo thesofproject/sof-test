@@ -12,6 +12,8 @@ from construct import this, Container, ListContainer, Struct, Switch, Select, Ar
 from dataclasses import dataclass
 from functools import cached_property, partial
 
+# CI TEST
+
 # Pylint complain about the missing names even in conditional import.
 # pylint: disable=E0611
 if construct.version < (2, 9, 0):
