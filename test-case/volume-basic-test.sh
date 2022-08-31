@@ -89,4 +89,5 @@ done
 #clean up background aplay
 pkill -9 aplay
 
-exit 0
+dlogi "Reset all PGA volume to 0dB"
+reset_PGA_volume || die "Failed to reset some PGA volume to 0dB."
