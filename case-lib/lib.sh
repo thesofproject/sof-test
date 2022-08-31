@@ -768,4 +768,14 @@ set_alsa_settings()
     esac
 }
 
+reset_PGA_volume()
+{
+    # set all PGA* volume to 0dB
+    amixer -Dhw:0 scontrols | sed -e "s/^.*'\(.*\)'.*/\1/" |grep PGA |
+    while read -r mixer_name
+    do
+        amixer -Dhw:0 -- sset "$mixer_name" 0dB
+    done
+}
+
 start_test
