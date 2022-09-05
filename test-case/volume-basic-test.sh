@@ -55,7 +55,7 @@ dlogc "aplay -D $dev -c $channel -r $rate -f $fmt /dev/zero &"
 aplay -D "$dev" -c "$channel" -r "$rate" -f "$fmt" /dev/zero &
 
 sleep 1
-[[ ! $(pidof aplay) ]] && die "$pid process is terminated too early"
+[[ ! $(pidof aplay) ]] && die "aplay process is terminated too early"
 
 sofcard=${SOFCARD:-0}
 pgalist=($(amixer -c"$sofcard" controls | grep -i PGA | sed 's/ /_/g;' | awk -Fname= '{print $2}'))
@@ -67,12 +67,12 @@ do
     setup_kernel_check_point
     dlogi "===== Round($i/$maxloop) ====="
     # TODO: need to check command effect
-    for i in "${pgalist[@]}"
+    for kctl in "${pgalist[@]}"
     do
-        volctrl=$(echo "$i" | sed 's/_/ /g;')
+        volctrl=$(echo "$kctl" | sed 's/_/ /g;')
         dlogi "$volctrl"
 
-        for vol in ${volume_array[@]}; do
+        for vol in "${volume_array[@]}"; do
             dlogc "amixer -c$sofcard cset name='$volctrl' $vol"
             amixer -c"$sofcard" cset name="$volctrl" "$vol" > /dev/null ||
                               func_error_exit "amixer return error, test failed"
