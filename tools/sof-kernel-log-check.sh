@@ -459,7 +459,7 @@ fi
 
 # confirm begin_timestamp is in UNIX timestamp format, otherwise search full log
 if [[ $begin_timestamp =~ ^[0-9]{10} ]]; then
-    cmd="journalctl_cmd --since=@$begin_timestamp"
+    cmd="kernel_logger_cmd --since=@$begin_timestamp"
 else
     die "Invalid begin_timestamp $1 argument: $begin_timestamp"
 fi
@@ -469,7 +469,7 @@ declare -p cmd
 if err=$($cmd --priority=err |
           grep -v -E -e "$ignore_str" "${sof_local_extra_kernel_ignores[@]}"); then
 
-    type journalctl_cmd
+    type kernel_logger_cmd
     echo "$(date -u '+%Y-%m-%d %T %Z')" "[ERROR]" "Caught kernel log error"
     echo "===========================>>"
     echo "$err"
