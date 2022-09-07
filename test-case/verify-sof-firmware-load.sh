@@ -23,7 +23,7 @@ disable_kernel_check_point
 
 start_test
 
-cmd="journalctl_cmd"
+cmd="kernel_logger_cmd"
 
 dlogi "Checking SOF Firmware load info in kernel log"
 if sof_firmware_boot_complete; then
@@ -42,7 +42,7 @@ else # failed, show some logs
 
     printf ' ------\n  Check journalctl status: \n ---- \n'
     systemctl --no-pager status systemd-journald* || true
-    journalctl_cmd --lines 50 || true
+    kernel_logger_cmd --lines 50 || true
 
     die "Cannot find any 'sof boot complete' message in logs since boot time"
 fi
