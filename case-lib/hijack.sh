@@ -7,6 +7,8 @@ trap 'func_exit_handler $?' EXIT
 function func_exit_handler()
 {
     local exit_status=${1:-0}
+    local loggerBin wcLog; loggerBin=sof-logger
+    local mtraceBin; mtraceBin=mtrace-reader.py
 
     # call trace
     if [ "$exit_status" -ne 0 ] ; then
@@ -24,7 +26,7 @@ function func_exit_handler()
     fi
 
     # when sof logger collect is open
-    if [ "X$SOF_LOG_COLLECT" == "X1" ]; then
+    if [ "X$SOF_LOG_COLLECT" == "X1" ] && ! is_ipc4_zephyr; then
         # when error occurs, exit and catch etrace log
         [[ $exit_status -eq 1 ]] && {
             func_lib_start_log_collect 1
@@ -54,7 +56,6 @@ function func_exit_handler()
         # shellcheck disable=SC2154
         logfile="$logfile"
 
-        local loggerBin wcLog; loggerBin=$(basename "$SOFLOGGER")
         # We need this to avoid the confusion of a "Terminated" message
         # without context.
         dlogi "pkill -TERM $loggerBin"
@@ -98,6 +99,14 @@ function func_exit_handler()
             exit_status=1
         fi
 
+    fi
+
+    if is_ipc4_zephyr; then
+        dlogi "pkill -TERM -f $mtraceBin"
+        sudo pkill -TERM -f "$mtraceBin" || {
+            dloge "mtrace-reader.py was already dead"
+            exit_status=1
+        }
     fi
 
     stop_test || exit_status=1
