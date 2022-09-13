@@ -351,7 +351,10 @@ class TplgBinaryFormat:
             "size" / Int32ul, # size in bytes of the array, including all elements
             "type" / Enum(Int32ul, VendorTupleType),
             "num_elems" / Int32ul, # number of elements in array
-            "elems" / Array(this.num_elems, Switch(this.type, self._vendor_elem_cases))
+            "elems" / Select(
+                Array(this.num_elems, Switch(this.type, self._vendor_elem_cases, default=construct.StopIf(True))),
+                Padding(this.size) # skip unknown vendor array
+            )
         )
         self._private = Prefixed( # snd_soc_tplg_private
             Int32ul, # size
