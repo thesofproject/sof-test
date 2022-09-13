@@ -351,7 +351,7 @@ class TplgBinaryFormat:
             "size" / Int32ul, # size in bytes of the array, including all elements
             "type" / Enum(Int32ul, VendorTupleType),
             "num_elems" / Int32ul, # number of elements in array
-            "elems" / Array(this.num_elems, Switch(this.type, self._vendor_elem_cases))
+            "elems" / Array(this.num_elems, Switch(this.type, self._vendor_elem_cases, default=construct.Error)),
         )
         # expand the union of snd_soc_tplg_private for different sections:
         self._private_raw = Prefixed(
