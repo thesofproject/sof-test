@@ -8,7 +8,7 @@ import re
 import sys
 import typing
 from collections import defaultdict
-from construct import this, Container, ListContainer, Struct, Switch, Select, Array, Bytes, GreedyBytes, GreedyRange, FocusedSeq, Pass, Padded, Padding, Prefixed, Flag, Byte, Int16ul, Int32ul, Int64ul, Terminated
+from construct import this, Container, ListContainer, Struct, Switch, Array, Bytes, GreedyBytes, GreedyRange, FocusedSeq, Pass, Padded, Padding, Prefixed, Flag, Byte, Int16ul, Int32ul, Int64ul, Terminated
 from dataclasses import dataclass
 from functools import cached_property, partial
 
@@ -353,12 +353,15 @@ class TplgBinaryFormat:
             "num_elems" / Int32ul, # number of elements in array
             "elems" / Array(this.num_elems, Switch(this.type, self._vendor_elem_cases))
         )
-        self._private = Prefixed( # snd_soc_tplg_private
+        # expand the union of snd_soc_tplg_private for different sections:
+        self._private_raw = Prefixed(
             Int32ul, # size
-            Select(
-                CompleteRange(self._vendor_array), # prefer vendor array
-                GreedyBytes, # fallback to raw data
-            ),
+            GreedyBytes, # data
+        )
+        # currently, only dapm_widget uses vendor array
+        self._private_vendor_array = Prefixed(
+            Int32ul, # size
+            CompleteRange(self._vendor_array), # array
         )
         self._tlv_dbscale = Struct( # snd_soc_tplg_tlv_dbscale
             "min" / Int32ul,
@@ -447,7 +450,7 @@ class TplgBinaryFormat:
             "dai_link_elems" / Int32ul,
             "dai_elems" / Int32ul,
             Padding(4 * 20), # reserved
-            "priv" / self._private,
+            "priv" / self._private_raw,
         )
         self._mixer_control_body = Struct( # `snd_soc_tplg_mixer_control` without `hdr`
             "size" / Int32ul,
@@ -457,7 +460,7 @@ class TplgBinaryFormat:
             "invert" / Int32ul,
             "num_channels" / Int32ul,
             "channel" / Array(self._max_channel, self._channel),
-            "priv" / self._private,
+            "priv" / self._private_raw,
         )
         self._enum_control_body = Struct( # `snd_soc_tplg_enum_control` without `hdr`
             "size" / Int32ul,
@@ -468,7 +471,7 @@ class TplgBinaryFormat:
             "count" / Int32ul,
             "texts" / Array(self._num_texts, String(self._id_name_maxlen, "ascii")),
             "values" / Array(self._num_texts * self._id_name_maxlen / 4, Int32ul),
-            "priv" / self._private,
+            "priv" / self._private_raw,
         )
         self._bytes_control_body = Struct( # `snd_soc_tplg_bytes_control` without `hdr`
             "size" / Int32ul,
@@ -477,7 +480,7 @@ class TplgBinaryFormat:
             "base" / Int32ul,
             "num_regs" / Int32ul,
             "ext_ops" / self._io_ops,
-            "priv" / self._private,
+            "priv" / self._private_raw,
         )
         self._kcontrol_cases = {
             TplgType.MIXER.name: self._mixer_control_body,
@@ -510,7 +513,7 @@ class TplgBinaryFormat:
             "event_flags" / Int16ul,
             "event_type" / Int16ul,
             "num_kcontrols" / Int32ul,
-            "priv" / self._private,
+            "priv" / self._private_vendor_array,
         )
         self._dapm_widget_with_kcontrols = Struct(
             "widget" / self._dapm_widget,
@@ -530,7 +533,7 @@ class TplgBinaryFormat:
             "caps" / Array(2, self._stream_caps),
             "flag_mask" / Int32ul,
             "flags" / FlagsEnum(Int32ul, DaiLnkFlag),
-            "priv" / self._private,
+            "priv" / self._private_raw,
         )
         self._link_config = Struct( # snd_soc_tplg_link_config
             "size" / Int32ul,
@@ -544,7 +547,7 @@ class TplgBinaryFormat:
             "default_hw_config_id" / Int32ul,
             "flag_mask" / Int32ul,
             "flags" / FlagsEnum(Int32ul, DaiLnkFlag),
-            "priv" / self._private,
+            "priv" / self._private_raw,
         )
         self._section_blocks_cases = {
             TplgType.MANIFEST.name: self._manifest,
