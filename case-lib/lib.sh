@@ -693,6 +693,26 @@ ipc4_used()
     return 0
 }
 
+is_ipc4_zephyr(){
+    # check if the ipc_type first
+    ipc4_used || return 1
+
+    local firmware_path znum
+    local firmware_name=dsp_basefw.bin
+    fw_mod_para=/sys/module/snd_sof_pci/parameters/fw_path
+
+    if [ ! -s "$fw_mod_para" ]; then
+        firmware_path=$(cat $fw_mod_para)
+    else
+        # TODO: let the kernel driver expose the FW path
+        # and get the FW path by grepping journalctl.
+        return 1
+    fi
+
+    znum=$(strings "/lib/firmware/$firmware_path/$firmware_name" | grep -c -i zephyr)
+    test "$znum" -gt 10
+}
+
 logger_disabled()
 {
     local ldcFile
