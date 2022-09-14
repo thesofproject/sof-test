@@ -293,6 +293,33 @@ find_ldc_file()
     printf '%s' "$ldcFile"
 }
 
+func_sof_logger_collect()
+{
+    logfile=$1
+    logopt=$2
+    ldcFile=$(find_ldc_file) || return $?
+
+    if [ -z "$SOFLOGGER" ]; then
+        SOFLOGGER=$(command -v sof-logger) || {
+            dlogw 'No sof-logger found in PATH'
+            return 1
+        }
+    fi
+
+    test -x "$SOFLOGGER" || {
+        dlogw "$SOFLOGGER not found or not executable"
+        return 2
+    }
+
+    # The logger does not like empty '' arguments and $logopt can be
+    # shellcheck disable=SC2206
+    local loggerCmd=("$SOFLOGGER" $logopt -l "$ldcFile")
+    dlogi "Starting ${loggerCmd[*]}"
+    # Cleaned up by func_exit_handler() in hijack.sh
+    # shellcheck disable=SC2024
+    sudo "${loggerCmd[@]}" > "$logfile" &
+}
+
 SOF_LOG_COLLECT=0
 # This function starts a logger in the background using '&'
 #
@@ -315,29 +342,7 @@ SOF_LOG_COLLECT=0
 func_lib_start_log_collect()
 {
     local is_etrace=${1:-0} ldcFile
-
-    ldcFile=$(find_ldc_file) || return $?
-
-    local logopt="-t"
-
-    if [ -z "$SOFLOGGER" ]; then
-        SOFLOGGER=$(command -v sof-logger) || {
-            dlogw 'No sof-logger found in PATH'
-            return 1
-        }
-    fi
-
-    test -x "$SOFLOGGER" || {
-        dlogw "$SOFLOGGER not found or not executable"
-        return 2
-    }
-
-    if [ "X$is_etrace" == "X0" ];then
-        logfile=$LOG_ROOT/slogger.txt
-    else
-        logfile=$LOG_ROOT/etrace.txt
-        logopt=""
-    fi
+    local log_file log_opt
 
     if func_hijack_setup_sudo_level ;then
         # shellcheck disable=SC2034 # external script will use it
@@ -347,13 +352,16 @@ func_lib_start_log_collect()
         return 3
     fi
 
-    # The logger does not like empty '' arguments and $logopt can be
-    # shellcheck disable=SC2206
-    local loggerCmd=("$SOFLOGGER" $logopt -l "$ldcFile")
-    dlogi "Starting ${loggerCmd[*]}"
-    # Cleaned up by func_exit_handler() in hijack.sh
-    # shellcheck disable=SC2024
-    sudo "${loggerCmd[@]}" > "$logfile" &
+    if [ "X$is_etrace" == "X0" ];then
+        log_file=$LOG_ROOT/slogger.txt
+        log_opt="-t"
+        func_sof_logger_collect "$log_file" "$log_opt"
+    else
+        log_file=$LOG_ROOT/etrace.txt
+        log_opt=""
+        func_sof_logger_collect "$log_file" "$log_opt"
+    fi
+
 }
 
 check_error_in_file()
