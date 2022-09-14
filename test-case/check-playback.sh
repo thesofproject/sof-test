@@ -97,6 +97,15 @@ do
                     func_lib_lsof_error_dump "$snd"
                     die "aplay on PCM $dev failed at $i/$loop_cnt."
                 }
+
+		tplg_basename=$(basename $tplg)
+		platform=$(sof-dump-status.py -p)
+		is_ipc4_zephyr && {
+		    data_file=$LOG_ROOT/mtrace.txt
+		    test_reference_key="${platform}-${tplg_basename}-ipc4-zephyr-check-playback-${dev}"
+		    TOPDIR="$(dirname "${BASH_SOURCE[0]}")"/..
+		    $TOPDIR/tools/sof-ll-timer-check.py ${data_file} $test_reference_key $TOPDIR/tools/sof-ll-timer-check-db.json
+		}
             done
         done
     done

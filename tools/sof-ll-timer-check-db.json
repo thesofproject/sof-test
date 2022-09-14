@@ -1,0 +1,11 @@
+[
+    {
+	"test-key": "tgl-sof-tgl-nocodec.tplg-ipc4-zephyr-check-playback-hw:0,0" ,
+	"ll-timer-avg":  2589
+    },
+    {
+	"test-key": "tgl-sof-tgl-nocodec.tplg-ipc4-zephyr-check-playback-hw:0,1" ,
+	"ll-timer-avg":  2589
+    }
+]
+
