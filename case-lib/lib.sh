@@ -293,6 +293,24 @@ find_ldc_file()
     printf '%s' "$ldcFile"
 }
 
+func_mtrace_collect()
+{
+    local clogfile=$LOG_ROOT/mtrace.txt
+
+    if [ -z "$MTRACE" ]; then
+        MTRACE=$(command -v mtrace-reader.py) || {
+            dlogw 'No mtrace-reader.py found in PATH'
+            return 1
+        }
+    fi
+
+    local mtraceCmd="$MTRACE"
+    dlogi "Starting ${mtraceCmd[*]}"
+    # Cleaned up by func_exit_handler() in hijack.sh
+    # shellcheck disable=SC2024
+    sudo "${mtraceCmd[@]}" >& "$clogfile" &
+}
+
 func_sof_logger_collect()
 {
     logfile=$1
