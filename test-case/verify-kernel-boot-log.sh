@@ -46,14 +46,24 @@ main()
 
 wait_is_system_running()
 {
-    local manager="$1"
+    local manager="$1" # --user or --system
+    local wait_secs=30 ret=0
+    local cmd=(systemctl "$manager" --wait is-system-running)
 
-    printf 'systemctl %s --wait is-system-running: ' "$manager"
-    systemctl "$manager" --wait is-system-running || {
+    printf '%s\n' "${cmd[*]}"
+    timeout -k 5 "$wait_secs" "${cmd[@]}" || ret=$?
+
+    if [ $ret = 0 ]; then return 0; fi
+
+    if [ $ret = 124 ]; then
+        dloge "$0 timed out waiting $wait_secs seconds for ${cmd[*]}"
+    fi
+    (   set +e; set +x
         systemctl "$manager" --no-pager --failed
-
-        die "Some services are not running correctly"
-    }
+        systemctl "$manager" | grep -v active
+        systemctl "$manager" is-system-running
+    )
+    die "Some services are not running correctly"
 }
 
 ntp_check()
