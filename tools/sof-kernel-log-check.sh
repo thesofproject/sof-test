@@ -244,22 +244,23 @@ ignore_str="$ignore_str"'|asix .-.+:.\.. en.+: asix_rx_fixup\(\) Bad Header Leng
 # buglink: https://github.com/thesofproject/sof-test/issues/664
 ignore_str="$ignore_str"'|asix .-.+\..:.\.. en.+: Failed to .+'
 
+# Ignore all types of mei_me errors
+# On CML_RVP_SDW, suspend-resume test case failed due to "mei_me 0000:00:16.4: hw_reset failed ret = -62" or
+# with "hw_start" with same error code
+# https://github.com/thesofproject/sof-test/issues/389
+# CML Mantis occasionally throws Intel(R) Management Engine Interface(mei) errors
+# https://unix.stackexchange.com/questions/109294/mei-00000016-0-init-hw-failure
+# TGLH_SKU0A70_HDA and WHL_UPEXT_HDA_ZEPHYR, suspend-resume test cases failed due to "mei_me 0000:00:16.0: wait hw ready failed"
+# https://github.com/intel-innersource/drivers.audio.ci.sof-framework/issues/246
+ignore_str="$ignore_str"'|mei_me 0000:00:16\..\: .+'
+
 case "$platform" in
     # Audio PCI ID on CML Mantis is [8086:9dc8], which is defined as CNL in linux kernel.
     # https://github.com/thesofproject/linux/blob/topic/sof-dev/sound/soc/sof/sof-pci-dev.c
     icl|cml|cnl)
-        # On CML_RVP_SDW, suspend-resume test case failed due to "mei_me 0000:00:16.4: hw_reset failed ret = -62" or with "hw_start" with same error code.
-        # https://github.com/thesofproject/sof-test/issues/389
-        ignore_str="$ignore_str"'|mei_me 0000:00:16\..: hw_reset failed ret = -62'
-        ignore_str="$ignore_str"'|mei_me 0000:00:16\..: hw_start failed ret = -62'
-
         # On CML_RVP_SDW, NOHZ tick-stop error causes a false failure
         # https://github.com/thesofproject/sof-test/issues/505
         ignore_str="$ignore_str"'|NOHZ tick-stop error: Non-RCU local softirq work is pending, handler #80!!!'
-
-        # CML Mantis occasionally throws Intel(R) Management Engine Interface(mei) errors
-        # https://unix.stackexchange.com/questions/109294/mei-00000016-0-init-hw-failure
-        ignore_str="$ignore_str"'|mei_me 0000:00:16\..: wait hw ready failed'
         ;;
     adl|adl-s)
         # i915 AUX logs can be ignored
