@@ -118,6 +118,12 @@ remove_module snd_intel_sst_core
 remove_module snd_soc_sst_atom_hifi2_platform
 remove_module snd_soc_skl
 
+#-------------------------------------------
+# AVS drivers (not used but loaded)
+#-------------------------------------------
+remove_module snd_soc_avs
+remove_module snd_soc_hda_codec
+
 #------------------------------------------------------
 # obsolete platform drivers - kept to avoid breaking CI
 #------------------------------------------------------
