@@ -672,7 +672,7 @@ is_zephyr()
     test "$znum" -gt 10
 }
 
-ipc4_used()
+is_ipc4()
 {
     local ipc_type
     ipc_file=/sys/module/snd_sof_pci/parameters/ipc_type
@@ -685,12 +685,12 @@ ipc4_used()
 
     # If /sys/module/snd_sof_pci/parameters/ipc_type exists
     # If the value of file ipc_type is:
-    # 0: DUT runs IPC3 mode, ipc_used return 1(false)
-    # 1: DUT runs IPC4 mode, ipc4_used return 0(true)
-    [ "$ipc_type" -eq 1 ] || {
-        return 1
-    }
-    return 0
+    # -1: DUT runs IPC3 mode, is_ipc4 return 1(false)
+    # 1: DUT runs IPC4 mode, is_ipc4 return 0(true)
+    if [ "$ipc_type" -eq 1 ]; then
+        return 0
+    fi
+    return 1
 }
 
 logger_disabled()
@@ -715,7 +715,7 @@ logger_disabled()
         return 0
     fi
 
-    ipc4_used && {
+    is_ipc4 && {
         # TODO:
         # Need to remove disabling sof-logger
         # after sof-logger support for IPC4 has been provided in the future
