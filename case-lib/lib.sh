@@ -366,18 +366,26 @@ func_lib_start_log_collect()
         # shellcheck disable=SC2034 # external script will use it
         SOF_LOG_COLLECT=1
     else
-        >&2 dlogw "without sudo permission to run $SOFLOGGER command"
+        >&2 dlogw "without sudo permission to run logging command"
         return 3
     fi
 
     if [ "X$is_etrace" == "X0" ]; then
-        log_file=$LOG_ROOT/slogger.txt
-        log_opt="-t"
-        func_sof_logger_collect "$log_file" "$log_opt"
-    else
-        log_file=$LOG_ROOT/etrace.txt
-        log_opt=""
-        func_sof_logger_collect "$log_file" "$log_opt"
+        if is_ipc4 && is_firmware_file_zephyr; then
+            func_mtrace_collect
+        else
+            log_file=$LOG_ROOT/slogger.txt
+            log_opt="-t"
+            func_sof_logger_collect "$log_file" "$log_opt"
+        fi
+    else # once-off etrace collection at end of test
+        if is_ipc4; then
+            dlogi "No end of test etrace collection for IPC4"
+        else
+            log_file=$LOG_ROOT/etrace.txt
+            log_opt=""
+            func_sof_logger_collect "$log_file" "$log_opt"
+        fi
     fi
 
 }
@@ -740,15 +748,11 @@ logger_disabled()
         return 0
     fi
 
-    is_ipc4 && {
-        # TODO:
-        # Need to remove disabling sof-logger
-        # after sof-logger support for IPC4 has been provided in the future
-        dlogi 'Currenly sof-logger is not supported when running IPC4 mode'
-        dlogi 'SOF logs collection is globally disabled because DUT is running IPC4 mode'
+    if is_ipc4 && ! is_firmware_file_zephyr; then
+        dlogi 'IPC4 FW logging only support with SOF Zephyr build'
+        dlogi 'SOF logs collection is globally disabled.'
         return 0
-    }
-    dlogi 'DUT is running IPC3 mode'
+    fi
 
     return 1
 }
