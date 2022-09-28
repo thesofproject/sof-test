@@ -24,7 +24,8 @@ function func_exit_handler()
     fi
 
     # when sof logger collect is open
-    if [ "X$SOF_LOG_COLLECT" == "X1" ]; then
+    # IPC4 is very different and handled below
+    if ! is_ipc4 && [ "X$SOF_LOG_COLLECT" == "X1" ]; then
         # when error occurs, exit and catch etrace log
         [[ $exit_status -eq 1 ]] && {
             func_lib_start_log_collect 1
@@ -98,6 +99,15 @@ function func_exit_handler()
             exit_status=1
         fi
 
+    fi
+
+    if is_ipc4 && is_firmware_file_zephyr; then
+	local mtraceBin; mtraceBin=mtrace-reader.py
+        dlogi "pkill -TERM -f $mtraceBin"
+        sudo pkill -TERM -f "$mtraceBin" || {
+            dloge "mtrace-reader.py was already dead"
+            exit_status=1
+        }
     fi
 
     stop_test || exit_status=1
