@@ -683,9 +683,9 @@ is_firmware_file_zephyr()
         if [ -s "$fw_mod_para" ]; then
             firmware_path=$(cat $fw_mod_para)
         else
-            # TODO: let the kernel driver expose the FW path
-            # and get the FW path by grepping journalctl.
-            return 1
+            # # FIXME: the kernel driver should give us the FW path
+            # https://github.com/thesofproject/linux/issues/3867
+            die "Failed to get the IPC4 FW path."
         fi
     else # for IPC3
         platform=$(sof-dump-status.py -p)
