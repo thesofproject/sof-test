@@ -293,6 +293,51 @@ find_ldc_file()
     printf '%s' "$ldcFile"
 }
 
+func_mtrace_collect()
+{
+    local clogfile=$LOG_ROOT/mtrace.txt
+
+    if [ -z "$MTRACE" ]; then
+        MTRACE=$(command -v mtrace-reader.py) || {
+            dlogw 'No mtrace-reader.py found in PATH'
+            return 1
+        }
+    fi
+
+    local mtraceCmd="$MTRACE"
+    dlogi "Starting ${mtraceCmd[*]}"
+    # Cleaned up by func_exit_handler() in hijack.sh
+    # shellcheck disable=SC2024
+    sudo "${mtraceCmd[@]}" >& "$clogfile" &
+}
+
+func_sof_logger_collect()
+{
+    logfile=$1
+    logopt=$2
+    ldcFile=$(find_ldc_file) || return $?
+
+    if [ -z "$SOFLOGGER" ]; then
+        SOFLOGGER=$(command -v sof-logger) || {
+            dlogw 'No sof-logger found in PATH'
+            return 1
+        }
+    fi
+
+    test -x "$SOFLOGGER" || {
+        dlogw "$SOFLOGGER not found or not executable"
+        return 2
+    }
+
+    # The logger does not like empty '' arguments and $logopt can be
+    # shellcheck disable=SC2206
+    local loggerCmd=("$SOFLOGGER" $logopt -l "$ldcFile")
+    dlogi "Starting ${loggerCmd[*]}"
+    # Cleaned up by func_exit_handler() in hijack.sh
+    # shellcheck disable=SC2024
+    sudo "${loggerCmd[@]}" > "$logfile" &
+}
+
 SOF_LOG_COLLECT=0
 # This function starts a logger in the background using '&'
 #
@@ -315,45 +360,34 @@ SOF_LOG_COLLECT=0
 func_lib_start_log_collect()
 {
     local is_etrace=${1:-0} ldcFile
-
-    ldcFile=$(find_ldc_file) || return $?
-
-    local logopt="-t"
-
-    if [ -z "$SOFLOGGER" ]; then
-        SOFLOGGER=$(command -v sof-logger) || {
-            dlogw 'No sof-logger found in PATH'
-            return 1
-        }
-    fi
-
-    test -x "$SOFLOGGER" || {
-        dlogw "$SOFLOGGER not found or not executable"
-        return 2
-    }
-
-    if [ "X$is_etrace" == "X0" ];then
-        logfile=$LOG_ROOT/slogger.txt
-    else
-        logfile=$LOG_ROOT/etrace.txt
-        logopt=""
-    fi
+    local log_file log_opt
 
     if func_hijack_setup_sudo_level ;then
         # shellcheck disable=SC2034 # external script will use it
         SOF_LOG_COLLECT=1
     else
-        >&2 dlogw "without sudo permission to run $SOFLOGGER command"
+        >&2 dlogw "without sudo permission to run logging command"
         return 3
     fi
 
-    # The logger does not like empty '' arguments and $logopt can be
-    # shellcheck disable=SC2206
-    local loggerCmd=("$SOFLOGGER" $logopt -l "$ldcFile")
-    dlogi "Starting ${loggerCmd[*]}"
-    # Cleaned up by func_exit_handler() in hijack.sh
-    # shellcheck disable=SC2024
-    sudo "${loggerCmd[@]}" > "$logfile" &
+    if [ "X$is_etrace" == "X0" ]; then
+        if is_ipc4 && is_firmware_file_zephyr; then
+            func_mtrace_collect
+        else
+            log_file=$LOG_ROOT/slogger.txt
+            log_opt="-t"
+            func_sof_logger_collect "$log_file" "$log_opt"
+        fi
+    else # once-off etrace collection at end of test
+        if is_ipc4; then
+            dlogi "No end of test etrace collection for IPC4"
+        else
+            log_file=$LOG_ROOT/etrace.txt
+            log_opt=""
+            func_sof_logger_collect "$log_file" "$log_opt"
+        fi
+    fi
+
 }
 
 check_error_in_file()
@@ -646,7 +680,32 @@ is_zephyr()
     test "$znum" -gt 10
 }
 
-ipc4_used()
+is_firmware_file_zephyr()
+{
+    local firmware_name firmware_path znum platform
+    # get the FW name and path
+    # TODO: optimize this part after driver can expose the FW path to userspace via debugfs
+    if is_ipc4; then
+        firmware_name=dsp_basefw.bin
+        fw_mod_para=/sys/module/snd_sof_pci/parameters/fw_path
+        if [ -s "$fw_mod_para" ]; then
+            firmware_path=$(cat $fw_mod_para)
+        else
+            # # FIXME: the kernel driver should give us the FW path
+            # https://github.com/thesofproject/linux/issues/3867
+            die "Failed to get the IPC4 FW path."
+        fi
+    else # for IPC3
+        platform=$(sof-dump-status.py -p)
+        firmware_name=sof-$platform.ri
+        firmware_path=$(sof-dump-status.py -P)
+    fi
+
+    znum=$(strings "/lib/firmware/$firmware_path/$firmware_name" | grep -c -i zephyr)
+    test "$znum" -gt 10
+}
+
+is_ipc4()
 {
     local ipc_type
     ipc_file=/sys/module/snd_sof_pci/parameters/ipc_type
@@ -659,12 +718,12 @@ ipc4_used()
 
     # If /sys/module/snd_sof_pci/parameters/ipc_type exists
     # If the value of file ipc_type is:
-    # 0: DUT runs IPC3 mode, ipc_used return 1(false)
-    # 1: DUT runs IPC4 mode, ipc4_used return 0(true)
-    [ "$ipc_type" -eq 1 ] || {
-        return 1
-    }
-    return 0
+    # -1: DUT runs IPC3 mode, is_ipc4 return 1(false)
+    # 1: DUT runs IPC4 mode, is_ipc4 return 0(true)
+    if [ "$ipc_type" -eq 1 ]; then
+        return 0
+    fi
+    return 1
 }
 
 logger_disabled()
@@ -689,15 +748,11 @@ logger_disabled()
         return 0
     fi
 
-    ipc4_used && {
-        # TODO:
-        # Need to remove disabling sof-logger
-        # after sof-logger support for IPC4 has been provided in the future
-        dlogi 'Currenly sof-logger is not supported when running IPC4 mode'
-        dlogi 'SOF logs collection is globally disabled because DUT is running IPC4 mode'
+    if is_ipc4 && ! is_firmware_file_zephyr; then
+        dlogi 'IPC4 FW logging only support with SOF Zephyr build'
+        dlogi 'SOF logs collection is globally disabled.'
         return 0
-    }
-    dlogi 'DUT is running IPC3 mode'
+    fi
 
     return 1
 }
