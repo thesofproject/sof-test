@@ -58,7 +58,7 @@ wait_is_system_running()
     if [ $ret = 124 ]; then
         dloge "$0 timed out waiting $wait_secs seconds for ${cmd[*]}"
     fi
-    (   set +e; set +x
+    (   set +e; set -x
         systemctl "$manager" --no-pager --failed
         systemctl "$manager" | grep -v active
         systemctl "$manager" is-system-running
