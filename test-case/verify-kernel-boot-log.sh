@@ -62,6 +62,8 @@ wait_is_system_running()
         systemctl "$manager" --no-pager --failed
         systemctl "$manager" | grep -v active
         systemctl "$manager" is-system-running
+        # See https://github.com/thesofproject/sof-test/discussions/964
+        DISPLAY=:0 xrandr --listmonitors
     )
     die "Some services are not running correctly"
 }
