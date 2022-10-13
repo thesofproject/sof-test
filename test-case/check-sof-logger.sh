@@ -231,7 +231,7 @@ main()
             boot_banner='dma-trace.c.*FW ABI.*tag.*hash'
         fi
 
-        head -n 1 "$tracef" | grep -q "$tool_banner"  ||
+        head -n 5 "$tracef" | grep -q "$tool_banner"  ||
             print_logs_exit 1 "Log header not found in ${tracef}"
 
         # See initial message SOF PR #3281 / SOF commit 67a0a69
