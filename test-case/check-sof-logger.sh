@@ -77,60 +77,112 @@ run_loggers()
     local collect_secs=2
 
     if is_zephyr; then
-        local cavstool
-        cavstool=$(type -p cavstool.py)
+        # Collect logs from Zephyr logging backends
 
-        dlogi "Trying to get Zephyr logs from etrace with background $cavstool ..."
-        dlogc \
-          "sudo  $cavstool  --log-only >  $etrace_file  2>&1"
-        # Firmware messages are on stdout and local messages on
-        # stderr. Merge them and then grep ERROR below.
-        # shellcheck disable=SC2024
-        sudo timeout -k 3 "$collect_secs" \
-           "$cavstool" --log-only > "$etrace_file" 2>&1 & cavstoolPID=$!
+        if is_ipc4 ; then
+            # Get logs via SOF kernel IPC4 SRAM logging interfaces (mtrace)
+
+            if [ -z "$MTRACE" ]; then
+                MTRACE=$(command -v mtrace-reader.py) || {
+                    die "No mtrace-reader.py found in PATH"
+                }
+            fi
+            local mtracetool="$MTRACE"
+            dlogi "Trying to get Zephyr logs from mtrace with background $mtracetool ..."
+            dlogc \
+                "sudo  $mtracetool >  $etrace_file  2>  $etrace_stderr_file"
+            # shellcheck disable=SC2024
+            sudo timeout -k 3 "$collect_secs" \
+                 "$mtracetool" > "$etrace_file" 2> "$etrace_stderr_file" & mtracetoolPID=$!
+        else
+            # SOF kernel IPC3 SRAM logging interface (etrace)
+
+            local cavstool
+            cavstool=$(type -p cavstool.py)
+
+            dlogi "Trying to get Zephyr logs from etrace with background $cavstool ..."
+            dlogc \
+                "sudo  $cavstool  --log-only >  $etrace_file  2>&1"
+            # Firmware messages are on stdout and local messages on
+            # stderr. Merge them and then grep ERROR below.
+            # shellcheck disable=SC2024
+            sudo timeout -k 3 "$collect_secs" \
+                 "$cavstool" --log-only > "$etrace_file" 2>&1 & cavstoolPID=$!
+        fi
     fi
 
-    dlogi "Trying to get the DMA .ldc trace log with background sof-logger ..."
-    dlogc \
-    "sudo $loggerBin  -t -f 3 -l  $ldcFile   >  $data_file  2>  $error_file  &"
-    # shellcheck disable=SC2024
-    sudo timeout -k 3 "$collect_secs"  \
-         "$loggerBin" -t -f 3 -l "$ldcFile" \
-          > "$data_file" 2> "$error_file" & dmaPID=$!
+    if ! is_ipc4 ; then
+        # Sof-logger DMA logging (IPC3 only)
+
+        dlogi "Trying to get the DMA .ldc trace log with background sof-logger ..."
+        dlogc \
+            "sudo $loggerBin  -t -f 3 -l  $ldcFile   >  $data_file  2>  $error_file  &"
+        # shellcheck disable=SC2024
+        sudo timeout -k 3 "$collect_secs"  \
+             "$loggerBin" -t -f 3 -l "$ldcFile" \
+             > "$data_file" 2> "$error_file" & dmaPID=$!
+    fi
 
     sleep "$collect_secs"
 
-    loggerStatus=0; wait "$dmaPID" || loggerStatus=$?
-    # 124 is the normal timeout exit status
-    test "$loggerStatus" -eq 124 || {
-        cat "$error_file"
-        die "timeout sof-logger returned unexpected: $loggerStatus"
-    }
+    if ! is_ipc4 ; then
+        # Sof-logger DMA logging (IPC3 only)
 
-    if is_zephyr; then
-        loggerStatus=0; wait "$cavstoolPID" || loggerStatus=$?
+        loggerStatus=0; wait "$dmaPID" || loggerStatus=$?
+        # 124 is the normal timeout exit status
         test "$loggerStatus" -eq 124 || {
             cat "$error_file"
-            die "timeout $cavstool returned unexpected: $loggerStatus"
+            die "timeout sof-logger returned unexpected: $loggerStatus"
         }
-        ( set -x
-          grep -i ERROR "$etrace_file" > "$etrace_stderr_file"
-        ) || true
+    fi
+
+    if is_zephyr; then
+        # Zephyr logging backends
+
+        if is_ipc4 ; then
+            # SOF kernel IPC4 SRAM logging interface (mtrace)
+
+            loggerStatus=0; wait "$mtracetoolPID" || loggerStatus=$?
+            test "$loggerStatus" -eq 124 || {
+                cat "$error_file"
+                die "timeout $mtracetool returned unexpected: $loggerStatus"
+            }
+        else
+            # SOF kernel IPC3 SRAM logging interface (etrace)
+
+            loggerStatus=0; wait "$cavstoolPID" || loggerStatus=$?
+            test "$loggerStatus" -eq 124 || {
+                cat "$error_file"
+                die "timeout $cavstool returned unexpected: $loggerStatus"
+            }
+            ( set -x
+              grep -i ERROR "$etrace_file" > "$etrace_stderr_file"
+            ) || true
+        fi
+
+        # All Zephyr backends checked at this point, we can return
         return 0
     fi
 
-    dlogi "Trying to get the .ldc log from the etrace mailbox ..."
-    dlogc \
-    "sudo $loggerBin    -f 3 -l  $ldcFile  2>  $etrace_stderr_file   >  $etrace_file"
-    # shellcheck disable=SC2024
-    sudo "$loggerBin"   -f 3 -l "$ldcFile" 2> "$etrace_stderr_file"  > "$etrace_file" || {
-        etrace_exit=$?
-        cat "$etrace_stderr_file" >&2
-    }
+    if ! is_ipc4 ; then
+        # Sof-logger error log over SRAM (XTOS and IPC3 only, etrace)
 
-    printf '\n'
+        dlogi "Trying to get the .ldc log from the etrace mailbox ..."
+        dlogc \
+            "sudo $loggerBin    -f 3 -l  $ldcFile  2>  $etrace_stderr_file   >  $etrace_file"
+        # shellcheck disable=SC2024
+        sudo "$loggerBin"   -f 3 -l "$ldcFile" 2> "$etrace_stderr_file"  > "$etrace_file" || {
+            etrace_exit=$?
+            cat "$etrace_stderr_file" >&2
+        }
 
-    return $etrace_exit
+        printf '\n'
+
+        return $etrace_exit
+    fi
+
+    # XTOS IPC4 case
+    return 0
 }
 
 
@@ -194,10 +246,13 @@ main()
 {
     # Keeping these confusing DMA names because they're used in
     # several other places.
-    stdout_files=(data  etrace)
-    # This is not actually stderr for cavstool, see comment at cavstool
-    # invocation
-    stderr_files=(error etrace_stderr)
+    if is_ipc4 ; then
+        stdout_files=(etrace)
+        stderr_files=(etrace_stderr)
+    else
+        stdout_files=(data  etrace)
+        stderr_files=(error etrace_stderr)
+    fi
 
     reload_drivers
     # cavstool is now racing against D3
@@ -226,7 +281,12 @@ main()
         test -e "$tracef" || die "$tracef" not found
 
         local tool_banner boot_banner
-        if is_zephyr && [ "$f" = 'etrace' ]; then
+        if is_ipc4 && is_zephyr && [ "$f" = 'etrace' ]; then
+            # mtrace
+            # No specific tool banner, just check some logs are visible.
+            tool_banner=' .*<.*>'
+            boot_banner='FW ABI.*tag.*zephyr'
+        elif is_zephyr && [ "$f" = 'etrace' ]; then
             # cavstool
             tool_banner=':cavs-fw:'
             boot_banner='FW ABI.*tag.*zephyr'
