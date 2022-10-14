@@ -174,14 +174,20 @@ reload_drivers()
 
     "${TOPDIR}"/tools/kmod/sof_insert.sh
 
+    # sof-test assumes SOF card to be loaded as first (card0)
+    # card in the system
+    CARD_NODE="/proc/asound/card0/id"
+
     # The DSP may unfortunately need multiple retries to boot, see
     # https://github.com/thesofproject/sof/issues/3395
-    dlogi "Polling /sys/kernel/debug/sof/etrace, waiting for DSP boot..."
+    dlogi "Polling ${CARD_NODE}, waiting for DSP boot..."
     for i in $(seq 1 5); do
-        if sudo test -e /sys/kernel/debug/sof/etrace; then break; fi
+        if sudo test -e ${CARD_NODE} ; then
+            dlogi "Found ${CARD_NODE}."
+            break;
+        fi
         sleep 1
     done
-    dlogi "Found /sys/kernel/debug/sof/etrace."
 }
 
 main()
