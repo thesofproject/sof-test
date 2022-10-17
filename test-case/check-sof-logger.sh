@@ -3,20 +3,20 @@
 ##
 ## Case Name: check-sof-logger
 ## Preconditions:
-##    sof-logger installed in system path
-##    ldc file is in /etc/sof/ or /lib/firmware
+##    sof-logger, cavstool.py and mtrace-reader.py installed in system path
+##    dictionary (ldc) file is in /etc/sof/ or /lib/firmware
 ##
 ## Description:
-##    Checks basic functionality of the sof-logger itself. Does not test
+##    Checks basic functionality of the logging tools. Does not test
 ##    the firmware, i.e., does NOT fail when errors are found in the
 ##    logs.
 ##
 ## Case step:
-##    1. check sof-logger in system
-##    2. check ldc file in system
-##    3. run sof-logger
+##    1. check existance of logging tools in system
+##    2. check presence of dictionary files in system
+##    3. run logging tools
 ## Expect result:
-##    sof-logger produces some output and did not fail
+##    Fimrware log output is detected and the tools did not report error
 ##
 
 set -e
