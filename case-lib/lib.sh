@@ -680,28 +680,23 @@ is_zephyr()
     test "$znum" -gt 10
 }
 
+# FIXME: the kernel driver should give us the FW path
+# https://github.com/thesofproject/linux/issues/3867
+get_firmware_path()
+{
+    journalctl_cmd -k |
+        awk '/sof.*request_firmware/ { sub(/^.*request_firmware/,""); last_loaded_file=$1 } END { print last_loaded_file }'
+}
+
 is_firmware_file_zephyr()
 {
-    local firmware_name firmware_path znum platform
-    # get the FW name and path
-    # TODO: optimize this part after driver can expose the FW path to userspace via debugfs
-    if is_ipc4; then
-        firmware_name=dsp_basefw.bin
-        fw_mod_para=/sys/module/snd_sof_pci/parameters/fw_path
-        if [ -s "$fw_mod_para" ]; then
-            firmware_path=$(cat $fw_mod_para)
-        else
-            # # FIXME: the kernel driver should give us the FW path
-            # https://github.com/thesofproject/linux/issues/3867
-            die "Failed to get the IPC4 FW path."
-        fi
-    else # for IPC3
-        platform=$(sof-dump-status.py -p)
-        firmware_name=sof-$platform.ri
-        firmware_path=$(sof-dump-status.py -P)
-    fi
+    local firmware_path znum
 
-    znum=$(strings "/lib/firmware/$firmware_path/$firmware_name" | grep -c -i zephyr)
+    firmware_path=$(get_firmware_path)
+    [ -n "$firmware_path" ] ||
+        die 'firmware path not found from journalctl, no firmware loaded or debug option disabled?'
+
+    znum=$(strings "/lib/firmware/$firmware_path" | grep -c -i zephyr)
     test "$znum" -gt 10
 }
 
