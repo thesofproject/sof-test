@@ -1160,11 +1160,13 @@ if __name__ == "__main__":
             description='A Topology Reader totally Written in Python.')
 
         parser.add_argument('--version', action='version', version='%(prog)s 1.0')
-        parser.add_argument('-t', '--tplgroot', type=str, help="load tplg file from tplg_root folder")
+        parser.add_argument('-t', '--tplgroot', type=str, help="""Load topology files matching \
+a patterns argument from the tplg_root folder.
+Enables internal globbing mode: the single positional argument is not a file but a comma-separated list of patterns.""")
         parser.add_argument('-d', '--dump', type=str, help='dump specified topology information, '
             'if multiple information types are wanted, use "," to separate them, eg, `-d pcm,graph`')
-        parser.add_argument('filename', type=str, help='topology file name pattern(s), ' \
-            'if multiple topology file names are specified, please use "," to separate them')
+        parser.add_argument('filenames', nargs='+', type=str, help="""topology filenames or single pattern argument depending on
+--tplgroot, see below. To pass multiple patterns use "," to separate them.""")
         # The below options are used to control generated graph
         parser.add_argument('-D', '--directory', type=str, default=".", help="output directory for generated graph")
         parser.add_argument('-F', '--format', type=str, default="png", help="output format for generated graph, check "
@@ -1214,7 +1216,6 @@ if __name__ == "__main__":
         return [tplgpath
             for pattern in arg_split(patterns) 
             for tplgpath in do_glob(rootpath, pattern) 
-            if tplgpath.suffix == '.tplg'
         ]
 
     def main():
@@ -1223,13 +1224,23 @@ if __name__ == "__main__":
 
         cmd_args = parse_cmdline()
         dump_types = supported_dump if cmd_args.dump is None else arg_split(cmd_args.dump)
-        for file in get_tplg_paths(cmd_args.tplgroot, cmd_args.filename):
-            tplg = GroupedTplg(tplgFormat.parse_file(file))
+
+        if cmd_args.tplgroot:
+            assert len(cmd_args.filenames) == 1, \
+                f"Too many arguments when using --tplgroot, try quoting? {cmd_args.filenames}"
+            patterns = cmd_args.filenames[0]
+            files = get_tplg_paths(cmd_args.tplgroot, patterns)
+            assert len(files) > 0, f"{patterns} did not match anything in '{cmd_args.tplgroot}'"
+        else:
+            files = [ Path(f) for f in cmd_args.filenames ]
+
+        for f in files:
+            tplg = GroupedTplg(tplgFormat.parse_file(f))
             if 'pcm' in dump_types:
                 tplg.print_pcm_info()
             if 'graph' in dump_types:
                 graph = TplgGraph(tplg)
                 graph.show_core = cmd_args.show_core
-                graph.draw(file.stem, outdir=cmd_args.directory, file_format=cmd_args.format, live_view=cmd_args.live_view)
+                graph.draw(f.stem, outdir=cmd_args.directory, file_format=cmd_args.format, live_view=cmd_args.live_view)
 
     main()
