@@ -58,6 +58,12 @@ SUDO_LEVEL=${SUDO_LEVEL:-}
 #
 # NO_BT_MODE=true
 
+# Sometimes the DMIC support is not ready on some new platforms.
+# We want to skip the DMIC test for some purposes. Add an option
+# to skip the DMIC pipeline.
+#
+# NO_DMIC_MODE=true
+
 # SOF_TEST_INTERVAL informs sof-test of how long the external test
 # runner waits between the end of one sof-test and the start of the next
 # sof-test. sof-test uses this value to assign the corresponding kernel
