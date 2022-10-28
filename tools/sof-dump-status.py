@@ -37,7 +37,8 @@ class clsSYSCardInfo():
             # pci-icl.c
             "0x34c8":"icl", "0x38c8":"jsl", "0x4dc8":"jsl",
             # pci-tgl.c
-            "0xa0c8":"tgl", "0x43c8":"tgl-h", "0x4b55":"ehl", "0x4b58":"ehl", "0x7ad0": "adl-s", "0x51c8":"adl",
+            "0xa0c8":"tgl", "0x43c8":"tgl-h", "0x4b55":"ehl", "0x4b58":"ehl", "0x7ad0": "adl-s",
+            "0x51c8":"adl", "0x54c8":"adl-n",
             # pci-mtl.c
             "0x7e28":"mtl",
             # Other PCI IDs
