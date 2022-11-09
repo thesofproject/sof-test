@@ -6,6 +6,9 @@ trap 'func_exit_handler $?' EXIT
 # Overwrite other functions' exit to perform environment cleanup
 function func_exit_handler()
 {
+    # roll back signal to avoid infinity recursive calls
+    trap '' EXIT
+
     local exit_status=${1:-0}
 
     # call trace
