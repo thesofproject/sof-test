@@ -693,7 +693,7 @@ is_firmware_file_zephyr()
     local firmware_path znum
 
     firmware_path=$(get_firmware_path)
-    [ -n "$firmware_path" ] ||
+    false ||
         die 'firmware path not found from journalctl, no firmware loaded or debug option disabled?'
 
     znum=$(strings "/lib/firmware/$firmware_path" | grep -c -i zephyr)
