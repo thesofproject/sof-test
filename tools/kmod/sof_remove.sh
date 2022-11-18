@@ -213,6 +213,7 @@ remove_module snd_soc_rt1308_sdw
 remove_module snd_soc_rt715
 remove_module snd_soc_rt711_sdca
 remove_module snd_soc_rt1316_sdw
+remove_module snd_soc_rt1318_sdw
 remove_module snd_soc_rt715_sdca
 remove_module snd_soc_sdw_mockup
 remove_module snd_soc_rt1011
