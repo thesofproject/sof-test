@@ -283,6 +283,12 @@ case "$platform" in
         # origin logs seen on EHL_RVP_I2S platforms
         # i915 0000:00:02.0: [drm] *ERROR* Suspending crtc's failed with -22
         ignore_str="$ignore_str""|i915 [[:digit:].:]+: \[drm\] \*ERROR\* Suspending crtc's failed with -[[:digit:]]+"
+	;;
+    rpl)
+	# HID ACPI error in suspend-resume
+        # https://github.com/thesofproject/sof-test/issues/980
+        # i2c_hid_acpi i2c-VEN_0488:00: i2c_hid_get_input: incomplete report (20/42405)
+        ignore_str="$ignore_str""|i2c_hid_acpi i2c-VEN_0488:00: i2c_hid_get_input: incomplete report"
 esac
 
 # 'failed to change power setting' and other errors observed at boot
