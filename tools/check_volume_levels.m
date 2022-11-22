@@ -1,4 +1,4 @@
-function check_volume_levels(cmd, fn1, fn2, fn3)
+function check_volume_levels(cmd, fn1, fn2, fn3, do_plot)
 
 % check_volume_levels(cmd, fn1, fn2, fn3)
 %
@@ -7,14 +7,20 @@ function check_volume_levels(cmd, fn1, fn2, fn3)
 %   fn1 - File name for sine wave to generate or first record file name to analyze
 %   fn2 - File name to analyze 2nd
 %   fn3 - File name to analyze 3rd
+%   do_plot - Plot figure of levels if 1, defaults to 0
 %
 % E.g.
 %   check_volume_levels('generate','sine.wav');
 %   check_volume_levels('measure','rec1.wav','rec2.wav','rec3.wav');
+%   check_volume_levels('measure','rec1.wav','rec2.wav','rec3.wav', 1);
 
 % SPDX-License-Identifier: BSD-3-Clause
 % Copyright(c) 2016 Intel Corporation. All rights reserved.
 % Author: Seppo Ingalsuo <seppo.ingalsuo@linux.intel.com>
+
+	if nargin < 5
+		do_plot = 0;
+	end
 
 	addpath('../../sof/tools/test/audio/std_utils');
 	addpath('../../sof/tools/test/audio/test_utils');
@@ -32,7 +38,7 @@ function check_volume_levels(cmd, fn1, fn2, fn3)
 				error('FAIL');
 			end
 		case 'measure'
-			pass = measure(fn1, fn2, fn3);
+			pass = measure(fn1, fn2, fn3, do_plot);
 			if pass
 				fprintf(1, 'PASS\n');
 			else
@@ -64,7 +70,7 @@ function pass = generate(fn)
 end
 
 
-function pass = measure(fn1, fn2, fn3)
+function pass = measure(fn1, fn2, fn3, do_plot)
 
 	% General test defaults
 	lm.tgrid = 5e-3;              % Return level per every 5ms
@@ -87,7 +93,7 @@ function pass = measure(fn1, fn2, fn3)
 	t1.vtol = 0.5; % Pass test with max +/- 0.5 dB mismatch
 
 	% Check test 1
-	pass1 = level_vs_time_checker(fn1, t1, lm, '1/3');
+	pass1 = level_vs_time_checker(fn1, t1, lm, '1/3', do_plot);
 
 	% Default gains for test 2
 	m1 = [vmut vnom vnom vmut];
@@ -100,7 +106,7 @@ function pass = measure(fn1, fn2, fn3)
 	t2.vtol = t1.vtol; % Same as previous
 
 	% Check test 2
-	pass2 = level_vs_time_checker(fn2, t2, lm, '2/3');
+	pass2 = level_vs_time_checker(fn2, t2, lm, '2/3', do_plot);
 
 	% Default gains for test 3
 	vol_ch1    = [ vmut vmut m2(1) vnom ];
@@ -111,7 +117,7 @@ function pass = measure(fn1, fn2, fn3)
 	t3.vtol = t1.vtol; % Same as previous
 
 	% Check test 3
-	pass3 = level_vs_time_checker(fn3, t3, lm, '3/3');
+	pass3 = level_vs_time_checker(fn3, t3, lm, '3/3', do_plot);
 
 	if pass1 == 1 && pass2 == 1 && pass3 == 1
 		pass = 1;
@@ -121,11 +127,13 @@ function pass = measure(fn1, fn2, fn3)
 
 end
 
-function pass = level_vs_time_checker(fn, tc, lm, id)
+function pass = level_vs_time_checker(fn, tc, lm, id, do_plot)
 	fprintf(1, 'File %s:\n', fn);
 
 	lev = level_vs_time(fn, lm);
-	%plot_levels(lev, tc, lm);
+	if do_plot
+		plot_levels(lev, tc, lm);
+	end
 	pass = check_levels(lev, tc, lm, 1);
 	if pass
 		fprintf(1, 'pass (%s)\n', id);
@@ -183,6 +191,7 @@ function plot_levels(meas, tc, lm)
 	hold off;
 	xlabel('Time (s)');
 	ylabel('Gain (dB)');
+	grid on;
 end
 
 function pass = check_levels(meas, tc, lm, verbose)
