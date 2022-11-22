@@ -46,7 +46,7 @@ function check_volume_levels(cmd, fn1, fn2, fn3, do_plot)
 			end
 		otherwise
 			error('Invalid cmd')
-	endswitch
+	end
 
 end
 
