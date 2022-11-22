@@ -187,14 +187,36 @@ end
 
 function pass = check_levels(meas, tc, lm, verbose)
 	pass = 1;
+	dg_tol = 0.1;
 	gains =  meas.levels - lm.sine_dbfs;
 	sv = size(tc.volumes);
 	for j = 1:sv(2)
 		for i = 1:sv(1)
+			% Initial location to test
 			ts = tc.vctimes(i)+tc.meas(1);
 			te = tc.vctimes(i)+tc.meas(2);
 			idx0 = find(meas.t < te);
 			idx = find(meas.t(idx0) > ts);
+
+			% Delay if settled gain is later in the window,
+			% this adds more robustness to test for controls
+			% apply delay.
+			dg = diff(gains(idx,j));
+			if max(abs(dg)) > dg_tol
+				n_idx = length(idx);
+				dg_rev = dg(end:-1:1);
+				idx_add = length(dg) - find(abs(dg_rev) > dg_tol, 1, 'first') + 1;
+			        idx = idx + idx_add;
+				if idx(end) > size(gains, 1)
+					idx = idx(1):size(gains, 1);
+				end
+				if idx(1) > size(gains, 1) || length(idx) < 0.5 * n_idx
+					fprintf(1, 'Channel %d controls impact is delayed too much ', j);
+					fprintf(1, 'from %4.1f - %4.1fs\n', ts, te);
+					pass = 0;
+					return;
+				end
+			end
 			avg_gain = mean(gains(idx, j));
 			max_gain = tc.volumes(i,j) + tc.vtol;
 			min_gain = tc.volumes(i,j) - tc.vtol;
