@@ -282,6 +282,8 @@ case "$platform" in
         # Bug Report: https://github.com/thesofproject/sof-test/issues/838
         # New TGLU_UP_HDA_ZEPHYR device reporting "TPM interrupt not working" errors.
         ignore_str="$ignore_str"'|kernel: tpm tpm0: \[Firmware Bug\]: TPM interrupt not working, polling instead'
+        # Bug Report: https://github.com/thesofproject/sof-test/issues/936
+        ignore_str="$ignore_str"'|kernel: tpm tpm0: Operation Canceled'
         ;;
     ehl)
         # i915 crtc logs can be ignored
