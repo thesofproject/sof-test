@@ -58,6 +58,8 @@ then
 	exit 2
 fi
 
+check_locale_for_alsabat
+
 # If MODEL is defined, set proper gain for the platform
 if [ -z "$MODEL" ]; then
     # treat as warning only
