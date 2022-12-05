@@ -782,6 +782,15 @@ check_ntp_sync()
     timedatectl show | grep -q "NTPSynchronized=yes"
 }
 
+# alsabat will return -2 for "C.UTF-8" locale
+# every case with alsabat should call this at beginning
+check_locale_for_alsabat()
+{
+    if locale | grep -i 'C.utf-8'; then
+        die 'Try C.utf8 instead, see https://github.com/alsa-project/alsa-utils/issues/192'
+    fi
+}
+
 re_enable_ntp_sync()
 {
     # disable synchronization first
