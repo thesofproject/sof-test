@@ -175,6 +175,11 @@ ignore_str="$ignore_str"'|EXT4-fs \(nvme0n1p6\): re-mounted\. Opts: errors=remou
 ignore_str="$ignore_str"'|usb .+: (Enable|Disable) of device-initiated .+ failed\.'
 ignore_str="$ignore_str"'|thermal thermal_zone.*: failed to read out thermal zone \(-61\)'
 
+# ISH timeout found on CML_RVP_SDW, CML_SKU0955_HDA, EHL_RVP_I2S, MTL_RVP_SDW, MTL_RVP_NOCODEC
+# BugLink: https://github.com/thesofproject/sof-test/issues/857
+ignore_str="$ignore_str"'|intel_ish_ipc 0000:00:[0-9]+\.0: \[ishtp-ish\]: Timed out waiting for FW-initiated reset'
+ignore_str="$ignore_str"'|intel_ish_ipc 0000:00:[0-9]+\.0: ISH: hw start failed.'
+
 # Dell CML-U laptop with SoundWire, issues reported by sof-test
 # BugLink: https://github.com/thesofproject/sof-test/issues/307
 ignore_str="$ignore_str"'|: authentication with ..:..:..:..:..:.. timed out'
