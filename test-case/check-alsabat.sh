@@ -34,7 +34,7 @@ OPT_NAME['c']='pcm_c'      	OPT_DESC['c']='pcm for capture. Example: hw:1,0'
 OPT_HAS_ARG['c']=1             OPT_VAL['c']=''
 
 OPT_NAME['f']='frequency'       OPT_DESC['f']='target frequency'
-OPT_HAS_ARG['f']=1             OPT_VAL['f']=997
+OPT_HAS_ARG['f']=1             OPT_VAL['f']=821
 
 OPT_NAME['n']='frames'          OPT_DESC['n']='test frames'
 OPT_HAS_ARG['n']=1             OPT_VAL['n']=240000
