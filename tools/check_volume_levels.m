@@ -22,9 +22,6 @@ function check_volume_levels(cmd, fn1, fn2, fn3, do_plot)
 		do_plot = 0;
 	end
 
-	addpath('../../sof/tools/test/audio/std_utils');
-	addpath('../../sof/tools/test/audio/test_utils');
-
 	if exist('OCTAVE_VERSION', 'builtin')
 		pkg load signal
 	end
@@ -281,4 +278,30 @@ function y = bandpass_filter(x, f, fs)
 		[b, a] = butter(4, 2*[c1*f(j) c2*f(j)]/fs);
 		y(:,j) = filter(b, a, x(:,j));
 	end
+end
+
+% This function is copy of
+% sof/tools/test/audio/test_utils/multitone.m
+function x = multitone(fs, f, amp, tlength)
+	n = round(fs * tlength);
+	t = (0 : n - 1) / fs;
+	nf = length(f);
+	if nf > 1
+		ph = rand(nf, 1) * 2 * pi;
+	else
+		ph = 0;
+	end
+
+	x = zeros(n, 1);
+	for i = 1 : length(f)
+		x = x + amp(i) * sin(2 * pi * f(i) * t + ph(i))';
+	end
+end
+
+% This function is copy of
+% sof/tools/test/audio/std_utils/level_dbfs.m
+function dbfs = level_dbfs(x)
+	%% Reference AES 17 3.12.3
+	level_ms = mean(x .^ 2);
+	dbfs = 10 * log10(level_ms + 1e-20) + 20 * log10(sqrt(2));
 end
