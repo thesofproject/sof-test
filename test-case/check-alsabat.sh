@@ -36,6 +36,9 @@ OPT_HAS_ARG['c']=1             OPT_VAL['c']=''
 OPT_NAME['f']='frequency'       OPT_DESC['f']='target frequency'
 OPT_HAS_ARG['f']=1             OPT_VAL['f']=821
 
+OPT_NAME['k']='sigmak'		OPT_DESC['k']='sigma k value'
+OPT_HAS_ARG['k']=1             OPT_VAL['k']=1.5
+
 OPT_NAME['n']='frames'          OPT_DESC['n']='test frames'
 OPT_HAS_ARG['n']=1             OPT_VAL['n']=240000
 
@@ -50,6 +53,7 @@ pcm_c=${OPT_VAL['c']}
 rate=${OPT_VAL['r']}
 channel_c=${OPT_VAL['C']}
 frequency=${OPT_VAL['f']}
+sigmak=${OPT_VAL['k']}
 frames=${OPT_VAL['n']}
 
 if [ "$pcm_p" = "" ]||[ "$pcm_c" = "" ];
@@ -91,16 +95,16 @@ arecord -Dplug$pcm_c -d 1 /dev/null -q || die "Failed to capture on PCM: $pcm_c"
 
 # alsabat test
 # hardcode the channel number of playback to 2, as sof doesnot support mono wav.
-dlogc "alsabat -P$pcm_p --standalone -n $frames -r $rate -c 2 -F $frequency"
-alsabat -P$pcm_p --standalone -n $frames -c 2 -r $rate -F $frequency & playPID=$!
+dlogc "alsabat -P$pcm_p --standalone -n $frames -r $rate -c 2 -F $frequency -k $sigmak"
+alsabat -P$pcm_p --standalone -n $frames -c 2 -r $rate -F $frequency -k $sigmak & playPID=$!
 
 # playback may have low latency, add one second delay to aviod recording zero at beginning.
 sleep 1
 
 # We use different USB sound cards in CI, part of them only support 1 channel for capture,
 # so make the channel as an option and config it in alsabat-playback.csv
-dlogc "alsabat -C$pcm_c -c $channel_c -r $rate -F $frequency"
-alsabat -C$pcm_c -c $channel_c -r $rate -F $frequency || {
+dlogc "alsabat -C$pcm_c -c $channel_c -r $rate -F $frequency -k $sigmak"
+alsabat -C$pcm_c -c $channel_c -r $rate -F $frequency -k $sigmak || {
         # upload failed wav file
         __upload_wav_file
         # dump amixer contents for more debugging
