@@ -807,6 +807,10 @@ set_alsa_settings()
             # common nocodec_ci alsa settings
             "$SCRIPT_HOME"/alsa_settings/CAVS_NOCODEC_CI.sh
         ;;
+        TGLU_RVP_NOCODEC_IPC4ZPH | ADLP_RVP_NOCODEC_IPC4ZPH)
+            # common nocodec_ipc4 alsa settings
+            "$SCRIPT_HOME"/alsa_settings/CAVS_NOCODEC_IPC4.sh
+        ;;
         *)
             # if script name is same as platform name, default case will handle all
             if [ -f "$SCRIPT_HOME"/alsa_settings/"$PNAME".sh ]; then
