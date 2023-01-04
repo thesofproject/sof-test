@@ -7,6 +7,7 @@ trap 'func_exit_handler $?' EXIT
 function func_exit_handler()
 {
     local exit_status=${1:-0}
+    local keyword="Started Journal Service"
 
     # call trace
     if [ "$exit_status" -ne 0 ] ; then
@@ -127,6 +128,10 @@ function func_exit_handler()
        dloge "KERNEL_CHECKPOINT=$KERNEL_CHECKPOINT"
        test "$exit_status" -ne 0 || exit_status=1
     fi
+    # Hide the kernel initialization log on MTL
+    [[ "$MODEL" =~ "MTL" ]] && {
+       [[ $(grep "$keyword" "$LOG_ROOT"/dmesg.txt) ]] && sed -i "0,/$keyword/d" "$LOG_ROOT"/dmesg.txt
+    }
     # After log collected, KERNEL_CHECKPOINT will not be used any more
     unset KERNEL_CHECKPOINT
 
