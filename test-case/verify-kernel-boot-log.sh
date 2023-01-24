@@ -64,6 +64,8 @@ wait_is_system_running()
         systemctl "$manager" is-system-running
         # See https://github.com/thesofproject/sof-test/discussions/964
         DISPLAY=:0 xrandr --listmonitors
+        DISPLAY=:1024 xrandr --listmonitors
+        sudo grep -i connected /sys/kernel/debug/dri/0/i915_display_info
     )
     die "Some services are not running correctly"
 }
