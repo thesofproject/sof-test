@@ -16,9 +16,10 @@
 ##    no errors for aplay/arecord
 ##
 
-source $(dirname ${BASH_SOURCE[0]})/../case-lib/lib.sh
+# shellcheck source=case-lib/lib.sh
+source "$(dirname "${BASH_SOURCE[0]}")"/../case-lib/lib.sh
 
-OPT_NAME['t']='tplg'     OPT_DESC['t']='tplg file, default value is env TPLG: $TPLG'
+OPT_NAME['t']='tplg'     OPT_DESC['t']='tplg file, default value is env TPLG'
 OPT_HAS_ARG['t']=1         OPT_VAL['t']="$TPLG"
 
 OPT_NAME['m']='mode'     OPT_DESC['m']='test mode'
@@ -67,34 +68,34 @@ func_stop_start_pipeline()
         sof-process-state.sh $cmd >/dev/null
         if [ $? -ne 0 ]; then
             "$cmd process is in an abnormal status"
-            kill -9 $pid && wait $pid 2>/dev/null
+            kill -9 "$pid" && wait "$pid" 2>/dev/null
             exit 1
         fi
         dlogi "Stop/start count: $i"
         # stop the pipeline
-        kill -SIGSTOP $pid
+        kill -SIGSTOP "$pid"
         sleep $interval
         # start the pipeline
-        kill -SIGCONT $pid
+        kill -SIGCONT "$pid"
         sleep $interval
-        let i++
+        (( i++ ))
     done
 }
 
 func_pipeline_export "$tplg" "type:$test_mode"
-for idx in $(seq 0 $(expr $PIPELINE_COUNT - 1))
+for idx in $(seq 0 $(( "$PIPELINE_COUNT" - 1 )))
 do
-    channel=$(func_pipeline_parse_value $idx channel)
-    rate=$(func_pipeline_parse_value $idx rate)
-    fmt=$(func_pipeline_parse_value $idx fmt)
-    dev=$(func_pipeline_parse_value $idx dev)
-    pcm=$(func_pipeline_parse_value $idx pcm)
-    pipeline_type=$(func_pipeline_parse_value $idx "type")
-    snd=$(func_pipeline_parse_value $idx snd)
+    channel=$(func_pipeline_parse_value "$idx" channel)
+    rate=$(func_pipeline_parse_value "$idx" rate)
+    fmt=$(func_pipeline_parse_value "$idx" fmt)
+    dev=$(func_pipeline_parse_value "$idx" dev)
+    pcm=$(func_pipeline_parse_value "$idx" pcm)
+    pipeline_type=$(func_pipeline_parse_value "$idx" "type")
+    snd=$(func_pipeline_parse_value "$idx" snd)
 
     dlogi "Testing: run stop/start test on PCM:$pcm,$pipeline_type. Interval time: $interval"
     dlogc "$cmd -D$dev -r $rate -c $channel -f $fmt $dummy_file -q &"
-    $cmd -D$dev -r $rate -c $channel -f $fmt $dummy_file -q &
+    $cmd -D"$dev" -r "$rate" -c "$channel" -f "$fmt" $dummy_file -q &
     pid=$!
 
     # If the process is terminated too early, this is error case.
@@ -105,7 +106,7 @@ do
     #     4. set params fails, etc
     sleep 0.5
     if [[ ! -d /proc/$pid ]]; then
-        lsof $snd
+        lsof "$snd"
         die "$cmd process[$pid] is terminated too early"
     fi
 
@@ -113,7 +114,7 @@ do
     func_stop_start_pipeline
     # kill aplay/arecord process
     dlogc "kill process: kill -9 $pid"
-    kill -9 $pid && wait $pid 2>/dev/null
+    kill -9 "$pid" && wait "$pid" 2>/dev/null
 done
 
 sof-kernel-log-check.sh "$KERNEL_CHECKPOINT"
