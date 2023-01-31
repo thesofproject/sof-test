@@ -16,6 +16,8 @@
 ##    no errors for aplay/arecord
 ##
 
+set -e
+
 # shellcheck source=case-lib/lib.sh
 source "$(dirname "${BASH_SOURCE[0]}")"/../case-lib/lib.sh
 
@@ -62,15 +64,14 @@ setup_kernel_check_point
 func_stop_start_pipeline()
 {
     local i=1
-    while ( [ $i -le $count ] && [ "$(ps -p $pid --no-header)" ] )
+    while [ $i -le $count ]
     do
         # check aplay/arecord process state
-        sof-process-state.sh $cmd >/dev/null
-        if [ $? -ne 0 ]; then
-            "$cmd process is in an abnormal status"
-            kill -9 "$pid" && wait "$pid" 2>/dev/null
+        sof-process-state.sh "$pid" >/dev/null || {
+            dloge "$cmd($pid) process is in an abnormal status"
+            kill -9 "$pid"
             exit 1
-        fi
+        }
         dlogi "Stop/start count: $i"
         # stop the pipeline
         kill -SIGSTOP "$pid"
@@ -112,9 +113,10 @@ do
 
     # do stop/start test
     func_stop_start_pipeline
+
     # kill aplay/arecord process
     dlogc "kill process: kill -9 $pid"
-    kill -9 "$pid" && wait "$pid" 2>/dev/null
+    kill -9 "$pid"
 done
 
 sof-kernel-log-check.sh "$KERNEL_CHECKPOINT"
