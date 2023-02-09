@@ -66,6 +66,7 @@ wait_is_system_running()
         DISPLAY=:0 xrandr --listmonitors
         DISPLAY=:1024 xrandr --listmonitors
         sudo grep -i connected /sys/kernel/debug/dri/0/i915_display_info
+        true
     )
     die "Some services are not running correctly"
 }
