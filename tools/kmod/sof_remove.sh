@@ -108,6 +108,7 @@ remove_module snd_sof_intel_hda_common || true
 remove_module snd_sof_acpi
 remove_module snd_sof_pci
 remove_module snd_sof_intel_atom
+remove_module snd_sof_intel_hda_mlink
 remove_module imx_common
 
 #-------------------------------------------
