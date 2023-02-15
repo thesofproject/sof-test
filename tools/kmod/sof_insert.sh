@@ -101,6 +101,7 @@ insert_module snd_sof_pci_intel_cnl
 insert_module snd_sof_pci_intel_icl
 insert_module snd_sof_pci_intel_tgl
 insert_module snd_sof_pci_intel_mtl
+insert_module snd_sof_pci_intel_lnl
 
 # OF driver
 insert_module snd_sof_of
