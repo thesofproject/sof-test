@@ -108,7 +108,6 @@ remove_module snd_sof_intel_hda_common || true
 remove_module snd_sof_acpi
 remove_module snd_sof_pci
 remove_module snd_sof_intel_atom
-remove_module snd_sof_intel_hda_mlink
 remove_module imx_common
 
 #-------------------------------------------
@@ -261,7 +260,6 @@ remove_module snd_soc_wm8960
 # Remaining core SOF parts
 #-------------------------------------------
 remove_module snd_soc_acpi
-remove_module snd_hda_ext_core
 
 remove_module snd_intel_dspcfg
 
@@ -273,6 +271,9 @@ remove_module regmap_sdw
 remove_module regmap_sdw_mbq
 remove_module soundwire_bus
 remove_module snd_intel_sdw_acpi
+
+remove_module snd_sof_intel_hda_mlink
+remove_module snd_hda_ext_core
 
 remove_module snd_soc_core
 remove_module snd_hda_codec
