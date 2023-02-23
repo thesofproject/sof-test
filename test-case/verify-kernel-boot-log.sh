@@ -82,6 +82,9 @@ ntp_check()
         # before stopping ntp and after enabling ntp.
         re_enable_ntp_sync
 
+        # In normal case, it will trigger NTP sync immediately,
+        # but expect some network delay.
+        sleep 5
         if check_ntp_sync; then
             printf '\nTime Check: NTP Synchronized after re-enabling ntp sync\n'
         else
