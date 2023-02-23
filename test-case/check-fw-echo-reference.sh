@@ -20,8 +20,7 @@ set -e
 rm -f /tmp/bat.wav.*
 
 # shellcheck source=case-lib/lib.sh
-libdir=$(dirname "${BASH_SOURCE[0]}")
-source "$libdir"/../case-lib/lib.sh
+source "$(dirname "${BASH_SOURCE[0]}")"/../case-lib/lib.sh
 
 OPT_NAME['t']='tplg'         OPT_DESC['t']='tplg file, default value is env TPLG: $''TPLG'
 OPT_HAS_ARG['t']=1             OPT_VAL['t']="$TPLG"
