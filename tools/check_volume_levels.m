@@ -10,9 +10,9 @@ function check_volume_levels(cmd, fn1, fn2, fn3, do_plot)
 %   do_plot - Plot figure of levels if 1, defaults to 0
 %
 % E.g.
-%   check_volume_levels('generate','sine.wav');
-%   check_volume_levels('measure','rec1.wav','rec2.wav','rec3.wav');
-%   check_volume_levels('measure','rec1.wav','rec2.wav','rec3.wav', 1);
+%   check_volume_levels('generate', 'sine.wav');
+%   check_volume_levels('measure', 'rec1.wav', 'rec2.wav', 'rec3.wav');
+%   check_volume_levels('measure', 'rec1.wav', 'rec2.wav', 'rec3.wav', 1);
 
 % SPDX-License-Identifier: BSD-3-Clause
 % Copyright(c) 2016 Intel Corporation. All rights reserved.
@@ -55,13 +55,13 @@ function pass = generate(fn)
 	fs = 48e3;
 	f1 = 701;
 	f2 = 1297;
-	a = 10^(-40/20);
+	a = 10 ^ (-40 / 20);
 	t = 60;
 	x1 = multitone(fs, f1, a, t);
 	x2 = multitone(fs, f2, a, t);
 	x = [x1'; x2']';
 	sx = size(x);
-	d = (rand(sx(1), sx(2)) - 0.5)/2^15;
+	d = (rand(sx(1), sx(2)) - 0.5) / 2 ^ 15;
 	audiowrite(fn, x + d, fs);
 	pass = 1;
 end
@@ -90,7 +90,7 @@ function pass = measure(fn1, fn2, fn3, do_plot)
 	t1.vtol = 0.5; % Pass test with max +/- 0.5 dB mismatch
 
 	% Check test 1
-	pass1 = level_vs_time_checker(fn1, t1, lm, '1/3', do_plot);
+	pass1 = level_vs_time_checker(fn1, t1, lm, '1 / 3', do_plot);
 
 	% Default gains for test 2
 	m1 = [vmut vnom vnom vmut];
@@ -103,7 +103,7 @@ function pass = measure(fn1, fn2, fn3, do_plot)
 	t2.vtol = t1.vtol; % Same as previous
 
 	% Check test 2
-	pass2 = level_vs_time_checker(fn2, t2, lm, '2/3', do_plot);
+	pass2 = level_vs_time_checker(fn2, t2, lm, '2 / 3', do_plot);
 
 	% Default gains for test 3
 	vol_ch1    = [ vmut vmut m2(1) vnom ];
@@ -114,7 +114,7 @@ function pass = measure(fn1, fn2, fn3, do_plot)
 	t3.vtol = t1.vtol; % Same as previous
 
 	% Check test 3
-	pass3 = level_vs_time_checker(fn3, t3, lm, '3/3', do_plot);
+	pass3 = level_vs_time_checker(fn3, t3, lm, '3 / 3', do_plot);
 
 	if pass1 == 1 && pass2 == 1 && pass3 == 1
 		pass = 1;
@@ -139,7 +139,7 @@ function pass = level_vs_time_checker(fn, tc, lm, id, do_plot)
 
 		% Swapped channels?
 		sine_freqs_orig = lm.sine_freqs;
-		lm.sine_freqs = sine_freqs_orig(end:-1:1);
+		lm.sine_freqs = sine_freqs_orig(end : -1 : 1);
 		lev = level_vs_time(fn, lm);
 		pass_test = check_levels(lev, tc, lm, 0);
 		if pass_test
@@ -150,7 +150,7 @@ function pass = level_vs_time_checker(fn, tc, lm, id, do_plot)
 		% Swapped controls?
 		lm.sine_freqs = sine_freqs_orig;
 		volumes_orig = tc.volumes;
-		tc.volumes = volumes_orig(:, end:-1:1);
+		tc.volumes = volumes_orig(:, end : -1 : 1);
 		lev = level_vs_time(fn, lm);
 		pass_test = check_levels(lev, tc, lm, 0);
 		if pass_test
@@ -159,7 +159,7 @@ function pass = level_vs_time_checker(fn, tc, lm, id, do_plot)
 		end
 
 		% Swapped controls and swapped channels
-		lm.sine_freqs = sine_freqs_orig(end:-1:1);
+		lm.sine_freqs = sine_freqs_orig(end : -1 : 1);
 		lev = level_vs_time(fn, lm);
 		pass_test = check_levels(lev, tc, lm, 0);
 		if pass_test
@@ -175,13 +175,13 @@ function plot_levels(meas, tc, lm)
 
 	sv = size(tc.volumes);
 	hold on;
-	for j = 1:sv(2)
-		for i = 1:sv(1)
-			plot([tc.vctimes(i)+tc.meas(1) tc.vctimes(i)+tc.meas(2)], ...
-			     [tc.volumes(i,j)+tc.vtol tc.volumes(i,j)+tc.vtol], 'r--');
-			if tc.volumes(i,j) > -100
-				plot([tc.vctimes(i)+tc.meas(1) tc.vctimes(i)+tc.meas(2)], ...
-				     [tc.volumes(i,j)-tc.vtol tc.volumes(i,j)-tc.vtol], 'r--');
+	for j = 1 : sv(2)
+		for i = 1 : sv(1)
+			plot([tc.vctimes(i) + tc.meas(1) tc.vctimes(i) + tc.meas(2)], ...
+			     [tc.volumes(i, j) + tc.vtol tc.volumes(i, j) + tc.vtol], 'r--');
+			if tc.volumes(i, j) > -100
+				plot([tc.vctimes(i) + tc.meas(1) tc.vctimes(i) + tc.meas(2)], ...
+				     [tc.volumes(i, j) - tc.vtol tc.volumes(i, j) - tc.vtol], 'r--');
 			end
 		end
 	end
@@ -196,25 +196,25 @@ function pass = check_levels(meas, tc, lm, verbose)
 	dg_tol = 0.1;
 	gains =  meas.levels - lm.sine_dbfs;
 	sv = size(tc.volumes);
-	for j = 1:sv(2)
-		for i = 1:sv(1)
+	for j = 1 : sv(2)
+		for i = 1 : sv(1)
 			% Initial location to test
-			ts = tc.vctimes(i)+tc.meas(1);
-			te = tc.vctimes(i)+tc.meas(2);
+			ts = tc.vctimes(i) + tc.meas(1);
+			te = tc.vctimes(i) + tc.meas(2);
 			idx0 = find(meas.t < te);
 			idx = find(meas.t(idx0) > ts);
 
 			% Delay if settled gain is later in the window,
 			% this adds more robustness to test for controls
 			% apply delay.
-			dg = diff(gains(idx,j));
+			dg = diff(gains(idx, j));
 			if max(abs(dg)) > dg_tol
 				n_idx = length(idx);
-				dg_rev = dg(end:-1:1);
+				dg_rev = dg(end : -1 : 1);
 				idx_add = length(dg) - find(abs(dg_rev) > dg_tol, 1, 'first') + 1;
 			        idx = idx + idx_add;
 				if idx(end) > size(gains, 1)
-					idx = idx(1):size(gains, 1);
+					idx = idx(1) : size(gains, 1);
 				end
 				if idx(1) > size(gains, 1) || length(idx) < 0.5 * n_idx
 					fprintf(1, 'Channel %d controls impact is delayed too much ', j);
@@ -224,8 +224,8 @@ function pass = check_levels(meas, tc, lm, verbose)
 				end
 			end
 			avg_gain = mean(gains(idx, j));
-			max_gain = tc.volumes(i,j) + tc.vtol;
-			min_gain = tc.volumes(i,j) - tc.vtol;
+			max_gain = tc.volumes(i, j) + tc.vtol;
+			min_gain = tc.volumes(i, j) - tc.vtol;
 			if avg_gain > max_gain
 				if verbose
 					fprintf(1, 'Channel %d Failed upper gain limit at ', j);
@@ -234,7 +234,7 @@ function pass = check_levels(meas, tc, lm, verbose)
 				end
 				pass = 0;
 			end
-			if tc.volumes(i,j) > -100
+			if tc.volumes(i, j) > -100
 				if avg_gain < min_gain
 					if verbose
 						fprintf(1, 'Channel %d failed lower gain limit at ', j);
@@ -259,24 +259,24 @@ function ret = level_vs_time(fn, lm)
 	ngrid = lm.tgrid * fs;
 	nlength = lm.tlength * fs;
 	nmax = nlev - round(nlength / ngrid) + 1;
-	ret.t = (0:(nmax-1)) * lm.tgrid;
+	ret.t = (0 : (nmax - 1)) * lm.tgrid;
 	ret.levels = zeros(nmax, nch);
-	for i = 1:nmax
+	for i = 1 : nmax
 		i1 = floor((i - 1) * ngrid + 1);
 		i2 = floor(i1 + nlength -1);
-		ret.levels(i, :) = level_dbfs(x(i1:i2, :));
+		ret.levels(i, :) = level_dbfs(x(i1 : i2, :));
 	end
-	ret.levels_lin = 10.^(ret.levels/20);
+	ret.levels_lin = 10 .^ (ret.levels / 20);
 end
 
 function y = bandpass_filter(x, f, fs)
 	sx = size(x);
 	y = zeros(sx(1), sx(2));
 	c1 = 0.8;
-	c2 = 1/c1;
-	for j = 1:sx(2)
-		[b, a] = butter(4, 2*[c1*f(j) c2*f(j)]/fs);
-		y(:,j) = filter(b, a, x(:,j));
+	c2 = 1 / c1;
+	for j = 1 : sx(2)
+		[b, a] = butter(4, 2 *[c1 * f(j) c2 * f(j)] / fs);
+		y(:, j) = filter(b, a, x(:, j));
 	end
 end
 
