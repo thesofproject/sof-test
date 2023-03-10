@@ -2,6 +2,7 @@
 
 from tplgtool import TplgParser, TplgFormatter
 from common import format_pipeline, export_pipeline
+import re
 
 class clsTPLGReader:
     def __init__(self):
@@ -43,6 +44,7 @@ class clsTPLGReader:
                 pgas = formatter.find_comp_for_pcm(pcm, 'PGA')
                 eqs = formatter.find_comp_for_pcm(pcm, 'EQ')
                 kwds = formatter.find_comp_for_pcm(pcm, 'KPBM')
+                kwds_ipc4 = formatter.find_comp_for_pcm(pcm, 'kpb')
                 asrcs = formatter.find_comp_for_pcm(pcm, 'ASRC')
                 codec_adapters = formatter.find_comp_for_pcm(pcm, 'CODEC_ADAPTER')
                 pipeline_dict = {}
@@ -55,6 +57,7 @@ class clsTPLGReader:
                 clsTPLGReader.attach_comp_to_pipeline(pgas, pcm['capture'], "PGA", pipeline_dict)
                 clsTPLGReader.attach_comp_to_pipeline(eqs, pcm['capture'], "EQ", pipeline_dict)
                 clsTPLGReader.attach_comp_to_pipeline(kwds, pcm['capture'], "KPBM", pipeline_dict)
+                clsTPLGReader.attach_comp_to_pipeline(kwds_ipc4, pcm['capture'], "kpb", pipeline_dict)
                 clsTPLGReader.attach_comp_to_pipeline(asrcs, pcm['capture'], "ASRC", pipeline_dict)
                 clsTPLGReader.attach_comp_to_pipeline(codec_adapters, pcm['capture'], "CODEC_ADAPTER", pipeline_dict)
                 # supported formats of playback pipeline in formats[0]
@@ -351,14 +354,14 @@ PIPELINE_$ID['key']='value' ''')
 
     # If run general test case on WOV pipeline or ECHO REFERENCE capture pipeline, there will be error
     # due to no feed data, and they should be blocked in general test case.
-    default_block_keyword = 'kpbm:any;type:capture & echo;'
+    default_block_keyword = 'kpbm:any;kpb:any;type:capture & echo;'
     # if no filter or block item is specified, the "block_none" here will help to
     # block nothing
     block_str = "block_none"
     # user specified block items from command line
     cmd_block_str = ret_args['block'].strip() if ret_args['block'] is not None else ''
 
-    if ret_args['filter'] is not None and 'kpbm' not in ret_args['filter'] and 'echo' not in ret_args['filter']:
+    if ret_args["filter"] is not None and not re.search('echo|kpb', ret_args["filter"]):
         block_str = default_block_keyword + cmd_block_str
     else:
         block_str = cmd_block_str if cmd_block_str != '' else block_str
