@@ -68,6 +68,9 @@ fi
 
 check_locale_for_alsabat
 
+# reset sof volume to 0dB
+reset_sof_volume
+
 # If MODEL is defined, set proper gain for the platform
 if [ -z "$MODEL" ]; then
     # treat as warning only
