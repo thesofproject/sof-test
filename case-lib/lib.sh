@@ -827,7 +827,7 @@ set_alsa_settings()
     esac
 }
 
-reset_PGA_volume()
+reset_sof_volume()
 {
     # set all PGA* volume to 0dB
     amixer -Dhw:0 scontrols | sed -e "s/^.*'\(.*\)'.*/\1/" |grep PGA |
