@@ -749,12 +749,12 @@ class TplgFormatter:
                 TplgFormatter.recursive_search_comp(elem, comp_type, comp_list, direction)
 
         if type(node) != list and direction == "forward":
-            if node["widget"]["name"].startswith(comp_type):
+            if node["widget"]["name"].lower().startswith(comp_type):
                 if not comp_in_list(node, comp_list): comp_list.append(node["widget"])
             TplgFormatter.recursive_search_comp(node["sink"], comp_type, comp_list, direction)
 
         if type(node) != list and direction == "backward":
-            if node["widget"]["name"].startswith(comp_type):
+            if node["widget"]["name"].lower().startswith(comp_type):
                 if not comp_in_list(node, comp_list): comp_list.append(node["widget"])
             TplgFormatter.recursive_search_comp(node["source"], comp_type, comp_list, direction)
 
@@ -763,7 +763,7 @@ class TplgFormatter:
     def find_connected_comp(ref_node, comp_type):
         if ref_node is None:
             return None
-        comp_type = comp_type.upper() # to upper case
+        comp_type = comp_type.lower()
         comp_list = []
         node = ref_node
         TplgFormatter.recursive_search_comp(node, comp_type, comp_list, "forward")
