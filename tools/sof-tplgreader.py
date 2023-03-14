@@ -102,16 +102,6 @@ class clsTPLGReader:
                 pipeline['snd'] += 'p'
             else:
                 pipeline['snd'] += 'c'
-        # find interweaved pipelines
-        # echo: echo reference pipelines
-        # smart_amp: dsm pipelines
-        interweaved_comps = ['echo', 'smart_amp']
-        for comp in interweaved_comps:
-            interweaved_dict = formatter.find_interweaved_pipeline(comp)
-            if interweaved_dict:
-                for pipeline in self._pipeline_lst:
-                    if pipeline['cap_name'] in interweaved_dict['sname']:
-                        pipeline[comp] = interweaved_dict[comp]
         return 0
 
     # The following functions re-implement built-in Python sets

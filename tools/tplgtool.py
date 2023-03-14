@@ -803,59 +803,6 @@ class TplgFormatter:
                 %(pcm["pcm_name"], pcm["pcm_id"], pcm_type, fmt[0], rates[0], rates[1], \
                 channel[0], channel[1]))
 
-    @staticmethod
-    def find_second_end_point(first_end_point, node_list):
-        second_end_point = []
-        for node in node_list:
-            if node["source"] is not None and node["sink"] is not None:
-                continue
-            if node["source"] is None and node["sink"] is None:
-                continue
-            if node["name"].startswith(first_end_point["name"][0:3]):
-                continue
-            end_node = TplgFormatter.find_connected_comp(first_end_point, node["name"])
-            [second_end_point.append(node) for node in end_node]
-        assert(len(second_end_point) == 1)
-        return second_end_point[0]
-
-    # If there is one/more link between two pipelines, these two pipeline are interweaved.
-    # eg. PCM0P and PCM6C in echo reference topology: sof-tgl-max98357a-rt5682.tplg.
-    #     PCM0P and PCM0C in DSM topology: sof-tgl-mas98373-rt5682.tplg.
-    # Return example:
-    #  {"name":['PCM0C', 'PCM0P'], "sname":['Low Latency Playback 0', 'Passthrough Capture 6'] 'smart_amp':'SMART_AMP_1.0' }
-    def find_interweaved_pipeline(self, comp):
-        head_list, node_list  = self.link_graph()
-        interweaved_list = []
-        # find all interweaved pipelines' endpoints. If two pipelines are interweaved, there should
-        # be four endpoints.
-        for head in head_list:
-            # If we can find a PCM* from a PCM*, (check sof-tgl-max98357a-rt5682.png)
-            # find a SSP* from a SSP*, (check sof-tgl-max98373-rt5682.png)
-            # or find a ALH* from a ALH*, (check sof-tgl-sdw-max98373-rt5682-2ch.png)
-            # then these two pipeline are interweaved.
-            # should only use the first three char to match.
-            endpoints = TplgFormatter.find_connected_comp(head, head["name"][0:3])
-            # if we find the second PCM*, SSP* or ALH*, end_points should contain 2 elements,
-            # one is the referenc widget, the other is the found widget.
-            if len(endpoints) < 2: continue
-            endpoints_nodes = [self.find_node_by_name(widget["name"], node_list) for widget in endpoints]
-            interweaved_endpoints = []
-            # find the other two endpoints
-            for ed in endpoints_nodes:
-                second_endpoint = TplgFormatter.find_second_end_point(ed, node_list)
-                interweaved_endpoints.append(self.find_node_by_name(second_endpoint["name"], node_list))
-            interweaved_endpoints.extend(endpoints_nodes)
-            interweaved_list.append(interweaved_endpoints)
-        interweaved_dict = {}
-        for interweaved_endpoints in interweaved_list:
-            comp_found = [TplgFormatter.find_connected_comp(node, comp) for node in interweaved_endpoints]
-            if any(comp_found):
-                interweaved_dict["name"] = [node["name"] for node in interweaved_endpoints if node["name"].startswith("PCM")]
-                interweaved_dict["sname"] = [node["widget"]["sname"] for node in interweaved_endpoints if node["name"].startswith("PCM")]
-                comp_name = list(set([comp[0]["name"] for comp in comp_found if comp != []]))[0]
-                interweaved_dict[comp] = comp_name
-        return interweaved_dict
-
 if __name__ == "__main__":
     warnings.warn("tplgtool.py is deprecated, use tplgtool2.py instead.", DeprecationWarning)
 
