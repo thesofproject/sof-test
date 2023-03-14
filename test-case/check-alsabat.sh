@@ -37,7 +37,7 @@ OPT_NAME['f']='frequency'       OPT_DESC['f']='target frequency'
 OPT_HAS_ARG['f']=1             OPT_VAL['f']=821
 
 OPT_NAME['k']='sigmak'		OPT_DESC['k']='sigma k value'
-OPT_HAS_ARG['k']=1             OPT_VAL['k']=1.5
+OPT_HAS_ARG['k']=1             OPT_VAL['k']=2.1
 
 OPT_NAME['n']='frames'          OPT_DESC['n']='test frames'
 OPT_HAS_ARG['n']=1             OPT_VAL['n']=240000
