@@ -33,8 +33,8 @@ OPT_HAS_ARG['r']=1             OPT_VAL['r']=48000
 OPT_NAME['c']='pcm_c'      	OPT_DESC['c']='pcm for capture. Example: hw:1,0'
 OPT_HAS_ARG['c']=1             OPT_VAL['c']=''
 
-OPT_NAME['f']='frequency'       OPT_DESC['f']='target frequency'
-OPT_HAS_ARG['f']=1             OPT_VAL['f']=821
+OPT_NAME['F']='frequency'       OPT_DESC['F']='target frequency'
+OPT_HAS_ARG['F']=1             OPT_VAL['F']=821
 
 OPT_NAME['k']='sigmak'		OPT_DESC['k']='sigma k value'
 OPT_HAS_ARG['k']=1             OPT_VAL['k']=1.5
@@ -52,7 +52,7 @@ pcm_p=${OPT_VAL['p']}
 pcm_c=${OPT_VAL['c']}
 rate=${OPT_VAL['r']}
 channel_c=${OPT_VAL['C']}
-frequency=${OPT_VAL['f']}
+frequency=${OPT_VAL['F']}
 sigmak=${OPT_VAL['k']}
 frames=${OPT_VAL['n']}
 
