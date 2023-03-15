@@ -830,10 +830,14 @@ set_alsa_settings()
 reset_sof_volume()
 {
     # set all PGA* volume to 0dB
-    amixer -Dhw:0 scontrols | sed -e "s/^.*'\(.*\)'.*/\1/" |grep PGA |
+    amixer -Dhw:0 scontrols | sed -e "s/^.*'\(.*\)'.*/\1/" |grep -E 'PGA|gain' |
     while read -r mixer_name
     do
-        amixer -Dhw:0 -- sset "$mixer_name" 0dB
+        if is_ipc4; then
+            amixer -Dhw:0 -- sset "$mixer_name" 100%
+        else
+            amixer -Dhw:0 -- sset "$mixer_name" 0dB
+        fi
     done
 }
 
