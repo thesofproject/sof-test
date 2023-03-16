@@ -55,7 +55,7 @@ duration=${OPT_VAL['d']}
 
 logger_disabled || func_lib_start_log_collect
 
-func_pipeline_export "$tplg" "kpbm:any"
+func_pipeline_export "$tplg" "kpb:any"
 
 if test "$PIPELINE_COUNT" != "1"; then
     die "detected $PIPELINE_COUNT wov pipeline(s) from topology, but 1 is needed"
