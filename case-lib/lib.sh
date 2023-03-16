@@ -808,7 +808,7 @@ set_alsa_settings()
     local PNAME="${1%_ZEPHYR}"
     dlogi "Run alsa setting for $PNAME"
     case $PNAME in
-        APL_UP2_NOCODEC | CML_RVP_NOCODEC | JSL_RVP_NOCODEC | TGLU_RVP_NOCODEC | ADLP_RVP_NOCODEC | TGLH_RVP_NOCODEC | MTLP_RVP_NOCODEC)
+        APL_UP2_NOCODEC | CML_RVP_NOCODEC | JSL_RVP_NOCODEC | TGLU_RVP_NOCODEC | ADLP_RVP_NOCODEC | TGLH_RVP_NOCODEC)
             # common nocodec alsa settings
             "$SCRIPT_HOME"/alsa_settings/CAVS_NOCODEC.sh
         ;;
@@ -816,6 +816,9 @@ set_alsa_settings()
             # common nocodec_ci alsa settings
             "$SCRIPT_HOME"/alsa_settings/CAVS_NOCODEC_CI.sh
         ;;
+        TGLU_RVP_NOCODEC_IPC4ZPH | ADLP_RVP_NOCODEC_IPC4ZPH | MTLP_RVP_NOCODEC)
+            dlogi "Use reset_sof_volume function to set amixer setting."
+	;;
         *)
             # if script name is same as platform name, default case will handle all
             if [ -f "$SCRIPT_HOME"/alsa_settings/"$PNAME".sh ]; then
