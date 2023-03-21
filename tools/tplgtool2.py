@@ -818,6 +818,7 @@ class TplgGraph:
     def __init__(self, grouped_tplg: GroupedTplg):
         "Build graph from grouped topology data."
         self.show_core = 'auto'
+        self.without_nodeinfo = False
         self._tplg = grouped_tplg
         self._nodes_dict = TplgGraph._build_nodes_dict(grouped_tplg.widget_list)
         self._nodes_names_in_graph = TplgGraph._build_nodes_names_in_graph(grouped_tplg.graph_list, self._nodes_dict)
@@ -840,13 +841,26 @@ class TplgGraph:
         """
         return self._node_name_in_graph_from_name(node["widget"]["name"])
 
+    def node_sublabel(self, widget: Container) -> str:
+        match widget["widget"]["id"]:
+            case 'PGA':
+                sublabel = f'<BR ALIGN="CENTER"/><SUB>PGA: {widget["kcontrols"][0]["hdr"]["name"]}</SUB>'
+            case 'AIF_IN' | 'AIF_OUT' | 'DAI_IN' | 'DAI_OUT':
+                sublabel = f'<BR ALIGN="CENTER"/><SUB>{widget["widget"]["id"]}: {widget["widget"]["sname"]}</SUB>'
+            case _:
+                sublabel = ""
+        return sublabel
+
     def _display_node_attrs(self, name: str, widget: Container):
         sublabel = ""
+        sublabel2 = ""
         attr = {}
+        if not self.without_nodeinfo:
+            sublabel = self.node_sublabel(widget)
         core = GroupedTplg.get_core_id(widget)
         if core is not None and (self.show_core == 'always' or (self.show_core == 'auto' and self._tplg.is_multicore)):
-            sublabel += f'<BR ALIGN="CENTER"/><SUB>core:{core}</SUB>'
-        attr['label'] = f'<{name}{sublabel}>'
+            sublabel2 += f'<BR ALIGN="CENTER"/><SUB>core:{core}</SUB>'
+        attr['label'] = f'<{name}{sublabel}{sublabel2}>'
         pipelines = self.get_pipelines_id(name)
         if any(map(self._tplg.is_dynamic_pipeline, pipelines)):
             attr['style'] = "dashed"
@@ -1172,6 +1186,7 @@ Enables internal globbing mode: the single positional argument is not a file but
         parser.add_argument('-F', '--format', type=str, default="png", help="output format for generated graph, check "
             "https://graphviz.gitlab.io/_pages/doc/info/output.html for all supported formats")
         parser.add_argument('-V', '--live_view', action="store_true", help="generate and view topology graph")
+        parser.add_argument('-w', '--without_nodeinfo', action="store_true", help="show only widget names, no additional node info ")
         parser.add_argument('-c', '--show_core', choices=['never', 'auto', 'always'], default='auto',
             help="""control the display of component core ID in topology graph, there are 3 modes:
 * never: will never show core ID.
@@ -1241,6 +1256,7 @@ Enables internal globbing mode: the single positional argument is not a file but
             if 'graph' in dump_types:
                 graph = TplgGraph(tplg)
                 graph.show_core = cmd_args.show_core
+                graph.without_nodeinfo = cmd_args.without_nodeinfo
                 graph.draw(f.stem, outdir=cmd_args.directory, file_format=cmd_args.format, live_view=cmd_args.live_view)
 
     main()
