@@ -19,7 +19,7 @@ on: [pull_request, workflow_dispatch]
 jobs:
 
   shellcheck:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - {uses: actions/checkout@v2, with: {fetch-depth: 0}}
       - name: shellcheck
@@ -30,7 +30,7 @@ jobs:
                text/x-shellscript shellcheck -x
 
   pylint:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       # :-( https://github.community/t/support-for-yaml-anchors/16128
       - {uses: actions/checkout@v2, with: {fetch-depth: 0}}
@@ -49,4 +49,4 @@ jobs:
           BASE_REF: ${{ github.base_ref }}
         # let's re-enable 'C'onventions once we got the other numbers down
         run: ./tools/CI/check-gitrange.bash origin/${BASE_REF}...HEAD
-               text/x-python pylint --disable=C
+               text/x-script.python pylint --disable=C
