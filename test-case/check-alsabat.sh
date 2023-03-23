@@ -19,7 +19,8 @@
 rm -f /tmp/bat.wav.*
 
 # shellcheck source=case-lib/lib.sh
-source "$(dirname "${BASH_SOURCE[0]}")"/../case-lib/lib.sh
+TESTDIR=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
+source "$TESTDIR/case-lib/lib.sh"
 
 OPT_NAME['p']='pcm_p'     	OPT_DESC['p']='pcm for playback. Example: hw:0,0'
 OPT_HAS_ARG['p']=1          	OPT_VAL['p']=''
@@ -48,6 +49,9 @@ OPT_HAS_ARG['n']=1             OPT_VAL['n']=240000
 OPT_NAME['s']='sof-logger'      OPT_DESC['s']="Open sof-logger trace the data will store at $LOG_ROOT"
 OPT_HAS_ARG['s']=0             OPT_VAL['s']=1
 
+OPT_NAME['q']='min_snr'		OPT_DESC['q']='Mininimum SNR value dB to pass test, recommend 80 for high quality DUT'
+OPT_HAS_ARG['q']=1             OPT_VAL['q']=46
+
 func_opt_parse_option "$@"
 setup_kernel_check_point
 
@@ -59,6 +63,7 @@ format=${OPT_VAL['f']}
 frequency=${OPT_VAL['F']}
 sigmak=${OPT_VAL['k']}
 frames=${OPT_VAL['n']}
+min_snr=${OPT_VAL['q']}
 
 if [ "$pcm_p" = "" ]||[ "$pcm_c" = "" ];
 then
@@ -95,6 +100,20 @@ function __upload_wav_file
     done
 }
 
+function check_wav_file_snr
+{
+    for file in /tmp/bat.wav.*
+    do
+	if test -s "$file"; then
+	    dlogi "Checking wav file $file"
+	    cd "$TESTDIR"/tools
+	    octave --silent --no-gui --eval "check_wav_file_snr('$file', $frequency, $min_snr, '$LOG_ROOT/');" || {
+		die "Error: Script check_wav_file_snr.m found issues in $file"
+	    }
+	fi
+    done
+}
+
 # check the PCMs before alsabat test
 dlogi "check the PCMs before alsabat test"
 aplay   -Dplug$pcm_p -d 1 /dev/zero -q || die "Failed to play on PCM: $pcm_p"
@@ -118,5 +137,7 @@ alsabat -C$pcm_c -c $channel_c -r $rate -f $format -F $frequency -k $sigmak || {
         amixer contents > "$LOG_ROOT"/amixer_settings.txt
         exit 1
 }
+
+check_wav_file_snr
 
 wait $playPID
