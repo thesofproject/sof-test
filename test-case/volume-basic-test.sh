@@ -90,4 +90,4 @@ done
 pkill -9 aplay
 
 dlogi "Reset all PGA volume to 0dB"
-reset_PGA_volume || die "Failed to reset some PGA volume to 0dB."
+reset_sof_volume || die "Failed to reset some PGA volume to 0dB."
