@@ -104,8 +104,8 @@ function func_exit_handler()
 
     fi
 
-    if is_ipc4 && is_firmware_file_zephyr; then
-	local mtraceBin; mtraceBin=mtrace-reader.py
+    if [ "$SOF_LOGGING" != 'none' ] && is_ipc4 && is_firmware_file_zephyr; then
+        local mtraceBin; mtraceBin=mtrace-reader.py
         dlogi "pkill -TERM -f $mtraceBin"
         sudo pkill -TERM -f "$mtraceBin" || {
             dloge "mtrace-reader.py was already dead"
