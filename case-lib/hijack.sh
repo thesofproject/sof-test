@@ -52,7 +52,10 @@ function func_exit_handler()
         sleep 1
 
         # $logfile is defined in a different file (lib.sh)
-        # shellcheck disable=SC2154
+        # Instead of disabling SC2154 every time $logfile is used, fool
+        # _shellcheck with a "fake" definition here where we can disable
+        # SC2269 only once.
+        # shellcheck disable=SC2154,SC2269
         logfile="$logfile"
 
         local loggerBin wcLog; loggerBin=$(basename "$SOFLOGGER")
