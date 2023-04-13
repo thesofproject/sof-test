@@ -43,6 +43,9 @@ fi
 
 _SOF_TEST_LOCK_FILE=/tmp/sof-test-card"$SOFCARD".lock
 
+# define min/max function
+minvalue() { printf '%d' $(( "$1" < "$2"  ? "$1" : "$2" )); }
+
 # This implements two important features:
 #
 # 1. Log the start of each test with the current ktime in journalctl.

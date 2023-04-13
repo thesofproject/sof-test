@@ -8,22 +8,16 @@
 ## Description:
 ##    Run multiple pipelines in parallel
 ##    Rule:
-##      1. playback first mode: playback pipelines will be started first, if playback
-##         pipeline count is less than requested pipeline count defined by -c option,
-##         capture pipelines will be started to ensure requested number of pipelines are
-##         running in parallel.
-##      2. capture first mode: same with playback mode, but capture pipelines will be
-##         started first.
-##      3. all pipelines mode: run all pipelines in parallel by
-##          a. use option '-f a' OR
-##          b. specify a very big requested pipeline count to -c option
+##      1. Playback mode: playback pipelines ONLY are used, test pipeline count
+##         (OPT_VAL['c']) is respected, but maxed out with playback pipelines.
+##      2. Capture mode: same with playback mode, but capture pipelines ONLY will
+##         be used.
+##      3. All pipelines mode: Run all playback and capture pipelines in parallel
+##         by using the option '-f a' and set the number of pipelines with -c.
+##         If you need to use all pipelines, set a high pipeline count such as -c 20.
 ## Case step:
 ##    1. acquire pipeline count that will be running in parallel
-##    2. start playback or capture pipelines
-##        a. Playback First Mode: start playback pipeline(s), if the requested pipeline count
-##        is not satisfied, start capture pipeline(s)
-##        b. Capture First Mode: start capture pipeline(s), if the requested pipeline count is
-##        not satisfied, start playback pipeline(s)
+##    2. start playback or capture pipelines or all pipelines
 ##    3. wait pipeline process(es) to be started and running
 ##    5. check process status & process count
 ##    6. running pipelines in parallel for a period of time defined by -w option
@@ -45,8 +39,8 @@ OPT_HAS_ARG['t']=1         OPT_VAL['t']="$TPLG"
 OPT_NAME['c']='count'    OPT_DESC['c']='test pipeline count'
 OPT_HAS_ARG['c']=1         OPT_VAL['c']=4
 
-OPT_NAME['f']='first'
-OPT_DESC['f']='Fill either playback (p) or capture (c) first or any (a) for all pipelines'
+OPT_NAME['f']='fill mode'
+OPT_DESC['f']='fill mode, either playback (p) or capture (c) or any (a) for all pipelines'
 OPT_HAS_ARG['f']=1         OPT_VAL['f']='p'
 
 OPT_NAME['w']='wait'     OPT_DESC['w']='duration of one (sub)test iteration'
@@ -70,13 +64,18 @@ logger_disabled || func_lib_start_log_collect
 # skip the Echo Reference pipeline
 MULTI_PIPELINE_FILTER='~pcm:Amplifier Reference'
 max_count=0
-# this line will help to get $PIPELINE_COUNT
-func_pipeline_export "$tplg" "type:any & ${MULTI_PIPELINE_FILTER}"
-# acquire pipeline count that will run in parallel, if the number of pipeline
-# in topology is less than the required pipeline count, all pipeline will be started.
-[[ $PIPELINE_COUNT -gt ${OPT_VAL['c']} ]] && max_count=${OPT_VAL['c']} || max_count=$PIPELINE_COUNT
-# overide max_count if user want to run all pipelines in parallel
-[ "$f_arg" != "a" ] || max_count=$PIPELINE_COUNT
+
+# find playback or capture or both pipelines to get $PIPELINE_COUNT
+case "$f_arg" in
+    'p') type_filter='type:playback';;
+    'c') type_filter='type:capture';;
+    'a') type_filter='type:any';;
+    *) die "not supported option $f_arg";;
+esac
+func_pipeline_export "$tplg" "$type_filter & ${MULTI_PIPELINE_FILTER}"
+
+# respect number of pipelines requested but max will be real pipeline count
+max_count=$(minvalue "${OPT_VAL['c']}" "$PIPELINE_COUNT")
 
 # now small function define
 declare -A APP_LST DEV_LST
