@@ -3,16 +3,16 @@
 set -e
 
 ##
-## Case Name: check-pause-resume
+## Case Name: check-pause-release
 ## Preconditions:
 ##    N/A
 ## Description:
-##    playback/capture on each pipeline and feak pause/resume with expect
+##    playback/capture on each pipeline and trigger pause/release with expect
 ##    expect sleep for sleep time then mocks spacebar keypresses ' ' to
-##    cause resume action
+##    cause release action
 ## Case step:
 ##    1. aplay/arecord on PCM
-##    2. use expect to fake pause/resume
+##    2. use expect to trigger pause/release
 ## Expect result:
 ##    no error happen for aplay/arecord
 ##
@@ -26,7 +26,7 @@ OPT_HAS_ARG['t']=1         OPT_VAL['t']="$TPLG"
 OPT_NAME['m']='mode'     OPT_DESC['m']='test mode'
 OPT_HAS_ARG['m']=1         OPT_VAL['m']='playback'
 
-OPT_NAME['c']='count'    OPT_DESC['c']='pause/resume repeat count'
+OPT_NAME['c']='count'    OPT_DESC['c']='pause/release repeat count'
 OPT_HAS_ARG['c']=1         OPT_VAL['c']=10
 
 OPT_NAME['f']='file'     OPT_DESC['f']='file name'
@@ -109,7 +109,7 @@ expect {
     }
     "*PAUSE*" {
         set sleep_t [expr int([expr rand() * $rnd_range]) + $rnd_min ]
-        puts "\r(\$i/$repeat_count) Wait for \$sleep_t ms before resume"
+        puts "\r(\$i/$repeat_count) Wait for \$sleep_t ms before release"
         send " "
         after \$sleep_t
         incr i

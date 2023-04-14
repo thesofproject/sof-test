@@ -3,18 +3,18 @@
 set -e
 
 ##
-## Case Name: Run multiple pipeline for pause resume
+## Case Name: Run multiple pipeline for pause release
 ## Preconditions:
 ##    N/A
 ## Description:
-##    pickup multiple pipline to do pause resume
-##    fake pause/resume with expect
+##    pickup multiple pipline to do pause release
+##    trigger pause/release with expect
 ##    expect sleep for sleep time then mocks spacebar keypresses ' ' to
-##    cause resume action
+##    cause release action
 ## Case step:
 ##    1. run 1st pipeline
 ##    2. pickup any other pipeline
-##    3. use expect to fake pause/resume in each pipeline
+##    3. use expect to trigger pause/release in each pipeline
 ##    4. go through with tplg file
 ## Expect result:
 ##    no errors occur for either process
@@ -32,14 +32,14 @@ OPT_HAS_ARG['l']=1         OPT_VAL['l']=5
 OPT_NAME['c']='count'    OPT_DESC['c']='combine test pipeline count'
 OPT_HAS_ARG['c']=1         OPT_VAL['c']=2
 
-OPT_NAME['r']='repeat'     OPT_DESC['r']='pause resume repeat count'
+OPT_NAME['r']='repeat'     OPT_DESC['r']='pause release repeat count'
 OPT_HAS_ARG['r']=1         OPT_VAL['r']=5
 
-# pause/resume interval will be a random value bounded by the min and max values below
-OPT_NAME['i']='min'      OPT_DESC['i']='pause/resume transition min value, unit is ms'
+# pause/release interval will be a random value bounded by the min and max values below
+OPT_NAME['i']='min'      OPT_DESC['i']='pause/release transition min value, unit is ms'
 OPT_HAS_ARG['i']=1         OPT_VAL['i']='20'
 
-OPT_NAME['a']='max'      OPT_DESC['a']='pause/resume transition max value, unit is ms'
+OPT_NAME['a']='max'      OPT_DESC['a']='pause/release transition max value, unit is ms'
 OPT_HAS_ARG['a']=1         OPT_VAL['a']='50'
 
 OPT_NAME['s']='sof-logger'   OPT_DESC['s']="Open sof-logger trace the data will store at $LOG_ROOT"
@@ -101,7 +101,7 @@ do
 done
 [[ ${#pipeline_combine_lst[@]} -eq 0 ]] && dlogw "pipeline combine is empty" && exit 2
 
-func_pause_resume_pipeline()
+func_pause_release_pipeline()
 {
     local idx=${pipeline_idx_lst[$1]} cmd=${cmd_idx_lst[$1]} file=${file_idx_lst[$1]}
     local channel; channel=$(func_pipeline_parse_value "$idx" channel)
@@ -128,7 +128,7 @@ expect {
     }
     "*PAUSE*" {
         set sleep_t [expr int([expr rand() * $rnd_range]) + $rnd_min ]
-        puts "\r(\$i/$repeat_count) pcm'$pcm' cmd'$cmd' id'$idx': Wait for \$sleep_t ms before resume"
+        puts "\r(\$i/$repeat_count) pcm'$pcm' cmd'$cmd' id'$idx': Wait for \$sleep_t ms before release"
         send " "
         after \$sleep_t
         incr i
@@ -154,7 +154,7 @@ do
         declare -a pid_lst
         for idx in $pipeline_combine_str
         do
-            func_pause_resume_pipeline "$idx"
+            func_pause_release_pipeline "$idx"
             pid_lst=("${pid_lst[@]}" $!)
         done
         # wait for expect script finished
@@ -176,7 +176,7 @@ do
             exit 1
         fi
         # now check for all expect quit status
-        # dump the pipeline combine, because pause resume will have too many operation log
+        # dump the pipeline combine, because pause release will have too many operation log
         for idx in $pipeline_combine_str
         do
             pipeline_index=${pipeline_idx_lst[$idx]}
@@ -188,7 +188,7 @@ do
         do
             wait "$pid" || {
                 sof-kernel-log-check.sh "$KERNEL_CHECKPOINT" || true
-                die "pause resume PID $pid had non-zero exit status"
+                die "pause release PID $pid had non-zero exit status"
             }
         done
     done
