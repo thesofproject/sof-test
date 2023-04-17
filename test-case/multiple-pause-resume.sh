@@ -143,7 +143,7 @@ END
 # to prevent infinite loop, 5 second per a repeat is plenty
 max_wait_time=$((5 * repeat_count)) 
 
-for i in $(seq 1 $loop_count)
+for i in $(seq 1 "$loop_count")
 do
     dlogi "===== Loop count( $i / $loop_count ) ====="
     # set up checkpoint for each iteration
@@ -184,7 +184,7 @@ do
             dlogi "pipeline: $pcm with ${cmd_idx_lst[$idx]}"
         done
         dlogi "Check expect exit status"
-        for pid in ${pid_lst[*]}
+        for pid in "${pid_lst[@]}"
         do
             wait "$pid" || {
                 sof-kernel-log-check.sh "$KERNEL_CHECKPOINT" || true
