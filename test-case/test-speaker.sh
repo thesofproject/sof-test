@@ -20,8 +20,11 @@ source $(dirname ${BASH_SOURCE[0]})/../case-lib/lib.sh
 OPT_NAME['t']='tplg'     OPT_DESC['t']='tplg file, default value is env TPLG: $TPLG'
 OPT_HAS_ARG['t']=1         OPT_VAL['t']="$TPLG"
 
-OPT_NAME['l']='loop'     OPT_DESC['l']='option of speaker-test'
-OPT_HAS_ARG['l']=1         OPT_VAL['l']=3
+OPT_NAME['l']='loop'     OPT_DESC['l']='stress loops count'
+OPT_HAS_ARG['l']=1         OPT_VAL['l']=1
+
+OPT_NAME['L']='nloops'     OPT_DESC['L']='option of speaker-test, loop number of .wav files, 0 = infinite'
+OPT_HAS_ARG['L']=1         OPT_VAL['L']=3
 
 OPT_NAME['s']='sof-logger'   OPT_DESC['s']="Open sof-logger trace the data will store at $LOG_ROOT"
 OPT_HAS_ARG['s']=0             OPT_VAL['s']=1
@@ -31,27 +34,32 @@ tplg=${OPT_VAL['t']}
 logger_disabled || func_lib_start_log_collect
 
 func_pipeline_export "$tplg" "type:playback"
-tcnt=${OPT_VAL['l']}
+tcnt=${OPT_VAL['L']}
+tloop=${OPT_VAL['l']}
 setup_kernel_check_point
-for idx in $(seq 0 $(expr $PIPELINE_COUNT - 1))
+for loop in $(seq 1 $tloop)
 do
-    channel=$(func_pipeline_parse_value $idx channel)
-    rate=$(func_pipeline_parse_value $idx rate)
-    fmt=$(func_pipeline_parse_value $idx fmt)
-    dev=$(func_pipeline_parse_value $idx dev)
-    snd=$(func_pipeline_parse_value $idx snd)
+    dlogi "===== Starting iteration $loop of $tloop ====="
+    for idx in $(seq 0 $(expr $PIPELINE_COUNT - 1))
+    do
+        channel=$(func_pipeline_parse_value $idx channel)
+        rate=$(func_pipeline_parse_value $idx rate)
+        fmt=$(func_pipeline_parse_value $idx fmt)
+        dev=$(func_pipeline_parse_value $idx dev)
+        snd=$(func_pipeline_parse_value $idx snd)
 
-    dlogc "speaker-test -D $dev -r $rate -c $channel -f $fmt -l $tcnt -t wav -P 8"
-    speaker-test -D $dev -r $rate -c $channel -f $fmt -l $tcnt -t wav -P 8 2>&1 |tee $LOG_ROOT/result_$idx.txt
-    resultRet=$?
+        dlogc "speaker-test -D $dev -r $rate -c $channel -f $fmt -l $tcnt -t wav -P 8"
+        speaker-test -D $dev -r $rate -c $channel -f $fmt -l $tcnt -t wav -P 8 2>&1 |tee $LOG_ROOT/result_$loop_$idx.txt
+        resultRet=$?
 
-    if [[ $resultRet -eq 0 ]]; then
-        grep -nr -E "error|failed" $LOG_ROOT/result_$idx.txt
-        if [[ $? -eq 0 ]]; then
-            func_lib_lsof_error_dump $snd
-            die "speaker test failed"
+        if [[ $resultRet -eq 0 ]]; then
+            grep -nr -E "error|failed" $LOG_ROOT/result_$idx.txt
+            if [[ $? -eq 0 ]]; then
+                func_lib_lsof_error_dump $snd
+                die "speaker test failed"
+            fi
         fi
-    fi
+    done
 done
 
 sof-kernel-log-check.sh "$KERNEL_CHECKPOINT"
