@@ -93,7 +93,8 @@ function func_exit_handler()
 
             local nlines; nlines=$(wc -l < "$logfile") # line count only
             # The first line is the sof-logger header
-            if [ "$nlines" -le 1 ]; then
+            # Don't override exit_status if already SKIPped test case
+            if ([ "$nlines" -le 1 ] && [ $exit_status -ne 2 ]); then
                 dloge "Empty logger trace"
                 exit_status=1
             fi
