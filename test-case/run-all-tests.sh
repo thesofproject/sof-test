@@ -32,8 +32,8 @@ capture_d1l100r1
 playback_d1l1r50
 capture_d1l1r50
 speaker
-pause-resume-playback
-pause-resume-capture
+pause-release-playback
+pause-release-capture
 volume
 signal-stop-start-playback
 signal-stop-start-capture
@@ -42,7 +42,7 @@ xrun-injection-capture
 simultaneous-playback-capture
 multiple-pipeline-playback
 multiple-pipeline-capture
-multiple-pause-resume
+multiple-pause-release
 kmod-load-unload
 kmod-load-unload-after-playback
 suspend-resume
@@ -227,13 +227,13 @@ test_speaker()
 {
 	"$mydir"/test-speaker.sh -l "$medium_loop"
 }
-test_pause-resume-playback()
+test_pause-release-playback()
 {
-	"$mydir"/check-pause-resume.sh -c "$large_count" -m playback
+	"$mydir"/check-pause-release.sh -c "$large_count" -m playback
 }
-test_pause-resume-capture()
+test_pause-release-capture()
 {
-	"$mydir"/check-pause-resume.sh -c "$large_count" -m capture
+	"$mydir"/check-pause-release.sh -c "$large_count" -m capture
 }
 test_volume()
 {
@@ -271,9 +271,9 @@ test_multiple-pipeline-capture()
 {
 	"$mydir"/multiple-pipeline-capture.sh -l "$medium_loop"
 }
-test_multiple-pause-resume()
+test_multiple-pause-release()
 {
-	"$mydir"/multiple-pause-resume.sh -l "$small_loop" -r 25
+	"$mydir"/multiple-pause-release.sh -l "$small_loop" -r 25
 }
 test_kmod-load-unload()
 {
