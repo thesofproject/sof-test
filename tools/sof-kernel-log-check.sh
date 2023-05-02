@@ -259,6 +259,13 @@ ignore_str="$ignore_str"'|asix .-.+\..:.\.. en.+: Failed to .+'
 # https://github.com/intel-innersource/drivers.audio.ci.sof-framework/issues/246
 ignore_str="$ignore_str"'|mei_me 0000:00:16\..\: .+'
 
+# Network adapter errors found in CML and TGL
+# Buglink: https://github.com/thesofproject/sof-test/issues/564
+#   for CML: e1000e 0000:00:1f.6 enp0s31f6: Hardware Error
+#   for TGL: e1000e 0000:00:1f.6 en0: Hardware Error
+# UP Xtreme has two Ethernet adapters. One of example is 00:1f.6 and 2d:00.0
+ignore_str="$ignore_str"'|e1000e [0-9a-fA-F]{4}:[0-9a-fA-F]{2}:[0-9a-fA-F]{2}.[0-9a-fA-F] en.+: Hardware Error'
+
 case "$platform" in
     # Audio PCI ID on CML Mantis is [8086:9dc8], which is defined as CNL in linux kernel.
     # https://github.com/thesofproject/linux/blob/topic/sof-dev/sound/soc/sof/sof-pci-dev.c
