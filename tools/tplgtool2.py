@@ -841,14 +841,14 @@ class TplgGraph:
         """
         return self._node_name_in_graph_from_name(node["widget"]["name"])
 
+    # pylint: disable=R0201
     def node_sublabel(self, widget: Container) -> str:
-        match widget["widget"]["id"]:
-            case 'PGA':
-                sublabel = f'<BR ALIGN="CENTER"/><SUB>PGA: {widget["kcontrols"][0]["hdr"]["name"]}</SUB>'
-            case 'AIF_IN' | 'AIF_OUT' | 'DAI_IN' | 'DAI_OUT':
-                sublabel = f'<BR ALIGN="CENTER"/><SUB>{widget["widget"]["id"]}: {widget["widget"]["sname"]}</SUB>'
-            case _:
-                sublabel = ""
+        if widget["widget"]["id"] == 'PGA':
+            sublabel = f'<BR ALIGN="CENTER"/><SUB>PGA: {widget["kcontrols"][0]["hdr"]["name"]}</SUB>'
+        elif widget["widget"]["id"] in ['AIF_IN' , 'AIF_OUT' , 'DAI_IN' , 'DAI_OUT']:
+            sublabel = f'<BR ALIGN="CENTER"/><SUB>{widget["widget"]["id"]}: {widget["widget"]["sname"]}</SUB>'
+        else:
+            sublabel = ""
         return sublabel
 
     def _display_node_attrs(self, name: str, widget: Container):
