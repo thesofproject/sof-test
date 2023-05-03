@@ -96,12 +96,15 @@ func_run_pipeline_with_type()
     func_pipeline_export "$tplg" "type:$direction $opt_filter"
     local -a idx_lst
     if [ ${OPT_VAL['r']} -eq 0 ]; then
-        idx_lst=("$(seq 0 $((PIPELINE_COUNT - 1)))")
+        # shellcheck disable=SC2207
+        idx_lst=($(seq 0 $((PIPELINE_COUNT - 1))))
     else
         # convert array to line, shuf to get random line, covert line to array
-        idx_lst=("$(seq 0 $((PIPELINE_COUNT - 1)) | sed 's/ /\n/g' | shuf | xargs)")
+        # shellcheck disable=SC2207
+        idx_lst=($(seq 0 $((PIPELINE_COUNT - 1)) | sed 's/ /\n/g' | shuf | xargs))
     fi
-    for idx in ${idx_lst[*]}
+
+    for idx in "${idx_lst[@]}"
     do
         channel=$(func_pipeline_parse_value "$idx" channel)
         rate=$(func_pipeline_parse_value "$idx" rate)
