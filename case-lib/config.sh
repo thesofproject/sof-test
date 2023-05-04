@@ -90,3 +90,13 @@ FALLBACK_TO_PROC=${FALLBACK_TO_PROC:-false}
 
 # Skip the storage checks if they aren't required
 ENABLE_STORAGE_CHECKS=${ENABLE_STORAGE_CHECKS:-0}
+
+# start_test in lib.sh will check whether FW is loaded before every test case.
+# If FW LOADING is not a prerequisite for the test, or if you just want to skip
+# the check, then define NO_POLL_FW_LOADING to true.
+# NO_POLL_FW_LOADING=true
+
+# Set MAX Polling time to check FW Loading. If FW is already loaded, it will
+# return immediately. Default value is set to 60 seconds, because i915 driver
+# timeout is 60 seconds.
+MAX_WAIT_FW_LOADING=${MAX_WAIT_FW_LOADING:-70}
