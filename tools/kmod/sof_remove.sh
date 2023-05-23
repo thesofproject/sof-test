@@ -209,13 +209,15 @@ remove_module snd_soc_rt286
 remove_module snd_soc_rt298
 remove_module snd_soc_rt700
 remove_module snd_soc_rt711
+remove_module snd_soc_rt711_sdca
+remove_module snd-soc-rt712-sdca
+remove_module snd-soc-rt712-sdca-dmic
+remove_module snd_soc_rt715
+remove_module snd_soc_rt715_sdca
 remove_module snd_soc_rt1308
 remove_module snd_soc_rt1308_sdw
-remove_module snd_soc_rt715
-remove_module snd_soc_rt711_sdca
 remove_module snd_soc_rt1316_sdw
 remove_module snd_soc_rt1318_sdw
-remove_module snd_soc_rt715_sdca
 remove_module snd_soc_sdw_mockup
 remove_module snd_soc_rt1011
 remove_module snd_soc_rt5640
@@ -241,6 +243,7 @@ remove_module snd_soc_es8326
 remove_module snd_soc_max98090
 remove_module snd_soc_ts3a227e
 remove_module snd_soc_max98357a
+remove_module snd_soc_max98363
 remove_module snd_soc_max98373_sdw
 remove_module snd_soc_max98373_i2c
 remove_module snd_soc_max98373
