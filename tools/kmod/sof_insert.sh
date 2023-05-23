@@ -46,13 +46,16 @@ insert_module snd_soc_rt298
 
 insert_module snd_soc_rt700
 insert_module snd_soc_rt711
+insert_module snd_soc_rt711_sdca
+insert_module snd_soc_rt712_sdca
+insert_module snd_soc_rt712_sdca_dmic
+insert_module snd_soc_rt715
+insert_module snd_soc_rt715_sdca
 insert_module snd_soc_rt1308
 insert_module snd_soc_rt1308_sdw
-insert_module snd_soc_rt715
-insert_module snd_soc_rt711_sdca
 insert_module snd_soc_rt1316_sdw
 insert_module snd_soc_rt1318_sdw
-insert_module snd_soc_rt715_sdca
+
 insert_module snd_soc_sdw_mockup
 
 insert_module snd_soc_rt1011
@@ -69,6 +72,7 @@ insert_module snd_soc_rt5682_sdw
 insert_module snd_soc_max98090
 insert_module snd_soc_ts3a227e
 insert_module snd_soc_max98357a
+insert_module snd_soc_max98363
 insert_module snd_soc_max98373_sdw
 insert_module snd_soc_max98373_i2c
 insert_module snd_soc_max98390
