@@ -210,8 +210,8 @@ remove_module snd_soc_rt298
 remove_module snd_soc_rt700
 remove_module snd_soc_rt711
 remove_module snd_soc_rt711_sdca
-remove_module snd-soc-rt712-sdca
-remove_module snd-soc-rt712-sdca-dmic
+remove_module snd_soc_rt712_sdca
+remove_module snd_soc_rt712_sdca_dmic
 remove_module snd_soc_rt715
 remove_module snd_soc_rt715_sdca
 remove_module snd_soc_rt1308
