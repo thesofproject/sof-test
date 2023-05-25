@@ -32,10 +32,11 @@ set -e
 ##    check kernel log and find no errors
 ##
 
-source $(dirname ${BASH_SOURCE[0]})/../case-lib/lib.sh
+# shellcheck source=case-lib/lib.sh
+source "$(dirname "${BASH_SOURCE[0]}")"/../case-lib/lib.sh
 case_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")"; pwd)
 
-OPT_NAME['t']='tplg'     OPT_DESC['t']='tplg file, default value is env TPLG: $TPLG'
+OPT_NAME['t']='tplg'     OPT_DESC['t']="tplg file, default value is env TPLG: $TPLG"
 OPT_HAS_ARG['t']=1         OPT_VAL['t']="$TPLG"
 
 OPT_NAME['l']='loop'
@@ -85,7 +86,7 @@ do
             dlogi "platform doesn't support runtime pm, skip waiting" && break
         [[ $(sof-dump-status.py --dsp_status 0) == "suspended" ]] && break
         sleep 1
-        if [ $i -eq 15 ]; then
+        if [ "$i" -eq 15 ]; then
             die "dsp is not suspended after 15s, end test"
         fi
     done
