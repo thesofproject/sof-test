@@ -65,21 +65,21 @@ func_pipeline_export "$tplg" "type:capture & ${OPT_VAL['S']}"
 
 for round in $(seq 1 $round_cnt)
 do
-    for idx in $(seq 0 $(expr $PIPELINE_COUNT - 1))
+    for idx in $(seq 0 $((PIPELINE_COUNT - 1)))
     do
-        channel=$(func_pipeline_parse_value $idx channel)
-        rate=$(func_pipeline_parse_value $idx rate)
-        fmt=$(func_pipeline_parse_value $idx fmt)
-        dev=$(func_pipeline_parse_value $idx dev)
-        pcm=$(func_pipeline_parse_value $idx pcm)
-        type=$(func_pipeline_parse_value $idx type)
-        snd=$(func_pipeline_parse_value $idx snd)
+        channel=$(func_pipeline_parse_value "$idx" channel)
+        rate=$(func_pipeline_parse_value "$idx" rate)
+        fmt=$(func_pipeline_parse_value "$idx" fmt)
+        dev=$(func_pipeline_parse_value "$idx" dev)
+        pcm=$(func_pipeline_parse_value "$idx" pcm)
+        type=$(func_pipeline_parse_value "$idx" type)
+        snd=$(func_pipeline_parse_value "$idx" snd)
 
         if [ ${OPT_VAL['F']} = '1' ]; then
-            fmt=$(func_pipeline_parse_value $idx fmts)
+            fmt=$(func_pipeline_parse_value "$idx" fmts)
         fi
 
-        for fmt_elem in $(echo $fmt)
+        for fmt_elem in $fmt
         do
             for i in $(seq 1 $loop_cnt)
             do
@@ -94,9 +94,9 @@ do
                     dlogi "using $file as capture output"
                 fi
 
-                arecord_opts -D$dev -r $rate -c $channel -f $fmt_elem -d $duration $file -v -q
-                if [[ $? -ne 0 ]]; then
-                    func_lib_lsof_error_dump $snd
+                if ! arecord_opts -D"$dev" -r "$rate" -c "$channel" -f "$fmt_elem" -d $duration "$file" -v -q;
+                then
+                    func_lib_lsof_error_dump "$snd"
                     die "arecord on PCM $dev failed at $i/$loop_cnt."
                 fi
             done
