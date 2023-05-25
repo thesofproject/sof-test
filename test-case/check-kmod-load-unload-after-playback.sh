@@ -86,7 +86,7 @@ do
             dlogi "platform doesn't support runtime pm, skip waiting" && break
         [[ $(sof-dump-status.py --dsp_status 0) == "suspended" ]] && break
         sleep 1
-        if [ "$i" -eq 15 ]; then
+        if [ "$i" -ge 15 ]; then
             die "dsp is not suspended after 15s, end test"
         fi
     done
