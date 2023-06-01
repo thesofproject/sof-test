@@ -21,7 +21,7 @@
 # shellcheck source=case-lib/lib.sh
 source "$(dirname "${BASH_SOURCE[0]}")"/../case-lib/lib.sh
 
-OPT_NAME['t']='tplg'     OPT_DESC['t']='tplg file, default value is env TPLG: $TPLG'
+OPT_NAME['t']='tplg'     OPT_DESC['t']="tplg file, default value is env TPLG: $TPLG"
 OPT_HAS_ARG['t']=1         OPT_VAL['t']="$TPLG"
 
 OPT_NAME['w']='wait'     OPT_DESC['w']='sleep for wait duration'
@@ -43,9 +43,9 @@ loop_cnt=${OPT_VAL['l']}
 # get 'both' pcm, it means pcm have same id with different type
 declare -A tmp_id_lst
 id_lst_str=""
-tplg_path=`func_lib_get_tplg_path "$tplg"`
+tplg_path=$(func_lib_get_tplg_path "$tplg")
 [[ "$?" -ne "0" ]] && die "No available topology for this test case"
-for i in $(sof-tplgreader.py $tplg_path -d id -v)
+for i in $(sof-tplgreader.py "$tplg_path" -d id -v)
 do
     if [ ! "${tmp_id_lst["$i"]}" ]; then  # this id is never used
         tmp_id_lst["$i"]=0
@@ -64,8 +64,8 @@ logger_disabled || func_lib_start_log_collect
 func_error_exit()
 {
     dloge "$*"
-    kill -9 $aplay_pid && wait $aplay_pid 2>/dev/null
-    kill -9 $arecord_pid && wait $arecord_pid 2>/dev/null
+    kill -9 "$aplay_pid" && wait "$aplay_pid" 2>/dev/null
+    kill -9 "$arecord_pid" && wait "$arecord_pid" 2>/dev/null
     exit 1
 }
 
@@ -75,26 +75,26 @@ do
     setup_kernel_check_point
     dlogi "===== Testing: (Loop: $i/$loop_cnt) ====="
     # following sof-tplgreader, split 'both' pipelines into separate playback & capture pipelines, with playback occurring first
-    for order in $(seq 0 2 $(expr $PIPELINE_COUNT - 1))
+    for order in $(seq 0 2 $(expr "$PIPELINE_COUNT" - 1))
     do
         idx=$order
-        channel=$(func_pipeline_parse_value $idx channel)
-        rate=$(func_pipeline_parse_value $idx rate)
-        fmt=$(func_pipeline_parse_value $idx fmt)
-        dev=$(func_pipeline_parse_value $idx dev)
+        channel=$(func_pipeline_parse_value "$idx" channel)
+        rate=$(func_pipeline_parse_value "$idx" rate)
+        fmt=$(func_pipeline_parse_value "$idx" fmt)
+        dev=$(func_pipeline_parse_value "$idx" dev)
 
         dlogc "aplay -D $dev -c $channel -r $rate -f $fmt /dev/zero -q &"
-        aplay -D $dev -c $channel -r $rate -f $fmt /dev/zero -q &
+        aplay -D "$dev" -c "$channel" -r "$rate" -f "$fmt" /dev/zero -q &
         aplay_pid=$!
 
         idx=$[ $order + 1 ]
-        channel=$(func_pipeline_parse_value $idx channel)
-        rate=$(func_pipeline_parse_value $idx rate)
-        fmt=$(func_pipeline_parse_value $idx fmt)
-        dev=$(func_pipeline_parse_value $idx dev)
+        channel=$(func_pipeline_parse_value "$idx" channel)
+        rate=$(func_pipeline_parse_value "$idx" rate)
+        fmt=$(func_pipeline_parse_value "$idx" fmt)
+        dev=$(func_pipeline_parse_value "$idx" dev)
 
         dlogc "arecord -D $dev -c $channel -r $rate -f $fmt /dev/null -q &"
-        arecord -D $dev -c $channel -r $rate -f $fmt /dev/null -q &
+        arecord -D "$dev" -c "$channel" -r "$rate" -f "$fmt" /dev/null -q &
         arecord_pid=$!
 
         dlogi "Preparing to sleep for $wait_time"
@@ -117,3 +117,4 @@ do
     # check kernel log for each iteration to catch issues
     sof-kernel-log-check.sh "$KERNEL_CHECKPOINT" || die "Caught error in kernel log"
 done
+
