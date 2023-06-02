@@ -43,8 +43,8 @@ loop_cnt=${OPT_VAL['l']}
 # get 'both' pcm, it means pcm have same id with different type
 declare -A tmp_id_lst
 id_lst_str=""
-tplg_path=$(func_lib_get_tplg_path "$tplg")
-[[ "$?" -ne "0" ]] && die "No available topology for this test case"
+tplg_path=$(func_lib_get_tplg_path "$tplg") ||
+    die "No available topology for this test case"
 for i in $(sof-tplgreader.py "$tplg_path" -d id -v)
 do
     if [ ! "${tmp_id_lst["$i"]}" ]; then  # this id is never used
@@ -75,7 +75,7 @@ do
     setup_kernel_check_point
     dlogi "===== Testing: (Loop: $i/$loop_cnt) ====="
     # following sof-tplgreader, split 'both' pipelines into separate playback & capture pipelines, with playback occurring first
-    for order in $(seq 0 2 $(expr "$PIPELINE_COUNT" - 1))
+    for order in $(seq 0 2 $(( "$PIPELINE_COUNT" - 1)))
     do
         idx=$order
         channel=$(func_pipeline_parse_value "$idx" channel)
@@ -87,7 +87,7 @@ do
         aplay -D "$dev" -c "$channel" -r "$rate" -f "$fmt" /dev/zero -q &
         aplay_pid=$!
 
-        idx=$[ $order + 1 ]
+        idx=$(( order + 1 ))
         channel=$(func_pipeline_parse_value "$idx" channel)
         rate=$(func_pipeline_parse_value "$idx" rate)
         fmt=$(func_pipeline_parse_value "$idx" fmt)
@@ -102,11 +102,11 @@ do
 
         # aplay/arecord processes should be persistent for sleep duration.
         dlogi "check pipeline after ${wait_time}s"
-        kill -0 $aplay_pid
-        [[ $? -ne 0 ]] && func_error_exit "Error in aplay process after sleep."
+        kill -0 $aplay_pid ||
+            func_error_exit "Error in aplay process after sleep."
 
-        kill -0 $arecord_pid
-        [[ $? -ne 0 ]] && func_error_exit "Error in arecord process after sleep."
+        kill -0 $arecord_pid ||
+            func_error_exit "Error in arecord process after sleep."
 
         # kill all live processes, successful end of test
         dlogc "killing all pipelines"
