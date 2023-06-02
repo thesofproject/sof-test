@@ -694,6 +694,19 @@ class GroupedTplg:
         "Get widget core ID."
         return GroupedTplg.get_priv_element(widget["widget"], SofVendorToken.SOF_TKN_COMP_CORE_ID, default)
     
+    @staticmethod
+    def get_widget_uuid(widget: Container, default = None):
+        "Get widget UUID."
+        try:
+            return next(
+                elem["uuid"]
+                for vendor_array in widget["widget"]["priv"]
+                for elem in vendor_array["elems"]
+                if elem["token"] == SofVendorToken.SOF_TKN_COMP_UUID.name
+            )
+        except (KeyError, AttributeError, StopIteration):
+            return default
+
     def is_dynamic_pipeline(self, pipeline_id: str):
         "Check if the pipeline is a dynamic pipeline."
         widget = next(

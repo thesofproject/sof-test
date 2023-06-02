@@ -45,12 +45,14 @@ do
 
     dlogc "speaker-test -D $dev -r $rate -c $channel -f $fmt -l $tcnt -t wav -P 8"
     speaker-test -D "$dev" -r "$rate" -c "$channel" -f "$fmt" -l "$tcnt" -t wav -P 8 2>&1 |tee "$LOG_ROOT"/result_"$idx".txt
-    resultRet=${PIPESTATUS[0]} 
 
-    if [[ $resultRet -ne 0  ]] ||
-        grep -nr -E "error|failed" "$LOG_ROOT"/result_"$idx".txt; then
-            func_lib_lsof_error_dump "$snd"
-            die "speaker test failed"
+    resultRet=${PIPESTATUS[0]}
+
+    if grep -nr -E "error|failed" "$LOG_ROOT"/result_"$idx".txt ||
+        [[ $resultRet -ne 0  ]]; then
+        func_lib_lsof_error_dump "$snd"
+        die "speaker test failed"
+
     fi
 done
 
