@@ -34,12 +34,15 @@ lpc_loop_cnt=${OPT_VAL['c']}
 ipc_flood_dfs=${OPT_VAL['f']}
 loop_cnt=${OPT_VAL['l']}
 
-[[ ! "$(sof-kernel-dump.sh|grep 'sof-audio'|grep 'Firmware debug build')" ]] && dlogw "${BASH_SOURCE[0]} need debug version firmware" && exit 2
+sof-kernel-dump.sh | grep sof-audio | grep -q "Firmware debug" ||
+     skip_test "need debug version firmware"
 
 func_lib_check_sudo
 
 dlogi "Check sof debug fs environment"
-[[ "$(sudo file $ipc_flood_dfs|grep 'No such file')" ]] && dlogw "${BASH_SOURCE[0]} need $ipc_flood_dfs to run the test case" && exit 2
+if sudo file $ipc_flood_dfs | grep 'No such file'; then
+  skip_test "${BASH_SOURCE[0]} need $ipc_flood_dfs to run the test case"
+fi
 dlogi "Checking ipc flood test!"
 
 for i in $(seq 1 $loop_cnt)
