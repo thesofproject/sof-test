@@ -42,7 +42,7 @@ OPT_HAS_ARG['r']=0         OPT_VAL['r']=0
 OPT_NAME['m']='mode'     OPT_DESC['m']='alsa application type: playback/capture'
 OPT_HAS_ARG['m']=1         OPT_VAL['m']='playback'
 
-OPT_NAME['t']='tplg'     OPT_DESC['t']='tplg file, default value is env TPLG: $TPLG'
+OPT_NAME['t']='tplg'     OPT_DESC['t']="tplg file, default value is env TPLG: $TPLG"
 OPT_HAS_ARG['t']=1         OPT_VAL['t']="$TPLG"
 
 OPT_NAME['s']='sof-logger'   OPT_DESC['s']="Open sof-logger trace the data will store at $LOG_ROOT"
@@ -89,28 +89,28 @@ else
     opt="$opt -r"
 fi
 
-for idx in $(seq 0 $(expr $PIPELINE_COUNT - 1))
+for idx in $(seq 0 $((PIPELINE_COUNT - 1)))
 do
     # set up checkpoint for each iteration
     setup_kernel_check_point
     # store local checkpoint as we have sub-test
     LOCAL_CHECK_POINT="$KERNEL_CHECKPOINT"
-    channel=$(func_pipeline_parse_value $idx channel)
-    rate=$(func_pipeline_parse_value $idx rate)
-    fmt=$(func_pipeline_parse_value $idx fmt)
-    dev=$(func_pipeline_parse_value $idx dev)
-    pcm=$(func_pipeline_parse_value $idx pcm)
-    snd=$(func_pipeline_parse_value $idx snd)
+    channel=$(func_pipeline_parse_value "$idx" channel)
+    rate=$(func_pipeline_parse_value "$idx" rate)
+    fmt=$(func_pipeline_parse_value "$idx" fmt)
+    dev=$(func_pipeline_parse_value "$idx" dev)
+    pcm=$(func_pipeline_parse_value "$idx" pcm)
+    snd=$(func_pipeline_parse_value "$idx" snd)
     dlogi "Run $TYPE command for the background"
     cmd_args="$cmd -D$dev -r $rate -c $channel -f $fmt $file_name -q"
     dlogc "$cmd_args"
-    $cmd -D$dev -r $rate -c $channel -f $fmt $file_name -q  & process_id=$!
+    $cmd -D"$dev" -r "$rate" -c "$channel" -f "$fmt" "$file_name" -q  & process_id=$!
     # delay for process run
     sleep 1
     # check process status is correct
     sof-process-state.sh $process_id
     if [ $? -ne 0 ]; then
-        func_lib_lsof_error_dump $snd
+        func_lib_lsof_error_dump "$snd"
         dloge "error process state of $cmd"
         dlogi "dump ps for aplay & arecord"
         ps -ef |grep -E 'aplay|arecord'
@@ -125,7 +125,7 @@ do
 
     # check process status is correct
     sof-process-state.sh $process_id || {
-        func_lib_lsof_error_dump $snd
+        func_lib_lsof_error_dump "$snd"
         dloge "process status is abnormal"
         dlogi "dump ps for aplay & arecord"
         ps -ef |grep -E 'aplay|arecord'
