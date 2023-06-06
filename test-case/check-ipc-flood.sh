@@ -15,7 +15,8 @@
 
 set -e
 
-source $(dirname ${BASH_SOURCE[0]})/../case-lib/lib.sh
+# shellcheck source=case-lib/lib.sh
+source "$(dirname "${BASH_SOURCE[0]}")"/../case-lib/lib.sh
 
 OPT_NAME['c']='cnt'      OPT_DESC['c']='ipc loop count'
 OPT_HAS_ARG['c']=1         OPT_VAL['c']=10000
