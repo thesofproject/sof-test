@@ -22,7 +22,8 @@ set -e
 ##    check kernel log and find no errors
 ##
 
-source $(dirname ${BASH_SOURCE[0]})/../case-lib/lib.sh
+# shellcheck source=case-lib/lib.sh
+source "$(dirname "${BASH_SOURCE[0]}")"/../case-lib/lib.sh
 
 OPT_NAME['l']='loop'     OPT_DESC['l']='suspend/resume loop count'
 OPT_HAS_ARG['l']=1         OPT_VAL['l']=3
@@ -118,7 +119,7 @@ do
         ps --ppid $$ -f
         exit 1
     fi
-    $(dirname ${BASH_SOURCE[0]})/check-suspend-resume.sh $(echo $opt) || die "suspend resume failed"
+    "$(dirname "${BASH_SOURCE[0]}")"/check-suspend-resume.sh "$opt" || die "suspend resume failed"
 
     # check kernel log for each iteration to catch issues
     sof-kernel-log-check.sh "$LOCAL_CHECK_POINT" || die "Caught error in kernel log"
