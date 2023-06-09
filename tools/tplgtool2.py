@@ -830,6 +830,7 @@ class TplgGraph:
 
     def __init__(self, grouped_tplg: GroupedTplg):
         "Build graph from grouped topology data."
+        self.errors = 0 # non fatal errors
         self.show_core = 'auto'
         self.without_nodeinfo = False
         self._tplg = grouped_tplg
@@ -864,6 +865,50 @@ class TplgGraph:
             sublabel = ""
         return sublabel
 
+    PCM_NUM_REGEX = re.compile(r"PCM(?P<num>\d+)", re.IGNORECASE)
+    HOST_COPIER_NUM_REGEX = re.compile(r"host-copier\.(?P<num>\d+)", re.IGNORECASE)
+    def pcm_name(self, widget: Container):
+        """The widget argument is expected to be a `PCMnnnX` or `host-copier.nnn.X` where nnn is
+        a pcm_id.  Find in self._tplg.pcm_list the corresponding PCM and return its pcm_name.
+        The kernel performs some similar PCM ID match but in a more complicated way, see
+        spcm_bind() as a starting point
+        https://github.com/thesofproject/linux/blob/2776754a4cd984a3/sound/soc/sof/topology.c#L1148
+
+        """
+        wname = widget.name
+
+        match = self.HOST_COPIER_NUM_REGEX.match(wname)
+        if match is None:
+            match = self.PCM_NUM_REGEX.match(wname)
+
+        # This function is not supposed to be passed random arguments
+        missing_number_errmsg = f'No PCM or host-copier number found in widget name="{wname}"'
+        assert not match is None, missing_number_errmsg
+
+        pcm_id = int(match["num"])
+        pcm_names = [ pcm.pcm_name for pcm in self._tplg.pcm_list if pcm.pcm_id == pcm_id ]
+
+        # Some topologies are broken, see ID fix
+        # https://github.com/thesofproject/sof/commit/75e8f4b63c168fb
+        # and others in
+        # https://github.com/thesofproject/sof-test/pull/1054
+        n_l = len(pcm_names)
+
+        multiple_id_errmsg = f"Multiple pcm id={pcm_id}: {n_l} ({pcm_names})"
+        missing_id_errmsg = f"No pcm id={pcm_id} for widget={wname}"
+
+        if 1 < n_l:
+            self.errors += 1
+            print("ERROR: " + multiple_id_errmsg)
+            return multiple_id_errmsg
+
+        if n_l < 1:
+            self.errors += 1
+            print("ERROR: " + missing_id_errmsg)
+            return missing_id_errmsg
+
+        return pcm_names[0]
+
     def _display_node_attrs(self, name: str, widget: Container):
         sublabel = ""
         sublabel2 = ""
@@ -873,7 +918,12 @@ class TplgGraph:
         core = GroupedTplg.get_core_id(widget)
         if core is not None and (self.show_core == 'always' or (self.show_core == 'auto' and self._tplg.is_multicore)):
             sublabel2 += f'<BR ALIGN="CENTER"/><SUB>core:{core}</SUB>'
-        attr['label'] = f'<{name}{sublabel}{sublabel2}>'
+        display_name = name
+        wname = widget.widget.name
+        # See the *_NUM_REGEX above
+        if wname.startswith("PCM") or wname.startswith("host-copier."):
+            display_name += f" ({self.pcm_name(widget.widget)})"
+        attr['label'] = f'<{display_name}{sublabel}{sublabel2}>'
         pipelines = self.get_pipelines_id(name)
         if any(map(self._tplg.is_dynamic_pipeline, pipelines)):
             attr['style'] = "dashed"
