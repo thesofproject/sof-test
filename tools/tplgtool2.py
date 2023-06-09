@@ -761,13 +761,13 @@ class TplgGraph:
 
     @staticmethod
     def _build_nodes_dict(widget_list: "list[Container]") -> "dict[str, Container]":
-        r"Create a dictionary from name/sname to correspoding component."
+        r"Create a dictionary of all the widgets in widget_list, keyed by their name/sname."
         nodes = {}
         for widget in widget_list:
             nodes[widget["widget"]["name"]] = widget
             sname = widget["widget"]["sname"]
             if sname: # skip empty sname
-                nodes.setdefault(sname, widget) # stream name has low priority
+                nodes.setdefault(sname, widget) # stream name has lower priority than identical name
         return nodes
 
     @staticmethod
@@ -805,7 +805,7 @@ class TplgGraph:
 
     @staticmethod
     def _build_leaves(node_names: "list[str]", forward_edges: "dict[str, list[str]]", backward_edges: "dict[str, list[str]]") -> "tuple[set[str], set[str], set[str]]":
-        r""""Build leaves.
+        r"""Build leaves.
 
         Returns
         -------
