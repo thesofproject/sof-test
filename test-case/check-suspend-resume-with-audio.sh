@@ -79,15 +79,14 @@ fi
 
 func_pipeline_export "$tplg" "type:${OPT_VAL['m']} & ${OPT_VAL['P']}"
 
+opt_arr=(-l "${OPT_VAL['l']}")
 if [ "${OPT_VAL['T']}" ]; then
-    opt="-l ${OPT_VAL['l']} -T ${OPT_VAL['T']}"
-else
-    opt="-l ${OPT_VAL['l']}"
+    opt_arr+=(-T "${OPT_VAL['T']}")
 fi
 if [ ${OPT_VAL['r']} -eq 0  ]; then
-    opt="$opt -S ${OPT_VAL['S']} -w ${OPT_VAL['w']}"
+    opt_arr+=(-S "${OPT_VAL['S']}" -w "${OPT_VAL['w']}")
 else
-    opt="$opt -r"
+    opt_arr+=(-r)
 fi
 
 for idx in $(seq 0 $((PIPELINE_COUNT - 1)))
@@ -119,7 +118,7 @@ do
         ps --ppid $$ -f
         exit 1
     fi
-    "$(dirname "${BASH_SOURCE[0]}")"/check-suspend-resume.sh "$opt" || die "suspend resume failed"
+    "$(dirname "${BASH_SOURCE[0]}")"/check-suspend-resume.sh "${opt_arr[@]}"  || die "suspend resume failed"
 
     # check kernel log for each iteration to catch issues
     sof-kernel-log-check.sh "$LOCAL_CHECK_POINT" || die "Caught error in kernel log"
