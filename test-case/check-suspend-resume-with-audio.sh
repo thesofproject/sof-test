@@ -99,7 +99,6 @@ do
     rate=$(func_pipeline_parse_value "$idx" rate)
     fmt=$(func_pipeline_parse_value "$idx" fmt)
     dev=$(func_pipeline_parse_value "$idx" dev)
-    pcm=$(func_pipeline_parse_value "$idx" pcm)
     snd=$(func_pipeline_parse_value "$idx" snd)
     dlogi "Run $TYPE command for the background"
     cmd_args="$cmd -D$dev -r $rate -c $channel -f $fmt $file_name -q"
@@ -108,16 +107,15 @@ do
     # delay for process run
     sleep 1
     # check process status is correct
-    sof-process-state.sh $process_id
-    if [ $? -ne 0 ]; then
+    sof-process-state.sh $process_id || {
         func_lib_lsof_error_dump "$snd"
         dloge "error process state of $cmd"
         dlogi "dump ps for aplay & arecord"
-        ps -ef |grep -E 'aplay|arecord'
+        pgrep -fla "aplay|arecord"
         dlogi "dump ps for child process"
         ps --ppid $$ -f
         exit 1
-    fi
+    }
     "$(dirname "${BASH_SOURCE[0]}")"/check-suspend-resume.sh "${opt_arr[@]}"  || die "suspend resume failed"
 
     # check kernel log for each iteration to catch issues
@@ -128,7 +126,7 @@ do
         func_lib_lsof_error_dump "$snd"
         dloge "process status is abnormal"
         dlogi "dump ps for aplay & arecord"
-        ps -ef |grep -E 'aplay|arecord'
+        pgrep -fla "aplay|arecord"
         dlogi "dump ps for child process"
         ps --ppid $$ -f
         exit 1
