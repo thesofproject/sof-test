@@ -66,19 +66,18 @@ esac
 func_xrun_injection()
 {
     local i=1
-    while ( [ $i -le $count ] && [ "$(ps -p "$pid" --no-header)" ] )
+    while [ $i -le $count ] && [ "$(ps -p "$pid" --no-header)" ]
     do
         # check aplay/arecord process state
-        sof-process-state.sh "$pid" >/dev/null
-        if [[ $? -ne 0 ]]; then
+        sof-process-state.sh "$pid" >/dev/null || {
             dloge "aplay/arecord process is in an abnormal status"
             kill -9 "$pid" && wait "$pid" 2>/dev/null
             exit 1
-        fi
+        }
         dlogi "XRUN injection: $i"
         sudo bash -c "'echo 1 > $xrun_injection'"
         sleep $interval
-	let i++
+        (( i++ ))
     done
 }
 
