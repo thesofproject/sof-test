@@ -17,9 +17,10 @@
 ##    The return value of aplay/arecord should be 0
 ##
 
-source $(dirname ${BASH_SOURCE[0]})/../case-lib/lib.sh
+# shellcheck source=case-lib/lib.sh
+source "$(dirname "${BASH_SOURCE[0]}")"/../case-lib/lib.sh
 
-OPT_NAME['t']='tplg'     OPT_DESC['t']='tplg file, default value is env TPLG: $TPLG'
+OPT_NAME['t']='tplg'     OPT_DESC['t']="tplg file, default value is env TPLG: $TPLG"
 OPT_HAS_ARG['t']=1         OPT_VAL['t']="$TPLG"
 
 OPT_NAME['m']='mode'     OPT_DESC['m']='test mode'
@@ -65,13 +66,13 @@ esac
 func_xrun_injection()
 {
     local i=1
-    while ( [ $i -le $count ] && [ "$(ps -p $pid --no-header)" ] )
+    while ( [ $i -le $count ] && [ "$(ps -p "$pid" --no-header)" ] )
     do
         # check aplay/arecord process state
-        sof-process-state.sh $pid >/dev/null
+        sof-process-state.sh "$pid" >/dev/null
         if [[ $? -ne 0 ]]; then
             dloge "aplay/arecord process is in an abnormal status"
-            kill -9 $pid && wait $pid 2>/dev/null
+            kill -9 "$pid" && wait "$pid" 2>/dev/null
             exit 1
         fi
         dlogi "XRUN injection: $i"
@@ -82,16 +83,16 @@ func_xrun_injection()
 }
 
 func_pipeline_export "$tplg" "type:$test_mode"
-for idx in $(seq 0 $(expr $PIPELINE_COUNT - 1))
+for idx in $(seq 0 $((PIPELINE_COUNT - 1)))
 do
-    channel=$(func_pipeline_parse_value $idx channel)
-    rate=$(func_pipeline_parse_value $idx rate)
-    fmt=$(func_pipeline_parse_value $idx fmt)
-    dev=$(func_pipeline_parse_value $idx dev)
-    pcm=$(func_pipeline_parse_value $idx pcm)
-    id=$(func_pipeline_parse_value $idx id)
-    snd=$(func_pipeline_parse_value $idx snd)
-    pipeline_type=$(func_pipeline_parse_value $idx "type")
+    channel=$(func_pipeline_parse_value "$idx" channel)
+    rate=$(func_pipeline_parse_value "$idx" rate)
+    fmt=$(func_pipeline_parse_value "$idx" fmt)
+    dev=$(func_pipeline_parse_value "$idx" dev)
+    pcm=$(func_pipeline_parse_value "$idx" pcm)
+    id=$(func_pipeline_parse_value "$idx" id)
+    snd=$(func_pipeline_parse_value "$idx" snd)
+    pipeline_type=$(func_pipeline_parse_value "$idx" "type")
     pcm=pcm${id}${test_type}
     xrun_injection="/proc/asound/card0/$pcm/sub0/xrun_injection"
 
@@ -99,7 +100,7 @@ do
     [[ ! -e $xrun_injection ]] && skip_test "XRUN DEBUG is not enabled in kernel, skip the test."
     dlogi "Testing: test xrun injection on PCM:$pcm,$pipeline_type. Interval time: $interval"
     dlogc "$cmd -D$dev -r $rate -c $channel -f $fmt $dummy_file -q"
-    $cmd -D$dev -r $rate -c $channel -f $fmt $dummy_file -q &
+    $cmd -D"$dev" -r "$rate" -c "$channel" -f "$fmt" $dummy_file -q &
     pid=$!
 
     # If the process is terminated too early, this is error case.
@@ -110,7 +111,7 @@ do
     #     4. set params fails, etc
     sleep 0.5
     if [[ ! -d /proc/$pid ]]; then
-        func_lib_lsof_error_dump $snd
+        func_lib_lsof_error_dump "$snd"
         die "$cmd process[$pid] is terminated too early"
     fi
 
