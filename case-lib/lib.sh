@@ -77,17 +77,19 @@ start_test()
         return 0
     }
 
-    # Check for whether SOF fW is loaded or not before starting any test
-    # without --since=@"$KERNEL_CHECKPOINT", it will be scan for current boot
-    # fw loaded -> sof module removed case can't be detected.
-    # Mainly it is going to check whether the sof-test can be started after boot/reboot
+    # Check for whether SOF fW is loaded or not before starting any test.
+    # Only start the polling for firmware boot complete when SOF soundcard is not available
+    # setup_kernel_check_point has already -1 second to avoid TOCTOU race condition
+    is_sof_used || {
     if [ -z "$NO_POLL_FW_LOADING" ]; then
-        if poll_wait_for 1 "$MAX_WAIT_FW_LOADING" sof_firmware_boot_complete; then
+        setup_kernel_check_point
+        if poll_wait_for 1 "$MAX_WAIT_FW_LOADING" sof_firmware_boot_complete --since=@"$KERNEL_CHECKPOINT"; then
             dlogi "Good to start the test, FW is loaded!"
         else
             die "FW is not loaded for $MAX_WAIT_FW_LOADING"
         fi
     fi
+    }
 
     export SOF_TEST_TOP_PID="$$"
     local prefix; prefix="ktime=$(ktime) sof-test PID=${SOF_TEST_TOP_PID}"
