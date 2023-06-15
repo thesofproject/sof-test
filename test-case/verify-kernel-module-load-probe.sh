@@ -13,7 +13,8 @@ set -e
 ##    find sof relative module
 
 # source from the relative path of current folder
-source $(dirname ${BASH_SOURCE[0]})/../case-lib/lib.sh
+# shellcheck source=case-lib/lib.sh
+source "$(dirname "${BASH_SOURCE[0]}")"/../case-lib/lib.sh
 
 func_opt_parse_option "$@"
 
@@ -21,7 +22,8 @@ setup_kernel_check_point
 
 dlogi "Checking if sof relative modules loaded"
 dlogc "lsmod | grep \"sof\""
-lsmod | grep "sof"
-[[ $? -ne 0 ]] && dloge "No available sof module found! Dumping lsmod:" && lsmod && exit 1
 
-exit 0
+lsmod | grep "sof" || {
+    lsmod
+    die "No available sof module found!"
+}
