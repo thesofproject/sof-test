@@ -294,13 +294,13 @@ do_preparations () {
     tmp=$(amixer controls | grep -e "$CAP_PGA.*Volume" || true )
     test -n "$tmp" || die "No control with name Volume found in $CAP_PGA"
     search="name="
-    CAP_VOLUME=${tmp#*$search}
+    CAP_VOLUME=${tmp#*"$search"}
     export CAP_VOLUME
     dlogi "Capture volume control name is $CAP_VOLUME"
 
     tmp=$(amixer controls | grep -e "$CAP_PGA.*Switch" || true )
     test -n "$tmp" || die "No control with name Switch found in $CAP_PGA"
-    CAP_SWITCH=${tmp#*$search}
+    CAP_SWITCH=${tmp#*"$search"}
     export CAP_SWITCH
     dlogi "Capture switch control name is $CAP_SWITCH"
 
@@ -311,7 +311,7 @@ do_preparations () {
     for pga in $PLAY_PGA; do
 	tmp=$(amixer controls | grep "$pga" | grep Volume)
 	search="name="
-	play_volume=${tmp#*$search}
+	play_volume=${tmp#*"$search"}
 	dlogi "Set $play_volume to 100%"
 	amixer cset name="$play_volume" 100% || die "Error: failed play volume set command"
     done
