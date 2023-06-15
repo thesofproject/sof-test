@@ -19,7 +19,7 @@
 source "$(dirname "${BASH_SOURCE[0]}")"/../case-lib/lib.sh
 
 volume_array=("0%" "10%" "20%" "30%" "40%" "50%" "60%" "70%" "80%" "90%" "100%")
-OPT_NAME['t']='tplg'     OPT_DESC['t']='tplg file, default value is env TPLG: $''TPLG'
+OPT_NAME['t']='tplg'     OPT_DESC['t']="tplg file, default value is env TPLG: $TPLG"
 OPT_HAS_ARG['t']=1         OPT_VAL['t']="$TPLG"
 
 OPT_NAME['l']='loop'     OPT_DESC['l']='loop count'
@@ -58,7 +58,7 @@ sleep 1
 [[ ! $(pidof aplay) ]] && die "aplay process is terminated too early"
 
 sofcard=${SOFCARD:-0}
-pgalist=($(amixer -c"$sofcard" controls | grep -i PGA | sed 's/ /_/g;' | awk -Fname= '{print $2}'))
+readarray -t pgalist < <(amixer -c"$sofcard" controls | awk -Fname= 'toupper($2) ~ /PGA/ { print $2 }')
 dlogi "pgalist number = ${#pgalist[@]}"
 [[ ${#pgalist[@]} -ne 0 ]] || skip_test "No PGA control is available"
 
@@ -67,9 +67,8 @@ do
     setup_kernel_check_point
     dlogi "===== Round($i/$maxloop) ====="
     # TODO: need to check command effect
-    for kctl in "${pgalist[@]}"
+    for volctrl in "${pgalist[@]}"
     do
-        volctrl=$(echo "$kctl" | sed 's/_/ /g;')
         dlogi "$volctrl"
 
         for vol in "${volume_array[@]}"; do
