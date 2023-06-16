@@ -742,11 +742,14 @@ logger_disabled()
 {
     local ldcFile
     # Some firmware/OS configurations do not support logging.
-    ldcFile=$(find_ldc_file) || {
-        dlogi '.ldc dictionary file not found, SOF logs collection disabled'
-        return 0 # 0 is 'true'
-    }
-
+    # mtrace doesn't require ldc file on IPC4-Zephyr platforms.
+    if ! is_ipc4; then
+        ldcFile=$(find_ldc_file) || {
+            dlogi '.ldc dictionary file not found, SOF logs collection disabled'
+            return 0 # 0 is 'true'
+        }
+    fi
+ 
     # Disable logging when available...
     if [ ${OPT_VAL['s']} -eq 0 ]; then
         return 0
