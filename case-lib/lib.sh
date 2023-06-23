@@ -77,6 +77,15 @@ start_test()
         return 0
     }
 
+    if test -z "$MAX_WAIT_FW_LOADING"; then
+        local _pltf; _pltf=$("$SCRIPT_HOME/tools/sof-dump-status.py" -p)
+        case "$_pltf" in
+            # broken i915 with long timeout, see comments in config.sh
+            mtl) MAX_WAIT_FW_LOADING=70;;
+            *)   MAX_WAIT_FW_LOADING=10;; # more than enough
+        esac
+    fi
+
     # Check for whether SOF fW is loaded or not before starting any test.
     # Only start the polling for firmware boot complete when SOF soundcard is not available
     # setup_kernel_check_point has already -1 second to avoid TOCTOU race condition

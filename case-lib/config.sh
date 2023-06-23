@@ -99,4 +99,6 @@ ENABLE_STORAGE_CHECKS=${ENABLE_STORAGE_CHECKS:-0}
 # Set MAX Polling time to check FW Loading. If FW is already loaded, it will
 # return immediately. Default value is set to 60 seconds, because i915 driver
 # timeout is 60 seconds.
-MAX_WAIT_FW_LOADING=${MAX_WAIT_FW_LOADING:-70}
+
+# The default value is defined in case-lib/lib.sh. You can preempt it here:
+# MAX_WAIT_FW_LOADING=${MAX_WAIT_FW_LOADING:-90}
