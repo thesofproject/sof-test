@@ -28,6 +28,8 @@ OPT_HAS_ARG['l']=1         OPT_VAL['l']=2
 OPT_NAME['s']='sof-logger'   OPT_DESC['s']="Open sof-logger trace the data will store at $LOG_ROOT"
 OPT_HAS_ARG['s']=0             OPT_VAL['s']=1
 
+set -e
+
 func_opt_parse_option "$@"
 setup_kernel_check_point
 tplg=${OPT_VAL['t']}
@@ -86,7 +88,7 @@ do
 done
 
 #clean up background aplay
-pkill -9 aplay
+pkill -9 aplay || true
 
 dlogi "Reset all PGA volume to 0dB"
 reset_sof_volume || die "Failed to reset some PGA volume to 0dB."
