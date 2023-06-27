@@ -61,6 +61,8 @@ sleep 1
 
 sofcard=${SOFCARD:-0}
 readarray -t pgalist < <(amixer -c"$sofcard" controls | awk -Fname= 'toupper($2) ~ /PGA/ { print $2 }')
+# This (1) provides some logging (2) avoids skip_test if amixer fails
+amixer -c"$sofcard" controls
 dlogi "pgalist number = ${#pgalist[@]}"
 [[ ${#pgalist[@]} -ne 0 ]] || skip_test "No PGA control is available"
 
