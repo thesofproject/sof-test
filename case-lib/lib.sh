@@ -709,7 +709,10 @@ is_zephyr()
 get_firmware_path()
 {
     journalctl_cmd -k |
-        awk '/sof.*request_firmware/ { sub(/^.*request_firmware/,""); last_loaded_file=$1 } END { print last_loaded_file }'
+        awk '/sof.*[[:blank:]]request_firmware[[:blank:]]/ {
+               sub(/^.*request_firmware/,""); last_loaded_file=$1
+             }
+         END { print last_loaded_file }'
 }
 
 is_firmware_file_zephyr()
