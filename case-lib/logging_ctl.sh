@@ -64,7 +64,7 @@ _func_log_directory()
     : "${SOF_LOGS_BASE:=${SCRIPT_HOME}}"
 
     local case_name log_dir timetag
-    case_name=$(basename "$SCRIPT_NAME")
+    case_name=$(basename -- "$SCRIPT_NAME")
     case_name=${case_name%.*}
     log_dir="${SOF_LOGS_BASE}/logs/$case_name"
     timetag=$(date +%F"-"%T)"-$RANDOM"
