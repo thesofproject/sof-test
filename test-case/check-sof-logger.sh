@@ -328,7 +328,7 @@ main()
 
     for f in "${stdout_files[@]}"; do
         local tracef="$LOG_ROOT/logger.$f.txt"
-        check_error_in_file "$tracef" || {
+        check_error_in_fw_logfile "$tracef" || {
             OK=false; printf '\n'
         }
     done

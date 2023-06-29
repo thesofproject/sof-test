@@ -416,7 +416,7 @@ func_lib_start_log_collect()
 
 }
 
-check_error_in_file()
+check_error_in_fw_logfile()
 {
     local platf; platf=$(sof-dump-status.py -p)
 
