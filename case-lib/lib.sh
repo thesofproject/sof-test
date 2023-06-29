@@ -870,4 +870,8 @@ reset_sof_volume()
     done
 }
 
-start_test
+# Invoke start_test() only when we're sourced by just one other file
+# level. Not when sourced interactively and not when run as a "subtest".
+if [ "${#BASH_SOURCE[@]}" -eq 2 ]; then
+    start_test
+fi
