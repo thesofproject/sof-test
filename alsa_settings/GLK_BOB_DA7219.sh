@@ -6,13 +6,13 @@ amixer -c sofglkda7219max cset name='Headphone Volume' 54
 amixer -c sofglkda7219max cset name='Headphone Switch' 1
 amixer -c sofglkda7219max cset name='Headphone ZC Gain Switch' 0
 amixer -c sofglkda7219max cset name='Headphone Jack Switch' 1
-amixer -c sofglkda7219max cset name='Playback Digital Volume' 111 111
+amixer -c sofglkda7219max cset name='Playback Digital Volume' 111
 amixer -c sofglkda7219max cset name='Playback Digital Switch' 1
 amixer -c sofglkda7219max cset name='Playback Digital Gain Ramp Switch' 1
 amixer -c sofglkda7219max cset name='Out DACR Mux' 3
 amixer -c sofglkda7219max cset name='Out DAIR Mux' 0
 amixer -c sofglkda7219max cset name='Mixer Out FilterL DACL Switch' 1
-amixer -c sofglkda7219max cset name='Mixer Out FilterR DACR Switch' 1 10
+amixer -c sofglkda7219max cset name='Mixer Out FilterR DACR Switch' 1
 amixer -c sofglkda7219max cset name='PGA1.0 1 Master Playback Volume' 32
 
 # set HDMI volume
