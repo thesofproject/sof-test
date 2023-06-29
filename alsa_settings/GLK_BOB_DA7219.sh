@@ -2,7 +2,7 @@ set -e
 
 # enable headset playback
 amixer -c sofglkda7219max cset name='Headphone Gain Ramp Switch' 1
-amixer -c sofglkda7219max cset name='Headphone Volume' 35 35
+amixer -c sofglkda7219max cset name='Headphone Volume' 54
 amixer -c sofglkda7219max cset name='Headphone Switch' 1
 amixer -c sofglkda7219max cset name='Headphone ZC Gain Switch' 0
 amixer -c sofglkda7219max cset name='Headphone Jack Switch' 1
