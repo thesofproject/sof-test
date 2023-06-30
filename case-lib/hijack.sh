@@ -110,6 +110,18 @@ function func_exit_handler()
                 dloge "Empty logfile"
                 exit_status=1
             fi
+
+            # We still have some false positives in stable-v2.2 for now, see
+            # https://github.com/thesofproject/sof-test/pull/1075
+            # https://github.com/thesofproject/sof/pull/9036
+            # etc.
+            if is_firmware_file_zephyr; then
+
+              check_error_in_fw_logfile "$logfile" ||
+                exit_status=1
+
+            fi
+
         else
             dloge "Log file not found: $logfile"
             exit_status=1
