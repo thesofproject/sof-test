@@ -8,6 +8,8 @@ function func_exit_handler()
 {
     local exit_status=${1:-0}
 
+    dlogi "Starting func_exit_handler($exit_status)"
+
     # call trace
     if [ "$exit_status" -ne 0 ] ; then
         dloge "Starting ${FUNCNAME[0]}(), exit status=$exit_status, FUNCNAME stack:"
@@ -86,22 +88,6 @@ function func_exit_handler()
             exit_status=1
         fi
 
-        if test -e "$logfile"; then
-
-            wcLog=$(wc -l "$logfile") # show both line count and filename
-            dlogi "nlines=$wcLog"
-
-            local nlines; nlines=$(wc -l < "$logfile") # line count only
-            # The first line is the sof-logger header
-            if [ "$nlines" -le 1 ]; then
-                dloge "Empty logger trace"
-                exit_status=1
-            fi
-        else
-            dloge "Log file not found: $logfile"
-            exit_status=1
-        fi
-
     fi
 
     if [ "$SOF_LOGGING" != 'none' ] && is_ipc4 && is_firmware_file_zephyr; then
@@ -111,6 +97,24 @@ function func_exit_handler()
             dloge "mtrace-reader.py was already dead"
             exit_status=1
         }
+    fi
+
+    # Check $logfile when there is one
+    if [ -n "$logfile" ]; then
+        if test -e "$logfile"; then
+            wcLog=$(wc -l "$logfile")  # show both line count and filename
+            dlogi  "nlines=$wcLog"
+
+            local nlines; nlines=$(wc -l < "$logfile")  # line count only
+            # The first line is the sof-logger banner
+            if [ "$nlines" -le 1 ]; then
+                dloge "Empty logfile"
+                exit_status=1
+            fi
+        else
+            dloge "Log file not found: $logfile"
+            exit_status=1
+        fi
     fi
 
     stop_test || exit_status=1
