@@ -89,15 +89,13 @@ start_test()
     # Check for whether SOF fW is loaded or not before starting any test.
     # Only start the polling for firmware boot complete when SOF soundcard is not available
     # setup_kernel_check_point has already -1 second to avoid TOCTOU race condition
-    is_sof_used || {
-    if [ -z "$NO_POLL_FW_LOADING" ]; then
+    [ -n "$NO_POLL_FW_LOADING" ] || is_sof_used || {
         setup_kernel_check_point
         if poll_wait_for 1 "$MAX_WAIT_FW_LOADING" sof_firmware_boot_complete --since=@"$KERNEL_CHECKPOINT"; then
             dlogi "Good to start the test, FW is loaded!"
         else
             die "FW is not loaded for $MAX_WAIT_FW_LOADING"
         fi
-    fi
     }
 
     export SOF_TEST_TOP_PID="$$"
