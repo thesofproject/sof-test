@@ -321,7 +321,7 @@ find_ldc_file()
 
 func_mtrace_collect()
 {
-    local clogfile=$LOG_ROOT/mtrace.txt
+    local clogfile="$1"
 
     if [ -z "$MTRACE" ]; then
         MTRACE=$(command -v mtrace-reader.py) || {
@@ -330,8 +330,8 @@ func_mtrace_collect()
         }
     fi
 
-    local mtraceCmd="$MTRACE"
-    dlogi "Starting ${mtraceCmd[*]}"
+    local mtraceCmd=("$MTRACE")
+    dlogi "Starting ${mtraceCmd[*]} >& $clogfile &"
     # Cleaned up by func_exit_handler() in hijack.sh
     # shellcheck disable=SC2024
     sudo "${mtraceCmd[@]}" >& "$clogfile" &
@@ -358,7 +358,7 @@ func_sof_logger_collect()
     # The logger does not like empty '' arguments and $logopt can be
     # shellcheck disable=SC2206
     local loggerCmd=("$SOFLOGGER" $logopt -l "$ldcFile")
-    dlogi "Starting ${loggerCmd[*]}"
+    dlogi "Starting ${loggerCmd[*]} > $logfile &"
     # Cleaned up by func_exit_handler() in hijack.sh
     # shellcheck disable=SC2024
     sudo "${loggerCmd[@]}" > "$logfile" &
@@ -398,7 +398,8 @@ func_lib_start_log_collect()
 
     if [ "X$is_etrace" == "X0" ]; then
         if is_ipc4 && is_firmware_file_zephyr; then
-            func_mtrace_collect
+            logfile="$LOG_ROOT"/mtrace.txt
+            func_mtrace_collect "$logfile"
         else
             log_file=$LOG_ROOT/slogger.txt
             log_opt="-t"
