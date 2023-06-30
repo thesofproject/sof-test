@@ -111,6 +111,10 @@ function func_exit_handler()
                 dloge "Empty logfile"
                 exit_status=1
             fi
+
+            check_error_in_fw_logfile "$logfile" ||
+                exit_status=1
+
         else
             dloge "Log file not found: $logfile"
             exit_status=1
