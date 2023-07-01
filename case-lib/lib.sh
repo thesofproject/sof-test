@@ -529,7 +529,10 @@ check_error_in_fw_logfile()
     if (set -x
         grep -B 2 -A 1 -i --word-regexp -e 'ERR' -e 'ERROR' -e '<err>' "$1"
        ); then
-       return 1
+        # See internal Intel bug #448
+        dlogw 'An HTML display bug hides the bracketed Zephyr &lt;loglevels&gt; in this tab,'
+        dlogw 'switch to the tab with the complete logs to see the log levels.'
+        return 1
     fi
 }
 
