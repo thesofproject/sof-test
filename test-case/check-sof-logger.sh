@@ -76,10 +76,10 @@ run_loggers()
     # the same time, so $data_file will hopefully not be long.
     local collect_secs=2
 
-    if is_zephyr; then
+    if is_ipc4; then
         # Collect logs from Zephyr logging backends
 
-        if is_ipc4 ; then
+        if is_firmware_file_zephyr; then
             # Get logs via SOF kernel IPC4 SRAM logging interfaces (mtrace)
 
             if [ -z "$MTRACE" ]; then
@@ -95,23 +95,10 @@ run_loggers()
             sudo timeout -k 3 "$collect_secs" \
                  "$mtracetool" > "$etrace_file" 2> "$etrace_stderr_file" & mtracetoolPID=$!
         else
-            # SOF kernel IPC3 SRAM logging interface (etrace)
-
-            local cavstool
-            cavstool=$(type -p cavstool.py)
-
-            dlogi "Trying to get Zephyr logs from etrace with background $cavstool ..."
-            dlogc \
-                "sudo  $cavstool  --log-only >  $etrace_file  2>&1"
-            # Firmware messages are on stdout and local messages on
-            # stderr. Merge them and then grep ERROR below.
-            # shellcheck disable=SC2024
-            sudo timeout -k 3 "$collect_secs" \
-                 "$cavstool" --log-only > "$etrace_file" 2>&1 & cavstoolPID=$!
+            dlogi 'IPC4 FW logging only support with SOF Zephyr build'
+            return 0
         fi
-    fi
-
-    if ! is_ipc4 ; then
+    else
         # Sof-logger DMA logging (IPC3 only)
 
         dlogi "Trying to get the DMA .ldc trace log with background sof-logger ..."
@@ -136,7 +123,7 @@ run_loggers()
         }
     fi
 
-    if is_zephyr; then
+    if is_firmware_file_zephyr; then
         # Zephyr logging backends
 
         if is_ipc4 ; then
@@ -180,7 +167,6 @@ run_loggers()
 
         return $etrace_exit
     fi
-
     # XTOS IPC4 case
     return 0
 }
