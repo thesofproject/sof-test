@@ -752,16 +752,6 @@ is_ipc4()
 logger_disabled()
 {
     local ldcFile
-    # Some firmware/OS configurations do not support logging.
-    ldcFile=$(find_ldc_file) || {
-        dlogi '.ldc dictionary file not found, SOF logs collection disabled'
-        return 0 # 0 is 'true'
-    }
-
-    # Disable logging when available...
-    if [ ${OPT_VAL['s']} -eq 0 ]; then
-        return 0
-    fi
 
     # ... across all tests at once.
     # In the future we should support SOF_LOGGING=etrace (only), see
@@ -771,12 +761,20 @@ logger_disabled()
         return 0
     fi
 
-    if is_ipc4 && ! is_firmware_file_zephyr; then
-        dlogi 'IPC4 FW logging only support with SOF Zephyr build'
-        dlogi 'SOF logs collection is globally disabled.'
-        return 0
+    if is_ipc4; then
+        is_firmware_file_zephyr || {
+            dlogi 'IPC4 FW logging only support with SOF Zephyr build'
+            dlogi 'SOF logs collection is globally disabled.'
+            return 0
+        }
+    else
+        ldcFile=$(find_ldc_file) || {
+            dlogi '.ldc dictionary file not found, SOF logs collection disabled'
+            return 0 # 0 is 'true'
+        }
     fi
 
+    # return 1 means run tests with logging.
     return 1
 }
 
