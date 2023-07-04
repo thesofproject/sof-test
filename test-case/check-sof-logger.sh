@@ -3,7 +3,7 @@
 ##
 ## Case Name: check-sof-logger
 ## Preconditions:
-##    sof-logger, cavstool.py and mtrace-reader.py installed in system path
+##    sof-logger and mtrace-reader.py installed in system path
 ##    dictionary (ldc) file is in /etc/sof/ or /lib/firmware
 ##
 ## Description:
@@ -137,15 +137,8 @@ run_loggers()
             }
         else
             # SOF kernel IPC3 SRAM logging interface (etrace)
-
-            loggerStatus=0; wait "$cavstoolPID" || loggerStatus=$?
-            test "$loggerStatus" -eq 124 || {
-                cat "$error_file"
-                die "timeout $cavstool returned unexpected: $loggerStatus"
-            }
-            ( set -x
-              grep -i ERROR "$etrace_file" > "$etrace_stderr_file"
-            ) || true
+            dlogi 'IPC3 Zephyr built FW is no longer supported, EOL.'
+            return 0
         fi
 
         # All Zephyr backends checked at this point, we can return
@@ -242,7 +235,6 @@ main()
     fi
 
     reload_drivers
-    # cavstool is now racing against D3
     run_loggers
 
     local f
@@ -272,10 +264,6 @@ main()
             # mtrace
             # No specific tool banner, just check some logs are visible.
             tool_banner=' .*<.*>'
-            boot_banner='FW ABI.*tag.*zephyr'
-        elif is_zephyr && [ "$f" = 'etrace' ]; then
-            # cavstool
-            tool_banner=':cavs-fw:'
             boot_banner='FW ABI.*tag.*zephyr'
         else
             # sof-logger
