@@ -193,6 +193,8 @@ ignore_str="$ignore_str"'|acpi device:00: Failed to change power state to D3hot'
 # BugLink: https://github.com/thesofproject/sof-test/issues/374
 ignore_str="$ignore_str"'|i915 0000:00:02\.0: \[drm\] \*ERROR\* TC cold unblock failed'
 ignore_str="$ignore_str"'|i915 0000:00:02\.0: \[drm\] \*ERROR\* TC cold block failed'
+# Dell TGLH SIF 15 laptop. ignore CPU stepping warning
+ignore_str="$ignore_str"'|i915 0000:00:02\.0: \[drm\] \*ERROR\* This is a pre-production stepping. It may not be fully functional'
 # An error observed on ICL RVP: "[drm] *ERROR* CPU pipe A FIFO underrun"
 ignore_str="$ignore_str"'|\[drm\] \*ERROR\* CPU pipe . FIFO underrun'
 # BugLink: https://github.com/thesofproject/sof-test/issues/753
