@@ -1312,6 +1312,7 @@ Enables internal globbing mode: the single positional argument is not a file but
         else:
             files = [ Path(f) for f in cmd_args.filenames ]
 
+        errors = 0
         for f in files:
             tplg = GroupedTplg(tplgFormat.parse_file(f))
             if 'pcm' in dump_types:
@@ -1321,5 +1322,8 @@ Enables internal globbing mode: the single positional argument is not a file but
                 graph.show_core = cmd_args.show_core
                 graph.without_nodeinfo = cmd_args.without_nodeinfo
                 graph.draw(f.stem, outdir=cmd_args.directory, file_format=cmd_args.format, live_view=cmd_args.live_view)
+                errors += graph.errors
 
-    main()
+        return errors
+
+    sys.exit(main())
