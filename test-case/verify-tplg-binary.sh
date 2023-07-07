@@ -29,7 +29,7 @@ tplg=${OPT_VAL['t']}
 tplg_path=$(func_lib_get_tplg_path "$tplg") ||
     die "No available topology ($tplg) for this test case"
 
-dlogi "Checking topology file: $tplg_path"
+dlogi "Checking topology file: $tplg_path with sof-tplgreader.py"
 dlogi "Found file: $(md5sum "$tplg_path" | awk '{print $2, $1;}')"
 tplgData=$(sof-tplgreader.py "$tplg_path") ||
     die "No valid pipeline(s) found in $tplg_path"
@@ -39,4 +39,15 @@ echo "===========================>>"
 echo "$tplgData"
 echo "<<==========================="
 
-exit 0
+main()
+{
+    # This one can find more problems, see sof-test#1054
+    dlogi "Checking topology file with tplgtool2.py: $tplg_path"
+    tplgtool2.py -D /tmp/ "$tplg_path" || {
+        ret=$?
+        die "tplgtool2.py returned $ret"
+    }
+}
+
+main
+
