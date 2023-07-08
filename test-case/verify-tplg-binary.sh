@@ -43,7 +43,8 @@ main()
 {
     # This one can find more problems, see sof-test#1054
     dlogi "Checking topology file with tplgtool2.py: $tplg_path"
-    tplgtool2.py -D /tmp/ "$tplg_path" || {
+    ( set -x
+      tplgtool2.py -D /tmp/ "$tplg_path" ) || {
         ret=$?
         die "tplgtool2.py returned $ret"
     }
