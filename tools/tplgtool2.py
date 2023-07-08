@@ -1246,8 +1246,8 @@ Enables internal globbing mode: the single positional argument is not a file but
 --tplgroot, see below. To pass multiple patterns use "," to separate them.""")
         # The below options are used to control generated graph
         parser.add_argument('-D', '--directory', type=str, default=".", help="output directory for generated graph")
-        parser.add_argument('-F', '--format', type=str, default="png", help="output format for generated graph, check "
-            "https://graphviz.gitlab.io/_pages/doc/info/output.html for all supported formats")
+        parser.add_argument('-F', '--format', type=str, default="png", help="output format for generated graph, defaults to 'png'."
+            "check https://graphviz.gitlab.io/_pages/doc/info/output.html for all supported formats")
         parser.add_argument('-V', '--live_view', action="store_true", help="generate and view topology graph")
         parser.add_argument('-w', '--without_nodeinfo', action="store_true", help="show only widget names, no additional node info ")
         parser.add_argument('-c', '--show_core', choices=['never', 'auto', 'always'], default='auto',
