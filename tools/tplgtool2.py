@@ -738,8 +738,8 @@ class GroupedTplg:
 
     @cached_property
     def coreids(self):
-        "All available core IDs."
-        cores = set()
+        "Core 0 is the default value."
+        cores = {0}
         for widget in self.widget_list:
             core = self.get_core_id(widget)
             if core is not None:
