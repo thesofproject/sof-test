@@ -742,13 +742,15 @@ class GroupedTplg:
         cores = set()
         for widget in self.widget_list:
             core = self.get_core_id(widget)
-            if core is not None:
+            if core is None:
+                cores.add(-1) # placeholder for the lack of core ID
+            else:
                 cores.add(core)
         return cores
 
     @cached_property
-    def is_multicore(self):
-        "Check if this topology is a multi-core topology."
+    def has_core_differences(self):
+        "Check whether this topology uses more than one coreID"
         return len(self.coreids) > 1
 
 class TplgGraph:
@@ -916,8 +918,11 @@ class TplgGraph:
         if not self.without_nodeinfo:
             sublabel = self.node_sublabel(widget)
         core = GroupedTplg.get_core_id(widget)
-        if core is not None and (self.show_core == 'always' or (self.show_core == 'auto' and self._tplg.is_multicore)):
-            sublabel2 += f'<BR ALIGN="CENTER"/><SUB>core:{core}</SUB>'
+        if core is not None:
+            if self.show_core == 'always' or (
+                self.show_core == 'auto' and self._tplg.has_core_differences
+            ):
+                sublabel2 += f'<BR ALIGN="CENTER"/><SUB>core:{core}</SUB>'
         display_name = name
         wname = widget.widget.name
         # See the *_NUM_REGEX above
@@ -1252,9 +1257,12 @@ Enables internal globbing mode: the single positional argument is not a file but
         parser.add_argument('-w', '--without_nodeinfo', action="store_true", help="show only widget names, no additional node info ")
         parser.add_argument('-c', '--show_core', choices=['never', 'auto', 'always'], default='auto',
             help="""control the display of component core ID in topology graph, there are 3 modes:
-* never: will never show core ID.
-* auto: will show core ID only if it is multi-core (default).
-* always: will always show core ID even for single-core topology.
+* never: never show core IDs.
+* auto: show core IDs only when components don't all have the same core ID.
+* always: always show core IDs
+
+For this display option, components that don't specify any core ID are
+considered different from components that specific core ID 0.
 """)
 
         return parser.parse_args()
