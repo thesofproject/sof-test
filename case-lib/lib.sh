@@ -290,7 +290,23 @@ fake_kern_error()
 
 }
 
-# Prints the .ldc file found on stdout, errors on stderr.
+get_ldc_subdir()
+{
+    local subdir='intel/sof' # default
+    if test -e /sys/module/snd_sof_pci/parameters/fw_path; then
+        local fw_path
+        fw_path=$(cat /sys/module/snd_sof_pci/parameters/fw_path)
+        if [ "$fw_path" != '(null)' ]; then
+            subdir=${fw_path%/} # strip any trailing slash
+            subdir=${subdir%/community}
+            subdir=${subdir%/intel-signed}
+            subdir=${subdir%/dbgkey}
+        fi
+    fi
+    printf '%s' "$subdir"
+}
+
+# Prints the .ldc file found on stdout, logs on stderr.
 find_ldc_file()
 {
     local ldcFile
@@ -306,8 +322,10 @@ find_ldc_file()
             return 1
         }
         ldcFile=/etc/sof/sof-"$platf".ldc
-        [ -e "$ldcFile" ] ||
-            ldcFile=/lib/firmware/intel/sof/sof-"$platf".ldc
+        [ -e "$ldcFile" ] || {
+            local subdir; subdir=$(get_ldc_subdir)
+            ldcFile=/lib/firmware/"${subdir}"/sof-"$platf".ldc
+        }
     fi
 
     [[ -e "$ldcFile" ]] || {
