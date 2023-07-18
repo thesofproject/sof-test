@@ -144,7 +144,8 @@ run_loggers()
 
             loggerStatus=0; wait "$mtracetoolPID" || loggerStatus=$?
             test "$loggerStatus" -eq 124 || {
-                cat "$error_file"
+                cat "$etrace_file"
+                cat "$etrace_stderr_file"
                 die "timeout $mtracetool returned unexpected: $loggerStatus"
             }
         else
