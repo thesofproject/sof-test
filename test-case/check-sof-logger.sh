@@ -76,7 +76,7 @@ run_loggers()
     # the same time, so $data_file will hopefully not be long.
     local collect_secs=2
 
-    if is_zephyr; then
+    if is_firmware_file_zephyr; then
         # Collect logs from Zephyr logging backends
 
         if is_ipc4 ; then
@@ -136,7 +136,7 @@ run_loggers()
         }
     fi
 
-    if is_zephyr; then
+    if is_firmware_file_zephyr; then
         # Zephyr logging backends
 
         if is_ipc4 ; then
@@ -281,12 +281,12 @@ main()
         test -e "$tracef" || die "$tracef" not found
 
         local tool_banner boot_banner
-        if is_ipc4 && is_zephyr && [ "$f" = 'etrace' ]; then
+        if is_ipc4 && is_firmware_file_zephyr && [ "$f" = 'etrace' ]; then
             # mtrace
             # No specific tool banner, just check some logs are visible.
             tool_banner=' .*<.*>'
             boot_banner='FW ABI.*tag.*zephyr'
-        elif is_zephyr && [ "$f" = 'etrace' ]; then
+        elif is_firmware_file_zephyr && [ "$f" = 'etrace' ]; then
             # cavstool
             tool_banner=':cavs-fw:'
             boot_banner='FW ABI.*tag.*zephyr'
