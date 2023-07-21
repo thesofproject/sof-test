@@ -2,7 +2,13 @@
 
 SUDO_CMD=$(command -v sudo)
 
-trap 'func_exit_handler $?' EXIT
+# Register cleanup callback only when we're sourced by lib.sh itself
+# sourced by just other file level. Not when sourced interactively and
+# not when run as a "subtest".
+if [ "${#BASH_SOURCE[@]}" -eq 3 ]; then
+    trap 'func_exit_handler $?' EXIT
+fi
+
 # Overwrite other functions' exit to perform environment cleanup
 function func_exit_handler()
 {
