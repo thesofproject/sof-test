@@ -43,8 +43,15 @@ do
     dev=$(func_pipeline_parse_value "$idx" dev)
     snd=$(func_pipeline_parse_value "$idx" snd)
 
-    dlogc "speaker-test -D $dev -r $rate -c $channel -f $fmt -l $tcnt -t wav -P 8"
-    speaker-test -D "$dev" -r "$rate" -c "$channel" -f "$fmt" -l "$tcnt" -t wav -P 8 2>&1 |tee "$LOG_ROOT"/result_"$idx".txt
+    # speaker-test only supports wav for 48 kHz test, pink noise works for all rates
+    if [ "$rate" = "48000" ]; then
+	sound_type="wav"
+    else
+	sound_type="pink"
+    fi
+
+    dlogc "speaker-test -D $dev -r $rate -c $channel -f $fmt -l $tcnt -t $sound_type -P 8"
+    speaker-test -D "$dev" -r "$rate" -c "$channel" -f "$fmt" -l "$tcnt" -t "$sound_type" -P 8 2>&1 |tee "$LOG_ROOT"/result_"$idx".txt
     resultRet=${PIPESTATUS[0]}
 
     if grep -nr -E "error|failed" "$LOG_ROOT"/result_"$idx".txt ||
