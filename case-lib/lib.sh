@@ -890,4 +890,30 @@ reset_sof_volume()
     done
 }
 
+DO_PERF_ANALYSIS=0
+
+perf_analyze()
+{
+    local perf_cmd
+
+    [ "X$DO_PERF_ANALYSIS" == "X1" ] || return 0
+
+    dlogi "Checking SOF component performance"
+    if [ -e "$LOG_ROOT/mtrace.txt" ]; then
+        if [ -e "$LOG_ROOT/dmesg.txt" ]; then
+            perf_cmd="sof_perf_analyzer.py --kmsg=$LOG_ROOT/dmesg.txt $LOG_ROOT/mtrace.txt"
+        else
+            perf_cmd="sof_perf_analyzer.py $LOG_ROOT/mtrace.txt"
+        fi
+        dlogc "$perf_cmd"
+        eval "$perf_cmd" || {
+            dloge "SOF component performace analysis tool exit with error"
+            return 1
+        }
+    else
+        dloge "Firmware trace file not found"
+        return 1
+    fi
+}
+
 start_test
