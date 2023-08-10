@@ -168,6 +168,14 @@ function func_exit_handler()
         exit_status=$ret
     fi
 
+    # Only do performance analysis on test passed
+    [ "x$exit_status" != "x0" ] || {
+        # On performance analysis return error, set exit code
+        if ! perf_analyze; then
+           exit_status=1
+        fi
+    }
+
     # We must always print some 'Test Result' otherwise some callers
     # will time out. These strings must match (at least) Jenkins'
     # expectations, see internal sof-framework/clsTestCase.py
