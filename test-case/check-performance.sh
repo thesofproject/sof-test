@@ -47,6 +47,9 @@ setup_kernel_check_point
 func_lib_check_sudo
 func_pipeline_export "$tplg" "type:any"
 
+aplay_num=0
+arecord_num=0
+
 for idx in $(seq 0 $((PIPELINE_COUNT - 1)))
 do
         channel=$(func_pipeline_parse_value "$idx" channel)
@@ -62,10 +65,23 @@ do
         dlogi "Running (PCM: $pcm [$dev]<$type>) in background"
         if [ "$type" == "playback" ]; then
             aplay_opts -D "$dev" -c "$channel" -r "$rate" -f "$fmt" -d "$duration" /dev/zero -q &
+            aplay_num=$((aplay_num+1))
         else
             arecord_opts -D "$dev" -c "$channel" -r "$rate" -f "$fmt" -d "$duration" /dev/null -q &
+            arecord_num=$((arecord_num+1))
         fi
 done
+
+sleep 1 # waiting stable streaming of aplay/arecord
+dlogi "Number of aplay/arecord process started: $aplay_num, $arecord_num"
+
+real_aplay_num=$(ps --no-headers -C aplay | wc -l)
+real_arecord_num=$(ps --no-headers -C arecord | wc -l)
+if [ "$real_aplay_num" != "$aplay_num" ] || [ "$real_arecord_num" != "$arecord_num" ];
+then
+    dlogi "Number of aplay/arecord process running: $real_aplay_num, $real_arecord_num"
+    die "aplay/arecord process exit unexpectedly"
+fi
 
 dlogi "Waiting for aplay/arecord process to exit"
 sleep $((duration + 2))
