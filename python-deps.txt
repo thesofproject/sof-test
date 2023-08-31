@@ -5,3 +5,4 @@ python3-graphviz
 python3-construct
 python3-pytest
 python3-pandas
+python3-matplotlib
