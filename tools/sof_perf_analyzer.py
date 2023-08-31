@@ -45,7 +45,7 @@ class TraceItem:
 class Component:
     '''The identifier for a SOF audio component'''
     ppln_id: str
-    comp_id: str
+    comp_id: int
 
 @dataclass(frozen=True)
 class CompPerfSample:
@@ -99,9 +99,10 @@ def collect_perf_info(trace_item: TraceItem):
     '''
     msg = trace_item.msg.split()
     ppln_id = msg[0].split(':')[1]
+    comp_id = int(msg[1], 16)
     perf_val = int(msg[5]), int(msg[7]), int(msg[10]), int(msg[12])
     perf_sample = CompPerfSample(trace_item.timestamp, *perf_val)
-    comp_perf_info_list = perf_info.setdefault(Component(ppln_id, msg[1]), [])
+    comp_perf_info_list = perf_info.setdefault(Component(ppln_id, comp_id), [])
     comp_perf_info_list.append(perf_sample)
 
 def dispatch_trace_item(trace_item: TraceItem):
@@ -215,7 +216,7 @@ def process_kmsg_file():
                 next_line = next(f)
                 widget_id = next_line.split('|')[0].split(':')[-1].strip()
                 # convert to the same ID format in mtrace
-                widget_id = '0x' + widget_id[:-6:-1]
+                widget_id = int('0x' + widget_id[-6:], 16)
                 component_name[Component(ppln_id, widget_id)] = widget_name
 
 def analyze_perf_info():
@@ -246,7 +247,7 @@ def print_perf_info():
             peak_cpu_peak_mcps = perf.peak_cpu_peak * TICK_TO_MCPS
 
             comp_name = component_name.get(comp, 'None')
-            comp_id = f'{comp.ppln_id}-{comp.comp_id}'
+            comp_id = f'{comp.ppln_id}-{comp.comp_id:#08x}'
             stat = stats_fmt.format(comp_name, comp_id, avg_cpu_avg_mcps, avg_cpu_peak_mcps,
                                     peak_cpu_avg_mcps, peak_cpu_peak_mcps)
             print(stat)
