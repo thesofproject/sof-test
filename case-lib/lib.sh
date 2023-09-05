@@ -901,9 +901,9 @@ perf_analyze()
     dlogi "Checking SOF component performance"
     if [ -e "$LOG_ROOT/mtrace.txt" ]; then
         if [ -e "$LOG_ROOT/dmesg.txt" ]; then
-            perf_cmd="sof_perf_analyzer.py --kmsg=$LOG_ROOT/dmesg.txt $LOG_ROOT/mtrace.txt"
+            perf_cmd="sof_perf_analyzer.py --kmsg=$LOG_ROOT/dmesg.txt --out2csv $LOG_ROOT/sof_perf.csv $LOG_ROOT/mtrace.txt "
         else
-            perf_cmd="sof_perf_analyzer.py $LOG_ROOT/mtrace.txt"
+            perf_cmd="sof_perf_analyzer.py --out2csv $LOG_ROOT/sof_perf.csv $LOG_ROOT/mtrace.txt"
         fi
         dlogc "$perf_cmd"
         eval "$perf_cmd" || {
