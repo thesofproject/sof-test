@@ -235,10 +235,17 @@ def analyze_perf_info():
         min_cpu_peak = min(cpu_peak_list)
         perf_stats[comp] = CompPerfStats(avg_cpu_avg, max_cpu_avg, min_cpu_avg,
                                          avg_cpu_peak, max_cpu_peak, min_cpu_peak)
+
+def output_to_csv(lines: list[str]):
+    '''Output SOF performance statistics to csv file'''
+    with open(args.out2csv, 'w', encoding='utf8') as f: # type: ignore[attr-defined]
+        f.writelines(lines)
+
 # pylint: disable=R0914
-def print_perf_info():
-    '''Output SOF trace performance statistics'''
+def format_perf_info() -> list[str] | None:
+    '''Format SOF trace performance statistics'''
     if len(perf_stats):
+        lines: list[str] = []
         max_name_len = max(len(name) for name in component_name.values())
         name_fmt = '{:>' + f'{max_name_len}' + '},'
         title_fmt = name_fmt + ' {:>10}, {:>12}, {:>12}, {:>12},'
@@ -246,7 +253,7 @@ def print_perf_info():
         title = title_fmt.format('COMP_NAME', 'COMP_ID', 'CPU_AVG(MIN)', 'CPU_AVG(AVG)',
                                  'CPU_AVG(MAX)', 'CPU_PEAK(MIN)', 'CPU_PEAK(AVG)', 'CPU_PEAK(MAX)',
                                  'PEAK(MAX)/AVG(AVG)')
-        print(title)
+        lines.append(title + '\n')
 
         stats_fmt = name_fmt + ' {:>10}, {:>12,.2f}, {:>12,.2f}, {:>12,.2f},'
         stats_fmt = stats_fmt + ' {:>13,.2f}, {:>13,.2f}, {:>13,.2f}, {:>18,.2f}'
@@ -265,7 +272,19 @@ def print_perf_info():
             stat = stats_fmt.format(comp_name, comp_id, min_cpu_avg_mcps, avg_cpu_avg_mcps,
                                     max_cpu_avg_mcps, min_cpu_peak_mcps, avg_cpu_peak_mcps,
                                     max_cpu_peak_mcps, peak_to_avg_ratio)
-            print(stat)
+            lines.append(stat + '\n')
+        return lines
+    return None
+
+def print_perf_info():
+    '''Format and output SOF performance info'''
+    lines = format_perf_info()
+    if lines is not None:
+        for line in lines:
+            print(line, end='')
+
+        if args.out2csv is not None:
+            output_to_csv(lines)
 
 def parse_args():
     '''Parse command line arguments'''
@@ -274,6 +293,8 @@ def parse_args():
     parser.add_argument('filename')
     parser.add_argument('--kmsg', type=pathlib.Path, required=False,
                         help='Kernel message file captured with journalctl or other log utility')
+    parser.add_argument('--out2csv', type=pathlib.Path, required=False,
+                    help='Output SOF performance statistics to csv file')
 
     return parser.parse_args()
 
