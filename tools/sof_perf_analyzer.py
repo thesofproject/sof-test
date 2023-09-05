@@ -59,10 +59,12 @@ class CompPerfSample:
 @dataclass(frozen=True)
 class CompPerfStats:
     '''The dataclass for SOF audio component statistics'''
-    avg_cpu_avg: float   # average of cpu average
-    avg_cpu_peak: float  # average of cpu peak
-    peak_cpu_avg: float  # peak of cpu average
-    peak_cpu_peak: float # peak of cpu peak
+    avg_cpu_avg: float  # average of cpu average
+    max_cpu_avg: float  # maximum of cpu average
+    min_cpu_avg: float  # minimum of cpu average
+    avg_cpu_peak: float # average of cpu peak
+    max_cpu_peak: float # maximum of cpu peak
+    min_cpu_peak: float # minimum of cpu peak
 
 # Currently, we don't have test case to test low-power mode, in which
 # the DSP may not operate in the maximum clock frequency. Let't hardcode
@@ -223,33 +225,46 @@ def analyze_perf_info():
     '''Calculate performance statistics from performance information'''
     for comp, perf_info_list in perf_info.items():
         len_perf_info = len(perf_info_list)
-        avg_cpu_avg = sum(e.cpu_avg for e in perf_info_list) / len_perf_info
-        avg_cpu_peak = sum(e.cpu_peak for e in perf_info_list) / len_perf_info
-        peak_cpu_avg = max(e.cpu_avg for e in perf_info_list)
-        peak_cpu_peak = max(e.cpu_peak for e in perf_info_list)
-        perf_stats[comp] = CompPerfStats(avg_cpu_avg, avg_cpu_peak, peak_cpu_avg, peak_cpu_peak)
-
+        cpu_avg_list = [e.cpu_avg for e in perf_info_list]
+        cpu_peak_list = [e.cpu_peak for e in perf_info_list]
+        avg_cpu_avg = sum(cpu_avg_list) / len_perf_info
+        max_cpu_avg = max(cpu_avg_list)
+        min_cpu_avg = min(cpu_avg_list)
+        avg_cpu_peak = sum(cpu_peak_list) / len_perf_info
+        max_cpu_peak = max(cpu_peak_list)
+        min_cpu_peak = min(cpu_peak_list)
+        perf_stats[comp] = CompPerfStats(avg_cpu_avg, max_cpu_avg, min_cpu_avg,
+                                         avg_cpu_peak, max_cpu_peak, min_cpu_peak)
+# pylint: disable=R0914
 def print_perf_info():
     '''Output SOF trace performance statistics'''
     if len(perf_stats):
         max_name_len = max(len(name) for name in component_name.values())
         name_fmt = '{:>' + f'{max_name_len}' + '},'
-        title_fmt = name_fmt + ' {:>10}, {:>15}, {:>15}, {:>15}, {:>16}'
-        title = title_fmt.format('COMP_NAME', 'COMP_ID', 'AVG_OF_CPU_AVG', 'AVG_OF_CPU_PEAK',
-                             'PEAK_OF_CPU_AVG', 'PEAK_OF_CPU_PEAK')
+        title_fmt = name_fmt + ' {:>10}, {:>12}, {:>12}, {:>12},'
+        title_fmt = title_fmt + ' {:>13}, {:>13}, {:>13}, {:>18}'
+        title = title_fmt.format('COMP_NAME', 'COMP_ID', 'CPU_AVG(MIN)', 'CPU_AVG(AVG)',
+                                 'CPU_AVG(MAX)', 'CPU_PEAK(MIN)', 'CPU_PEAK(AVG)', 'CPU_PEAK(MAX)',
+                                 'PEAK(MAX)/AVG(AVG)')
         print(title)
 
-        stats_fmt = name_fmt + ' {:>10}, {:>15,.2f}, {:>15,.2f}, {:>15,.2f}, {:>16,.2f}'
+        stats_fmt = name_fmt + ' {:>10}, {:>12,.2f}, {:>12,.2f}, {:>12,.2f},'
+        stats_fmt = stats_fmt + ' {:>13,.2f}, {:>13,.2f}, {:>13,.2f}, {:>18,.2f}'
         for comp, perf in perf_stats.items():
             avg_cpu_avg_mcps = perf.avg_cpu_avg * TICK_TO_MCPS
+            max_cpu_avg_mcps = perf.max_cpu_avg * TICK_TO_MCPS
+            min_cpu_avg_mcps = perf.min_cpu_avg * TICK_TO_MCPS
             avg_cpu_peak_mcps = perf.avg_cpu_peak * TICK_TO_MCPS
-            peak_cpu_avg_mcps = perf.peak_cpu_avg * TICK_TO_MCPS
-            peak_cpu_peak_mcps = perf.peak_cpu_peak * TICK_TO_MCPS
+            max_cpu_peak_mcps = perf.max_cpu_peak * TICK_TO_MCPS
+            min_cpu_peak_mcps = perf.min_cpu_peak * TICK_TO_MCPS
+
+            peak_to_avg_ratio = max_cpu_peak_mcps / avg_cpu_avg_mcps
 
             comp_name = component_name.get(comp, 'None')
             comp_id = f'{comp.ppln_id}-{comp.comp_id:#08x}'
-            stat = stats_fmt.format(comp_name, comp_id, avg_cpu_avg_mcps, avg_cpu_peak_mcps,
-                                    peak_cpu_avg_mcps, peak_cpu_peak_mcps)
+            stat = stats_fmt.format(comp_name, comp_id, min_cpu_avg_mcps, avg_cpu_avg_mcps,
+                                    max_cpu_avg_mcps, min_cpu_peak_mcps, avg_cpu_peak_mcps,
+                                    max_cpu_peak_mcps, peak_to_avg_ratio)
             print(stat)
 
 def parse_args():
