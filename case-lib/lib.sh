@@ -82,7 +82,11 @@ start_test()
         case "$_pltf" in
             # broken i915 with long timeout, see comments in config.sh
             mtl) MAX_WAIT_FW_LOADING=70;;
-            *)   MAX_WAIT_FW_LOADING=10;; # more than enough
+            # rt1011 i2c-10EC1011:00 needs 10 seconds on cml-hel-rt5682,
+            # see https://github.com/thesofproject/sof-test/pull/1095
+            cml) MAX_WAIT_FW_LOADING=13;;
+            # TODO: try to reduce this
+            *)   MAX_WAIT_FW_LOADING=10;;
         esac
     fi
 
