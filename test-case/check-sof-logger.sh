@@ -234,15 +234,11 @@ reload_drivers()
     # The DSP may unfortunately need multiple retries to boot, see
     # https://github.com/thesofproject/sof/issues/3395
     dlogi "Polling ${CARD_NODE}, waiting for DSP boot..."
-    for i in $(seq 1 "${MAX_WAIT_FW_LOADING}" ); do
-        if sudo test -e ${CARD_NODE} ; then
-            dlogi "Found ${CARD_NODE}."
-            break;
-        fi
-        sleep 1
-    done
-
-    test -e ${CARD_NODE} || die "DSP did not boot (node ${CARD_NODE})"
+    if poll_wait_for 1 "$MAX_WAIT_FW_LOADING" sudo test -e ${CARD_NODE} ; then
+        dlogi "Found ${CARD_NODE}."
+    else
+        die "DSP did not boot (node ${CARD_NODE})"
+    fi
 }
 
 main()
