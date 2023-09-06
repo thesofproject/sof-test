@@ -690,10 +690,10 @@ class GroupedTplg:
             return default
 
     @staticmethod
-    def get_core_id(widget: Container, default = None):
-        "Get widget core ID."
-        return GroupedTplg.get_priv_element(widget["widget"], SofVendorToken.SOF_TKN_COMP_CORE_ID, default)
-    
+    def get_widget_token_value(widget: Container, token: SofVendorToken, default = None):
+        "Get the value for specified token"
+        return GroupedTplg.get_priv_element(widget["widget"], token, default)
+
     @staticmethod
     def get_widget_uuid(widget: Container, default = None):
         "Get widget UUID."
@@ -741,7 +741,7 @@ class GroupedTplg:
         "All available core IDs."
         cores = set()
         for widget in self.widget_list:
-            core = self.get_core_id(widget)
+            core = self.get_widget_token_value(widget, SofVendorToken.SOF_TKN_COMP_CORE_ID)
             if core is None:
                 cores.add(-1) # placeholder for the lack of core ID
             else:
@@ -917,7 +917,7 @@ class TplgGraph:
         attr = {}
         if not self.without_nodeinfo:
             sublabel = self.node_sublabel(widget)
-        core = GroupedTplg.get_core_id(widget)
+        core = GroupedTplg.get_widget_token_value(widget, SofVendorToken.SOF_TKN_COMP_CORE_ID)
         if core is not None:
             if self.show_core == 'always' or (
                 self.show_core == 'auto' and self._tplg.has_core_differences
