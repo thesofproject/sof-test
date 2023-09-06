@@ -234,6 +234,7 @@ class SofVendorToken(enum.IntEnum):
     SOF_TKN_COMP_FORMAT = 402
     SOF_TKN_COMP_CORE_ID = 404
     SOF_TKN_COMP_UUID = 405
+    SOF_TKN_COMP_CPC = 406
     # sof_ssp_tokens
     SOF_TKN_INTEL_SSP_CLKS_CONTROL = 500
     SOF_TKN_INTEL_SSP_MCLK_ID = 501
@@ -923,6 +924,9 @@ class TplgGraph:
                 self.show_core == 'auto' and self._tplg.has_core_differences
             ):
                 sublabel2 += f'<BR ALIGN="CENTER"/><SUB>core:{core}</SUB>'
+        comp_cpc = GroupedTplg.get_widget_token_value(widget, SofVendorToken.SOF_TKN_COMP_CPC)
+        if comp_cpc is not None:
+            sublabel2 += f'<BR ALIGN="CENTER"/><SUB>cpc:{comp_cpc}</SUB>'
         display_name = name
         wname = widget.widget.name
         # See the *_NUM_REGEX above
