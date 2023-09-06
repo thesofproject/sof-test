@@ -120,15 +120,11 @@ def skip_to_first_trace(trace_item_gen: TraceItemGenerator) -> Optional[TraceIte
     test case due to mtrace is configured in deferred mode. This function consumes
     those traces from the generator, and return the first trace item of current test.
     '''
-    try:
-        while item := next(trace_item_gen):
-            # On test running, the SOF firmware is reloaded to DSP, timer is reset to 0.
-            # The first trace must have a timestamp with integral part equals to 0.
-            if int(item.timestamp) == 0:
-                return item
-    except StopIteration:
-        return None
-    return None
+    while item := next(trace_item_gen):
+        # On test running, the SOF firmware is reloaded to DSP, timer is reset to 0.
+        # The first trace must have a timestamp with integral part equals to 0.
+        if int(item.timestamp) == 0:
+            return item
 
 def make_trace_item(fileio: TextIO) -> TraceItemGenerator:
     '''Filter and parse a line of trace in string form into TraceItem object, for example:
@@ -169,9 +165,15 @@ def process_trace_file():
     '''The top-level caller for processing the trace file'''
     with open(args.filename, 'r', encoding='utf8') as file:
         trace_item_gen = make_trace_item(file)
-        trace_prev = skip_to_first_trace(trace_item_gen)
-        if trace_prev is None:
-            raise Exception('No valid trace in provided file')
+        trace_prev = None
+        try:
+            if args.skip_to_first_trace:
+                trace_prev = skip_to_first_trace(trace_item_gen)
+            else:
+                trace_prev = next(trace_item_gen)
+        except StopIteration as si:
+            si.args = ('No valid trace in provided file',)
+            raise
         for trace_curr in trace_item_gen:
             # pylint: disable=W0603
             global ts_shift
@@ -295,6 +297,11 @@ def parse_args():
                         help='Kernel message file captured with journalctl or other log utility')
     parser.add_argument('--out2csv', type=pathlib.Path, required=False,
                     help='Output SOF performance statistics to csv file')
+    parser.add_argument('-s', '--skip-to-first-trace', action="store_true",  default=False,
+                        help='''In CI test, some traces from previous test case will appear in
+the mtrace of current test case, this flag is used to denote if we
+want to skip until the first line with a timestamp between 0 and 1s.
+For CI test, set the flag to True''')
 
     return parser.parse_args()
 
