@@ -26,7 +26,6 @@ import re
 import pathlib
 import argparse
 from typing import TextIO
-from typing import Optional
 from typing import Generator
 from dataclasses import dataclass
 
@@ -115,7 +114,7 @@ def dispatch_trace_item(trace_item: TraceItem):
     if trace_item.func == 'comp_copy':
         collect_perf_info(trace_item)
 
-def skip_to_first_trace(trace_item_gen: TraceItemGenerator) -> Optional[TraceItem]:
+def skip_to_first_trace(trace_item_gen: TraceItemGenerator):
     '''The current sof-test test case may collect some traces belonging to previous
     test case due to mtrace is configured in deferred mode. This function consumes
     those traces from the generator, and return the first trace item of current test.
