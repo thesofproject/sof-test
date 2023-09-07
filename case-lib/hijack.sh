@@ -115,6 +115,9 @@ function func_exit_handler()
             dloge "Log file not found: $logfile"
             exit_status=1
         fi
+
+        # decode dictionary based log formats (if needed)
+        func_lib_log_post_process
     fi
 
     stop_test || exit_status=1
