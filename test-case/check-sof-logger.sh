@@ -277,14 +277,22 @@ main()
     # then for the 'FW ABI' banner
     for f in "${stdout_files[@]}"; do
         local tracef="$LOG_ROOT/logger.$f.txt"
+        local syst_prefix="SYS-T RAW DATA:"
         test -e "$tracef" || die "$tracef" not found
 
         local tool_banner boot_banner
         if is_ipc4 && is_firmware_file_zephyr && [ "$f" = 'etrace' ]; then
             # mtrace
-            # No specific tool banner, just check some logs are visible.
-            tool_banner=' .*<.*>'
-            boot_banner='FW ABI.*tag.*zephyr'
+            if head -n 5 "$tracef" | grep -q "$syst_prefix" ; then
+                # MIPI Sys-T Catalog format, just search for Sys-T prefix
+                # that is available without decoding tools and collateral
+                tool_banner=$syst_prefix
+                boot_banner=$syst_prefix
+            else
+                # ascii mtrace, no specfic tool banner, just check for some logs
+                tool_banner=' .*<.*>'
+                boot_banner='FW ABI.*tag.*zephyr'
+            fi
         elif is_firmware_file_zephyr && [ "$f" = 'etrace' ]; then
             # cavstool
             tool_banner=':cavs-fw:'
