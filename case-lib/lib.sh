@@ -339,6 +339,27 @@ find_ldc_file()
     printf '%s' "$ldcFile"
 }
 
+# Prints the syst collateal file found on stdout, logs on stderr.
+find_syst_dict_file()
+{
+    local dict_file
+
+    if [ -n "$SOFSYST" ]; then
+        dict_file="$SOFSYST"
+        >&2 dlogi "SOFSYST=${SOFSYST} overriding default locations"
+    else
+        # reuse LDC logic to set subdir
+        local subdir; subdir=$(get_ldc_subdir)
+        dict_file=/lib/firmware/"${subdir}"/mipi_syst_collateral.xml
+    fi
+
+    [[ -e "$dict_file" ]] || {
+        >&2 dlogi "MIPI Sys-T Collateral file $dict_file not found"
+        return 1
+    }
+    printf '%s' "$dict_file"
+}
+
 func_mtrace_collect()
 {
     local clogfile="$1"
@@ -355,6 +376,44 @@ func_mtrace_collect()
     # Cleaned up by func_exit_handler() in hijack.sh
     # shellcheck disable=SC2024
     sudo "${mtraceCmd[@]}" >& "$clogfile" &
+}
+
+func_lib_log_post_process()
+{
+    # SyS-T log output a Zephyr feature, no need postprocess
+    # if non-Zephyr firmware file under test
+    is_firmware_file_zephyr || return 0
+
+    local logfile="$LOG_ROOT"/mtrace.txt
+    local outfile="$LOG_ROOT"/mtrace-decoded.csv
+
+    # postprocess is not required if the test
+    # configuration does not emit SysT-Cat log encoding
+    grep -q "SYS-T RAW DATA:" "$logfile" || return 0
+
+    # systprint tool is available via
+    # - https://github.com/zephyrproject-rtos/mipi-sys-t
+    # - https://github.com/MIPI-Alliance/public-mipi-sys-t
+    if [ -z "$SYSTPRINT" ]; then
+        SYSTPRINT=$(command -v systprint) || {
+            dlogw "No systprint found in PATH, unable to post-process file $logfile"
+            # TODO: make this fatal
+            return 0
+        }
+    fi
+
+    local dict_file
+    dict_file=$(find_syst_dict_file) || {
+        dlogw "SyS-T dict file not found, unable to post-process file $logfile"
+        # TODO: make this fatal
+        return 0
+    }
+
+    $SYSTPRINT -c "$dict_file" "$logfile" >"$outfile" || {
+        dlogw "Error running systprint, unable to post-process file $logfile"
+        # TODO: make this fatal
+        return 0
+    }
 }
 
 func_sof_logger_collect()
