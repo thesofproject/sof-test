@@ -279,6 +279,11 @@ case "$platform" in
         # unclaimed access happens when try to read/write something that is powered down
         # issue link : internal issue #243
         ignore_str="$ignore_str"'|i915 [[:digit:].:]+: \[drm\] \*ERROR\* Unclaimed access detected .+'
+        # i915 firmware loading error on ADLP_SKU0B00_SDCA
+        # BugLink: https://github.com/thesofproject/sof-test/issues/1048
+        ignore_str="$ignore_str"'|i915 [[:digit:].:]+: \[drm\] \*ERROR\* GT0: GuC initialization failed'
+        ignore_str="$ignore_str"'|i915 [[:digit:].:]+: \[drm\] \*ERROR\* GT0: Enabling uc failed'
+        ignore_str="$ignore_str"'|i915 [[:digit:].:]+: \[drm\] \*ERROR\* GT0: Failed to initialize GPU'
         ;;
     tgl)
         # Bug Report: https://github.com/thesofproject/sof-test/issues/838
