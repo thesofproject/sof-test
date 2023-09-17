@@ -720,7 +720,7 @@ class GroupedTplg:
     def print_pcm_info(self):
         r"""Print pcm info, like::
 
-        pcm=Speaker;id=2;type=playback;fmt=S16_LE;rate_min=48000;rate_max=48000;ch_min=2;ch_max=2;
+        pcm=Speaker;id=2;type=playback;rate_min=48000;rate_max=48000;ch_min=2;ch_max=2;fmts=S16_LE S32_LE
         """
         for pcm in self.pcm_list:
             name = pcm["pcm_name"]
@@ -729,13 +729,14 @@ class GroupedTplg:
             fmt_list = self.get_pcm_fmt(pcm)
             cap_index = int(pcm_type == "capture") # 1 for capture, 0 for playback
             cap = pcm["caps"][cap_index]
-            fmt = fmt_list[cap_index][0] # only show first format
+            fmts = ' '.join(fmt_list[cap_index])
             rate_min = cap["rate_min"]
             rate_max = cap["rate_max"]
             ch_min = cap["channels_min"]
             ch_max = cap["channels_max"]
-            print(f"pcm={name};id={pcm_id};type={pcm_type};fmt={fmt};"
-            f"rate_min={rate_min};rate_max={rate_max};ch_min={ch_min};ch_max={ch_max};")
+            print(f"pcm={name};id={pcm_id};type={pcm_type};"
+            f"rate_min={rate_min};rate_max={rate_max};ch_min={ch_min};ch_max={ch_max};"
+            f"fmts={fmts}")
 
     @cached_property
     def coreids(self):
