@@ -720,8 +720,10 @@ class GroupedTplg:
     def print_pcm_info(self):
         r"""Print pcm info, like::
 
-        pcm=Speaker;id=2;type=playback;rate_min=48000;rate_max=48000;ch_min=2;ch_max=2;fmts=S16_LE S32_LE
+        pcm_id=2;name=Speaker;type=playback;rate_min=48000;rate_max=48000;ch_min=2;ch_max=2;fmts=S16_LE S32_LE
         """
+        max_name_len=max(len(pcm["pcm_name"]) for pcm in self.pcm_list)
+
         for pcm in self.pcm_list:
             name = pcm["pcm_name"]
             pcm_id = pcm["pcm_id"]
@@ -734,8 +736,8 @@ class GroupedTplg:
             rate_max = cap["rate_max"]
             ch_min = cap["channels_min"]
             ch_max = cap["channels_max"]
-            print(f"pcm={name};id={pcm_id};type={pcm_type};"
-            f"rate_min={rate_min};rate_max={rate_max};ch_min={ch_min};ch_max={ch_max};"
+            print(f"pcm_id={pcm_id:>2};name={name.ljust(max_name_len, ' ')};type={pcm_type:<8};"
+            f"rate_min={rate_min:>6};rate_max={rate_max:>6};ch_min={ch_min};ch_max={ch_max};"
             f"fmts={fmts}")
 
     @cached_property
