@@ -857,7 +857,7 @@ set_alsa_settings()
     local PNAME="${1%_ZEPHYR}"
     dlogi "Run alsa setting for $PNAME"
     case $PNAME in
-        APL_UP2_NOCODEC | CML_RVP_NOCODEC | JSL_RVP_NOCODEC | TGLU_RVP_NOCODEC | ADLP_RVP_NOCODEC | TGLH_RVP_NOCODEC)
+        APL_UP2_NOCODEC | CML_RVP_NOCODEC | JSL_RVP_NOCODEC | TGLU_RVP_NOCODEC | ADLP_RVP_NOCODEC | TGLH_RVP_NOCODEC | ADLP_RVP_NOCODEC-sof-ipc3-nocodec | CML_RVP_NOCODEC-sof-ipc3-nocodec | JSL_RVP_NOCODEC-sof-ipc3-nocodec)
             # common nocodec alsa settings
             "$SCRIPT_HOME"/alsa_settings/CAVS_NOCODEC.sh
         ;;
@@ -865,7 +865,7 @@ set_alsa_settings()
             # common nocodec_ci alsa settings
             "$SCRIPT_HOME"/alsa_settings/CAVS_NOCODEC_CI.sh
         ;;
-        TGLU_RVP_NOCODEC_IPC4ZPH | ADLP_RVP_NOCODEC_IPC4ZPH | MTLP_RVP_NOCODEC)
+        TGLU_RVP_NOCODEC_IPC4ZPH | ADLP_RVP_NOCODEC_IPC4ZPH | MTLP_RVP_NOCODEC |ADLP_RVP_NOCODEC-cavs2_5-ipc4-nocodec | TGLU_RVP_NOCODEC-cavs2_5-ipc4-nocodec | MTLP_RVP_NOCODEC-ace1_0-ipc4-nocodec | MTLP_RVP_NOCODEC-ace1_0-multicore-2cores | MTLP_RVP_NOCODEC-ace1_0-multicore-3cores)
             dlogi "Use reset_sof_volume function to set amixer setting."
 	;;
         *)
