@@ -144,7 +144,7 @@ remove_module snd_soc_acpi_intel_match
 # Machine drivers
 #-------------------------------------------
 remove_module snd_soc_sof_rt5682
-remove_module snd_soc_sof_da7219_max98373
+remove_module snd_soc_sof_da7219
 remove_module snd_soc_sst_bdw_rt5677_mach
 remove_module snd_soc_bdw_rt286
 remove_module snd_soc_sst_broadwell
@@ -169,7 +169,9 @@ remove_module snd_soc_sof_sdw
 remove_module snd_soc_sof_es8336
 remove_module snd_soc_ehl_rt5660
 remove_module snd_soc_intel_hda_dsp_common
+remove_module snd_soc_intel_sof_cirrus_common
 remove_module snd_soc_intel_sof_maxim_common
+remove_module snd_soc_intel_sof_nuvoton_common
 remove_module snd_soc_intel_sof_realtek_common
 
 #-------------------------------------------
