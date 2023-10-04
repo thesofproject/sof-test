@@ -62,6 +62,17 @@ etrace_stderr_file=$LOG_ROOT/logger.etrace_stderr.txt
 
 func_lib_check_sudo
 
+ping_pcm_devices()
+{
+    # Open all ALSA PCM nodes and read one byte out of them.
+    # The operation will fail, but this is enough to cause
+    # the device to be powered up if it was in runtime-suspended (D3)
+    # state.
+    for pcm in /dev/snd/pcm* ; do
+        dd if="$pcm" of=/dev/null bs=1 count=1 >/dev/null 2>/dev/null || true
+    done
+}
+
 run_loggers()
 {
     # These filenames are kept for backward-compatibility
@@ -75,6 +86,12 @@ run_loggers()
     # This test is not really supposed to run while the DSP is busy at
     # the same time, so $data_file will hopefully not be long.
     local collect_secs=2
+
+
+    # Avoid racing with runtime-pm by opening the PCM nodes just before logger
+    # is started. This is still not bullet-proof, but at least we are
+    # pinging the DSP as close as possible to start of log gathering.
+    ping_pcm_devices
 
     if is_firmware_file_zephyr; then
         # Collect logs from Zephyr logging backends
