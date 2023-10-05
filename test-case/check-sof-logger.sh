@@ -244,15 +244,11 @@ reload_drivers()
 
     "${TOPDIR}"/tools/kmod/sof_insert.sh
 
-    # sof-test assumes SOF card to be loaded as first (card0)
-    # card in the system
-    CARD_NODE="/proc/asound/card0/id"
-
     # The DSP may unfortunately need multiple retries to boot, see
     # https://github.com/thesofproject/sof/issues/3395
     dlogi "Polling ${CARD_NODE}, waiting for DSP boot..."
-    if poll_wait_for 1 "$MAX_WAIT_FW_LOADING" sudo test -e ${CARD_NODE} ; then
-        dlogi "Found ${CARD_NODE}."
+    if poll_wait_for 1 "$MAX_WAIT_FW_LOADING" sof_firmware_boot_complete --since=@"$KERNEL_CHECKPOINT"; then
+        dlogi "DSP booted successfully."
     else
         die "DSP did not boot (node ${CARD_NODE})"
     fi
