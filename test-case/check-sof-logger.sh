@@ -62,6 +62,23 @@ etrace_stderr_file=$LOG_ROOT/logger.etrace_stderr.txt
 
 func_lib_check_sudo
 
+sof_alsa_card_found()
+{
+    # note: assumes SOF card names to start with "sof", e.g.
+    #   - /proc/asound/sofsoundwire/id
+    #   - /proc/asound/sofhdadsp/id
+    test -e /proc/asound/sof*/id
+}
+
+wait_for_sof_alsa_card()
+{
+    if poll_wait_for 1 "$MAX_WAIT_FW_LOADING" sof_alsa_card_found ; then
+        : # "SOF ALSA card available."
+    else
+        die "SOF ALSA card not available, driver probe fail?"
+    fi
+}
+
 ping_pcm_devices()
 {
     # Open all ALSA PCM nodes and read one byte out of them.
@@ -87,6 +104,10 @@ run_loggers()
     # the same time, so $data_file will hopefully not be long.
     local collect_secs=2
 
+    # Wait until SOF ALSA devices are registered. This is last step
+    # of the SOF driver probe, so when the ALSA card is registered,
+    # the driver probe is complete.
+    wait_for_sof_alsa_card
 
     # Avoid racing with runtime-pm by opening the PCM nodes just before logger
     # is started. This is still not bullet-proof, but at least we are
