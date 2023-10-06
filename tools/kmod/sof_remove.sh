@@ -205,6 +205,15 @@ remove_module snd_soc_da7219
 remove_module snd_soc_pcm512x_i2c
 remove_module snd_soc_pcm512x
 
+remove_module snd_soc_cs35l56_sdw
+remove_module snd_soc_cs35l56
+remove_module snd_soc_cs42l42_sdw
+remove_module snd_soc_cs42l42
+
+# inversion is intentional for cs42l43
+remove_module snd_soc_cs42l43
+remove_module snd_soc_cs42l43_sdw
+
 remove_module snd_soc_rt274
 remove_module snd_soc_rt286
 remove_module snd_soc_rt298
@@ -215,12 +224,13 @@ remove_module snd_soc_rt712_sdca
 remove_module snd_soc_rt712_sdca_dmic
 remove_module snd_soc_rt715
 remove_module snd_soc_rt715_sdca
+remove_module snd_soc_rt722_sdca
 remove_module snd_soc_rt1308
 remove_module snd_soc_rt1308_sdw
 remove_module snd_soc_rt1316_sdw
 remove_module snd_soc_rt1318_sdw
-remove_module snd_soc_sdw_mockup
 remove_module snd_soc_rt1011
+remove_module snd_soc_rt1017-sdca
 remove_module snd_soc_rt5640
 remove_module snd_soc_rt5645
 remove_module snd_soc_rt5651
@@ -234,6 +244,7 @@ remove_module snd_soc_rt5682
 remove_module snd_soc_rt5682s
 remove_module snd_soc_rl6231
 remove_module snd_soc_rl6347a
+remove_module snd_soc_sdw_mockup
 
 remove_module snd_soc_wm8804_i2c
 remove_module snd_soc_wm8804
