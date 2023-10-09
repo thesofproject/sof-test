@@ -102,17 +102,12 @@ run_loggers()
 
     # This test is not really supposed to run while the DSP is busy at
     # the same time, so $data_file will hopefully not be long.
-    local collect_secs=2
+    local collect_secs=3
 
     # Wait until SOF ALSA devices are registered. This is last step
     # of the SOF driver probe, so when the ALSA card is registered,
     # the driver probe is complete.
     wait_for_sof_alsa_card
-
-    # Avoid racing with runtime-pm by opening the PCM nodes just before logger
-    # is started. This is still not bullet-proof, but at least we are
-    # pinging the DSP as close as possible to start of log gathering.
-    ping_pcm_devices
 
     if is_firmware_file_zephyr; then
         # Collect logs from Zephyr logging backends
@@ -160,6 +155,17 @@ run_loggers()
              "$loggerBin" -t -f 3 -l "$ldcFile" \
              > "$data_file" 2> "$error_file" & dmaPID=$!
     fi
+
+    # Delay between logger start and triggering DSP activity
+    local logger_settle_time_secs=1
+
+    sleep "$logger_settle_time_secs"
+    # Avoid racing with runtime-pm by opening the PCM nodes when
+    # the loggers are running.
+    ping_pcm_devices
+
+    dlogi "Last kernel activity:"
+    journalctl_cmd -g ' sof' | tail -n 3
 
     sleep "$collect_secs"
 
