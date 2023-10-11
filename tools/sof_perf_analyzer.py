@@ -247,7 +247,10 @@ def format_perf_info() -> list[str] | None:
     '''Format SOF trace performance statistics'''
     if len(perf_stats):
         lines: list[str] = []
-        max_name_len = max(len(name) for name in component_name.values())
+        if args.kmsg:
+            max_name_len = max(len(name) for name in component_name.values())
+        else:
+            max_name_len = len('COMP_NAME') # The length of the first column title
         name_fmt = '{:>' + f'{max_name_len}' + '},'
         title_fmt = name_fmt + ' {:>10}, {:>12}, {:>12}, {:>12},'
         title_fmt = title_fmt + ' {:>13}, {:>13}, {:>13}, {:>18}'
