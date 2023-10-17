@@ -246,6 +246,9 @@ def print_perf_info():
     if args.out2csv is not None:
         stats.to_csv(args.out2csv, sep=',', float_format='%.3f', index=False)
 
+    if args.out2html is not None:
+        stats.to_html(args.out2html, float_format='%.3f', index=False)
+
 def parse_args():
     '''Parse command line arguments'''
     parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter,
@@ -255,6 +258,8 @@ def parse_args():
                         help='Kernel message file captured with journalctl or other log utility')
     parser.add_argument('--out2csv', type=pathlib.Path, required=False,
                     help='Output SOF performance statistics to csv file')
+    parser.add_argument('--out2html', type=pathlib.Path, required=False,
+                    help='Output SOF performance statistics to html file')
     parser.add_argument('-s', '--skip-to-first-trace', action="store_true",  default=False,
                         help='''In CI test, some traces from previous test case will appear in
 the mtrace of current test case, this flag is used to denote if we
