@@ -16,10 +16,6 @@ Example of performance logging:
 
 There is no audio component name information in SOF trace, so auxiliary linux kernel log
 is used to extract component name.
-
-Hardcoded value explained:
-DSP_CLK: The DSP clock frequency in Hz.
-DSP_TIMER: The DSP timer clock frequency in Hz.
 '''
 
 import re
@@ -28,6 +24,8 @@ import argparse
 from typing import TextIO
 from typing import Generator
 from dataclasses import dataclass
+
+import pandas as pd
 
 @dataclass()
 class TraceItem:
@@ -46,65 +44,40 @@ class Component:
     ppln_id: str
     comp_id: int
 
-@dataclass(frozen=True)
-class CompPerfSample:
-    '''The dataclass for SOF audio component performance info'''
-    timestamp: float
-    samples: int
-    period: int
-    cpu_avg: int
-    cpu_peak: int
+    def __str__(self) -> str:
+        return f'{self.ppln_id}-{self.comp_id:#08x}'
 
-@dataclass(frozen=True)
-class CompPerfStats:
-    '''The dataclass for SOF audio component statistics'''
-    avg_cpu_avg: float  # average of cpu average
-    max_cpu_avg: float  # maximum of cpu average
-    min_cpu_avg: float  # minimum of cpu average
-    avg_cpu_peak: float # average of cpu peak
-    max_cpu_peak: float # maximum of cpu peak
-    min_cpu_peak: float # minimum of cpu peak
+PERF_INFO_COL = ['COMP_ID', 'TIMESTAMP', 'SAMPLES', 'PERIOD', 'CPU_AVG', 'CPU_PEAK']
 
-# Currently, we don't have test case to test low-power mode, in which
-# the DSP may not operate in the maximum clock frequency. Let't hardcode
-# this value to the maximum clock frequency for now.
-DSP_CLK = 400000000
-# The DSP timer clock frequency is fixed despite of DSP_CLK
-DSP_TIMER = 38400000
-UINT32_MAX = 4294967295
-AUDIO_PERIOD = 1000
-
-TICK_TO_MCPS = DSP_CLK / DSP_TIMER / AUDIO_PERIOD
-
-# Once DSP timer count to UINT32_MAX, it wrapped to zero, which causes
-# the timestamp wrap to zero, too. This ts_shift is used to correct
-# the timestamp value on wrap. UINT32_MAX / DSP_TIMER is added to it at
-# every wrap.
-#
-# pylint: disable=C0103
-ts_shift = 0
 # pylint: disable=C0103
 args = None
 
-# This map gives access to the list of component performance samples
-# collected for a given component
-perf_info: dict[Component, list[CompPerfSample]] = {}
-perf_stats: dict[Component, CompPerfStats] = {}
-component_name: dict[Component, str] = {}
+perf_info: pd.DataFrame = pd.DataFrame(
+        columns=PERF_INFO_COL
+    )
+
+perf_stats: pd.DataFrame | None = None
 
 TraceItemGenerator = Generator[TraceItem, None, None]
 
 def collect_perf_info(trace_item: TraceItem):
-    '''Parse and collect performace trace information(msg field of TraceItem) to a
-    Component->list[CompPerfSample] mapping for further analysis.
+    '''Parse and collect performace trace information(msg field of TraceItem) to
+    pandas DataFrame for further analysis.
     '''
     msg = trace_item.msg.split()
     ppln_id = msg[0].split(':')[1]
     comp_id = int(msg[1], 16)
-    perf_val = int(msg[5]), int(msg[7]), int(msg[10]), int(msg[12])
-    perf_sample = CompPerfSample(trace_item.timestamp, *perf_val)
-    comp_perf_info_list = perf_info.setdefault(Component(ppln_id, comp_id), [])
-    comp_perf_info_list.append(perf_sample)
+
+    row_data = pd.Series(
+        dict(zip(PERF_INFO_COL,
+                [str(Component(ppln_id, comp_id)),  trace_item.timestamp,
+                 int(msg[5]), int(msg[7]), int(msg[10]), int(msg[12])]
+            )
+        )
+    )
+    # pylint: disable=W0603
+    global perf_info
+    perf_info = pd.concat([perf_info, row_data.to_frame().T], ignore_index=True)
 
 def dispatch_trace_item(trace_item: TraceItem):
     '''Dispatch trace item to cosponding trace collecting function. In a TraceItem,
@@ -162,6 +135,15 @@ def make_trace_item(fileio: TextIO) -> TraceItemGenerator:
 
 def process_trace_file():
     '''The top-level caller for processing the trace file'''
+    dsp_timer = 38400000
+    uint32_max = 4294967295
+    # Once DSP timer count to UINT32_MAX, it wrapped to zero, which causes
+    # the timestamp wrap to zero, too. This ts_shift is used to correct
+    # the timestamp value on wrap. UINT32_MAX / DSP_TIMER is added to it at
+    # every wrap.
+    #
+    # pylint: disable=C0103
+    ts_shift = 0
     with open(args.filename, 'r', encoding='utf8') as file:
         trace_item_gen = make_trace_item(file)
         trace_prev = None
@@ -175,14 +157,13 @@ def process_trace_file():
             raise
         for trace_curr in trace_item_gen:
             # pylint: disable=W0603
-            global ts_shift
             old_ts_shift = ts_shift
             # On wrap happened, the timestamp of current trace should be much more smaller
             # than the previous one. In practice, it is possible that the timestamp of
             # current trace is slightly smaller than the previous one, this could be a
             # bug in SOF. Add a 50s shift to make sure timestamp correction work properly.
             if trace_curr.timestamp < trace_prev.timestamp - 50:
-                ts_shift = ts_shift + UINT32_MAX / DSP_TIMER
+                ts_shift = ts_shift + uint32_max / dsp_timer
             trace_prev.timestamp += old_ts_shift
             dispatch_trace_item(trace_prev)
             trace_prev = trace_curr
@@ -202,6 +183,7 @@ def process_kmsg_file():
     case run. Mostly in manual tests, if the kernel message file contains multiple firmware runs
     with overlapping information, the last one wins.
     '''
+    comp_name = {}
     with open(args.kmsg, encoding='utf8') as f:
         ppln_id = None
         for line in f:
@@ -220,75 +202,49 @@ def process_kmsg_file():
                 widget_id = next_line.split('|')[0].split(':')[-1].strip()
                 # convert to the same ID format in mtrace
                 widget_id = int('0x' + widget_id[-6:], 16)
-                component_name[Component(ppln_id, widget_id)] = widget_name
+                comp_name[str(Component(ppln_id, widget_id))] = widget_name
+
+    col_data = pd.DataFrame(
+        comp_name.values(),
+        index=comp_name.keys(),
+        columns=['COMP_NAME']
+    )
+    # pylint: disable=W0603
+    global perf_stats
+    perf_stats = perf_stats.join(col_data, how='left')
+
+    # Move COMP_NAME column as the first column
+    perf_stats = pd.concat([perf_stats.iloc[:,-1], perf_stats.iloc[:,0:-1]], axis=1)
 
 def analyze_perf_info():
     '''Calculate performance statistics from performance information'''
-    for comp, perf_info_list in perf_info.items():
-        len_perf_info = len(perf_info_list)
-        cpu_avg_list = [e.cpu_avg for e in perf_info_list]
-        cpu_peak_list = [e.cpu_peak for e in perf_info_list]
-        avg_cpu_avg = sum(cpu_avg_list) / len_perf_info
-        max_cpu_avg = max(cpu_avg_list)
-        min_cpu_avg = min(cpu_avg_list)
-        avg_cpu_peak = sum(cpu_peak_list) / len_perf_info
-        max_cpu_peak = max(cpu_peak_list)
-        min_cpu_peak = min(cpu_peak_list)
-        perf_stats[comp] = CompPerfStats(avg_cpu_avg, max_cpu_avg, min_cpu_avg,
-                                         avg_cpu_peak, max_cpu_peak, min_cpu_peak)
+    perf_info['CPU_AVG_MCPS'] = perf_info['CPU_AVG'] / perf_info['PERIOD']
+    perf_info['CPU_PEAK_MCPS'] = perf_info['CPU_PEAK'] / perf_info['PERIOD']
+    # pylint: disable=W0603
+    global perf_stats
+    perf_stats = pd.concat([
+        perf_info.groupby('COMP_ID')['CPU_AVG_MCPS'].min(),
+        perf_info.groupby('COMP_ID')['CPU_AVG_MCPS'].mean(),
+        perf_info.groupby('COMP_ID')['CPU_AVG_MCPS'].max(),
+        perf_info.groupby('COMP_ID')['CPU_PEAK_MCPS'].min(),
+        perf_info.groupby('COMP_ID')['CPU_PEAK_MCPS'].mean(),
+        perf_info.groupby('COMP_ID')['CPU_PEAK_MCPS'].max()
+        ], axis=1
+    )
+    perf_stats.columns = ['CPU_AVG(MIN)', 'CPU_AVG(AVG)', 'CPU_AVG(MAX)',
+                          'CPU_PEAK(MIN)', 'CPU_PEAK(AVG)', 'CPU_PEAK(MAX)']
+    perf_stats['PEAK(MAX)/AVG(AVG)'] = perf_stats['CPU_PEAK(MAX)'] / perf_stats['CPU_AVG(AVG)']
 
-def output_to_csv(lines: list[str]):
-    '''Output SOF performance statistics to csv file'''
-    with open(args.out2csv, 'w', encoding='utf8') as f: # type: ignore[attr-defined]
-        f.writelines(lines)
-
-# pylint: disable=R0914
-def format_perf_info() -> list[str] | None:
-    '''Format SOF trace performance statistics'''
-    if len(perf_stats):
-        lines: list[str] = []
-        if args.kmsg:
-            max_name_len = max(len(name) for name in component_name.values())
-        else:
-            max_name_len = len('COMP_NAME') # The length of the first column title
-        name_fmt = '{:>' + f'{max_name_len}' + '},'
-        title_fmt = name_fmt + ' {:>10}, {:>12}, {:>12}, {:>12},'
-        title_fmt = title_fmt + ' {:>13}, {:>13}, {:>13}, {:>18}'
-        title = title_fmt.format('COMP_NAME', 'COMP_ID', 'CPU_AVG(MIN)', 'CPU_AVG(AVG)',
-                                 'CPU_AVG(MAX)', 'CPU_PEAK(MIN)', 'CPU_PEAK(AVG)', 'CPU_PEAK(MAX)',
-                                 'PEAK(MAX)/AVG(AVG)')
-        lines.append(title + '\n')
-
-        stats_fmt = name_fmt + ' {:>10}, {:>12,.2f}, {:>12,.2f}, {:>12,.2f},'
-        stats_fmt = stats_fmt + ' {:>13,.2f}, {:>13,.2f}, {:>13,.2f}, {:>18,.2f}'
-        for comp, perf in perf_stats.items():
-            avg_cpu_avg_mcps = perf.avg_cpu_avg * TICK_TO_MCPS
-            max_cpu_avg_mcps = perf.max_cpu_avg * TICK_TO_MCPS
-            min_cpu_avg_mcps = perf.min_cpu_avg * TICK_TO_MCPS
-            avg_cpu_peak_mcps = perf.avg_cpu_peak * TICK_TO_MCPS
-            max_cpu_peak_mcps = perf.max_cpu_peak * TICK_TO_MCPS
-            min_cpu_peak_mcps = perf.min_cpu_peak * TICK_TO_MCPS
-
-            peak_to_avg_ratio = max_cpu_peak_mcps / avg_cpu_avg_mcps
-
-            comp_name = component_name.get(comp, 'None')
-            comp_id = f'{comp.ppln_id}-{comp.comp_id:#08x}'
-            stat = stats_fmt.format(comp_name, comp_id, min_cpu_avg_mcps, avg_cpu_avg_mcps,
-                                    max_cpu_avg_mcps, min_cpu_peak_mcps, avg_cpu_peak_mcps,
-                                    max_cpu_peak_mcps, peak_to_avg_ratio)
-            lines.append(stat + '\n')
-        return lines
-    return None
 
 def print_perf_info():
-    '''Format and output SOF performance info'''
-    lines = format_perf_info()
-    if lines is not None:
-        for line in lines:
-            print(line, end='')
+    '''Output SOF performance info'''
+    stats = perf_stats.rename_axis('COMP_ID').reset_index()
+    # pylint: disable=C0209
+    with pd.option_context('display.float_format', '{:0.3f}'.format):
+        print(stats)
 
-        if args.out2csv is not None:
-            output_to_csv(lines)
+    if args.out2csv is not None:
+        stats.to_csv(args.out2csv, sep=',', float_format='%.3f', index=False)
 
 def parse_args():
     '''Parse command line arguments'''
@@ -315,10 +271,10 @@ def main():
 
     process_trace_file()
 
+    analyze_perf_info()
+
     if args.kmsg is not None:
         process_kmsg_file()
-
-    analyze_perf_info()
 
     print_perf_info()
 
