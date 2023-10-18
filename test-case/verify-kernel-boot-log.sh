@@ -36,8 +36,9 @@ main()
 
     platform=$(sof-dump-status.py -p)
     case "$platform" in
-        adl)
-            skip_test "internal #99: missing GPU firmware and others on $platform"
+        lnl)
+           # Example kept for convenience
+           # skip_test "internal #99: missing GPU firmware and others on $platform"
             ;;
     esac
 
