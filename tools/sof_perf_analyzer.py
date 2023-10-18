@@ -27,6 +27,9 @@ from dataclasses import dataclass
 
 import pandas as pd
 
+# currently, keep CPC = avg_cpu_peak * CPC_MARGIN
+CPC_MARGIN = 1.15
+
 @dataclass()
 class TraceItem:
     '''The structural representation for a single, parsed line of trace'''
@@ -234,7 +237,10 @@ def analyze_perf_info():
     perf_stats.columns = ['CPU_AVG(MIN)', 'CPU_AVG(AVG)', 'CPU_AVG(MAX)',
                           'CPU_PEAK(MIN)', 'CPU_PEAK(AVG)', 'CPU_PEAK(MAX)']
     perf_stats['PEAK(MAX)/AVG(AVG)'] = perf_stats['CPU_PEAK(MAX)'] / perf_stats['CPU_AVG(AVG)']
-
+    comp_peak_avg_cycles = perf_info.groupby('COMP_ID')['CPU_PEAK'].mean()
+    perf_stats['MODULE_CPC'] = comp_peak_avg_cycles * CPC_MARGIN
+    # change data type from float to int
+    perf_stats['MODULE_CPC'] = perf_stats['MODULE_CPC'].astype(int)
 
 def print_perf_info():
     '''Output SOF performance info'''
