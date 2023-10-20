@@ -240,7 +240,9 @@ def print_perf_info():
     '''Output SOF performance info'''
     stats = perf_stats.rename_axis('COMP_ID').reset_index()
     # pylint: disable=C0209
-    with pd.option_context('display.float_format', '{:0.3f}'.format):
+    with pd.option_context('display.float_format', '{:0.3f}'.format,
+                           'display.max_rows', None,
+                           'display.max_columns', None):
         print(stats)
 
     if args.out2csv is not None:
