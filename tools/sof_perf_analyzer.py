@@ -175,12 +175,14 @@ def process_trace_file():
 
 def process_kmsg_file():
     '''Process the dmesg to get the component ID to component name mapping,
-    component name is acquired from the line that contains 'Create widget',
-    component ID is acquired from the next line. Example:
-    [  334.818435] kernel: snd_sof:sof_ipc4_widget_setup: sof-audio-pci-intel-mtl 0000:00:1f.3:
-    Create widget host-copier.0.playback instance 0 - pipe 1 - core 0
-    [  334.818442] kernel: snd_sof:sof_ipc4_log_header: sof-audio-pci-intel-mtl 0000:00:1f.3:
-    ipc tx      : 0x40000004|0x15: MOD_INIT_INSTANCE [data size: 84]
+    they are acquired from the line that contains 'Create widget':
+        [   59.622645] snd_sof:sof_ipc4_widget_setup: sof-audio-pci-intel-mtl 0000:00:1f.3:
+        Create widget host-copier.0.capture (pipe 3) - ID 4, instance 3, core 0"
+
+    By design in the kernel, pipeline ID is the instance ID of pipeline
+    widget, so it is acquired from the line that contains 'Create pipeline':
+        [   59.622134] snd_sof:sof_ipc4_widget_setup: sof-audio-pci-intel-mtl 0000:00:1f.3:
+        Create pipeline pipeline.3 (pipe 3) - instance 3, core 0
 
     In practice, sof-test only capture kernel message and firmware trace generated during a test
     case run. Mostly in manual tests, if the kernel message file contains multiple firmware runs
@@ -190,7 +192,7 @@ def process_kmsg_file():
     with open(args.kmsg, encoding='utf8') as f:
         ppln_id = None
         for line in f:
-            if match_obj := re.search(r'Create widget', line):
+            if match_obj := re.search(r"Create (widget|pipeline)", line):
                 span_end_pos = match_obj.span()[1]
                 line_split = line[span_end_pos + 1:].split()
                 widget_name = line_split[0]
@@ -200,11 +202,15 @@ def process_kmsg_file():
                 # creation, because it is always the first one to be created before all other
                 # widgets in the same pipeline and pipelines are created sequentially.
                 if widget_name.startswith('pipeline'):
-                    ppln_id = line_split[2]
-                next_line = next(f)
-                widget_id = next_line.split('|')[0].split(':')[-1].strip()
-                # convert to the same ID format in mtrace
-                widget_id = int('0x' + widget_id[-6:], 16)
+                    # remove ending comma(,) with [:-1]
+                    ppln_id = int(line_split[5][:-1])
+                    continue
+                # remove ending comma(,) with [:-1]
+                module_instance_id = int(line_split[7][:-1])
+                # remove ending comma(,) with [:-1]
+                widget_id = int(line_split[5][:-1])
+                # final module id are composed with high16(module instance id) + low16(module id)
+                widget_id |= module_instance_id << 16
                 comp_name[str(Component(ppln_id, widget_id))] = widget_name
 
     col_data = pd.DataFrame(
