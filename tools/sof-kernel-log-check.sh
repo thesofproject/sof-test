@@ -298,6 +298,11 @@ case "$platform" in
         # https://github.com/thesofproject/sof-test/issues/980
         # i2c_hid_acpi i2c-VEN_0488:00: i2c_hid_get_input: incomplete report (20/42405)
         ignore_str="$ignore_str""|i2c_hid_acpi i2c-VEN_0488:00: i2c_hid_get_input: incomplete report"
+    ;;
+    lnl)
+        # ignore the ACPI error on LNL.
+        # kernel: ACPI: \: Can't tag data node
+        ignore_str="$ignore_str""|kernel: ACPI: \\\\: Can't tag data node"
 esac
 
 # 'failed to change power setting' and other errors observed at boot
