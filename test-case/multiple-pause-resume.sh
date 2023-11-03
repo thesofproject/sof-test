@@ -149,22 +149,28 @@ do
             # It's very far from perfect but it helps a little bit.
             sleep 0.1
         done
-        # wait for expect script finished
-        dlogi "wait for expect process finished"
+        # wait for aplay/arecord finished
+        dlogi "wait for expect/aplay/arecord process finished"
         iwait=$max_wait_time
         while [ $iwait -gt 0 ]
         do
             iwait=$((iwait - 1))
             sleep 1s
-            [[ ! "$(pidof expect)" ]] && break
+            [[ ! "$(pidof expect aplay arecord)" ]] && break
         done
-        # fix aplay/arecord last output
+        # Catch timout after the wait loop
         echo
-        if [ "$(pidof expect)" ]; then
+        if [ "$(pidof expect aplay arecord)" ]; then
             dloge "Still have expect process not finished after wait for $max_wait_time"
-            # list aplay/arecord processes
+            # list expect/aplay/arecord processes
+            pgrep -a -f expect || true
             pgrep -a -f aplay || true
             pgrep -a -f arecord || true
+
+            # kill aplay/arecord
+            sof-process-kill.sh ||
+                dlogw "Kill process catch error"
+
             exit 1
         fi
         # now check for all expect quit status
