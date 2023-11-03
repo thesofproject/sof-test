@@ -32,6 +32,8 @@ main()
     [ "$(id -un)" = root ] ||
         wait_is_system_running --user
 
+    detect_log_flood
+
     ntp_check
 
     platform=$(sof-dump-status.py -p)
@@ -70,6 +72,33 @@ wait_is_system_running()
         true
     )
     die "Some services are not running correctly"
+}
+
+# Flood usually from gdm3 but keep this function generic
+#   https://github.com/thesofproject/sof-test/discussions/998
+detect_log_flood()
+{
+    local recent_lines
+    recent_lines=$(sudo journalctl -b --since='1 minute ago'  | wc -l)
+
+    # Finding a good threshold is difficult because we want this test to
+    # work both right after boot but also long after.
+    #
+    # - A normal boot with sof debug prints roughly ~3,000 lines.
+    # - The gdm3 infinite crash loop #998 floods ~500 lines/second
+    # but only after a ~10 seconds delay.
+    if [ "$recent_lines" -lt 6000 ]; then
+        return 0
+    fi
+
+    sudo journalctl -b --no-pager --lines=300
+    printf '\n\n'
+    sudo journalctl -b -p 3
+    printf '\n\n'
+    sudo du -sk /var/log/* | sort -nr | head -n 10
+    printf '\n\n'
+
+    die 'log flood detected!'
 }
 
 ntp_check()
