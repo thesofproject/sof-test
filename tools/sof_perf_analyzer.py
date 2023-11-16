@@ -21,6 +21,7 @@ is used to extract component name.
 import re
 import pathlib
 import argparse
+import itertools
 from typing import TextIO
 from typing import Generator
 from dataclasses import dataclass
@@ -93,13 +94,13 @@ def dispatch_trace_item(trace_item: TraceItem):
 def skip_to_first_trace(trace_item_gen: TraceItemGenerator):
     '''The current sof-test test case may collect some traces belonging to previous
     test case due to mtrace is configured in deferred mode. This function consumes
-    those traces from the generator, and return the first trace item of current test.
+    those traces from the generator, and return a new generator with those traces consumed.
     '''
     while item := next(trace_item_gen):
         # On test running, the SOF firmware is reloaded to DSP, timer is reset to 0.
         # The first trace must have a timestamp with integral part equals to 0.
         if int(item.timestamp) == 0:
-            return item
+            return itertools.chain([item], trace_item_gen)
 
 def make_trace_item(fileio: TextIO) -> TraceItemGenerator:
     '''Filter and parse a line of trace in string form into TraceItem object, for example:
@@ -149,29 +150,32 @@ def process_trace_file():
     ts_shift = 0
     with open(args.filename, 'r', encoding='utf8') as file:
         trace_item_gen = make_trace_item(file)
-        trace_prev = None
+        last_trace = None
+
         try:
             if args.skip_to_first_trace:
-                trace_prev = skip_to_first_trace(trace_item_gen)
-            else:
-                trace_prev = next(trace_item_gen)
+                trace_item_gen = skip_to_first_trace(trace_item_gen)
         except StopIteration as si:
             si.args = ('No valid trace in provided file',)
             raise
-        for trace_curr in trace_item_gen:
+        for trace_curr, trace_next in itertools.pairwise(trace_item_gen):
             # pylint: disable=W0603
             old_ts_shift = ts_shift
-            # On wrap happened, the timestamp of current trace should be much more smaller
-            # than the previous one. In practice, it is possible that the timestamp of
-            # current trace is slightly smaller than the previous one, this could be a
+            # On wrap happened, the timestamp of next trace should be much more smaller
+            # than the current one. In practice, it is possible that the timestamp of
+            # next trace is slightly smaller than the current one, this could be a
             # bug in SOF. Add a 50s shift to make sure timestamp correction work properly.
-            if trace_curr.timestamp < trace_prev.timestamp - 50:
+            if trace_next.timestamp < trace_curr.timestamp - 50:
                 ts_shift = ts_shift + uint32_max / dsp_timer
-            trace_prev.timestamp += old_ts_shift
-            dispatch_trace_item(trace_prev)
-            trace_prev = trace_curr
-        trace_prev.timestamp += ts_shift
-        dispatch_trace_item(trace_prev)
+
+            trace_curr.timestamp += old_ts_shift
+            dispatch_trace_item(trace_curr)
+            last_trace = trace_next
+
+        # The last trace is not handled with above for loop, handle it here
+        if last_trace is not None:
+            last_trace.timestamp += ts_shift
+            dispatch_trace_item(last_trace)
 
 def process_kmsg_file():
     '''Process the dmesg to get the component ID to component name mapping,
