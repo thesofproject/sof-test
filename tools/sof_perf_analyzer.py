@@ -193,10 +193,10 @@ def process_kmsg_file():
     comp_name = {}
     with open(args.kmsg, encoding='utf8') as f:
         ppln_id = None
-        for line in f:
-            if match_obj := re.search(r'Create widget', line):
+        for curr_line, next_line in itertools.pairwise(f):
+            if match_obj := re.search(r'Create widget', curr_line):
                 span_end_pos = match_obj.span()[1]
-                line_split = line[span_end_pos + 1:].split()
+                line_split = curr_line[span_end_pos + 1:].split()
                 widget_name = line_split[0]
                 # In the linux kernel, IDA is used to allocated pipeline widget instance ID,
                 # this ID later is used for pipeline creation, thus becomes pipeline ID in the
@@ -205,7 +205,7 @@ def process_kmsg_file():
                 # widgets in the same pipeline and pipelines are created sequentially.
                 if widget_name.startswith('pipeline'):
                     ppln_id = line_split[2]
-                next_line = next(f)
+
                 widget_id = next_line.split('|')[0].split(':')[-1].strip()
                 # convert to the same ID format in mtrace
                 widget_id = int('0x' + widget_id[-6:], 16)
