@@ -134,6 +134,7 @@ remove_module snd_sof_intel_bdw
 #-------------------------------------------
 # platform drivers
 #-------------------------------------------
+remove_module snd_sof_intel_hda_generic
 remove_module snd_sof_intel_hda_common
 remove_module snd_sof_intel_hda
 remove_module snd_sof_intel_ipc
@@ -262,16 +263,21 @@ remove_module snd_hda_codec_generic
 remove_module snd_soc_wm8960
 
 #-------------------------------------------
+# SoundWire/SOF parts
+#-------------------------------------------
+remove_module soundwire_intel_init
+remove_module soundwire_intel
+remove_module soundwire_cadence
+remove_module soundwire_generic_allocation
+remove_module snd_sof_intel_hda_sdw_bpt
+
+#-------------------------------------------
 # Remaining core SOF parts
 #-------------------------------------------
 remove_module snd_soc_acpi
 
 remove_module snd_intel_dspcfg
 
-remove_module soundwire_intel_init
-remove_module soundwire_intel
-remove_module soundwire_cadence
-remove_module soundwire_generic_allocation
 remove_module regmap_sdw
 remove_module regmap_sdw_mbq
 remove_module soundwire_bus
