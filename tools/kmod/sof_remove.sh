@@ -96,12 +96,6 @@ remove_module snd_sof_acpi_intel_bdw
 remove_module snd_sof_imx8
 remove_module snd_sof_imx8m
 
-#--------------------------------------------------
-# With older kernels this is in use by snd_sof_pci,
-# see https://github.com/thesofproject/linux/pull/2683
-#--------------------------------------------------
-remove_module snd_sof_intel_hda_common || true
-
 #-------------------------------------------
 # Helpers
 #-------------------------------------------
@@ -124,12 +118,6 @@ remove_module snd_soc_skl
 #-------------------------------------------
 remove_module snd_soc_avs
 remove_module snd_soc_hda_codec
-
-#------------------------------------------------------
-# obsolete platform drivers - kept to avoid breaking CI
-#------------------------------------------------------
-remove_module snd_sof_intel_byt
-remove_module snd_sof_intel_bdw
 
 #-------------------------------------------
 # platform drivers
