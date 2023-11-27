@@ -97,14 +97,6 @@ remove_module snd_sof_imx8
 remove_module snd_sof_imx8m
 
 #-------------------------------------------
-# Helpers
-#-------------------------------------------
-remove_module snd_sof_acpi
-remove_module snd_sof_pci
-remove_module snd_sof_intel_atom
-remove_module imx_common
-
-#-------------------------------------------
 # legacy drivers (not used but loaded)
 #-------------------------------------------
 remove_module snd_soc_catpt
@@ -128,6 +120,14 @@ remove_module snd_sof_intel_hda
 remove_module snd_sof_intel_ipc
 remove_module snd_sof_xtensa_dsp
 remove_module snd_soc_acpi_intel_match
+
+#-------------------------------------------
+# Helpers
+#-------------------------------------------
+remove_module snd_sof_acpi
+remove_module snd_sof_pci
+remove_module snd_sof_intel_atom
+remove_module imx_common
 
 #-------------------------------------------
 # Machine drivers
