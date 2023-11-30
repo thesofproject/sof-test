@@ -76,16 +76,21 @@ remove_module snd_usb_audio
 #-------------------------------------------
 # Top level devices
 # ACPI is after PCI due to TNG dependencies
+# TGL and ICL depend on CNL, and LNL on MTL,
+# the non-linear order is intentional
 #-------------------------------------------
 remove_module snd_hda_intel
 remove_module snd_sof_pci_intel_tng
 remove_module snd_sof_pci_intel_skl
 remove_module snd_sof_pci_intel_apl
-remove_module snd_sof_pci_intel_cnl
-remove_module snd_sof_pci_intel_icl
+
 remove_module snd_sof_pci_intel_tgl
-remove_module snd_sof_pci_intel_mtl
+remove_module snd_sof_pci_intel_icl
+remove_module snd_sof_pci_intel_cnl
+
 remove_module snd_sof_pci_intel_lnl
+remove_module snd_sof_pci_intel_mtl
+
 remove_module snd_sof_acpi_intel_byt
 remove_module snd_sof_acpi_intel_bdw
 
