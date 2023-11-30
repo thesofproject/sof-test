@@ -867,6 +867,9 @@ print_module_params()
 
     # for all the *sof* modules
     grep -H ^ /sys/module/*sof*/parameters/* || true
+
+    # all snd_hda* modules
+    grep -H ^ /sys/module/snd_hda*/parameters/* || true
     echo "----------------------------------------"
 }
 
