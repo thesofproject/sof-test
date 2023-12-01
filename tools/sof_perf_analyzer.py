@@ -27,8 +27,14 @@ from dataclasses import dataclass
 
 import pandas as pd
 
-# currently, keep CPC = max(module peak) * CPC_MARGIN
-CPC_MARGIN = 1.1
+# CPC_MARGIN is set to 1.5, because there is some inactive code for some module
+# due to unmet condition. For example:
+# volume: ramp operation only run on volume change, but we don't do volume
+# change in our test.
+
+# So, we set a relative high margin for avg cycles.
+# CPC = AVG(module) * CPC_MARGIN
+CPC_MARGIN = 1.5
 
 @dataclass()
 class TraceItem:
@@ -243,7 +249,7 @@ def analyze_perf_info():
     perf_stats.columns = ['CPU_AVG(MIN)', 'CPU_AVG(AVG)', 'CPU_AVG(MAX)',
                           'CPU_PEAK(MIN)', 'CPU_PEAK(AVG)', 'CPU_PEAK(MAX)']
     perf_stats['PEAK(MAX)/AVG(AVG)'] = perf_stats['CPU_PEAK(MAX)'] / perf_stats['CPU_AVG(AVG)']
-    perf_stats['MODULE_CPC'] = perf_info.groupby('COMP_ID')['CPU_PEAK'].max() * CPC_MARGIN
+    perf_stats['MODULE_CPC'] = perf_info.groupby('COMP_ID')['CPU_AVG'].mean() * CPC_MARGIN
     # change data type from float to int
     perf_stats['MODULE_CPC'] = perf_stats['MODULE_CPC'].astype(int)
 
