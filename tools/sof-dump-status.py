@@ -43,6 +43,8 @@ class clsSYSCardInfo():
             "0x54c8":"adl-n",
             # pci-mtl.c
             "0x7e28":"mtl",
+            "0x7f50":"arl-s",
+            "0x7728":"arl",
             # pci-lnl.c
             "0xa828":"lnl",
             # Other PCI IDs
