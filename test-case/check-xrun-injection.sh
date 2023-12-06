@@ -75,7 +75,7 @@ func_xrun_injection()
             exit 1
         }
         dlogi "XRUN injection: $i"
-        sudo bash -c "'echo 1 > $xrun_injection'"
+        sudo bash -c "echo '1' > $xrun_injection"
         sleep $interval
         (( i++ ))
     done
