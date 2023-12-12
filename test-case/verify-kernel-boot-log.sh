@@ -86,7 +86,12 @@ detect_log_flood()
     #
     # - A normal boot with sof debug prints roughly ~3,000 lines.
     # - The gdm3 infinite crash loop #998 floods ~500 lines/second
-    # but only after a ~10 seconds delay.
+    #   but only after a ~10 seconds delay.
+    # - With Wayland, the similar crash loop floods only ~50 lines/second.
+    #   BUT,  it does mark
+    #     `systemctl --user status org.gnome.Shell@wayland.service`
+    #   as "FAILED" after a couple minutes trying so there's no risk of
+    #   missing the problem.
     if [ "$recent_lines" -lt 6000 ]; then
         return 0
     fi
