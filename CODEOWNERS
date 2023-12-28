@@ -9,3 +9,4 @@
 # will be requested to review.
 
 tools/kmod/*            @thesofproject/test-maintainers @plbossart
+tools/sof_perf_analyzer.py @thesofproject/test-maintainers @btian1 @andrula-song
