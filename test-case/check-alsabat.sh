@@ -2,15 +2,24 @@
 
 ##
 ## Case Name: check alsabat
+##
 ## Preconditions:
 ##    This test case requires physical loopback between playback and capture.
 ##    playback <=====>  capture
 ##    nocodec : no need to use hw loopback cable, It support DSP loopback by quirk
+##
 ## Description:
-##    run alsabat test on the specified pipelines
+##    Run two alsabat instances concurrently, one on each specified PCM: playback
+##    and capture.
+##
+##    Warning: as of January 2024, "man alsabat" is incomplete and
+##    documents only the "single instance" mode where a single alsabat
+##    process performs both playback and capture.
+##
 ## Case step:
 ##    1. Specify the pcm IDs for playback and catpure
 ##    3. run alsabat test
+##
 ## Expect result:
 ##    The return value of alsabat is 0
 ##
