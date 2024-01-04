@@ -27,6 +27,9 @@ OPT_HAS_ARG['p']=1          	OPT_VAL['p']=''
 OPT_NAME['C']='channel_c'       OPT_DESC['C']='channel number for capture.'
 OPT_HAS_ARG['C']=1             OPT_VAL['C']='1'
 
+OPT_NAME['N']='channel_p'       OPT_DESC['N']='channel number for playback.'
+OPT_HAS_ARG['N']=1             OPT_VAL['N']='2'
+
 OPT_NAME['r']='rate'            OPT_DESC['r']='sample rate'
 OPT_HAS_ARG['r']=1             OPT_VAL['r']=48000
 
@@ -55,6 +58,7 @@ pcm_p=${OPT_VAL['p']}
 pcm_c=${OPT_VAL['c']}
 rate=${OPT_VAL['r']}
 channel_c=${OPT_VAL['C']}
+channel_p=${OPT_VAL['N']}
 format=${OPT_VAL['f']}
 frequency=${OPT_VAL['F']}
 sigmak=${OPT_VAL['k']}
@@ -101,9 +105,9 @@ aplay   -Dplug$pcm_p -d 1 /dev/zero -q || die "Failed to play on PCM: $pcm_p"
 arecord -Dplug$pcm_c -d 1 /dev/null -q || die "Failed to capture on PCM: $pcm_c"
 
 # alsabat test
-# hardcode the channel number of playback to 2, as sof doesnot support mono wav.
-dlogc "alsabat -P$pcm_p --standalone -n $frames -r $rate -c 2 -f $format -F $frequency -k $sigmak"
-alsabat -P$pcm_p --standalone -n $frames -c 2 -r $rate -f $format -F $frequency -k $sigmak & playPID=$!
+# BT offload PCMs also support mono playback.
+dlogc "alsabat -P$pcm_p --standalone -n $frames -r $rate -c $channel_p -f $format -F $frequency -k $sigmak"
+alsabat -P$pcm_p --standalone -n $frames -c $channel_p -r $rate -f $format -F $frequency -k $sigmak & playPID=$!
 
 # playback may have low latency, add one second delay to aviod recording zero at beginning.
 sleep 1
