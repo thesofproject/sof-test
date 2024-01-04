@@ -50,8 +50,10 @@ do
 	sound_type="pink"
     fi
 
-    dlogc "speaker-test -D $dev -r $rate -c $channel -f $fmt -l $tcnt -t $sound_type -P 8"
-    speaker-test -D "$dev" -r "$rate" -c "$channel" -f "$fmt" -l "$tcnt" -t "$sound_type" -P 8 2>&1 |tee "$LOG_ROOT"/result_"$idx".txt
+    dlogc "speaker-test -D $dev -r $rate -c $channel -F $fmt -l $tcnt -t $sound_type -P 8"
+    # note -F has different semantics than in other alsa-utils, and speaker-test(1)
+    # man page does not cover this
+    speaker-test -D "$dev" -r "$rate" -c "$channel" -F "$fmt" -l "$tcnt" -t "$sound_type" -P 8 2>&1 |tee "$LOG_ROOT"/result_"$idx".txt
     resultRet=${PIPESTATUS[0]}
 
     if grep -nr -E "error|failed" "$LOG_ROOT"/result_"$idx".txt ||
