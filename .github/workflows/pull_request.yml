@@ -21,7 +21,9 @@ jobs:
   shellcheck:
     runs-on: ubuntu-22.04
     steps:
-      - {uses: actions/checkout@v2, with: {fetch-depth: 0}}
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - name: shellcheck
         env:
           BASE_REF: ${{ github.base_ref }}
@@ -33,7 +35,9 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       # :-( https://github.community/t/support-for-yaml-anchors/16128
-      - {uses: actions/checkout@v2, with: {fetch-depth: 0}}
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - run: python --version
 
       # Package index is "out of date by design"
