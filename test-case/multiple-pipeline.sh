@@ -62,7 +62,7 @@ f_arg=${OPT_VAL['f']}
 logger_disabled || func_lib_start_log_collect
 
 # skip the Echo Reference pipeline
-MULTI_PIPELINE_FILTER='~pcm:Amplifier Reference'
+MULTI_PIPELINE_FILTER='~pcm:Amplifier Reference & ~pcm:Port0'
 max_count=0
 
 # find playback or capture or both pipelines to get $PIPELINE_COUNT
@@ -173,13 +173,13 @@ do
     case "$f_arg" in
         'p' | 'a')
             tmp_count=$max_count
-            func_run_pipeline_with_type "playback"
+            func_run_pipeline_with_type "playback" "${MULTI_PIPELINE_FILTER}"
             func_run_pipeline_with_type "capture" "${MULTI_PIPELINE_FILTER}"
             ;;
         'c')
             tmp_count=$max_count
             func_run_pipeline_with_type "capture" "${MULTI_PIPELINE_FILTER}"
-            func_run_pipeline_with_type "playback"
+            func_run_pipeline_with_type "playback" "${MULTI_PIPELINE_FILTER}"
             ;;
         *)
             die "Wrong -f argument $f_arg, see -h"
