@@ -373,8 +373,10 @@ func_mtrace_collect()
     local mtraceCmd=("$MTRACE")
     dlogi "Starting ${mtraceCmd[*]} >& $clogfile &"
     # Cleaned up by func_exit_handler() in hijack.sh
+    # The use of 'bash -c' is a workaround for below issue:
+    # https://github.com/thesofproject/sof-test/issues/1151
     # shellcheck disable=SC2024
-    sudo "${mtraceCmd[@]}" >& "$clogfile" &
+    sudo bash -c "${mtraceCmd[*]} >& $clogfile &"
 }
 
 func_lib_log_post_process()
