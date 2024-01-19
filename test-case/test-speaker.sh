@@ -43,8 +43,16 @@ do
     dev=$(func_pipeline_parse_value "$idx" dev)
     snd=$(func_pipeline_parse_value "$idx" snd)
 
-    # speaker-test only supports wav for 48 kHz test, pink noise works for all rates
-    if [ "$rate" = "48000" ]; then
+    #
+    # The default wav files for speaker-test are 48000Hz 16bit mono
+    # files. In this test, no alsa-lib plugin layer is used so the "wav" test
+    # method can be only be used if sampling rate and sample format
+    # match exactly. Channel count does NOT need to match, so we do not
+    # need to check for that here.
+    #
+    # Use "pink" test method for other audio configurations.
+    #
+    if [ "$rate" = "48000" ] && [ "$fmt" = "S16_LE" ]; then
 	sound_type="wav"
     else
 	sound_type="pink"
