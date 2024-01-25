@@ -120,6 +120,19 @@ remove_module snd_soc_hda_codec
 # platform drivers
 #-------------------------------------------
 remove_module snd_sof_intel_hda_generic
+
+#-------------------------------------------
+# SoundWire/SOF parts
+#-------------------------------------------
+remove_module soundwire_intel_init
+remove_module soundwire_intel
+remove_module soundwire_cadence
+remove_module soundwire_generic_allocation
+remove_module snd_sof_intel_hda_sdw_bpt
+
+#-------------------------------------------
+# platform drivers - take2
+#-------------------------------------------
 remove_module snd_sof_intel_hda_common
 remove_module snd_sof_intel_hda
 remove_module snd_sof_intel_ipc
@@ -254,15 +267,6 @@ remove_module snd_hda_codec_realtek
 remove_module snd_hda_codec_generic
 
 remove_module snd_soc_wm8960
-
-#-------------------------------------------
-# SoundWire/SOF parts
-#-------------------------------------------
-remove_module soundwire_intel_init
-remove_module soundwire_intel
-remove_module soundwire_cadence
-remove_module soundwire_generic_allocation
-remove_module snd_sof_intel_hda_sdw_bpt
 
 #-------------------------------------------
 # Remaining core SOF parts
