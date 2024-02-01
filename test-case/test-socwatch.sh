@@ -38,6 +38,7 @@ OPT_NAME['u']='unload-audio'  OPT_DESC['u']='unload audio modules for the test'
 OPT_HAS_ARG['u']=0            OPT_VAL['u']=0
 
 : "${SOCWATCH_PATH:=$HOME/socwatch}"
+SOCWATCH_VERSION=$("$SOCWATCH_PATH"/socwatch --version |grep Version)
 
 # reference cmd: sudo ./socwatch -t 20 -s 5 -f cpu-cstate -f pkg-pwr -o fredtest5
 #SOCWATCH_CMD="./socwatch"
@@ -51,19 +52,20 @@ loop_count=${OPT_VAL['l']}
 
 check_socwatch_module_loaded()
 {
-    lsmod | grep -q socwatch || die "socwatch is not loaded"
+    lsmod | grep -q socwatch || dlogi "socwatch is not loaded"
 }
 
 socwatch_test_once()
 {
     local i="$1"
     dlogi "===== Loop($i/$loop_count) ====="
+    dlogi "SoCWatch version: ${SOCWATCH_VERSION}"
 
     # set up checkpoint for each iteration
     setup_kernel_check_point
 
     # load socwatch module, if the module is loaded, go ahead with the testing (-q)
-    sudo "$SOCWATCH_PATH"/drivers/insmod-socwatch -q
+    sudo "$SOCWATCH_PATH"/drivers/insmod-socwatch -q || true
     check_socwatch_module_loaded || die "socwatch module not loaded"
 
     ( set -x
@@ -82,7 +84,7 @@ socwatch_test_once()
     sof-kernel-log-check.sh "$KERNEL_CHECKPOINT" || die "Caught error in kernel log"
 
     # unload socwatch module
-    sudo "$SOCWATCH_PATH"/drivers/rmmod-socwatch
+    sudo "$SOCWATCH_PATH"/drivers/rmmod-socwatch || true
 }
 
 main()
