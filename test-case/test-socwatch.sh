@@ -62,8 +62,8 @@ socwatch_test_once()
     # set up checkpoint for each iteration
     setup_kernel_check_point
 
-    # load socwatch module, if the module is loaded, go ahead with the testing (-q)
-    sudo "$SOCWATCH_PATH"/drivers/insmod-socwatch -q
+    # load socwatch module, if the module is loaded, try to reload it (-r)
+    sudo "$SOCWATCH_PATH"/drivers/insmod-socwatch -r
     check_socwatch_module_loaded || die "socwatch module not loaded"
 
     ( set -x
@@ -73,9 +73,12 @@ socwatch_test_once()
     # filter output and copy to log directory
     grep "Package C-State Summary: Residency" -B 8 -A 11 "$SOCWATCH_PATH/sofsocwatch-$i.csv" | tee "$SOCWATCH_PATH/socwatch-$i.txt"
     grep "Package Power Summary: Average Rate" -B 6 -A 4 "$SOCWATCH_PATH/sofsocwatch-$i.csv" | tee -a "$SOCWATCH_PATH/socwatch-$i.txt"
+
+    # generate a PNG graph from the text result
+    sof-socwatch-parser.py "$SOCWATCH_PATH/socwatch-$i.txt"
     # zip original csv report
     gzip "$SOCWATCH_PATH/sofsocwatch-$i.csv"
-    mv "$SOCWATCH_PATH/socwatch-$i.txt" "$SOCWATCH_PATH/sofsocwatch-$i.csv.gz" "$LOG_ROOT"/
+    mv "$SOCWATCH_PATH/socwatch-$i.txt" "$SOCWATCH_PATH/socwatch-$i.png" "$SOCWATCH_PATH/sofsocwatch-$i.csv.gz" "$LOG_ROOT"/
 
     dlogi "Check for the kernel log status"
     # check kernel log for each iteration to catch issues
