@@ -51,10 +51,20 @@ insert_module snd_soc_rt712_sdca
 insert_module snd_soc_rt712_sdca_dmic
 insert_module snd_soc_rt715
 insert_module snd_soc_rt715_sdca
+insert_module snd_soc_rt722_sdca
 insert_module snd_soc_rt1308
 insert_module snd_soc_rt1308_sdw
 insert_module snd_soc_rt1316_sdw
 insert_module snd_soc_rt1318_sdw
+insert_module snd_soc_rt1017_sdw
+
+insert_module snd_soc_cs35l56
+insert_module snd_soc_cs35l56_sdw
+insert_module snd_soc_cs42l42
+insert_module snd_soc_cs42l42_sdw
+#inversion is intentional for cs42l43
+insert_module snd_soc_cs42l43_sdw
+insert_module snd_soc_cs42l43
 
 insert_module snd_soc_sdw_mockup
 
