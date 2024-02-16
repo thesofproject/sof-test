@@ -259,7 +259,7 @@ ignore_str="$ignore_str"'|asix .-.+\..:.\.. en.+: Failed to .+'
 # https://unix.stackexchange.com/questions/109294/mei-00000016-0-init-hw-failure
 # TGLH_SKU0A70_HDA and WHL_UPEXT_HDA_ZEPHYR, suspend-resume test cases failed due to "mei_me 0000:00:16.0: wait hw ready failed"
 # https://github.com/intel-innersource/drivers.audio.ci.sof-framework/issues/246
-ignore_str="$ignore_str"'|mei_me 0000:00:16\..\: .+'
+ignore_str="$ignore_str"'|mei_me 0000:00:16\..: .+'
 
 case "$platform" in
     # Audio PCI ID on CML Mantis is [8086:9dc8], which is defined as CNL in linux kernel.
