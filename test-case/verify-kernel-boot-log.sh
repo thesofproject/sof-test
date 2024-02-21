@@ -28,6 +28,9 @@ main()
 
     print_module_params
 
+    # print the BIOS version
+    sudo dmidecode --type 0
+
     wait_is_system_running --system
     [ "$(id -un)" = root ] ||
         wait_is_system_running --user
