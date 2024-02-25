@@ -60,9 +60,10 @@ sleep 1
 [[ ! $(pidof aplay) ]] && die "aplay process is terminated too early"
 
 sofcard=${SOFCARD:-0}
-readarray -t pgalist < <(amixer -c"$sofcard" controls | awk -Fname= 'toupper($2) ~ /PGA/ { print $2 }')
 # This (1) provides some logging (2) avoids skip_test if amixer fails
 amixer -c"$sofcard" controls
+readarray -t pgalist < <(amixer -c"$sofcard" controls |
+                             awk -Fname= 'tolower($2) ~ /pga|playback.*volume/ { print $2 }')
 dlogi "pgalist number = ${#pgalist[@]}"
 [[ ${#pgalist[@]} -ne 0 ]] || skip_test "No PGA control is available"
 
