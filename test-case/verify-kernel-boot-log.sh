@@ -31,6 +31,8 @@ main()
     # print the BIOS version
     sudo dmidecode --type 0
 
+    show_daemons_session_display
+
     wait_is_system_running --system
     [ "$(id -un)" = root ] ||
         wait_is_system_running --user
@@ -68,14 +70,49 @@ wait_is_system_running()
         systemctl "$manager" --no-pager --failed
         systemctl "$manager" | grep -v active
         systemctl "$manager" is-system-running
-        # See https://github.com/thesofproject/sof-test/discussions/964
-        DISPLAY=:0 xrandr --listmonitors
-        DISPLAY=:1024 xrandr --listmonitors
-        sudo grep -i connected /sys/kernel/debug/dri/0/i915_display_info
+
+        # This subshell is best-effort diagnostics: don't let the exit
+        # status of the previous command(s) affect the test result
         true
     )
     die "Some services are not running correctly"
 }
+
+
+show_daemons_session_display()
+{
+    ( set +e
+
+    # '*session*' and 'gvfs-*' shows whether someone is currently logged
+    # in some GNOME or other session or not because Audio daemons differ
+    # in different cases, see commit 7ffd738bc81d. Some audio daemons
+    # can also linger after logging out. This also shows whether X11 or
+    # Wayland runs - or nothing at all!  The lack of gnome-session-*
+    # displayed here can be due a switch to lightdm or to
+    # AutomaticLogin* not being enabled in /etc/gdm3/custom.conf.  For
+    # more see https://github.com/thesofproject/sof-test/discussions/964
+    systemctl list-units '*dm*.service'; printf '\n'
+    systemctl list-unit-files --user '*pipewire*' '*audio*'
+    printf '\n'
+    systemctl list-units --user --all '*session*' '*pipewire*' '*audio*' 'gvfs-*'
+    printf '\n'
+
+    # See https://github.com/thesofproject/sof-test/discussions/964
+    # and https://github.com/thesofproject/linux/issues/4861
+    (set -x
+     DISPLAY=:0 xrandr --listmonitors
+     DISPLAY=:1024 xrandr --listmonitors
+    )
+    printf '\n'
+    sudo grep -B3 -A1 -i -e connected -e enabled -e active -e audio \
+         /sys/kernel/debug/dri/0/i915_display_info
+    printf '\n'
+
+    ( set -x; gsettings get org.gnome.desktop.session idle-delay )
+    printf '\n'
+    )
+}
+
 
 # Flood usually from gdm3 but keep this function generic
 #   https://github.com/thesofproject/sof-test/discussions/998
