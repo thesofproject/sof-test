@@ -813,21 +813,32 @@ is_firmware_file_zephyr()
 is_ipc4()
 {
     local ipc_type
-    ipc_file=/sys/module/snd_sof_pci/parameters/ipc_type
 
-    # If /sys/module/snd_sof_pci/parameters/ipc_type does not exist
-    # the DUT is running IPC3 mode
-    ipc_type=$(cat $ipc_file) || {
-        return 1
-    }
-
-    # If /sys/module/snd_sof_pci/parameters/ipc_type exists
-    # If the value of file ipc_type is:
-    # -1: DUT runs IPC3 mode, is_ipc4 return 1(false)
-    # 1: DUT runs IPC4 mode, is_ipc4 return 0(true)
-    if [ "$ipc_type" -eq 1 ]; then
-        return 0
+    if ipc_type=$(cat /sys/kernel/debug/sof/fw_profile/ipc_type); then
+	# "cat" was successful
+	case $ipc_type in
+	    0) return 1;; # IPC3 found
+	    1) return 0;; # IPC4 found. in shell, success = error code 0 = "true"
+	    *) die "invalid ipc_type in /sys/kernel/debug/sof/ipc_type=$ipc_type";;
+	esac
     fi
+
+    dlogw "using pre kernel 6.9 backwards-compatible fallback with ipc_type kernel parameter"
+    if ipc_type=$(cat /sys/module/snd_sof_pci/parameters/ipc_type); then
+	# "cat" was successful
+	case $ipc_type in
+	    -1)
+		dlogw "the ipc_type parameter is not set, assume IPC3 was used"
+		return 1;;
+	    0)	# the parameter is set, IPC3 was used.
+		return 1;;
+	    1) 	# the parameter is set, IPC4 was used.
+		return 0;; # in shell, success = error code 0 = "true"
+	    *)	die "invalid ipc_type in /sys/module/snd_sof_pci/parameters/ipc_type=$ipc_type";;
+	esac
+    fi
+
+    dlogw "/sys/module/snd_sof_pci/parameters/ipc_type does not exist, assuming IPC3 was used"
     return 1
 }
 
