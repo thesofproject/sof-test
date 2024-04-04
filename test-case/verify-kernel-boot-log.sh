@@ -94,7 +94,8 @@ show_daemons_session_display()
     systemctl list-units '*dm*.service'; printf '\n'
     systemctl list-unit-files --user '*pipewire*' '*audio*'
     printf '\n'
-    systemctl list-units --user --all '*session*' '*pipewire*' '*audio*' 'gvfs-*'
+    # On some Ubuntu 22 systems, the "--all" option triggers the pager. No idea why.
+    systemctl --no-pager list-units --user --all '*session*' '*pipewire*' '*audio*' 'gvfs-*'
     printf '\n'
 
     # See https://github.com/thesofproject/sof-test/discussions/964
