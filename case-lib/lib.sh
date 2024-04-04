@@ -296,9 +296,16 @@ fake_kern_error()
 get_ldc_subdir()
 {
     local subdir='intel/sof' # default
-    if test -e /sys/module/snd_sof_pci/parameters/fw_path; then
-        local fw_path
-        fw_path=$(cat /sys/module/snd_sof_pci/parameters/fw_path)
+    local fw_path
+    local fw_path_info='/sys/kernel/debug/sof/fw_path'
+
+    # either $fw_path_info exists, OR we redefine $fw_path_info with
+    # the backwards-compatible alternative based on kernel parameter
+    test -e $fw_path_info ||
+	fw_path_info='/sys/module/snd_sof_pci/parameters/fw_path'
+
+    if fw_path=$(cat $fw_path_info); then
+	# "cat" was succesful
         if [ "$fw_path" != '(null)' ]; then
             subdir=${fw_path%/} # strip any trailing slash
             subdir=${subdir%/community}
