@@ -338,6 +338,8 @@ ignore_str="$ignore_str"'|atkbd serio0: Failed to enable keyboard on isa0060/ser
 
 # PS2/serial failures
 ignore_str="$ignore_str""|i8042: Can't read CTR while initializing i8042"
+# Linux kernel commit 32de4b4f9dfa upgraded this generic warning to an error
+ignore_str="$ignore_str""|i8042: probe with driver i8042 failed"
 
 # smbus issues can be ignored
 ignore_str="$ignore_str"'|i801_smbus 0000:00:..\..: Transaction timeout'
