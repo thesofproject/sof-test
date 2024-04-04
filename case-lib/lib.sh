@@ -891,6 +891,10 @@ print_module_params()
     # all snd_hda* modules
     grep -H ^ /sys/module/snd_hda*/parameters/* || true
     echo "----------------------------------------"
+
+    echo "--------- Printing debugfs settings ----------"
+    grep -H ^ /sys/kernel/debug/sof/fw_profile/* || true
+    echo "----------------------------------------------"
 }
 
 # "$@" is optional, typically: --since=@"$epoch".
