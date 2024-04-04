@@ -929,7 +929,7 @@ set_alsa_settings()
             # common nocodec_ci alsa settings
             "$SCRIPT_HOME"/alsa_settings/CAVS_NOCODEC_CI.sh
         ;;
-        TGLU_RVP_NOCODEC_IPC4ZPH | ADLP_RVP_NOCODEC_IPC4ZPH | MTLP_RVP_NOCODEC |ADLP_RVP_NOCODEC-ipc4 | TGLU_RVP_NOCODEC-ipc4 | MTLP_RVP_NOCODEC | MTLP_RVP_NOCODEC-multicore-2cores | MTLP_RVP_NOCODEC-multicore-3cores | LNLM_RVP_NOCODEC)
+        TGLU_RVP_NOCODEC_IPC4ZPH | ADLP_RVP_NOCODEC_IPC4ZPH | ADLP_RVP_NOCODEC-ipc4 | TGLU_RVP_NOCODEC-ipc4 | MTLP_RVP_NOCODEC | MTLP_RVP_NOCODEC-multicore-2cores | MTLP_RVP_NOCODEC-multicore-3cores | LNLM_RVP_NOCODEC)
             dlogi "Use reset_sof_volume function to set amixer setting."
 	;;
         *)
