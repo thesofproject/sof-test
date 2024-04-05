@@ -179,6 +179,13 @@ function func_exit_handler()
         fi
     }
 
+    print_test_result_exit $exit_status
+}
+
+print_test_result_exit()
+{
+    local exit_status="$1"
+
     # We must always print some 'Test Result' otherwise some callers
     # will time out. These strings must match (at least) Jenkins'
     # expectations, see internal sof-framework/clsTestCase.py
@@ -198,7 +205,7 @@ function func_exit_handler()
         ;;
     esac
 
-    builtin exit $exit_status
+    builtin exit "$exit_status"
 }
 
 SUDO_LEVEL=""
