@@ -77,6 +77,9 @@ start_test()
         return 0
     }
 
+    # func_exit_handler() is in hijack.sh
+    trap 'func_exit_handler $?' EXIT
+
     if test -z "$MAX_WAIT_FW_LOADING"; then
         local _pltf; _pltf=$("$SCRIPT_HOME/tools/sof-dump-status.py" -p)
         case "$_pltf" in
