@@ -120,6 +120,14 @@ remove_module snd_soc_hda_codec
 # platform drivers
 #-------------------------------------------
 remove_module snd_sof_intel_hda_generic
+# Attempt 1/2
+#
+# - In the SDW BRA future this will be "in use by
+#   snd_sof_intel_hda_sdw_bpt" and will fail.  Ignore that failure.
+# - In the 6.5-ish "present" 'soundwire_intel' depends on it so it must
+#   be removed first.
+# https://github.com/thesofproject/sof-test/pull/1182
+remove_module snd_sof_intel_hda_common || true
 
 #-------------------------------------------
 # SoundWire/SOF parts
@@ -133,7 +141,9 @@ remove_module snd_sof_intel_hda_sdw_bpt
 #-------------------------------------------
 # platform drivers - take2
 #-------------------------------------------
+# Attempt 2/2, see above.
 remove_module snd_sof_intel_hda_common
+
 remove_module snd_sof_intel_hda
 remove_module snd_sof_intel_ipc
 remove_module snd_sof_xtensa_dsp
