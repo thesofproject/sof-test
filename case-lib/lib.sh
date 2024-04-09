@@ -304,7 +304,7 @@ get_ldc_subdir()
     test -e $fw_path_info ||
 	fw_path_info='/sys/module/snd_sof_pci/parameters/fw_path'
 
-    if fw_path=$(cat $fw_path_info); then
+    if fw_path=$(sudo cat $fw_path_info); then
 	# "cat" was succesful
         if [ "$fw_path" != '(null)' ]; then
             subdir=${fw_path%/} # strip any trailing slash
@@ -821,7 +821,7 @@ is_ipc4()
 {
     local ipc_type
 
-    if ipc_type=$(cat /sys/kernel/debug/sof/fw_profile/ipc_type); then
+    if ipc_type=$(sudo cat /sys/kernel/debug/sof/fw_profile/ipc_type); then
 	# "cat" was successful
 	case $ipc_type in
 	    0) return 1;; # IPC3 found
@@ -893,7 +893,7 @@ print_module_params()
     echo "----------------------------------------"
 
     echo "--------- Printing debugfs settings ----------"
-    grep -H ^ /sys/kernel/debug/sof/fw_profile/* || true
+    sudo grep -H ^ /sys/kernel/debug/sof/fw_profile/* || true
     echo "----------------------------------------------"
 }
 
