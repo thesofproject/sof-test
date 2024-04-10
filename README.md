@@ -146,9 +146,12 @@ apl
 
 * tplgtool2.py
 <br> Dumps info from tplg binary file.
+     SOF CI uses this to generate a topology graph.
 
 * tplgtool.py
-<br> Dumps info from tplg binary file. (deprecated)
+<br> Dumps info from tplg binary file. sof-tplgreader.py still use this but new features
+     will go to tplgtool2.py. When all functions are migrated to tplgtool2.py
+     it will be deprecated.
 
 
 ## System configuration tips
