@@ -179,6 +179,7 @@ remove_module snd_soc_ehl_rt5660
 remove_module snd_soc_intel_sof_board_helpers
 remove_module snd_soc_intel_hda_dsp_common
 remove_module snd_soc_intel_sof_maxim_common
+remove_module snd_soc_intel_sof_nuvoton_common
 remove_module snd_soc_intel_sof_realtek_common
 
 #-------------------------------------------
