@@ -63,11 +63,13 @@ class clsTPLGReader:
                 # supported formats of playback pipeline in formats[0]
                 # supported formats of capture pipeline in formats[1]
                 formats = TplgFormatter.get_pcm_fmt(pcm)
+                rates = TplgFormatter.get_pcm_rate_list(pcm)
                 # if capture is present, pcm['capture'] = 1, otherwise, pcm['capture'] = 0,
                 # same thing for pcm['playback']
                 pipeline_dict['fmts'] = " ".join(formats[pcm['capture']])
                 # use the first supported format for test
                 pipeline_dict['fmt'] = pipeline_dict['fmts'].split(' ')[0]
+                pipeline_dict['rates'] = " ".join(rates[pcm['capture']])
                 pipeline_dict['rate_min'], pipeline_dict['rate_max'] = self._key2str(cap, 'rate')
                 pipeline_dict['ch_min'], pipeline_dict['ch_max'] = self._key2str(cap, 'channels')
                 # for pcm with both playback and capture capabilities, we can extract two pipelines.
@@ -95,7 +97,17 @@ class clsTPLGReader:
         # format pipeline, this change for script direct access 'rate' 'channel' 'dev' 'snd'
         for pipeline in self._pipeline_lst:
             #pipeline['fmt']=pipeline['fmt'].upper().replace('LE', '_LE')
-            pipeline['rate'] = pipeline['rate_min'] if int(pipeline['rate_min']) != 0 else pipeline['rate_max']
+            # If rates is available get first sampling rate from the list.
+            # If rates list doesn't have any, then get it from rate_min or rate_max.
+            # If none of them is available, then set rate to 0
+            if pipeline['rates']:
+                pipeline['rate'] = pipeline['rates'].split(' ')[0]
+            elif int(pipeline['rate_min']) != 0:
+                pipeline['rate'] = pipeline['rate_min']
+            elif int(pipeline['rate_max']) != 0:
+                pipeline['rate'] = pipeline['rate_max']
+            else:
+                pipeline['rate'] = 0
             pipeline['channel'] = pipeline['ch_min']
             pipeline['dev'] = "hw:" + str(sofcard) + ',' + pipeline['id']
             # the character devices for PCM under /dev/snd take the form of

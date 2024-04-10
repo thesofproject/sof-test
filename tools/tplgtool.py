@@ -607,6 +607,17 @@ class TplgFormatter:
             fmts.append("FLOAT")
         return fmts
 
+
+    # transform number denoted pipeline sampling rates to string
+    @staticmethod
+    def _to_rate_string(rate):
+        # Note: intentionally put 48000 first to make first in the list
+        bit_rates_dict = {7 : 48000,
+            1 : 8000, 3 : 16000, 4 : 22050, 5 : 32000, 6 : 44100,
+            8 : 64000, 9 : 96000}
+        return [ str(bit_rates_dict[bit]) for bit in bit_rates_dict
+                   if rate & (1 << bit) != 0 ]
+
     # always return a list, playback stream fmt in fmt_list[0]
     # capture stream fmt in fmt_list[1], the format of absense
     # stream is UNKNOWN
@@ -617,6 +628,12 @@ class TplgFormatter:
         for cap in caps:
             fmt_list.append(TplgFormatter._to_fmt_string(cap["formats"]))
         return fmt_list
+
+    # always return a list, pcm rates in the list in ascending order
+    @staticmethod
+    def get_pcm_rate_list(pcm):
+        caps = pcm["caps"]
+        return [ TplgFormatter._to_rate_string(cap["rates"]) for cap in caps ]
 
     @staticmethod
     def get_pcm_type(item):
