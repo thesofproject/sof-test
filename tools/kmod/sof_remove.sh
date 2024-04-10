@@ -152,6 +152,7 @@ remove_module imx_common
 #-------------------------------------------
 remove_module snd_soc_sof_rt5682
 remove_module snd_soc_sof_da7219_max98373
+remove_module snd_soc_sof_da7219
 remove_module snd_soc_sst_bdw_rt5677_mach
 remove_module snd_soc_bdw_rt286
 remove_module snd_soc_sst_broadwell
