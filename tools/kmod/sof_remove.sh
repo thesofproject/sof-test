@@ -137,7 +137,6 @@ remove_module snd_sof_intel_hda_common
 remove_module snd_sof_intel_hda
 remove_module snd_sof_intel_ipc
 remove_module snd_sof_xtensa_dsp
-remove_module snd_soc_acpi_intel_match
 
 #-------------------------------------------
 # Helpers
@@ -177,6 +176,7 @@ remove_module snd_soc_sof_sdw
 remove_module snd_soc_sof_es8336
 remove_module snd_soc_ehl_rt5660
 remove_module snd_soc_intel_sof_board_helpers
+remove_module snd_soc_acpi_intel_match
 remove_module snd_soc_intel_hda_dsp_common
 remove_module snd_soc_intel_sof_cirrus_common
 remove_module snd_soc_intel_sof_maxim_common
