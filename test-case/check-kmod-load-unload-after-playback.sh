@@ -64,7 +64,10 @@ fi
 
 playback_subtest()
 {
-    "$case_dir"/check-playback.sh -l 1 -t $tplg -d $pb_duration ||
+    # Disable logging with -s because subtests don't invoke func_exit_handler() which
+    # can leave loggers behind (and hang rmmod)
+    # Also, we don't want two (concurrent!?) sets of logs for the same test.
+    "$case_dir"/check-playback.sh -l 1 -t $tplg -d $pb_duration -s ||
     die "aplay check failed"
 }
 
