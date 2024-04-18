@@ -62,8 +62,13 @@ if [ ${OPT_VAL['p']} -eq 1 ];then
     func_lib_disable_pulseaudio
 fi
 
-"$case_dir"/check-playback.sh -l 1 -t $tplg -d $pb_duration ||
+playback_subtest()
+{
+    "$case_dir"/check-playback.sh -l 1 -t $tplg -d $pb_duration ||
     die "aplay check failed"
+}
+
+playback_subtest
 
 for counter in $(seq 1 $loop_cnt)
 do
@@ -91,6 +96,5 @@ do
         fi
     done
 
-    "$case_dir"/check-playback.sh -l 1 -t $tplg -d $pb_duration ||
-        die "aplay check failed"
+    playback_subtest
 done
