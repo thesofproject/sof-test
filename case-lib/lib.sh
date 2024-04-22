@@ -904,7 +904,9 @@ print_module_params()
     echo "----------------------------------------"
 
     echo "--------- Printing debugfs settings ----------"
-    sudo grep -H ^ /sys/kernel/debug/sof/fw_profile/* || true
+    # Need /bin/sh to expand '*' as root.
+    # Need "|| true" to support older kernels.
+    sudo /bin/sh -c 'grep -H ^ /sys/kernel/debug/sof/fw_profile/*' || true
     echo "----------------------------------------------"
 }
 
