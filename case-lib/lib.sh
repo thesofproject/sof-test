@@ -787,7 +787,10 @@ sof_firmware_boot_complete()
     journalctl_cmd "$@" | grep -i 'sof.*firmware[[:blank:]]*boot[[:blank:]]*complete'
 }
 
-is_zephyr()
+# If the firmware is loaded then you probably want to use the newer
+# 'is_firmware_file_zephyr()' instead. Zephyr will have no .ldc file in
+# the future.
+is_zephyr_ldc()
 {
     local ldcFile
     ldcFile=$(find_ldc_file) || {
@@ -800,8 +803,10 @@ is_zephyr()
     test "$znum" -gt 10
 }
 
-# FIXME: the kernel driver should give us the FW path
-# https://github.com/thesofproject/linux/issues/3867
+# TODO: switch to new debugfs `fw_profile`, see
+# https://github.com/thesofproject/linux/issues/3867 and friends. Keep this existing
+# journalctl_cmd() code as a fallback for older kernels or when the firmware has been
+# unloaded. Fallback similar to the one in commit 646a3b3b71003
 get_firmware_path()
 {
     journalctl_cmd -k |
