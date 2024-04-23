@@ -65,7 +65,7 @@ function func_exit_handler()
         dlogi "pkill -TERM $loggerBin"
         sudo pkill -TERM "$loggerBin" || {
             dloge "sof-logger was already dead"
-            if is_zephyr; then
+            if is_zephyr_ldc; then
                 dloge 'Downgrading sof-logger failure to SKIP because of known'
                 dloge 'issue https://github.com/thesofproject/sof/issues/5352'
                 # Pretend we got at least one line of logs to fool the
