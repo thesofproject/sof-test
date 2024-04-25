@@ -50,6 +50,8 @@ main()
     esac
 
     sof-kernel-log-check.sh
+
+    dmic_switch_present
 }
 
 wait_is_system_running()
@@ -76,6 +78,22 @@ wait_is_system_running()
         true
     )
     die "Some services are not running correctly"
+}
+
+# See:
+# - https://github.com/thesofproject/sof/pull/8740
+# - https://github.com/thesofproject/sof-test/issues/1176
+# - Internal Intel issue #559
+dmic_switch_present()
+{
+    # No "DMIC Raw" => no switch => success!
+    arecord -l | grep -i 'sof.*dmic.*raw' || return 0
+
+    (set -x
+     # name= is hardcoded in /usr/share/alsa/ucm2/*
+     # This returns a non-zero error status on failure
+     amixer cget name='Dmic0 Capture Switch'
+    )
 }
 
 
