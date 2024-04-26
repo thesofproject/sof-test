@@ -527,7 +527,7 @@ check_error_in_fw_logfile()
     # -B 2 shows the header line when the first etrace message is an ERROR
     # -A 1 shows whether the ERROR is last or not.
     if (set -x
-        grep -B 2 -A 1 -i --word-regexp -e 'ERR' -e 'ERROR' -e '<err>' "$1"
+        grep -B 2 -A 1 -i --word-regexp -e 'ERR' -e 'ERROR' -e '<err>' -e OSError "$1"
        ); then
         # See internal Intel bug #448
         dlogw 'An HTML display bug hides the bracketed Zephyr &lt;loglevels&gt; in this tab,'
