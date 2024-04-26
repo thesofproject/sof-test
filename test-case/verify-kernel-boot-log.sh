@@ -119,11 +119,20 @@ show_daemons_session_display()
     # See https://github.com/thesofproject/sof-test/discussions/964
     # and https://github.com/thesofproject/linux/issues/4861
     (set -x
+     # This is very hit-and-miss, it notably fails when the $XAUTHORITY file is placed in
+     # a session-specific, /run/user/ tmpfs that cannot be seen over ssh (or from any
+     # other session). Sometimes this shows XWAYLAND.
+     # As of April 2024 there does not seem to be any Wayland equivalent for `xrandr`
      DISPLAY=:0 xrandr --listmonitors
      DISPLAY=:1024 xrandr --listmonitors
+
+     ls -l /sys/class/drm/
+     set +x # can't use set -x because of the crazy "sudo()" in hijack.sh
+     sudo ls -C /sys/kernel/debug/dri/0/
     )
     printf '\n'
-    sudo grep -B3 -A1 -i -e connected -e enabled -e active -e audio \
+    # DRM_XE keeps using i915 code for display, so this will hopefully keep working.
+    sudo grep -B3 -A1 -i -e connected -e enabled -e active -e audio -e connected \
          /sys/kernel/debug/dri/0/i915_display_info
     printf '\n'
 
