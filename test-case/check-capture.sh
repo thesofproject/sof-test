@@ -57,6 +57,7 @@ loop_cnt=${OPT_VAL['l']}
 out_dir=${OPT_VAL['o']}
 file_prefix=${OPT_VAL['f']}
 
+start_test
 logger_disabled || func_lib_start_log_collect
 
 setup_kernel_check_point

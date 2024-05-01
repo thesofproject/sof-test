@@ -53,6 +53,9 @@ loop_count=${OPT_VAL['l']}
 rnd_min=${OPT_VAL['i']}
 rnd_max=${OPT_VAL['a']}
 rnd_range=$((rnd_max - rnd_min))
+
+start_test
+
 [[ $rnd_range -le 0 ]] && dlogw "Error random range scope [ min:$rnd_min - max:$rnd_max ]" && exit 2
 
 tplg=${OPT_VAL['t']}

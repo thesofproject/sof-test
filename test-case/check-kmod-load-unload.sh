@@ -38,6 +38,8 @@ OPT_HAS_ARG['p']=0             OPT_VAL['p']=1
 func_opt_parse_option "$@"
 setup_kernel_check_point
 
+start_test
+
 loop_cnt=${OPT_VAL['l']}
 
 PATH="${PATH%%:*}/kmod:$PATH"

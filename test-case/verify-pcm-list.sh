@@ -26,6 +26,8 @@ OPT_HAS_ARG['t']=1         OPT_VAL['t']="${TPLG:-}"
 func_opt_parse_option "$@"
 tplg=${OPT_VAL['t']}
 
+start_test
+
 tplg_path=$(func_lib_get_tplg_path "$tplg") ||
        	die "No available topology for this test case"
 

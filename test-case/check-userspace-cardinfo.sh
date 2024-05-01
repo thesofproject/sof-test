@@ -19,11 +19,13 @@ set -e
 # shellcheck source=case-lib/lib.sh
 source "$(dirname "${BASH_SOURCE[0]}")"/../case-lib/lib.sh
 
-# check pulseaudio runs properly or not
-func_lib_check_pa || die "Please check whether pulseaudio runs correctly or not"
-
 func_opt_parse_option "$@"
 setup_kernel_check_point
+
+start_test
+
+# check pulseaudio runs properly or not
+func_lib_check_pa || die "Please check whether pulseaudio runs correctly or not"
 
 : $((available_card=0))
 while read -r card; do

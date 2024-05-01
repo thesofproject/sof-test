@@ -50,6 +50,8 @@ duration=${OPT_VAL['d']}
 wait_time=${OPT_VAL['w']}
 loop_count=${OPT_VAL['l']}
 
+start_test
+
 check_socwatch_module_loaded()
 {
     lsmod | grep -q socwatch || dlogi "socwatch is not loaded"

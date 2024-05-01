@@ -58,6 +58,9 @@ func_check_dsp_status()
 func_opt_parse_option "$@"
 tplg=${OPT_VAL['t']}
 loop_count=${OPT_VAL['l']}
+
+start_test
+
 [[ -z $tplg ]] && dloge "Miss tplg file to run" && exit 2
 
 [[ $(sof-dump-status.py --dsp_status 0) == "unsupported" ]] &&

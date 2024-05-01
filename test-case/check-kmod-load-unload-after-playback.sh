@@ -54,6 +54,8 @@ tplg=${OPT_VAL['t']}
 loop_cnt=${OPT_VAL['l']}
 pb_duration=${OPT_VAL['d']}
 
+start_test
+
 func_pipeline_export "$tplg" "type:playback"
 
 func_lib_check_sudo

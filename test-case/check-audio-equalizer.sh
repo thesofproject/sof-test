@@ -41,6 +41,8 @@ loop_cnt=${OPT_VAL['l']}
 func_pipeline_export "$tplg" "eq:any"
 sofcard=${SOFCARD:-0}
 
+start_test
+
 # Test equalizer
 func_test_eq()
 {

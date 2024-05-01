@@ -58,6 +58,8 @@ ARECORD_WAV1=$(mktemp --suffix=.wav)
 ARECORD_WAV2=$(mktemp --suffix=.wav)
 ARECORD_WAV3=$(mktemp --suffix=.wav)
 
+start_test
+
 #
 # Main test procedure
 #

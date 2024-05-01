@@ -40,6 +40,8 @@ tplg=${OPT_VAL['t']}
 wait_time=${OPT_VAL['w']}
 loop_cnt=${OPT_VAL['l']}
 
+start_test
+
 # get 'both' pcm, it means pcm have same id with different type
 declare -A tmp_id_lst
 id_lst_str=""
@@ -59,6 +61,7 @@ unset tmp_id_lst tplg_path
 id_lst_str=${id_lst_str/,/} # remove 1st, which is not used
 [[ ${#id_lst_str} -eq 0 ]] && dlogw "no pipeline with both playback and capture capabilities found in $tplg" && exit 2
 func_pipeline_export "$tplg" "id:$id_lst_str"
+
 logger_disabled || func_lib_start_log_collect
 
 func_error_exit()

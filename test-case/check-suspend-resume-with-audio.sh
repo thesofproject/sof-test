@@ -61,6 +61,8 @@ setup_kernel_check_point
 func_lib_check_sudo
 
 tplg=${OPT_VAL['t']}
+
+start_test
 logger_disabled || func_lib_start_log_collect
 
 # overwrite the subscript: test-case LOG_ROOT environment

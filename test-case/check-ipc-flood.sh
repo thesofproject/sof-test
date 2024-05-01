@@ -34,6 +34,8 @@ lpc_loop_cnt=${OPT_VAL['c']}
 ipc_flood_dfs=${OPT_VAL['f']}
 loop_cnt=${OPT_VAL['l']}
 
+start_test
+
 sof-kernel-dump.sh | grep sof-audio | grep -q "Firmware debug" ||
      skip_test "need debug version firmware"
 
