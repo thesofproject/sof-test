@@ -66,6 +66,12 @@ minvalue() { printf '%d' $(( "$1" < "$2"  ? "$1" : "$2" )); }
 #    concurrency 1% of the time, detecting it 99% of the time is much
 #    more than enough to spot reservation problems.
 #
+# 3. Register the func_exit_handler() EXIT trap that collects logs, kills
+#    loggers and prints test results.
+#
+# 4. Waits for the FW to be successfully booted (can be disabled)
+#
+#
 start_test()
 {
     if is_subtest; then
