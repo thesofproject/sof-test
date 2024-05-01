@@ -121,14 +121,16 @@ alsabat -P$pcm_p --standalone -n $frames -c $channel_p -r $rate -f $format -F $f
 # playback may have low latency, add one second delay to aviod recording zero at beginning.
 sleep 1
 
+# dump amixer contents always.
+# Good case amixer settings is for reference, bad case for debugging.
+amixer contents > "$LOG_ROOT"/amixer_settings.txt
+
 # We use different USB sound cards in CI, part of them only support 1 channel for capture,
 # so make the channel as an option and config it in alsabat-playback.csv
 dlogc "alsabat -C$pcm_c -c $channel_c -r $rate -f $format -F $frequency -k $sigmak"
 alsabat -C$pcm_c -c $channel_c -r $rate -f $format -F $frequency -k $sigmak || {
         # upload failed wav file
         __upload_wav_file
-        # dump amixer contents for more debugging
-        amixer contents > "$LOG_ROOT"/amixer_settings.txt
         exit 1
 }
 
