@@ -1024,4 +1024,3 @@ perf_analyze()
     fi
 }
 
-start_test

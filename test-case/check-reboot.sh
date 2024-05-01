@@ -34,6 +34,8 @@ loop_count=${OPT_VAL['l']}
 delay=${OPT_VAL['d']}
 timeout=${OPT_VAL['t']}
 
+start_test
+
 # write the total & current count to the status file
 status_log=$LOG_ROOT/status.txt
 echo "$loop_count $(uname -r)" >> $status_log

@@ -47,6 +47,8 @@ OPT_HAS_ARG['r']=0         OPT_VAL['r']=0
 func_opt_parse_option "$@"
 func_lib_check_sudo
 
+start_test
+
 type=${OPT_VAL['T']}
 # switch type
 if [ "$type" ]; then

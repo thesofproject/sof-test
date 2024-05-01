@@ -94,6 +94,8 @@ sleep_period=${OPT_VAL['i']}
 test_mode=${OPT_VAL['m']}
 file_name=${OPT_VAL['F']}
 
+start_test
+
 case $test_mode in
     "playback")
         cmd=aplay

@@ -73,6 +73,8 @@ frequency=${OPT_VAL['F']}
 sigmak=${OPT_VAL['k']}
 frames=${OPT_VAL['n']}
 
+start_test
+
 if [ "$pcm_p" = "" ]||[ "$pcm_c" = "" ];
 then
 	dloge "No playback or capture PCM is specified. Skip the alsabat test"

@@ -27,6 +27,8 @@ source "${TOPDIR}"/case-lib/lib.sh
 
 func_opt_parse_option "$@"
 
+start_test
+
 # check sof-logger location
 type -a sof-logger ||
     die "sof-logger Not Installed!"

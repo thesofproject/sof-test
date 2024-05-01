@@ -55,6 +55,9 @@ file_name=${OPT_VAL['f']}
 # configure random value range
 rnd_min=${OPT_VAL['i']}
 rnd_max=${OPT_VAL['a']}
+
+start_test
+
 rnd_range=$(( rnd_max -  rnd_min ))
 [[ $rnd_range -le 0 ]] && dlogw "Error random range scope [ min:$rnd_min - max:$rnd_max ]" && exit 2
 

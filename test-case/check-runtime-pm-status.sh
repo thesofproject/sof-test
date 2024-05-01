@@ -54,6 +54,9 @@ setup_kernel_check_point
 
 tplg=${OPT_VAL['t']}
 loop_count=${OPT_VAL['l']}
+
+start_test
+
 [[ -z $tplg ]] && die "Miss tplg file to run"
 
 [[ $(sof-dump-status.py --dsp_status 0) == "unsupported" ]] &&

@@ -51,6 +51,8 @@ format=${OPT_VAL['F']}
 rate=${OPT_VAL['R']}
 channel=${OPT_VAL['C']}
 
+start_test
+
 [[ -e $file ]] || { dlogw "$file does not exist, use /dev/zero as dummy playback source" && file=/dev/null; }
 
 # TODO: check the parameter is valid or not

@@ -53,6 +53,7 @@ history_depth=${OPT_VAL['s']}
 preamble_time=${OPT_VAL['p']}
 duration=${OPT_VAL['d']}
 
+start_test
 logger_disabled || func_lib_start_log_collect
 
 func_pipeline_export "$tplg" "kpb:any"

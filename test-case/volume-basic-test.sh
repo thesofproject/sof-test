@@ -35,6 +35,8 @@ setup_kernel_check_point
 tplg=${OPT_VAL['t']}
 maxloop=${OPT_VAL['l']}
 
+start_test
+
 func_error_exit()
 {
     dloge "$*"

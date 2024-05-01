@@ -20,6 +20,8 @@ func_opt_parse_option "$@"
 
 setup_kernel_check_point
 
+start_test
+
 dlogi "Checking if sof relative modules loaded"
 dlogc "lsmod | grep \"sof\""
 

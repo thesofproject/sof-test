@@ -21,6 +21,8 @@ func_opt_parse_option "$@"
 
 disable_kernel_check_point
 
+start_test
+
 cmd="journalctl_cmd"
 
 dlogi "Checking SOF Firmware load info in kernel log"

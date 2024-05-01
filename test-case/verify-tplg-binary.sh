@@ -26,6 +26,8 @@ func_opt_parse_option "$@"
 setup_kernel_check_point
 tplg=${OPT_VAL['t']}
 
+start_test
+
 tplg_path=$(func_lib_get_tplg_path "$tplg") ||
     die "No available topology ($tplg) for this test case"
 
