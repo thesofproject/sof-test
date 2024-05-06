@@ -20,7 +20,7 @@ source "$(dirname "${BASH_SOURCE[0]}")"/../case-lib/lib.sh
 
 start_test
 # TODO: replace start_test with this:
-trap 'print_test_result_exit $?' EXIT
+# trap 'print_test_result_exit $?' EXIT
 # https://github.com/thesofproject/sof-test/issues/1112
 
 main()
