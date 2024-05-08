@@ -3,6 +3,9 @@
 SUDO_CMD=$(command -v sudo)
 
 # Overwrite other functions' exit to perform environment cleanup
+#
+# TODO: split this into smaller functions that "special" test cases can
+# re-use separately instead of all this or nothing.
 function func_exit_handler()
 {
     local exit_status=${1:-0}
