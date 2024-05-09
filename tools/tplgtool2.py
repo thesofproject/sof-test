@@ -1330,6 +1330,7 @@ considered different from components that specific core ID 0.
         errors = 0
         for f in files:
             tplg = GroupedTplg(tplgFormat.parse_file(f))
+            assert set(dump_types) <= set(supported_dump), f"unsupported type in {dump_types}"
             if 'pcm' in dump_types:
                 tplg.print_pcm_info()
             if 'graph' in dump_types:
