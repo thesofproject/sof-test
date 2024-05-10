@@ -24,7 +24,10 @@ boot_log_exit_handler()
 {
     local exit_code=$1
 
+    # For issues with sound daemons, display, USB, network, NTP, systemd, etc.
     journalctl --boot > "$LOG_ROOT"/boot_log.txt
+    # More focused
+    journalctl --dmesg > "$LOG_ROOT"/dmesg.txt
 
     print_test_result_exit "$exit_code"
 }
