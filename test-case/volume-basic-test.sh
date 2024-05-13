@@ -16,7 +16,9 @@
 
 # source from the relative path of current folder
 # shellcheck source=case-lib/lib.sh
-source "$(dirname "${BASH_SOURCE[0]}")"/../case-lib/lib.sh
+TOPDIR=$(cd "$(dirname "${BASH_SOURCE[0]}")"/.. && pwd)
+source "$TOPDIR/case-lib/lib.sh"
+
 
 volume_array=("0%" "10%" "20%" "30%" "40%" "50%" "60%" "70%" "80%" "90%" "100%")
 OPT_NAME['t']='tplg'     OPT_DESC['t']="tplg file, default value is env TPLG: $TPLG"
@@ -62,7 +64,10 @@ sleep 1
 [[ ! $(pidof aplay) ]] && die "aplay process is terminated too early"
 
 sofcard=${SOFCARD:-0}
-readarray -t pgalist < <(amixer -c"$sofcard" controls | awk -Fname= 'toupper($2) ~ /PGA/ { print $2 }')
+
+# https://mywiki.wooledge.org/BashFAQ/024 why cant I pipe data to read?
+readarray -t pgalist < <("$TOPDIR"/tools/topo_vol_kcontrols.py "$tplg")
+
 # This (1) provides some logging (2) avoids skip_test if amixer fails
 amixer -c"$sofcard" controls
 dlogi "pgalist number = ${#pgalist[@]}"
