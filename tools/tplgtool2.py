@@ -198,7 +198,7 @@ class PcmFormatsFlag(enum.IntFlag):
 class SofVendorToken(enum.IntEnum):
     r"""SOF vendor tokens
 
-    See `tools/topology1/sof/tokens.m4` in SOF.
+    Duplicates Linux' `include/uapi/sound/sof/tokens.h`
     """
     # sof_buffer_tokens
     SOF_TKN_BUF_SIZE = 100
@@ -235,6 +235,7 @@ class SofVendorToken(enum.IntEnum):
     SOF_TKN_COMP_CORE_ID = 404
     SOF_TKN_COMP_UUID = 405
     SOF_TKN_COMP_CPC = 406
+    SOF_TKN_COMP_NO_WNAME_IN_KCONTROL_NAME = 417
     # sof_ssp_tokens
     SOF_TKN_INTEL_SSP_CLKS_CONTROL = 500
     SOF_TKN_INTEL_SSP_MCLK_ID = 501
