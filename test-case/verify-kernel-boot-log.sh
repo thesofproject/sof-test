@@ -24,10 +24,19 @@ boot_log_exit_handler()
 {
     local exit_code=$1
 
+    # This script is normally run first and immediately after boot. 'max_lines' protects
+    # storage in case it's not (and debug logs are on!). Long logs also make the user
+    # interface unresponsive, see example in (unrelated)
+    # https://github.com/thesofproject/sof/issues/8761.
+    #
+    # A typical boot log with SOF debug is 3000 lines, see more numbers in
+    # detect_log_flood() comments below. Double that to be on the safe side.
+    local max_lines=6000
+
     # For issues with sound daemons, display, USB, network, NTP, systemd, etc.
-    journalctl --boot > "$LOG_ROOT"/boot_log.txt
+    journalctl --boot  | head -n "$max_lines" > "$LOG_ROOT"/boot_log.txt
     # More focused
-    journalctl --dmesg > "$LOG_ROOT"/dmesg.txt
+    journalctl --dmesg | head -n "$max_lines" > "$LOG_ROOT"/dmesg.txt
 
     print_test_result_exit "$exit_code"
 }
@@ -174,6 +183,9 @@ detect_log_flood()
     #     `systemctl --user status org.gnome.Shell@wayland.service`
     #   as "FAILED" after a couple minutes trying so there's no risk of
     #   missing the problem.
+
+    # If this has to change in the future then 'max_lines' above should
+    # probably be updated too.
     if [ "$recent_lines" -lt 6000 ]; then
         return 0
     fi
