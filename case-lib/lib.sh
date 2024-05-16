@@ -89,11 +89,14 @@ start_test()
     if test -z "$MAX_WAIT_FW_LOADING"; then
         local _pltf; _pltf=$("$SCRIPT_HOME/tools/sof-dump-status.py" -p)
         case "$_pltf" in
+
             # broken i915 with long timeout, see comments in config.sh
-            mtl) MAX_WAIT_FW_LOADING=70;;
+            # add_slow_prototype_platform_here) MAX_WAIT_FW_LOADING=70;;
+
             # rt1011 i2c-10EC1011:00 needs 10 seconds on cml-hel-rt5682,
             # see https://github.com/thesofproject/sof-test/pull/1095
             cml) MAX_WAIT_FW_LOADING=13;;
+
             *)   MAX_WAIT_FW_LOADING=3;;
         esac
     fi
