@@ -304,7 +304,7 @@ if __name__ == "__main__":
 
     import argparse
 
-    parser = argparse.ArgumentParser(description='Warp Tools to mapping tplgreader convert TPLG file.',
+    parser = argparse.ArgumentParser(description='Filters and prints PCMs found in a .tplg file',
         add_help=True, formatter_class=argparse.RawTextHelpFormatter)
 
     parser.add_argument('filename', type=str, help='tplg file name, multi-tplg file name use "," to split it')
@@ -315,7 +315,7 @@ string format is 'key':'value','value', the filter
 string support & | and ~ logic operation.
 if only care about key, you can use 'key':'any'.
 
-NOTE: pipelines are filtered according to their key-value attributes pairs,
+NOTE: pipelines (actually: _PCMs_) are filtered according to their key-value attributes pairs,
 the value in a key-value pair is either numerical or non-numerical. Strings
 contain only digits are considered numerical, and others are considered
 non-numerical. Exact value match will be carried out for numerical values,
