@@ -146,8 +146,9 @@ show_daemons_session_display()
      # a session-specific, /run/user/ tmpfs that cannot be seen over ssh (or from any
      # other session). Sometimes this shows XWAYLAND.
      # As of April 2024 there does not seem to be any Wayland equivalent for `xrandr`
-     DISPLAY=:0 xrandr --listmonitors
-     DISPLAY=:1024 xrandr --listmonitors
+     for d in 0 1024; do
+         DISPLAY=:"$d"  timeout -k 3 5 xrandr --listmonitors
+     done
 
      ls -l /sys/class/drm/
      set +x # can't use set -x because of the crazy "sudo()" in hijack.sh
