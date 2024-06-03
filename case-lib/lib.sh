@@ -305,8 +305,10 @@ fake_kern_error()
 
 }
 
+# $1: optional (platform) string to strip. Useful for IPC4.
 get_ldc_subdir()
 {
+    local strip_arg="$1"
     local subdir='intel/sof' # default
     local fw_path
     local fw_path_info='/sys/kernel/debug/sof/fw_profile/fw_path'
@@ -323,6 +325,7 @@ get_ldc_subdir()
             subdir=${subdir%/community}
             subdir=${subdir%/intel-signed}
             subdir=${subdir%/dbgkey}
+            test -z "$strip_arg" || subdir=${subdir%/"$strip_arg"}
         fi
     fi
     printf '%s' "$subdir"
@@ -345,7 +348,7 @@ find_ldc_file()
         }
         ldcFile=/etc/sof/sof-"$platf".ldc
         [ -e "$ldcFile" ] || {
-            local subdir; subdir=$(get_ldc_subdir)
+            local subdir; subdir=$(get_ldc_subdir "$platf")
             ldcFile=/lib/firmware/"${subdir}"/sof-"$platf".ldc
         }
     fi
