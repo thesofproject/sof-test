@@ -17,7 +17,7 @@ TPLG_ROOT=${TPLG_ROOT:-/lib/firmware/intel/sof-tplg}
 declare -A TPLG_IGNORE_LST
 # Used in case-lib/pipeline.sh as of October 2020
 # shellcheck disable=SC2034
-TPLG_IGNORE_LST['pcm']='HDA Digital'
+TPLG_IGNORE_LST['pcm']='HDA Digital,Jack In'
 
 # If not set will be automatically set by logging_ctl function
 # Test case log root
