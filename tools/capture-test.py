@@ -49,12 +49,14 @@ def parse_opts():
     global opts # pylint: disable=global-statement
     ap = argparse.ArgumentParser(description=HELP_TEXT,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap.add_argument("-v", "--verbose", action="store_true", help="Verbose output")
     ap.add_argument("--disable-rtnr", action="store_true", help="Disable RTNR noise reduction")
     ap.add_argument("-c", "--card", type=int, default=0, help="ALSA card index")
     ap.add_argument("--pcm", type=int, default=16, help="Output ALSA PCM index")
     ap.add_argument("--cap", type=int, default=18, help="Capture ALSA PCM index")
     ap.add_argument("--rate", type=int, default=48000, help="Sample rate")
     ap.add_argument("--chan", type=int, default=2, help="Output channel count")
+    ap.add_argument("--bufsz", type=int, default=2048, help="Buffer size in frames")
     ap.add_argument("--capchan", type=int,
                       help="Capture channel count (if different from output)")
     ap.add_argument("--capbits", type=int, default=16, help="Capture sample bits (16 or 32)")
@@ -114,6 +116,16 @@ def pcm_init_stream(pcm, rate, chans, fmt, access):
     alsa.snd_pcm_hw_params_set_channels(pcm, hwp, chans)
     alsa.snd_pcm_hw_params_set_rate(pcm, hwp, rate, 0)
     alsa.snd_pcm_hw_params_set_access(pcm, hwp, access)
+    alsa.snd_pcm_hw_params_set_buffer_size(pcm, hwp, opts.bufsz)
+    if opts.verbose:
+        print("Set hw_params:")
+        out = C.c_ulong(0)
+        alsa.snd_output_buffer_open(C.byref(out))
+        alsa.snd_pcm_hw_params_dump(hwp, out)
+        buf = C.c_ulong(0)
+        alsa.snd_output_buffer_string(out, C.byref(buf))
+        print(C.string_at(buf.value).decode("ascii", errors="ignore"))
+
     alsa.snd_pcm_hw_params(pcm, hwp)
 
 def ctl_disable_rtnr():
