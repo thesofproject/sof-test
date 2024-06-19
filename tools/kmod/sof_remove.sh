@@ -236,6 +236,7 @@ remove_module snd_soc_rt712_sdca
 remove_module snd_soc_rt712_sdca_dmic
 remove_module snd_soc_rt715
 remove_module snd_soc_rt715_sdca
+remove_module snd_soc_rt722_sdca
 remove_module snd_soc_rt1308
 remove_module snd_soc_rt1308_sdw
 remove_module snd_soc_rt1316_sdw
