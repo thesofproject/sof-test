@@ -51,6 +51,7 @@ insert_module snd_soc_rt712_sdca
 insert_module snd_soc_rt712_sdca_dmic
 insert_module snd_soc_rt715
 insert_module snd_soc_rt715_sdca
+insert_module snd_soc_rt722_sdca
 insert_module snd_soc_rt1308
 insert_module snd_soc_rt1308_sdw
 insert_module snd_soc_rt1316_sdw
