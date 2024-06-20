@@ -60,6 +60,8 @@ def parse_opts():
     ap.add_argument("--capchan", type=int,
                       help="Capture channel count (if different from output)")
     ap.add_argument("--capbits", type=int, default=16, help="Capture sample bits (16 or 32)")
+    ap.add_argument("--capmap", type=str, default="01",
+                    help="Capture channel map (as string, e.g. '23' to select 3rd/4th elems)")
     ap.add_argument("--noise", default="noise.wav",
                       help="WAV file containing 'noise' for capture")
     ap.add_argument("--duration", type=int, default=3, help="Capture duration (seconds)")
@@ -71,6 +73,7 @@ def parse_opts():
     opts = ap.parse_args()
     if not opts.capchan:
         opts.capchan = opts.chan
+    opts.capmap = [int(x) for x in opts.capmap]
     opts.base_test = not (opts.chirp_test or opts.echo_test)
 
 class ALSA:
@@ -295,7 +298,9 @@ def cap_to_playback(buf):
     # treat it, and it can plausibly create false positive chirp signals
     # loud enough).
     for i in range(0, len(buf), capsz):
-        frame = [scale * x for x in struct.unpack(capfmt, buf[i:i+capsz])[0:opts.chan]]
+        frame = struct.unpack(capfmt, buf[i:i+capsz]) # Decode
+        frame = [frame[n] for n in opts.capmap]       # Select via channel map
+        frame = [scale * x for x in frame]            # Convert to float
         if last_frame:
             delta_sum += sum(abs(last_frame[x] - frame[x]) for x in range(opts.chan))
         last_frame = frame
