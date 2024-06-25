@@ -182,8 +182,8 @@ remove_module snd_soc_cml_rt1011_rt5682
 remove_module snd_soc_skl_hda_dsp
 remove_module snd_soc_sdw_rt700
 remove_module snd_soc_sdw_rt711_rt1308_rt715
-remove_module snd_soc_sdw_utils
 remove_module snd_soc_sof_sdw
+remove_module snd_soc_sdw_utils
 remove_module snd_soc_sof_es8336
 remove_module snd_soc_ehl_rt5660
 remove_module snd_soc_intel_sof_board_helpers
