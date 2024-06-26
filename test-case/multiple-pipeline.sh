@@ -206,6 +206,11 @@ do
     pkill -9 aplay   || true
     sleep 1 # try not to pollute the next iteration
 
+    if pgrep arecord || pgrep aplay; then
+        printf '%c' 't' | sudo tee /proc/sysrq-trigger > /dev/null
+        sleep 1
+    fi
+
     # check kernel log for each iteration to catch issues
     sof-kernel-log-check.sh "$KERNEL_CHECKPOINT" || die "Caught error in kernel log"
 done
