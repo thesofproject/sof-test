@@ -112,7 +112,7 @@ def pcm_init_stream(pcm, rate, chans, fmt, access):
     alsa.snd_pcm_hw_params_any(pcm, hwp)
     alsa.snd_pcm_hw_params_set_format(pcm, hwp, fmt)
     alsa.snd_pcm_hw_params_set_channels(pcm, hwp, chans)
-    alsa.snd_pcm_hw_params_set_rate(pcm, hwp, rate, alsa.PCM_STREAM_PLAYBACK)
+    alsa.snd_pcm_hw_params_set_rate(pcm, hwp, rate, 0)
     alsa.snd_pcm_hw_params_set_access(pcm, hwp, access)
     alsa.snd_pcm_hw_params(pcm, hwp)
 
