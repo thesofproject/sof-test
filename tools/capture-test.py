@@ -46,7 +46,7 @@ specific case under test.
 """
 
 def parse_opts():
-    global opts
+    global opts # pylint: disable=global-statement
     ap = argparse.ArgumentParser(description=HELP_TEXT,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--disable-rtnr", action="store_true", help="Disable RTNR noise reduction")
@@ -103,6 +103,7 @@ class ALSA:
         return ret
     def alloc(self, typ):
         return (C.c_byte * getattr(self.lib, f"snd_{typ}_sizeof")())()
+    # pylint: disable=too-few-public-methods
     class pcm_channel_area_t(C.Structure):
         _fields_ = [("addr", C.c_ulong), ("first", C.c_int), ("step", C.c_int)]
 
@@ -352,7 +353,8 @@ def echo_test():
     # Just slurps in the wav file and chops off the header, assuming
     # the user got the format and sampling rate correct.
     WAV_HDR_LEN = 44
-    buf = open(opts.noise, "rb").read()[WAV_HDR_LEN:]
+    with open(opts.noise, "rb") as f:
+        buf = f.read()[WAV_HDR_LEN:]
 
     (rfd, wfd) = os.pipe()
     pid = os.fork()
