@@ -1,0 +1,274 @@
+#!/usr/bin/env expect
+
+# If you're new to expect:
+#
+# - Expect is "only" a Tcl extension and Tcl command.
+#   An "expect script" is a somewhat misleading shorthand for "a Tcl
+#   script that happens to use expect/"
+#
+# - So, you can't understand this script (or any expect script) without
+#   some minimum Tcl knowledge. Especially: strings, quoting, lists and
+#   delayed evaluations.
+#
+# - Expect resources on the Internet are hit-and-miss. Don Libes' book
+#   "Exploring Expect" is great: buy the book or check whether your
+#   employer has an online subscription. That book has a really nice and
+#   short (single chapter) Tcl introduction too.
+#   Tcl resources on the Internet are much better and expect resources.
+#
+# - The man pages are not good for learning but they are a very useful
+#   references: run `apt install tcl8*-doc` or equivalent to get Tcl man
+#   pages, then: `man [3tcl] expect`,  `man [3tcl] after`, etc.
+#
+# - Use the interactive `rlwrap tclsh` to experiment.
+#
+
+# log level: 0 = initialization, warnings and errors only, 1 = normal, 2+ = debug
+set log_level 1
+
+# Set to 1 only when you're desperate: this randomly interleaves
+# aplay's output with output from this script.
+log_user 0
+
+# aplay -vv is chatty: no need to wait for very long
+set timeout 5
+
+proc log {lvl msg} {
+    global log_level cmd_shortname
+    if {$lvl <= $log_level} {
+        puts "t=[rel_time_ms] ms: $cmd_shortname: $msg"
+    }
+}
+
+# Pop the first element of the list argument.
+# Equivalent to "shift" in shell.
+proc lshift {args} {
+     # "upvar" required to escape scope and change argument in place
+    upvar $args args_up
+    set first [lindex $args_up 0]
+    set args_up [lreplace $args_up 0 0]
+    return $first
+}
+
+# Random numbers between min and min+range
+proc rand_min_range {min range} {
+    return [expr $min + int([expr rand() * $range])]
+}
+
+set cmd_shortname  [lshift argv]
+set repeat_count   [lshift argv]
+set rnd_min        [lshift argv]
+set rnd_range      [lshift argv]
+
+# Should really be 200 ms because of the round-trip between pressing
+# "space" and aplay's acknowledgement + other various delays everywhere.
+# Keep it that small for now for backwards compatibility.
+if {$rnd_min < 20} {
+    puts "$argv0 ERROR: rnd_min=$rnd_min argument is lower than 100ms"
+    exit 1
+}
+
+# How many times we paused
+set pauses_counter 0
+
+# Logging needs this early. Will reset better later.
+set start_time_ms [clock milliseconds]
+
+proc rel_time_ms {} {
+    global start_time_ms
+    return [expr [clock milliseconds] - $start_time_ms]
+}
+
+proc press_space {} {
+    global last_space_time
+    log 2 "Pressing SPACE"
+    send " "
+    set last_space_time [rel_time_ms]
+    log 3 "last_space_time set to $last_space_time"
+}
+
+proc substract_time_since_last_space {duration} {
+    global last_space_time
+    set _delay [expr $duration - ([rel_time_ms] - $last_space_time)]
+    # Don't return negative values if we already passed the deadline.
+    # Don't return zero either to avoid interrupting ourselves (just in
+    # case Tcl thought it would be a good idea)
+    return [tcl::mathfunc::max 1 $_delay]
+}
+
+# aplay's VU-meter uses CRs to write over itself and avoid terminal scrolling.
+# But when debugging we want to see everything.
+proc cr_to_lf {arg} {
+    set _lf [regsub "\r" $arg "\n"]
+    return [string trim $_lf]
+}
+
+# Use all remaining arguments as the command to invoke. Example:
+#
+#    arecord $cmd_opts -D $dev -r $rate -c $channel -f $fmt -vv -i $file_name ...
+log 0 "$argv0 spawning: $argv"
+spawn  {*}$argv
+set start_time_ms [clock milliseconds]; # re-adjust
+set last_space_time 0 ; # could not resist that name
+
+# states: recording, pause_requested, paused, recording_requested
+set state recording_requested
+
+set in_max_burst false
+set volume_always_zero true
+
+# Key `expect` matching facts to keep in mind:
+#
+# 1. `expect` never cares about newlines on its own. You must use `\r`
+#    and/or `\n` _everywhere_ you care about newlines.
+#
+# 2. When to use \r versus \n versus \r\n (CRLF) in expect unfortunately
+#    requires some tty _and_ arecord VU-meter knowledge and is a bit too
+#    complicated to be summarized here.
+#
+# 3. When nothing matches, expect keeps reading and keeps looking
+#    forward. As soon as something matches, `expect` _ignores_ what did
+#    not match earlier. Except when using ^ which is the "start of
+#    input" anchor (NOT a "start of line" anchor)
+#
+# 4. Conversely, whatever is left AFTER a match will always be submitted
+#    for matching again: exactly like it has not arrived yet (otherwise it
+#    would be always racy).
+
+expect {
+
+    # When multiple patterns match, first pattern wins.
+
+    # Volume xx% or MAX line
+    #
+    # When not backpressured by a sleeping (=bad!) expect,
+    # aplay seems to update its VU-meter about once every 100ms.
+    -re {#[^\r\n]*\| (..*%|MAX)\r} {
+
+        # - $expect_out(0,string) =                           match
+        # - $expect_out(buffer)   = everything before match + match
+
+        set buffer_with_lf "[cr_to_lf $expect_out(buffer)]"
+
+        # Always print the audio stream configuration preamble
+        if [regexp {PCM card} "$buffer_with_lf"] {
+            log 0 "$buffer_with_lf"
+        }
+
+        if [regexp {\| MAX} "$buffer_with_lf"] {
+            if { ! $in_max_burst } {
+                # TODO: upgrade this to a failure once all ALSA settings have been fixed.
+                log 0 "WARNING: volume MAX! Bug or bad ALSA settings?"
+                log 0 "$buffer_with_lf"
+                set in_max_burst true
+            }
+        } else {
+            set in_max_burst false
+        }
+
+        if $volume_always_zero {
+            # This is not perfect because if `expect` becomes very slow
+            # for some unknown reason, then there could be _multiple_
+            # volume lines in a single of these buffer iterations and then we
+            # could miss some non-zeros.
+            # This is very unlikely though so this is statically good enough.
+            if {! [regexp {\| ( |0)0%} "$buffer_with_lf"]} {
+                set volume_always_zero false
+            }
+        }
+
+        switch $state {
+
+            recording {
+                log 2 "Recording volume #... | xx%:\n[cr_to_lf $expect_out(buffer)]"
+                exp_continue
+            }
+
+            pause_requested {
+                log 2 "Volume #... | xx% left after requesting pause:\n[cr_to_lf $expect_out(buffer)]"
+                exp_continue
+            }
+
+            paused  {
+                log 0 "ERROR: found VOLUME while paused!"
+                log 0 "$buffer_with_lf"
+                exit 1
+            }
+
+            recording_requested {
+                # First volume line printed since unpaused; recording successfully started!
+                set state recording
+
+                set _record_for [rand_min_range $rnd_min $rnd_range]
+                log 1 "($pauses_counter/$repeat_count) Found volume ### | xx%, recording for $_record_for ms"
+
+                set _delay [substract_time_since_last_space $_record_for]
+                after $_delay "press_space; set state pause_requested"
+                log 3 "last_space_time=$last_space_time; timer in $_delay"
+
+                # Debug matched string
+                log 2 "$buffer_with_lf"
+                exp_continue
+            }
+
+            default {
+                log 0 "ERROR: unexpected state=$state! Volume is:\n[cr_to_lf $expect_out(buffer)]"
+                exit 1
+            }
+
+        }
+
+    }
+
+    {=== PAUSE ===} {
+        if {$state != "pause_requested"} {
+            # TODO: upgrade this to an ERROR?
+            log 0 "WARNING: received == PAUSE == while in state $state! Ignoring."
+            exp_continue
+        }
+
+        set state paused
+        # Re-enable the MAX warning
+        set in_max_burst false
+
+        set _pausing_for [rand_min_range $rnd_min $rnd_range]
+        log 1 "($pauses_counter/$repeat_count) Found   === PAUSE ===  ,  pausing for $_pausing_for ms"
+
+        set _delay [substract_time_since_last_space $_pausing_for]
+        after $_delay "press_space; set state recording_requested"
+        log 3 "last_space_time=$last_space_time; timer in $_delay"
+
+
+        incr pauses_counter
+        if { $pauses_counter <= $repeat_count } {
+            exp_continue
+        }
+        # Normal exit of the "expect" command here
+    }
+
+    # This overlaps with the main volume case above but it's very useful logging when
+    # forgetting to pass a double -vv and timing out
+    -re {PCM card[^#]*} {
+        log 0 "Preamble:\n$expect_out(buffer)"
+        exp_continue
+    }
+
+    timeout {
+        log 0 "ERROR: $argv0 timed out. Did you use -vv?"
+        exit 1
+    }
+
+    eof {
+        log 0 "ERROR: $argv0: EOF."
+        log 0 "$expect_out(buffer)"
+        exit 1
+    }
+}
+
+if $volume_always_zero {
+    log 0 "WARNING: volume was always 00%!"
+}
+
+# TODO: collect exit status with explicit exp_close + exp_wait?
+
+log 0 "SUCCESS: $argv0 $argv"
