@@ -121,30 +121,12 @@ func_pause_resume_pipeline()
     #   expr rand(): produces random numbers between 0 and 1
     #   after ms: Ms must be an integer giving a time in milliseconds.
     #       The command sleeps for ms milliseconds and then returns.
-    dlogi "$pcm to command: $cmd -D $dev -r $rate -c $channel -f $fmt -vv -i $file -q"
-    expect <<END &
-spawn $cmd -D $dev -r $rate -c $channel -f $fmt -vv -i $file -q
-set i 1
-expect {
-    "*#*+*\%" {
-        set sleep_t [expr int([expr rand() * $rnd_range]) + $rnd_min ]
-        puts "\r(\$i/$repeat_count) pcm'$pcm' cmd'$cmd' id'$idx': Wait for \$sleep_t ms before pause"
-        send " "
-        after \$sleep_t
-        exp_continue
-    }
-    "*PAUSE*" {
-        set sleep_t [expr int([expr rand() * $rnd_range]) + $rnd_min ]
-        puts "\r(\$i/$repeat_count) pcm'$pcm' cmd'$cmd' id'$idx': Wait for \$sleep_t ms before resume"
-        send " "
-        after \$sleep_t
-        incr i
-        if { \$i > $repeat_count } { exit 0 }
-        exp_continue
-    }
-}
-exit 1
-END
+
+    local shortname="cmd$idx $cmd $pcm"
+
+    dlogi "Starting: apause.exp $cmd -D $dev -r $rate -c $channel -f $fmt -vv -i $file  &"
+    "$TOPDIR"/case-lib/apause.exp "$shortname" "$repeat_count" "$rnd_min" "$rnd_range" \
+                         "$cmd" -D "$dev" -r "$rate" -c "$channel" -f "$fmt" -vv -i "$file" &
 }
 
 # to prevent infinite loop, 5 second per a repeat is plenty
@@ -163,6 +145,9 @@ do
         do
             func_pause_resume_pipeline "$idx"
             pid_lst=("${pid_lst[@]}" $!)
+            # Stagger a bit to avoid preambles interleaved with each other.
+            # It's very far from perfect but it helps a little bit.
+            sleep 0.1
         done
         # wait for expect script finished
         dlogi "wait for expect process finished"
