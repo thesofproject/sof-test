@@ -53,10 +53,12 @@ fi
 loggerBin=$(type -p sof-logger)
 dlogi "Found file: $(md5sum "$loggerBin" | awk '{print $2, $1;}')"
 
-dlogi "Looking for ldc File ..."
-ldcFile=$(find_ldc_file) || die ".ldc file not found!"
+if ! is_firmware_file_zephyr; then
+    dlogi "Looking for ldc File ..."
+    ldcFile=$(find_ldc_file) || die ".ldc file not found!"
 
-dlogi "Found file: $(md5sum "$ldcFile"|awk '{print $2, $1;}')"
+    dlogi "Found file: $(md5sum "$ldcFile"|awk '{print $2, $1;}')"
+fi
 
 # etrace shared memory mailbox, newer feature.
 etrace_file=$LOG_ROOT/logger.etrace.txt
