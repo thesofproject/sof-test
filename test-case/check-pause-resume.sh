@@ -93,40 +93,19 @@ do
     dev=$(func_pipeline_parse_value "$idx" dev)
     snd=$(func_pipeline_parse_value "$idx" snd)
 
-    # expect is tcl language script
-    #   expr rand(): produces random numbers between 0 and 1
-    #   after ms: Ms must be an integer giving a time in milliseconds.
-    #       The command sleeps for ms milliseconds and then returns.
-    dlogi "Entering expect script with:
-      $cmd $SOF_ALSA_OPTS $cmd_opts -D $dev -r $rate -c $channel -f $fmt -vv -i $file_name -q"
+    ret=0
+    (set -x
+     # The 4 expect arguments first, then $cmd + $cmd arguments
+     # shellcheck disable=SC2086
+     "$TOPDIR"/case-lib/apause.exp "$cmd" "$repeat_count" "$rnd_min" "$rnd_range" \
+              "$cmd" $SOF_ALSA_OPTS $cmd_opts -D "$dev" -r "$rate" -c "$channel" -f "$fmt" \
+              -vv -i "$file_name"
+    ) || ret=$?
 
-    expect <<END
-spawn $cmd $SOF_ALSA_OPTS $cmd_opts -D $dev -r $rate -c $channel -f $fmt -vv -i $file_name -q
-set i 1
-expect {
-    "*#*+*\%" {
-        set sleep_t [expr int([expr rand() * $rnd_range]) + $rnd_min ]
-        puts "\r(\$i/$repeat_count) Wait for \$sleep_t ms before pause"
-        send " "
-        after \$sleep_t
-        exp_continue
-    }
-    "*PAUSE*" {
-        set sleep_t [expr int([expr rand() * $rnd_range]) + $rnd_min ]
-        puts "\r(\$i/$repeat_count) Wait for \$sleep_t ms before resume"
-        send " "
-        after \$sleep_t
-        incr i
-        if { \$i > $repeat_count } { exit 0 }
-        exp_continue
-    }
-}
-exit 1
-END
-    ret=$?
     #flush the output
     echo
     if [ $ret -ne 0 ]; then
+        echo "apause.exp returned: $ret"
         func_lib_lsof_error_dump "$snd"
         sof-process-kill.sh ||
             dlogw "Kill process catch error"
