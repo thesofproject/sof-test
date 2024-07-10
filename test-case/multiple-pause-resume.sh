@@ -27,7 +27,7 @@ OPT_NAME['t']='tplg'     OPT_DESC['t']="tplg file, default value is env TPLG: $T
 OPT_HAS_ARG['t']=1         OPT_VAL['t']="$TPLG"
 
 OPT_NAME['l']='loop'     OPT_DESC['l']='loop count'
-OPT_HAS_ARG['l']=1         OPT_VAL['l']=5
+OPT_HAS_ARG['l']=1         OPT_VAL['l']=1
 
 OPT_NAME['c']='count'    OPT_DESC['c']='combine test pipeline count'
 OPT_HAS_ARG['c']=1         OPT_VAL['c']=2
@@ -102,6 +102,9 @@ do
     pipeline_combine_str="${i//,/ }"
     pipeline_combine_lst=("${pipeline_combine_lst[@]}" "$pipeline_combine_str")
 done
+# This can get pretty big and make the test last a very long time and timeout,
+# especially in NOCODEC configurations. See #706 discussion. So, log that value.
+declare -p pipeline_combine_lst
 [[ ${#pipeline_combine_lst[@]} -eq 0 ]] && dlogw "pipeline combine is empty" && exit 2
 
 func_pause_resume_pipeline()
