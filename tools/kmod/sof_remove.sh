@@ -5,8 +5,15 @@
 
 TOPDIR=$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)
 
-# shellcheck source=case-lib/lib.sh
-source "$TOPDIR"/case-lib/lib.sh
+# Used only by more advanced error handling
+source_opt_libsh()
+{
+    local libsh="$TOPDIR"/case-lib/lib.sh
+    if test -e "$libsh"; then
+        # shellcheck source=case-lib/lib.sh
+        source "$libsh"
+    fi
+}
 
 remove_module() {
 
@@ -27,8 +34,9 @@ exit_handler()
     # "non-deterministically". So even if we are successful this time,
     # warn about any running pulseaudio because it could make us fail
     # the next time.
+    # TODO: display any pipewire process too.
     if pgrep -a pulseaudio; then
-        systemctl_show_pulseaudio
+        systemctl_show_pulseaudio || true
     fi
 
     if test "$exit_status" -ne 0; then
@@ -56,6 +64,7 @@ kill_trace_users()
     )
 }
 
+source_opt_libsh
 trap 'exit_handler $?' EXIT
 
 # Breaks systemctl --user and "double sudo" is not great
