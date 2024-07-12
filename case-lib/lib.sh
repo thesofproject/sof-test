@@ -394,11 +394,13 @@ func_mtrace_collect()
 
     local mtraceCmd=("$MTRACE")
     dlogi "Starting ${mtraceCmd[*]} >& $clogfile &"
+
     # Cleaned up by func_exit_handler() in hijack.sh
-    # The use of 'bash -c' is a workaround for below issue:
-    # https://github.com/thesofproject/sof-test/issues/1151
+    #
+    # We need "bash -c" because "sudo ... &" corrupts the terminal among
+    # other issues, see bug #1151.
     # shellcheck disable=SC2024
-    sudo bash -c "${mtraceCmd[*]} >& $clogfile &"
+    sudo bash -c "${mtraceCmd[*]} &" >& "$clogfile"
 }
 
 func_lib_log_post_process()
@@ -461,9 +463,13 @@ func_sof_logger_collect()
     # shellcheck disable=SC2206
     local loggerCmd=("$SOFLOGGER" $logopt -l "$ldcFile")
     dlogi "Starting ${loggerCmd[*]} > $logfile &"
+
     # Cleaned up by func_exit_handler() in hijack.sh
+    #
+    # We need "bash -c" because "sudo ... &" corrupts the terminal among
+    # other issues, see bug #1151.
     # shellcheck disable=SC2024
-    sudo "${loggerCmd[@]}" > "$logfile" &
+    sudo bash -c "${loggerCmd[*]} &" > "$logfile"
 }
 
 SOF_LOG_COLLECT=0
