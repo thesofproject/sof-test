@@ -3,8 +3,8 @@
 # If you're new to expect:
 #
 # - Expect is "only" a Tcl extension and Tcl command.
-#   An "expect script" is a somewhat misleading shorthand for "a Tcl
-#   script that happens to use expect/"
+#   An "Expect script" is a somewhat misleading shorthand for "a Tcl
+#   script that happens to use Expect"
 #
 # - So, you can't understand this script (or any expect script) without
 #   some minimum Tcl knowledge. Especially: strings, quoting, lists and
@@ -14,7 +14,7 @@
 #   "Exploring Expect" is great: buy the book or check whether your
 #   employer has an online subscription. That book has a really nice and
 #   short (single chapter) Tcl introduction too.
-#   Tcl resources on the Internet are much better and expect resources.
+#   Tcl resources on the Internet are much better than Expect resources.
 #
 # - The man pages are not good for learning but they are a very useful
 #   references: run `apt install tcl8*-doc` or equivalent to get Tcl man
@@ -64,7 +64,7 @@ set rnd_range      [lshift argv]
 # "space" and aplay's acknowledgement + other various delays everywhere.
 # Keep it that small for now for backwards compatibility.
 if {$rnd_min < 20} {
-    puts "$argv0 ERROR: rnd_min=$rnd_min argument is lower than 100ms"
+    puts "$argv0 ERROR: rnd_min=$rnd_min argument is lower than 20ms"
     exit 1
 }
 
@@ -117,17 +117,17 @@ set state recording_requested
 set in_max_burst false
 set volume_always_zero true
 
-# Key `expect` matching facts to keep in mind:
+# Key Expect matching facts to keep in mind:
 #
-# 1. `expect` never cares about newlines on its own. You must use `\r`
+# 1. Expect never cares about newlines on its own. You must use `\r`
 #    and/or `\n` _everywhere_ you care about newlines.
 #
-# 2. When to use \r versus \n versus \r\n (CRLF) in expect unfortunately
+# 2. When to use \r versus \n versus \r\n (CRLF) in Expect unfortunately
 #    requires some tty _and_ arecord VU-meter knowledge and is a bit too
 #    complicated to be summarized here.
 #
-# 3. When nothing matches, expect keeps reading and keeps looking
-#    forward. As soon as something matches, `expect` _ignores_ what did
+# 3. When nothing matches, Expect keeps reading and keeps looking
+#    forward. As soon as something matches, Expect _ignores_ what did
 #    not match earlier. Except when using ^ which is the "start of
 #    input" anchor (NOT a "start of line" anchor)
 #
@@ -141,7 +141,7 @@ expect {
 
     # Volume xx% or MAX line
     #
-    # When not backpressured by a sleeping (=bad!) expect,
+    # When not backpressured by a sleeping (=bad!) Expect process,
     # aplay seems to update its VU-meter about once every 100ms.
     -re {#[^\r\n]*\| (..*%|MAX)\r} {
 
@@ -157,7 +157,10 @@ expect {
 
         if [regexp {\| MAX} "$buffer_with_lf"] {
             if { ! $in_max_burst } {
-                # TODO: upgrade this to a failure once all ALSA settings have been fixed.
+                # We unfortunately can't upgrade this to an ERROR
+                # because of "wontfix" bugs like
+                # https://github.com/thesofproject/sof-test/pull/931
+                # https://github.com/thesofproject/linux/issues/5048
                 log 0 "WARNING: volume MAX! Bug or bad ALSA settings?"
                 log 0 "$buffer_with_lf"
                 set in_max_burst true
@@ -167,7 +170,7 @@ expect {
         }
 
         if $volume_always_zero {
-            # This is not perfect because if `expect` becomes very slow
+            # This is not perfect because if Expect becomes very slow
             # for some unknown reason, then there could be _multiple_
             # volume lines in a single of these buffer iterations and then we
             # could miss some non-zeros.
@@ -222,7 +225,10 @@ expect {
 
     {=== PAUSE ===} {
         if {$state != "pause_requested"} {
-            # TODO: upgrade this to an ERROR?
+            # TODO: upgrade this to an ERROR if we want to fix pause bugs like
+            # https://github.com/thesofproject/linux/issues/5109
+            # As of July 2024, pause is rather being disabled:
+            # https://github.com/thesofproject/linux/pull/5041
             log 0 "WARNING: received == PAUSE == while in state $state! Ignoring."
             exp_continue
         }
