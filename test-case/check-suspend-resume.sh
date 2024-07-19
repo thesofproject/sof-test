@@ -44,6 +44,10 @@ OPT_HAS_ARG['w']=1       OPT_VAL['w']=5
 OPT_NAME['r']='random'   OPT_DESC['r']="Randomly setup wait/sleep time, range is [$random_min-$random_max], this option will overwrite s & w option"
 OPT_HAS_ARG['r']=0       OPT_VAL['r']=0
 
+# processid is set by check-suspend-resume-with-audio.sh for audio test case
+OPT_NAME['p']='processid'     OPT_DESC['p']='Fail immediately if this process dies'
+OPT_HAS_ARG['p']=1            OPT_VAL['p']=''
+
 func_opt_parse_option "$@"
 func_lib_check_sudo
 
@@ -196,6 +200,17 @@ sleep_once()
     [ "$stats_success" -eq "$expected_stats_success" ] ||
         dump_and_die "/sys/power/suspend_stats/success is $stats_success, expected $expected_stats_success"
     check_suspend_fails || dump_and_die "some failure counts have changed"
+
+    # if OPT_VAL['p'] has process id, then check the process id is available in the system
+    if [ "${OPT_VAL['p']}" ]; then
+        dlogi "Check for the process status, pid: ${OPT_VAL['p']}"
+        sof-process-state.sh "${OPT_VAL['p']}" || {
+            dloge "process status is abnormal, pid: ${OPT_VAL['p']}"
+            dlogi "dump ps for child process"
+            ps --ppid $$ -f
+            exit 1
+        }
+    fi
 }
 
 main "$@"

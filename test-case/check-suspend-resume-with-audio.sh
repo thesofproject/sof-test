@@ -119,7 +119,9 @@ do
         ps --ppid $$ -f
         exit 1
     }
-    "${TESTDIR}"/check-suspend-resume.sh "${opt_arr[@]}"  || die "suspend resume failed"
+    # Pass -p $process_id option to check-suspend-resume.sh
+    suspend_opts=("${opt_arr[@]}" -p "$process_id")
+    "${TESTDIR}"/check-suspend-resume.sh "${suspend_opts[@]}"  || die "suspend resume failed"
 
     # check kernel log for each iteration to catch issues
     sof-kernel-log-check.sh "$LOCAL_CHECK_POINT" || die "Caught error in kernel log"
