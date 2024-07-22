@@ -840,6 +840,45 @@ fw_reldir()
     printf '%s' "$(dirname "$from_klogs")"
 }
 
+# Prints the relative firmware filepath: e.g. `intel/sof-ipc4/tgl/community/sof-tgl.ri`
+#
+# Some of the code duplicates fw_reldir() above. Unfortunately can't re-use and invoke
+# fw_reldir() here because of small, logical differences. For instance, a defined
+# `parameters/fw_path` is enough for fw_reldir() function to succeed but fw_relfilepath()
+# needs BOTH `parameters/fw_path` and `parameters/fw_filename` at the same time.
+fw_relfilepath()
+{
+    local fw_profile='/sys/kernel/debug/sof/fw_profile'
+    if sudo test -e "$fw_profile"/fw_path; then
+        printf '%s/%s' "$(sudo cat "$fw_profile"/fw_path)" \
+               "$(sudo cat "$fw_profile"/fw_name)"
+
+        return 0
+    fi
+
+    # 1st fallback
+    local fw_params='/sys/module/snd_sof_pci/parameters'
+    if test -e "$fw_params"/fw_path; then
+        local _dir _filename
+        _dir=$(cat "$fw_params"/fw_path)
+        _filename=$(cat "$fw_params"/fw_filename)
+        # Corner case: we could got out on a limb and try to find the filename somewhere
+        # else when we have only the directory?  Or maybe not.
+        if [ "$_dir" != '(null)' ] && [ "$_filename" != '(null)' ]; then
+            printf '%s/%s' "$_dir" "$_filename"
+            return 0
+        fi
+    fi
+
+    # 2nd fallback: old kernel or firmware not loaded. SLOW.
+    local from_klogs
+    from_klogs=$(fw_relfilepath_from_klogs) || {
+        >&2 dloge 'fw_relfilepath: 2nd, klog fallback failed.'
+        return 1
+    }
+    printf '%s' "$from_klogs"
+}
+
 
 # TODO: switch to new debugfs `fw_profile`, see
 # https://github.com/thesofproject/linux/issues/3867 and friends. Keep this existing
