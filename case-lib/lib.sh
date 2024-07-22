@@ -825,22 +825,30 @@ is_zephyr_ldc()
 # https://github.com/thesofproject/linux/issues/3867 and friends. Keep this existing
 # journalctl_cmd() code as a fallback for older kernels or when the firmware has been
 # unloaded. Fallback similar to the one in commit 646a3b3b71003
-get_firmware_path()
+fw_relfilepath_from_klogs()
 {
-    journalctl_cmd -k |
+    local rel_filepath
+    rel_filepath=$(journalctl -k |
         awk '/sof.*[[:blank:]]request_firmware[[:blank:]]/ {
                sub(/^.*request_firmware/,""); last_loaded_file=$1
              }
          END { print last_loaded_file }'
+            )
+
+    [ -n "$rel_filepath" ] || {
+        >&2 dloge 'Firmware filepath not found in kernel logs. No firmware loaded or debug option disabled?'
+        return 1
+    }
+
+    printf '%s' "$rel_filepath"
 }
 
 is_firmware_file_zephyr()
 {
     local firmware_path znum
 
-    firmware_path=$(get_firmware_path)
-    [ -n "$firmware_path" ] ||
-        die 'firmware path not found from journalctl, no firmware loaded or debug option disabled?'
+    firmware_path=$(fw_relfilepath_from_klogs) ||
+        die 'Firmware path not found.'
 
     znum=$(strings "/lib/firmware/$firmware_path" | grep -c -i zephyr)
     test "$znum" -gt 10
