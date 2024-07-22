@@ -821,6 +821,35 @@ is_zephyr_ldc()
     test "$znum" -gt 10
 }
 
+# Prints the relative firmware subdirectory: e.g. `intel/sof-ipc4/tgl/community`
+fw_reldir()
+{
+    local profile_path='/sys/kernel/debug/sof/fw_profile/fw_path'
+    if sudo test -e $profile_path; then
+        sudo cat $profile_path
+        return 0
+    fi
+
+    # 1st fallback
+    local param_path mod_param='/sys/module/snd_sof_pci/parameters/fw_path'
+    if test -e $mod_param; then
+        param_path=$(cat $mod_param)
+        if [ "$param_path" != '(null)' ]; then
+            printf '%s' "$param_path"
+            return 0
+        fi
+    fi
+
+    # 2nd fallback: old kernel or firmware not loaded
+    local from_klogs
+    from_klogs=$(fw_relfilepath_from_klogs) || {
+        >&2 dloge 'fw_reldir: 2nd, klog fallback failed.'
+        return 1
+    }
+    printf '%s' "$(dirname "$from_klogs")"
+}
+
+
 # TODO: switch to new debugfs `fw_profile`, see
 # https://github.com/thesofproject/linux/issues/3867 and friends. Keep this existing
 # journalctl_cmd() code as a fallback for older kernels or when the firmware has been
