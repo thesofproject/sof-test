@@ -310,23 +310,14 @@ get_ldc_subdir()
 {
     local strip_arg="$1"
     local subdir='intel/sof' # default
+
     local fw_path
-    local fw_path_info='/sys/kernel/debug/sof/fw_profile/fw_path'
-
-    # either $fw_path_info exists, OR we redefine $fw_path_info with
-    # the backwards-compatible alternative based on kernel parameter
-    sudo test -e $fw_path_info ||
-	fw_path_info='/sys/module/snd_sof_pci/parameters/fw_path'
-
-    if fw_path=$(sudo cat $fw_path_info); then
-	# "cat" was succesful
-        if [ "$fw_path" != '(null)' ]; then
+    if fw_path=$(fw_reldir); then
             subdir=${fw_path%/} # strip any trailing slash
             subdir=${subdir%/community}
             subdir=${subdir%/intel-signed}
             subdir=${subdir%/dbgkey}
             test -z "$strip_arg" || subdir=${subdir%/"$strip_arg"}
-        fi
     fi
     printf '%s' "$subdir"
 }
