@@ -879,11 +879,6 @@ fw_relfilepath()
     printf '%s' "$from_klogs"
 }
 
-
-# TODO: switch to new debugfs `fw_profile`, see
-# https://github.com/thesofproject/linux/issues/3867 and friends. Keep this existing
-# journalctl_cmd() code as a fallback for older kernels or when the firmware has been
-# unloaded. Fallback similar to the one in commit 646a3b3b71003
 fw_relfilepath_from_klogs()
 {
     local rel_filepath
@@ -906,8 +901,8 @@ is_firmware_file_zephyr()
 {
     local firmware_path znum
 
-    firmware_path=$(fw_relfilepath_from_klogs) ||
-        die 'Firmware path not found.'
+    { firmware_path=$(fw_relfilepath) && test -r /lib/firmware/"$firmware_path"; } ||
+        die "Firmware path ${firmware_path} not found."
 
     znum=$(strings "/lib/firmware/$firmware_path" | grep -c -i zephyr)
     test "$znum" -gt 10
