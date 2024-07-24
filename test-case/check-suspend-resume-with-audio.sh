@@ -27,34 +27,34 @@ TESTDIR=$(cd "$(dirname "${BASH_SOURCE[0]}")/" && pwd)
 source "${TESTDIR}"/../case-lib/lib.sh
 
 OPT_NAME['l']='loop'     OPT_DESC['l']='suspend/resume loop count'
-OPT_HAS_ARG['l']=1         OPT_VAL['l']=3
+OPT_HAS_ARG['l']=1       OPT_VAL['l']=3
 
 OPT_NAME['T']='type'     OPT_DESC['T']="suspend/resume type from /sys/power/mem_sleep"
-OPT_HAS_ARG['T']=1         OPT_VAL['T']=""
+OPT_HAS_ARG['T']=1       OPT_VAL['T']=""
 
 OPT_NAME['S']='sleep'    OPT_DESC['S']='suspend/resume command:rtcwake sleep duration'
-OPT_HAS_ARG['S']=1         OPT_VAL['S']=5
+OPT_HAS_ARG['S']=1       OPT_VAL['S']=5
 
 OPT_NAME['w']='wait'     OPT_DESC['w']='idle time after suspend/resume wakeup'
-OPT_HAS_ARG['w']=1         OPT_VAL['w']=5
+OPT_HAS_ARG['w']=1       OPT_VAL['w']=5
 
 OPT_NAME['r']='random'   OPT_DESC['r']="Randomly setup wait/sleep time, this option will overwrite s & w option"
-OPT_HAS_ARG['r']=0         OPT_VAL['r']=0
+OPT_HAS_ARG['r']=0       OPT_VAL['r']=0
 
 OPT_NAME['m']='mode'     OPT_DESC['m']='alsa application type: playback/capture'
-OPT_HAS_ARG['m']=1         OPT_VAL['m']='playback'
+OPT_HAS_ARG['m']=1       OPT_VAL['m']='playback'
 
 OPT_NAME['t']='tplg'     OPT_DESC['t']="tplg file, default value is env TPLG: $TPLG"
-OPT_HAS_ARG['t']=1         OPT_VAL['t']="$TPLG"
+OPT_HAS_ARG['t']=1       OPT_VAL['t']="$TPLG"
 
 OPT_NAME['s']='sof-logger'   OPT_DESC['s']="Open sof-logger trace the data will store at $LOG_ROOT"
-OPT_HAS_ARG['s']=0             OPT_VAL['s']=1
+OPT_HAS_ARG['s']=0           OPT_VAL['s']=1
 
 OPT_NAME['f']='file'     OPT_DESC['f']='file name'
-OPT_HAS_ARG['f']=1         OPT_VAL['f']=''
+OPT_HAS_ARG['f']=1       OPT_VAL['f']=''
 
-OPT_NAME['P']='pipelines'   OPT_DESC['P']="run test case on specified pipelines"
-OPT_HAS_ARG['P']=1             OPT_VAL['P']="id:any"
+OPT_NAME['P']='pipelines'    OPT_DESC['P']="run test case on specified pipelines"
+OPT_HAS_ARG['P']=1           OPT_VAL['P']="id:any"
 
 func_opt_parse_option "$@"
 setup_kernel_check_point
@@ -110,7 +110,7 @@ do
     # delay for process run
     sleep 1
     # check process status is correct
-    sof-process-state.sh $process_id || {
+    sof-process-state.sh "$process_id" || {
         func_lib_lsof_error_dump "$snd"
         dloge "error process state of $cmd"
         dlogi "dump ps for aplay & arecord"
