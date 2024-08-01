@@ -137,7 +137,19 @@ set volume_always_zero true
 
 expect {
 
+    # `man re_syntax` claims that Tcl regular expressions are compliant
+    # with the basic and extended POSIX ones while adding a 3rd,
+    # extended flavor.  It's not clear which flavor `expect -re` uses
+    # but it's not the basic one.
+    # Use {} not "" to avoid quoting issues and backslash proliferation.
+
     # When multiple patterns match, first pattern wins.
+
+    -nocase -re {error.*\r|PAUSE.*no[[:blank:]]*hw[[:blank:]]*support.*\r} {
+        set buffer_with_lf "[cr_to_lf $expect_out(buffer)]"
+        log 0 "ERROR: $buffer_with_lf"
+        exit 1
+    }
 
     # Volume xx% or MAX line
     #
