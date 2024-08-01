@@ -81,7 +81,7 @@ proc rel_time_ms {} {
 
 proc press_space {} {
     global last_space_time
-    log 2 "Pressing SPACE"
+    log 1 "Pressing SPACE"
     send " "
     set last_space_time [rel_time_ms]
     log 3 "last_space_time set to $last_space_time"
@@ -237,12 +237,8 @@ expect {
 
     {=== PAUSE ===} {
         if {$state != "pause_requested"} {
-            # TODO: upgrade this to an ERROR if we want to fix pause bugs like
-            # https://github.com/thesofproject/linux/issues/5109
-            # As of July 2024, pause is rather being disabled:
-            # https://github.com/thesofproject/linux/pull/5041
-            log 0 "WARNING: received == PAUSE == while in state $state! Ignoring."
-            exp_continue
+            log 0 "ERROR: received == PAUSE == while in state $state!"
+            exit 1
         }
 
         set state paused
