@@ -111,8 +111,8 @@ spawn  {*}$argv
 set start_time_ms [clock milliseconds]; # re-adjust
 set last_space_time 0 ; # could not resist that name
 
-# states: recording, pause_requested, paused, recording_requested
-set state recording_requested
+# states: active, pause_requested, paused, active_requested
+set state active_requested
 
 set in_max_burst false
 set volume_always_zero true
@@ -182,13 +182,13 @@ expect {
 
         switch $state {
 
-            recording {
-                log 2 "Recording volume #... | xx%:\n[cr_to_lf $expect_out(buffer)]"
+            active {
+                log 2 "Volume #... | __%:\n[cr_to_lf $expect_out(buffer)]"
                 exp_continue
             }
 
             pause_requested {
-                log 2 "Volume #... | xx% left after requesting pause:\n[cr_to_lf $expect_out(buffer)]"
+                log 2 "Volume #... | __% left after requesting pause:\n[cr_to_lf $expect_out(buffer)]"
                 exp_continue
             }
 
@@ -198,12 +198,12 @@ expect {
                 exit 1
             }
 
-            recording_requested {
-                # First volume line printed since unpaused; recording successfully started!
-                set state recording
+            active_requested {
+                # First volume line printed since unpaused; stream successfully started!
+                set state active
 
                 set _record_for [rand_min_range $rnd_min $rnd_range]
-                log 1 "($pauses_counter/$repeat_count) Found volume ### | xx%, recording for $_record_for ms"
+                log 1 "($pauses_counter/$repeat_count) Found volume ### | __%, active for $_record_for ms"
 
                 set _delay [substract_time_since_last_space $_record_for]
                 after $_delay "press_space; set state pause_requested"
@@ -241,7 +241,7 @@ expect {
         log 1 "($pauses_counter/$repeat_count) Found   === PAUSE ===  ,  pausing for $_pausing_for ms"
 
         set _delay [substract_time_since_last_space $_pausing_for]
-        after $_delay "press_space; set state recording_requested"
+        after $_delay "press_space; set state active_requested"
         log 3 "last_space_time=$last_space_time; timer in $_delay"
 
 
