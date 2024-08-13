@@ -1,6 +1,6 @@
 #!/usr/bin/env expect
 
-# If you're new to expect:
+# If you're new to https://wiki.tcl-lang.org/page/Expect
 #
 # - Expect is "only" a Tcl extension and Tcl command.
 #   An "Expect script" is a somewhat misleading shorthand for "a Tcl
@@ -186,7 +186,7 @@ expect {
             # for some unknown reason, then there could be _multiple_
             # volume lines in a single of these buffer iterations and then we
             # could miss some non-zeros.
-            # This is very unlikely though so this is statically good enough.
+            # This is very unlikely though so this is statistically good enough.
             if {! [regexp {\| ( |0)0%} "$buffer_with_lf"]} {
                 set volume_always_zero false
             }
