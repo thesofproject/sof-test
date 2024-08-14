@@ -156,6 +156,13 @@ ps_checks()
 main()
 {
     local platf; platf=$("${TESTDIR}"/tools/sof-dump-status.py --platform)
+
+    case "$MODEL" in
+        *NOCODEC*)
+            is_firmware_file_zephyr ||
+                skip_test 'Known pipeline_comp_reset() bug sof#9135';;
+    esac
+
     if [ "$platf" = bdw ] && [ "$f_arg" != 'p' ] && ! is_zephyr_ldc; then
         skip_test \
             "multi-capture disabled on BDW https://github.com/thesofproject/sof/issues/3170"
