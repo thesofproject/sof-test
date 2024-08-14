@@ -64,6 +64,16 @@ func_pipeline_export "$tplg" "type:any & ~pcm:Amplifier Reference"
 
 logger_disabled || func_lib_start_log_collect
 
+# We know it's failing and it's not going to get fixed: stop polluting
+# test results.  Note https://github.com/thesofproject/sof/issues/9135
+# is NOT an problem with pause/resume; it is a problem with multiple
+# pipelines. This code is duplicated in multiple-pipeline.sh
+case "$MODEL" in
+    *NOCODEC*)
+        is_firmware_file_zephyr ||
+            skip_test 'Known pipeline_comp_reset() bug sof#9135';;
+esac
+
 declare -a pipeline_idx_lst
 declare -a cmd_idx_lst
 declare -a file_idx_lst
