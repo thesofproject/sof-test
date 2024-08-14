@@ -207,7 +207,8 @@ do
     sleep 1 # try not to pollute the next iteration
 
     if pgrep arecord || pgrep aplay; then
-        printf '%c' 't' | sudo tee /proc/sysrq-trigger > /dev/null
+        printf 'd' | sudo tee /proc/sysrq-trigger > /dev/null
+        printf 'w' | sudo tee /proc/sysrq-trigger > /dev/null
         sleep 1
     fi
 
