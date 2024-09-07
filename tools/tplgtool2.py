@@ -316,6 +316,7 @@ class TplgBinaryFormat:
         self._hw_config_max = 8 # SND_SOC_TPLG_HW_CONFIG_MAX
         self._tlv_size = 32 # SND_SOC_TPLG_TLV_SIZE
         self._id_name_maxlen = 44 # SNDRV_CTL_ELEM_ID_NAME_MAXLEN
+        self._id_name_maxint32 = 44 // 4
         self._num_texts = 16 # SND_SOC_TPLG_NUM_TEXTS
 
         self._block_header = Struct( # snd_soc_tplg_hdr
@@ -472,7 +473,7 @@ class TplgBinaryFormat:
             "mask" / Int32ul,
             "count" / Int32ul,
             "texts" / Array(self._num_texts, String(self._id_name_maxlen, "ascii")),
-            "values" / Array(self._num_texts * self._id_name_maxlen / 4, Int32ul),
+            "values" / Array(self._num_texts * self._id_name_maxint32, Int32ul),
             "priv" / self._private_raw,
         )
         self._bytes_control_body = Struct( # `snd_soc_tplg_bytes_control` without `hdr`
