@@ -81,6 +81,37 @@ then
 	exit 2
 fi
 
+# Check device for AudioPlug Loopback enabled or not for LNL HDA
+if [ "$AUDIOPLUG_LOOPBACK" == "true" ] && [ "$MODEL" == "LNLM_RVP_HDA" ]; then
+
+	dlogi "The Device have AUDIO PLUG LOOPBACK enabled for LNLM_RVP_HDA"
+
+	# Check for playback/capture used USB codec, if yes replace with headset device
+        if [ "$pcm_c" == "hw:CODEC,0" ]; then
+	    pcm_c="hw:sofhdadsp,0"
+	    dlogi "Capture device changed to $pcm_c"
+        else
+	    pcm_p="hw:sofhdadsp,0"
+	    dlogi "Playback device changed to $pcm_p"
+	fi
+fi
+
+# Check device for AudioPlug Loopback enabled or not for LNL SDW
+if [ "$AUDIOPLUG_LOOPBACK" == "true" ] && [ "$MODEL" == "LNLM_SDW_AIOC" ]; then
+
+	dlogi "The Device have AUDIO PLUG LOOPBACK enabled for LNLM_SDW_AIOC"
+
+        # Check for playback/capture used USB codec, if yes replace with headset device
+        if [ "$pcm_c" == "hw:CODEC,0" ]; then
+	    pcm_c="hw:sofsoundwire,1"
+	    dlogi "Capture device changed to $pcm_c"
+        else
+	    pcm_p="hw:sofsoundwire,0"
+	    dlogi "Playback device changed to $pcm_p"
+        fi
+fi
+
+
 check_locale_for_alsabat
 
 # reset sof volume to 0dB
