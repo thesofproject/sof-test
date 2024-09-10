@@ -149,7 +149,7 @@ class TplgParser():
         SOC_TPLG_MAX_CHAN = 8
         for idx in range(SOC_TPLG_MAX_CHAN):
             channel.append(self._tplg_chan_parse(bytes_data[8+idx*16: 24+idx*16]))
-            print(24+idx*16)
+
         values.append(channel)
         # item, mask, count
         values.append(struct.unpack("I",bytes_data[136:140])[0])
@@ -160,7 +160,7 @@ class TplgParser():
         texts = []
         for idx in range(SOC_TPLG_NUM_TEXTS):
             texts.append(self._parse_char_array(bytes_data[148+idx*44: 192+idx*44]))
-            print(192+44*idx)
+
         values.append(texts)
 
         # values field in struct snd_soc_tplg_enum_control
