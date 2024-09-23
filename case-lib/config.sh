@@ -2,6 +2,10 @@
 
 # this file is used for defining global variables
 
+# To change some of these variables without polluting git status/git
+# diff, override them in either /etc/sof/local_config.bash or
+# sof-test/case-lib/local_config.bash
+
 # Some variables need manual configuration
 # Some commands need to access system node, so they need the sudo password
 SUDO_PASSWD=${SUDO_PASSWD:-}

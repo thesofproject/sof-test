@@ -21,6 +21,15 @@ source "$SCRIPT_HOME/case-lib/pipeline.sh"
 # shellcheck source=case-lib/hijack.sh
 source "$SCRIPT_HOME/case-lib/hijack.sh"
 
+# source these last (and in this order) so they win
+for f in /etc/sof/local_config.bash ${SCRIPT_HOME}/case-lib/local_config.bash; do
+    if test -e "$f"; then
+        dlogw "Sourcing local and optional $f"
+        # shellcheck disable=SC1090
+        source "$f"
+    fi
+done
+
 # restrict bash version for some bash feature
 [[ $(echo -e "$BASH_VERSION\n4.1"|sort -V|head -n 1) == '4.1' ]] || {
     dlogw "Bash version: ${BASH_VERSINFO[0]}.${BASH_VERSINFO[1]} should > 4.1"
