@@ -419,6 +419,18 @@ ignore_str="$ignore_str"'|nvme0: Admin Cmd\(0x[[:digit:]]+\), I/O Error \(sct 0x
 # SDW related logs
 #
 
+# This expects an array like for instance:
+#    sof_local_extra_kernel_ignores=(-e 'error 1' -e err2)
+# Arrays
+# - provide whitespace/quoting safety
+# - can be empty/optional
+# - can be arbitrarily complex. Best avoided but only on specific systems anyway.
+# shellcheck disable=SC2154
+if &>/dev/null declare -p sof_local_extra_kernel_ignores; then
+    dlogw "Ignoring extra errors on this particular system:"
+    declare -p sof_local_extra_kernel_ignores
+fi
+
 # confirm begin_timestamp is in UNIX timestamp format, otherwise search full log
 if [[ $begin_timestamp =~ ^[0-9]{10} ]]; then
     cmd="journalctl_cmd --since=@$begin_timestamp"
@@ -429,7 +441,7 @@ fi
 declare -p cmd
 
 if err=$($cmd --priority=err |
-             grep -v -E -e "$ignore_str"); then
+          grep -v -E -e "$ignore_str" "${sof_local_extra_kernel_ignores[@]}"); then
 
     type journalctl_cmd
     echo "$(date -u '+%Y-%m-%d %T %Z')" "[ERROR]" "Caught kernel log error"
