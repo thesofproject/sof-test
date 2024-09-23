@@ -308,6 +308,14 @@ case "$platform" in
         # ignore the ACPI error on LNL.
         # kernel: ACPI: \: Can't tag data node
         ignore_str="$ignore_str""|kernel: ACPI: \\\\: Can't tag data node"
+        ;;
+    mtl)
+        # boot-time issue seen on some DUTs, not affecting audio test execution
+        # https://gitlab.freedesktop.org/drm/i915/kernel/-/issues/12092
+        ignore_str="$ignore_str""|kernel: i915 0000:00:02.0: [drm] *ERROR* GT1: Request submission for GSC load failed -ETIME"
+        ignore_str="$ignore_str""|kernel: i915 0000:00:02.0: [drm] *ERROR* GT1: Failed to load GSC firmware i915/mtl_gsc_1.bin -ETIME"
+        ignore_str="$ignore_str""|kernel: i915 0000:00:02.0: [drm] *ERROR* GT1: GUC: Engine reset failed on .+"
+        ;;
 esac
 
 # 'failed to change power setting' and other errors observed at boot
