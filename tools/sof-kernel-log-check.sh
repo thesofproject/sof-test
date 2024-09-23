@@ -427,18 +427,15 @@ else
 fi
 
 declare -p cmd
-# check priority err for error message
-if [[ "$ignore_str" ]]; then
-    err=$($cmd --priority=err | grep -vE "$ignore_str")
-else
-    err=$($cmd --priority=err)
-fi
 
-[[ -z "$err" ]] || {
+if err=$($cmd --priority=err |
+             grep -v -E -e "$ignore_str"); then
+
     type journalctl_cmd
     echo "$(date -u '+%Y-%m-%d %T %Z')" "[ERROR]" "Caught kernel log error"
     echo "===========================>>"
     echo "$err"
     echo "<<==========================="
     builtin exit 1
-}
+
+fi
