@@ -71,7 +71,12 @@ sof_alsa_card_found()
     # note: assumes SOF card names to start with "sof", e.g.
     #   - /proc/asound/sofsoundwire/id
     #   - /proc/asound/sofhdadsp/id
-    test -e /proc/asound/sof*/id
+    # - https://github.com/thesofproject/sof-test/issues/1243
+    # Designed to support multiple SOF instances with SOF probes 
+    for i in /proc/asound/sof*/id; do
+        if test -e "$i"; then return 0; fi
+    done
+    return 1
 }
 
 wait_for_sof_alsa_card()
