@@ -115,7 +115,8 @@ dmic_switch_present()
     (set -x
      # name= is hardcoded in /usr/share/alsa/ucm2/*
      # This returns a non-zero error status on failure
-     amixer cget name='Dmic0 Capture Switch'
+     switch=$(aplay -l | head -2 | tail -1 | awk '{print $3}')
+     amixer -c "$switch" cget name='Dmic0 Capture Switch'
     )
 }
 
