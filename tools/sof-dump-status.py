@@ -47,6 +47,8 @@ class clsSYSCardInfo():
             "0x7728":"arl",
             # pci-lnl.c
             "0xa828":"lnl",
+            # pci-ptl.c
+            "0xe428":"ptl",
             # Other PCI IDs
             "0x9d71":"kbl", "0x9d70":"skl", "0x33c8":"hsw", 
             "0x3438":"bdw", "0x160c":"bdw", "0x0f04":"byt", "0x2284":"cht"
