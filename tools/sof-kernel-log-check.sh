@@ -304,8 +304,8 @@ case "$platform" in
         # i2c_hid_acpi i2c-VEN_0488:00: i2c_hid_get_input: incomplete report (20/42405)
         ignore_str="$ignore_str""|i2c_hid_acpi i2c-VEN_0488:00: i2c_hid_get_input: incomplete report"
     ;;
-    lnl)
-        # ignore the ACPI error on LNL.
+    lnl|ptl)
+        # ignore the ACPI error on LNL and PTL.
         # kernel: ACPI: \: Can't tag data node
         ignore_str="$ignore_str""|kernel: ACPI: \\\\: Can't tag data node"
 esac
