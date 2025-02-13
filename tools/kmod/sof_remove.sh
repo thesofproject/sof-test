@@ -338,8 +338,10 @@ remove_module snd_ctl_led
 remove_module snd_seq_midi
 remove_module snd_seq_midi_event
 remove_module snd_rawmidi
+remove_module snd_seq_dummy
 remove_module snd_seq
 remove_module snd_seq_device
+remove_module snd_hrtimer
 remove_module snd_timer
 remove_module snd
 remove_module soundcore
