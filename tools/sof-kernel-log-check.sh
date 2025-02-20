@@ -318,6 +318,9 @@ esac
 # on one CML_HEL_RT5682
 ignore_str="$ignore_str"'|kernel: i2c_hid_acpi i2c-GDIX0000:00'
 
+# ISH firmware missing failure can be ignored
+ignore_str="$ignore_str"'|kernel: intel_ish_ipc 0000:00:12.0: ISH loader: request ISH firmware failed:-2'
+
 
 # below are new error level kernel logs from journalctl --priority=err
 # that did not influence system and can be ignored
