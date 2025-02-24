@@ -49,9 +49,10 @@ func_test_eq()
 {
     local id=$1
     local conf=$2
+    local double_quoted_id=\""$id"\"
 
-    dlogc "sof-ctl -Dhw:$sofcard -n $id -s $conf"
-    sof-ctl -Dhw:"$sofcard" -n "$id" -s "$conf" || {
+    dlogc "sof-ctl -Dhw:$sofcard -c name=$double_quoted_id -s $conf"
+    sof-ctl -Dhw:"$sofcard" -c name="$double_quoted_id" -s "$conf" || {
         dloge "Equalizer setting failure with $conf"
         return 1
     }
@@ -65,30 +66,41 @@ func_test_eq()
 }
 
 # this function performs IIR/FIR filter test
-# param1 must be must be iir or fir
+# param1 must be must be component name
 func_test_filter()
 {
     local testfilter=$1
     dlogi "Get amixer control id for $testfilter"
-    # TODO: Need to match alsa control id with the filter in the pipeline,
-    #       currently the test discards EQ pipelines except first one.
-    Filterid=$(amixer -D hw:"$sofcard" controls | sed -n -e "/eq${testfilter}/I "'s/numid=\([0-9]*\),.*/\1/p' | head -1)
+    Filterid=$("$my_dir"/../tools/topo_effect_kcontrols.py "$tplg" "$testfilter")
     if [ -z "$Filterid" ]; then
         die "can't find $testfilter"
     fi
 
-    declare -a FilterList=($(ls -d "${my_dir}"/eqctl/eq_"${testfilter}"_*.txt))
-    nFilterList=${#FilterList[@]}
-    dlogi "$testfilter list, num= $nFilterList, coeff files= ${FilterList[*]}"
+    if is_ipc4; then
+        ipc_dir="ipc4"
+    else
+        ipc_dir="ipc3"
+    fi
+
+    if [[ ${Filterid^^} == *"IIR"* ]]; then
+        comp_dir="eq_iir"
+    elif [[ ${Filterid^^} == *"FIR"* ]]; then
+        comp_dir="eq_fir"
+    else
+        die "Not supported control: $Filterid"
+    fi
+
+    nFilterList=$(find "${my_dir}/eqctl/$ipc_dir/$comp_dir/" -name '*.txt' | wc -l)
+    dlogi "$testfilter list, num= $nFilterList"
     if [ "$nFilterList" -eq  0 ]; then
         die "$testfilter flter coeff list error!"
     fi
 
-    for i in $(seq 1 $loop_cnt)
+    for i in $(seq 1 "$loop_cnt")
     do
         dlogi "===== [$i/$loop_cnt] Test $testfilter config list, $testfilter amixer control id=$Filterid ====="
-        for config in "${FilterList[@]}"; do
-            func_test_eq "$Filterid" "$my_dir/$config" || {
+        for config in "${my_dir}/eqctl/$ipc_dir/$comp_dir"/*.txt; do
+            func_test_eq "$Filterid" "$config" || {
                 dloge "EQ test failed with $config"
                 : $((failed_cnt++))
             }
@@ -111,7 +123,7 @@ do
     rate=$(func_pipeline_parse_value "$idx" rate)
     fmt=$(func_pipeline_parse_value "$idx" fmt)
     type=$(func_pipeline_parse_value "$idx" type)
-    eq_support=$(func_pipeline_parse_value "$idx" eq)
+    IFS=" " read -r -a eq_support <<< "$(func_pipeline_parse_value "$idx" eq)"
 
     case $type in
         "playback")
@@ -124,12 +136,10 @@ do
         ;;
     esac
 
-    dlogi "eq_support= $eq_support"
+    dlogi "eq_support= ${eq_support[*]}"
     # if IIR/FIR filter is avilable, test with coef list
-    for filter_type in iir fir; do
-        if echo "$eq_support" | grep -q -i $filter_type; then
-            func_test_filter $filter_type
-        fi
+    for comp_id in "${eq_support[@]}"; do
+        func_test_filter "$comp_id"
     done
 
 done
