@@ -9,5 +9,4 @@ amixer -c sofhdadsp cset name='Headphone Playback Volume' 60
 # enable headset capture
 amixer -c sofhdadsp cset name='Capture Switch' on
 amixer -c sofhdadsp cset name='Capture Volume' 30
-~
-
+amixer -c sofhdadsp cset name='Capture Source' 2
