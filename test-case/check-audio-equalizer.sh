@@ -24,7 +24,7 @@ OPT_NAME['t']='tplg'     OPT_DESC['t']="tplg file, default value is env TPLG: $T
 OPT_HAS_ARG['t']=1         OPT_VAL['t']="$TPLG"
 
 OPT_NAME['d']='duration' OPT_DESC['d']='aplay duration in second'
-OPT_HAS_ARG['d']=1         OPT_VAL['d']=5
+OPT_HAS_ARG['d']=1         OPT_VAL['d']=1
 
 OPT_NAME['l']='loop'     OPT_DESC['l']='loop count'
 OPT_HAS_ARG['l']=1         OPT_VAL['l']=1
