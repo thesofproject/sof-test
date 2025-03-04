@@ -18,6 +18,7 @@ set -e
 
 # source from the relative path of current folder
 my_dir=$(dirname "${BASH_SOURCE[0]}")
+# shellcheck source=case-lib/lib.sh
 source "$my_dir"/../case-lib/lib.sh
 
 OPT_NAME['t']='tplg'     OPT_DESC['t']="tplg file, default value is env TPLG: $TPLG"
