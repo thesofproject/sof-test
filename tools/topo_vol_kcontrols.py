@@ -10,7 +10,7 @@ Pro tip: try using these commands _interactively_ with ipython3
 # from .tplg files, create another script.
 
 import sys
-from tplgtool2 import TplgBinaryFormat, TplgType, DapmType, SofVendorToken
+from tplgtool2 import TplgBinaryFormat, TplgType, DapmType, SofVendorToken, has_wname_prefix
 
 TPLG_FORMAT = TplgBinaryFormat()
 
@@ -56,32 +56,6 @@ def print_volume_kcontrols(gain_block):
 
     for vkc in volume_kcontrols:
         print(wname_prefix + vkc.hdr.name)
-
-
-# This could probably be moved to tplgtool2.py?
-def has_wname_prefix(widget):
-    """Is the kcontrol name prefixed with the widget name? ("PGAxx" or "Dmicxx")
-    Check SOF_TKN_COMP_NO_WNAME_IN_KCONTROL_NAME"""
-
-    wname_elems = [
-        prv.elems
-        for prv in widget.priv
-        if prv.elems[0].token
-        == SofVendorToken.SOF_TKN_COMP_NO_WNAME_IN_KCONTROL_NAME.name
-    ]
-
-    if len(wname_elems) == 0:  # typically: topo v1
-        no_wname_prefix = 0
-    elif len(wname_elems) == 1:  # typically: topo v2
-        assert len(wname_elems[0]) == 1
-        no_wname_prefix = wname_elems[0][0].value
-    else:
-        assert False, f"Unexpected len of wname_elems={wname_elems}"
-
-    assert no_wname_prefix in (0, 1)
-
-    # Double-negation: "no_wname false" => prefix
-    return not no_wname_prefix
 
 
 if __name__ == "__main__":
