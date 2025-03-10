@@ -48,6 +48,9 @@ OPT_HAS_ARG['F']=0         OPT_VAL['F']=0
 OPT_NAME['S']='filter_string'   OPT_DESC['S']="run this case on specified pipelines"
 OPT_HAS_ARG['S']=1             OPT_VAL['S']="id:any"
 
+OPT_NAME['T']="tool"            OPT_DESC['T']="Tool for testing"
+OPT_HAS_ARG['T']=1              OPT_VAL['T']="alsa"
+
 func_opt_parse_option "$@"
 
 tplg=${OPT_VAL['t']}
@@ -56,9 +59,15 @@ duration=${OPT_VAL['d']}
 loop_cnt=${OPT_VAL['l']}
 out_dir=${OPT_VAL['o']}
 file_prefix=${OPT_VAL['f']}
+tool=${OPT_VAL['T']}
 
 start_test
 logger_disabled || func_lib_start_log_collect
+
+if [[ "$tool" == "tinyalsa" ]] || [[ "$tool" != "alsa" ]]; then
+    echo "Unknown tool"
+    exit
+fi
 
 setup_kernel_check_point
 func_lib_check_sudo
@@ -72,6 +81,12 @@ do
         rate=$(func_pipeline_parse_value "$idx" rate)
         fmt=$(func_pipeline_parse_value "$idx" fmt)
         dev=$(func_pipeline_parse_value "$idx" dev)
+
+        if [[ "$tool" == "tinyalsa" ]]; then
+            card_nr=$(echo "$dev" | cut -d ':' -f2 | cut -d ',' -f1)
+            dev_nr=$(echo "$dev" | cut -d ',' -f2)
+        fi
+
         pcm=$(func_pipeline_parse_value "$idx" pcm)
         type=$(func_pipeline_parse_value "$idx" type)
         snd=$(func_pipeline_parse_value "$idx" snd)
@@ -84,7 +99,7 @@ do
         do
             for i in $(seq 1 $loop_cnt)
             do
-                dlogi "===== Testing: (Round: $round/$round_cnt) (PCM: $pcm [$dev]<$type>) (Loop: $i/$loop_cnt) ====="
+		    dlogi "===== Testing: (Tool: $tool) (Round: $round/$round_cnt) (PCM: $pcm [$dev]<$type>) (Loop: $i/$loop_cnt) ====="
                 # get the output file
                 if [[ -z $file_prefix ]]; then
                     dlogi "no file prefix, use /dev/null as dummy capture output"
@@ -95,10 +110,14 @@ do
                     dlogi "using $file as capture output"
                 fi
 
-                if ! arecord_opts -D"$dev" -r "$rate" -c "$channel" -f "$fmt_elem" -d $duration "$file" -v -q;
-                then
-                    func_lib_lsof_error_dump "$snd"
-                    die "arecord on PCM $dev failed at $i/$loop_cnt."
+                if [[ "$tool" == "tinyalsa" ]]; then
+                    format=$( echo "$fmt_elem" | grep '[0-9]\+' -o)
+                    tinycap "$file" -D "$card_nr" -d "$dev_nr" -c "$channel" -t "$duration" -r "$rate" -b "$format"
+                elif [[ "$tool" == "alsa" ]]; then
+                    if ! arecord_opts -D"$dev" -r "$rate" -c "$channel" -f "$fmt_elem" -d $duration "$file" -v -q; then
+                        func_lib_lsof_error_dump "$snd"
+                        die "arecord on PCM $dev failed at $i/$loop_cnt."
+                    fi
                 fi
             done
         done
