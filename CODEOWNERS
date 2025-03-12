@@ -2,10 +2,10 @@
 # Each line is a file pattern followed by one or more owners.
 
 # These owners will be the default owners for everything in the repo.
-*                       @thesofproject/test-maintainers
+*                       @thesofproject/test-maintainers @lgirdwood @marc-hb @golowanow
 
 # Order is important. The last matching pattern has the most precedence.
-# So if a pull request only touches javascript files, only these owners
+# So if a pull request only touches tools/kmod/ files, only these owners
 # will be requested to review.
 
-tools/kmod/*            @thesofproject/test-maintainers @plbossart
+tools/kmod/*            @thesofproject/test-maintainers @plbossart @lgirdwood @marc-hb @golowanow
