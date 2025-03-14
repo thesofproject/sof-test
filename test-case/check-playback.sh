@@ -45,6 +45,10 @@ OPT_HAS_ARG['F']=0         OPT_VAL['F']=0
 OPT_NAME['S']='filter_string'   OPT_DESC['S']="run this case on specified pipelines"
 OPT_HAS_ARG['S']=1             OPT_VAL['S']="id:any"
 
+OPT_NAME['T']='tool'    OPT_DESC['T']="Tool for testing"
+OPT_HAS_ARG['T']=1      OPT_VAL['T']="alsa"
+
+
 func_opt_parse_option "$@"
 
 tplg=${OPT_VAL['t']}
@@ -52,6 +56,7 @@ round_cnt=${OPT_VAL['r']}
 duration=${OPT_VAL['d']}
 loop_cnt=${OPT_VAL['l']}
 file=${OPT_VAL['f']}
+tool=${OPT_VAL['T']}
 
 start_test
 logger_disabled || func_lib_start_log_collect
@@ -67,6 +72,11 @@ else
     dlogi "using $file as playback source"
 fi
 
+if [[ "$tool" == "tinyalsa" ]] || [[ "$tool" != "alsa" ]]; then
+    echo "Unknown tool"
+    exit
+fi
+
 setup_kernel_check_point
 func_lib_check_sudo
 func_pipeline_export "$tplg" "type:playback & ${OPT_VAL['S']}"
@@ -79,6 +89,10 @@ do
         rate=$(func_pipeline_parse_value "$idx" rate)
         fmts=$(func_pipeline_parse_value "$idx" fmt)
         dev=$(func_pipeline_parse_value "$idx" dev)
+        if [[ "$tool" == "tinyalsa" ]]; then
+            card_nr=$(echo "$dev" | cut -d ':' -f2 | cut -d ',' -f1)
+            dev_nr=$(echo "$dev" | cut -d ',' -f2)
+        fi
         pcm=$(func_pipeline_parse_value "$idx" pcm)
         type=$(func_pipeline_parse_value "$idx" type)
         snd=$(func_pipeline_parse_value "$idx" snd)
@@ -91,12 +105,17 @@ do
         do
             for i in $(seq 1 $loop_cnt)
             do
-                dlogi "===== Testing: (Round: $round/$round_cnt) (PCM: $pcm [$dev]<$type>) (Loop: $i/$loop_cnt) ====="
-                aplay_opts -D"$dev" -r "$rate" -c "$channel" -f "$fmt_elem" \
+                    dlogi "===== Testing: (Tool: $tool) (Round: $round/$round_cnt) (PCM: $pcm [$dev]<$type>) (Loop: $i/$loop_cnt) ====="
+                if [[ "$tool" == "tinyalsa" ]]; then
+                    sox -n -r "$rate" -c "$channel" noise.wav synth "$duration" white
+                    tinyplay -D "$card_nr" -d "$dev_nr"  -i wav noise.wav
+                elif [[ "$tool" == "alsa" ]]; then
+                    aplay_opts -D"$dev" -r "$rate" -c "$channel" -f "$fmt_elem" \
                       -d "$duration" "$file" -v -q || {
-                    func_lib_lsof_error_dump "$snd"
-                    die "aplay on PCM $dev failed at $i/$loop_cnt."
-                }
+                       func_lib_lsof_error_dump "$snd"
+                       die "aplay on PCM $dev failed at $i/$loop_cnt."
+                    }
+                fi
             done
         done
     done
