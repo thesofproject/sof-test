@@ -123,9 +123,11 @@ alsabat -P$pcm_p --standalone -n $frames -c $channel_p -r $rate -f $format -F $f
 # playback may have low latency, add one second delay to aviod recording zero at beginning.
 sleep 1
 
+# Select the first card
+first_card_name=$(aplay -l | awk '/^card ([0-9]+)/ {print $3; exit}')
 # dump amixer contents always.
 # Good case amixer settings is for reference, bad case for debugging.
-amixer contents > "$LOG_ROOT"/amixer_settings.txt
+amixer -c "${first_card_name}" contents > "$LOG_ROOT"/amixer_settings.txt
 
 # We use different USB sound cards in CI, part of them only support 1 channel for capture,
 # so make the channel as an option and config it in alsabat-playback.csv
