@@ -68,19 +68,14 @@ for round in $(seq 1 $round_cnt)
 do
     for idx in $(seq 0 $((PIPELINE_COUNT - 1)))
     do
-        channel=$(func_pipeline_parse_value "$idx" channel)
-        rate=$(func_pipeline_parse_value "$idx" rate)
-        fmt=$(func_pipeline_parse_value "$idx" fmt)
-        dev=$(func_pipeline_parse_value "$idx" dev)
-        pcm=$(func_pipeline_parse_value "$idx" pcm)
-        type=$(func_pipeline_parse_value "$idx" type)
-        snd=$(func_pipeline_parse_value "$idx" snd)
+
+	initialize_audio_params
 
         if [ ${OPT_VAL['F']} = '1' ]; then
-            fmt=$(func_pipeline_parse_value "$idx" fmts)
+            fmts=$(func_pipeline_parse_value "$idx" fmts)
         fi
 
-        for fmt_elem in $fmt
+        for fmt_elem in $fmts
         do
             for i in $(seq 1 $loop_cnt)
             do

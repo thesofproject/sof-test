@@ -53,11 +53,13 @@ Usage: ./check-playback.sh [OPTION]
     ...
 ```
 
-Some tests support SOF_ALSA_OPTS, SOF_APLAY_OPTS and SOF_ARECORD_OPTS,
+Some tests support SOF_ALSA_TOOL, SOF_ALSA_OPTS, SOF_APLAY_OPTS and SOF_ARECORD_OPTS,
 work in progress. Where supported, optional parameters in SOF_APLAY_OPTS
 and SOF_ARECORD_OPTS are passed to all aplay and arecord
 invocations. SOF_ALSA_OPTS parameters are passed to both aplay and
-arecord. Warning these environments variables do NOT support parameters
+arecord. SOF_ALSA_TOOL is used to select tool for testing.
+Set SOF_ALSA_TOOL to 'alsa' or 'tinyalsa' to select tool.
+Warning these environments variables do NOT support parameters
 with whitespace or globbing characters, in other words this does NOT
 work:
 
