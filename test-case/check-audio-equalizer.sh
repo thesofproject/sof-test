@@ -43,6 +43,7 @@ func_pipeline_export "$tplg" "eq:any"
 sofcard=${SOFCARD:-0}
 
 start_test
+setup_kernel_check_point
 
 # Test equalizer
 func_test_eq()
@@ -144,4 +145,4 @@ do
 
 done
 
-exit 0
+sof-kernel-log-check.sh "$KERNEL_CHECKPOINT"
