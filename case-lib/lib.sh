@@ -952,7 +952,7 @@ is_ipc4()
 logger_disabled()
 {
     # Disable logging when available...
-    if [ ${OPT_VAL['s']} -eq 0 ]; then
+    if [ "${OPT_VAL['s']}" -eq 0 ]; then
         return 0
     fi
 
@@ -1060,18 +1060,63 @@ set_alsa_settings()
     esac
 }
 
+set_sof_volume()
+{
+    local device=$1
+    local control_name=$2
+    local value=$3
+
+    if [[ "$SOF_ALSA_TOOL" = "alsa" ]]; then
+        dlogc "amixer -c$device' -- cset 'name=$control_name' '$value'"
+        amixer -c"$device" cset name="$control_name" "$value" > /dev/null
+    elif [[ "$SOF_ALSA_TOOL" = "tinyalsa" ]]; then
+        dlogc "tinymix -D'$device' set '$control_name' '$value'"
+        tinymix -D"$device" set "$control_name" "$value"  > /dev/null
+    else
+        echo "Unknown alsa tool $SOF_ALSA_TOOL"
+    fi
+}
+
+get_sof_controls()
+{
+    local sofcard=$1
+
+    if [[  "$SOF_ALSA_TOOL" = "alsa" ]]; then
+            amixer -c"$sofcard" controls
+    elif [[ "$SOF_ALSA_TOOL" = "tinyalsa" ]]; then
+            tinymix --card "$sofcard" controls
+    else
+        echo "Unknown alsa tool $SOF_ALSA_TOOL"
+    fi
+
+}
+
 reset_sof_volume()
 {
     # set all PGA* volume to 0dB
-    amixer -Dhw:0 scontrols | sed -e "s/^.*'\(.*\)'.*/\1/" |grep -E 'PGA|gain' |
-    while read -r mixer_name
-    do
-        if is_ipc4; then
-            amixer -Dhw:0 -- sset "$mixer_name" 100%
-        else
-            amixer -Dhw:0 -- sset "$mixer_name" 0dB
-        fi
-    done
+    if [[ "$SOF_ALSA_TOOL" = "alsa" ]]; then
+        amixer -Dhw:0 scontrols | sed -e "s/^.*'\(.*\)'.*/\1/" |grep -E 'PGA|gain' |
+        while read -r mixer_name
+        do
+            if is_ipc4; then
+                amixer -Dhw:0 -- sset "$mixer_name" 100%
+            else
+                amixer -Dhw:0 -- sset "$mixer_name" 0dB
+            fi
+        done
+    elif [[ "$SOF_ALSA_TOOL" = "tinyalsa" ]]; then
+        tinymix -D 0 contorls | sed -e "s/^.*'\(.*\)'.*/\1/" |grep -E 'PGA|gain' |
+        while read -r mixer_name
+        do
+            if is_ipc4; then
+                tinymix -D 0 set "$mixer_name" 100%
+            else
+                tinymix -D 0 set "$mixer_name" 0dB
+            fi
+        done
+    else
+        echo "Unknown alsa tool $SOF_ALSA_TOOL"
+    fi
 }
 
 DO_PERF_ANALYSIS=0
