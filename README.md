@@ -18,6 +18,12 @@ expect alsa-utils python3 python3-construct python3-graphviz
 ```
 sudo apt install expect alsa-utils python3 python3-construct python3-graphviz
 ```
+If you would like to use tinyALSA for testing, install tinyALSA and SoX.
+- How to install tinyALSA: https://github.com/tinyalsa/tinyalsa
+- To install SoX run below command:
+```
+sudo apt-install sox
+```
 #### user group
 sudo adm audio
 
@@ -52,12 +58,14 @@ Usage: ./check-playback.sh [OPTION]
 2020-03-19 22:13:32 UTC [COMMAND] aplay -q --fatal-errors  -Dhw:0,0 -r 48000 -c 2 -f S16_LE -d 4 /dev/zero -v -q
     ...
 ```
+Some tests support these environment variables (work in progress):
+  - SOF_ALSA_TOOL is used to select the audio tool for testing.
+  Set this variable to 'alsa' (default value) or 'tinyalsa' to choose between the ALSA and TinyALSA toolsets.
+  - SOF_ALSA_OPTS contains optional parameters passed on both play and record.
+  - SOF_APLAY_OPTS and SOF_ARECORD_OPTS contain optional parameters passed additionally on play and record respectively.
+These options are applied to the selected tool (alsa or tinyalsa) based on the value of SOF_ALSA_TOOL 
 
-Some tests support SOF_ALSA_OPTS, SOF_APLAY_OPTS and SOF_ARECORD_OPTS,
-work in progress. Where supported, optional parameters in SOF_APLAY_OPTS
-and SOF_ARECORD_OPTS are passed to all aplay and arecord
-invocations. SOF_ALSA_OPTS parameters are passed to both aplay and
-arecord. Warning these environments variables do NOT support parameters
+Warning, these environment variables do NOT support parameters
 with whitespace or globbing characters, in other words this does NOT
 work:
 

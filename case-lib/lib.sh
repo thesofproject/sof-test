@@ -752,17 +752,88 @@ func_lib_check_pa()
 # However, 1. arrays would complicate the user interface 2. ALSA does not
 # seem to need arguments with whitespace or globbing characters.
 
+# SOF_ALSA_TOOL:
+# This option is used for selecting tool for testing,
+# So far, supported tools are 'alsa' and 'tinyalsa'
+# To select appropriate tool, set SOF_ALSA_TOOL to one of above
+# before using 'aplay_opts' or 'arecord_opts' function.
+# Default is SOF_ALSA_TOOL='alsa'
+
+
+# Function to extract the card number and device number from $dev option (e.g., hw:0,10)
+parse_audio_device() {
+    # Extract the card number (e.g., "0" from hw:0,10)
+    card_nr=$(printf '%s' "$1" | cut -d ':' -f2 | cut -d ',' -f1)
+
+    # Extract the device number (e.g., "10" from hw:0,10)
+    dev_nr=$(printf '%s' "$1" | cut -d ',' -f2)
+}
+
+# Function to extract the numeric format value from the PCM sample formats
+# There is passes PCM sample format while using ALSA tool (arecord)
+# While using TinyALSA (tinycap -b) we need to convert PCM sample fomrat to bits.
+extract_format_number() {
+    # (e.g., extracting '16' from 'S16_LE')
+    printf '%s' "$1" | grep '[0-9]\+' -o
+}
+
+# Initialize the parameters using for audio testing.
+# shellcheck disable=SC2034
+initialize_audio_params()
+{
+    local idx="$1"
+
+    channel=$(func_pipeline_parse_value "$idx" channel)
+    rate=$(func_pipeline_parse_value "$idx" rate)
+    fmts=$(func_pipeline_parse_value "$idx" fmt)
+    dev=$(func_pipeline_parse_value "$idx" dev)
+    pcm=$(func_pipeline_parse_value "$idx" pcm)
+    type=$(func_pipeline_parse_value "$idx" type)
+    snd=$(func_pipeline_parse_value "$idx" snd)
+
+    : "${SOF_ALSA_TOOL:="alsa"}"
+    if [[ "$SOF_ALSA_TOOL" = "tinyalsa" ]]; then
+       parse_audio_device "$dev"
+    fi
+}
+
 aplay_opts()
 {
-    dlogc "aplay $SOF_ALSA_OPTS $SOF_APLAY_OPTS $*"
-    # shellcheck disable=SC2086
-    aplay $SOF_ALSA_OPTS $SOF_APLAY_OPTS "$@"
+    if [[ "$SOF_ALSA_TOOL" = "tinyalsa" ]]; then
+        # shellcheck disable=SC2154
+        if ! sox -n -r "$rate" -c "$channel" noise.wav synth "$duration" white; then
+            printf 'Error: sox command failed.\n' >&2
+	    return 1
+	fi
+        dlogc "tinyplay $SOF_ALSA_OPTS $SOF_APLAY_OPTS -D $card_nr -d $dev_nr  -i wav noise.wav"
+	# shellcheck disable=SC2086
+        tinyplay $SOF_ALSA_OPTS $SOF_APLAY_OPTS -D "$card_nr" -d "$dev_nr"  -i wav noise.wav
+    elif [[ "$SOF_ALSA_TOOL" = "alsa" ]]; then
+        dlogc "aplay $SOF_ALSA_OPTS $SOF_APLAY_OPTS $*"
+        # shellcheck disable=SC2086
+        aplay $SOF_ALSA_OPTS $SOF_APLAY_OPTS "$@"
+    else
+        die "Unknown ALSA tool: $SOF_ALSA_TOOL"
+    fi
 }
+
 arecord_opts()
 {
-    dlogc "arecord $SOF_ALSA_OPTS $SOF_ARECORD_OPTS $*"
-    # shellcheck disable=SC2086
-    arecord $SOF_ALSA_OPTS $SOF_ARECORD_OPTS "$@"
+
+    if [[ "$SOF_ALSA_TOOL" = "tinyalsa" ]]; then
+        # shellcheck disable=SC2154
+        # Global variable "$fmt_elem" from check_capture.sh test script
+	format=$(extract_format_number "$fmt_elem")
+	dlogc "tinycap $SOF_ALSA_OPTS $SOF_ARECORD_OPTS $file -D $card_nr -d $dev_nr -c $channel -t $duration -r $rate -b $format"
+	# shellcheck disable=SC2086
+        tinycap $SOF_ALSA_OPTS $SOF_ARECORD_OPTS "$file" -D "$card_nr" -d "$dev_nr" -c "$channel" -t "$duration" -r "$rate" -b "$format"
+    elif [[ "$SOF_ALSA_TOOL" = "alsa" ]]; then
+        dlogc "arecord $SOF_ALSA_OPTS $SOF_ARECORD_OPTS $*"
+        # shellcheck disable=SC2086
+        arecord $SOF_ALSA_OPTS $SOF_ARECORD_OPTS "$@"
+    else
+        die "Unknown ALSA tool: $SOF_ALSA_TOOL"
+    fi
 }
 
 die()
@@ -952,7 +1023,7 @@ is_ipc4()
 logger_disabled()
 {
     # Disable logging when available...
-    if [ ${OPT_VAL['s']} -eq 0 ]; then
+    if [ "${OPT_VAL['s']}" -eq 0 ]; then
         return 0
     fi
 
@@ -1063,15 +1134,31 @@ set_alsa_settings()
 reset_sof_volume()
 {
     # set all PGA* volume to 0dB
-    amixer -Dhw:0 scontrols | sed -e "s/^.*'\(.*\)'.*/\1/" |grep -E 'PGA|gain' |
-    while read -r mixer_name
-    do
-        if is_ipc4; then
-            amixer -Dhw:0 -- sset "$mixer_name" 100%
-        else
-            amixer -Dhw:0 -- sset "$mixer_name" 0dB
-        fi
-    done
+    if [[ "$SOF_ALSA_TOOL" = "alsa" ]]; then
+        amixer -Dhw:0 scontrols | sed -e "s/^.*'\(.*\)'.*/\1/" |grep -E 'PGA|gain' |
+
+        while read -r mixer_name
+        do
+            if is_ipc4; then
+                amixer -Dhw:0 -- sset "$mixer_name" 100%
+            else
+               amixer -Dhw:0 -- sset "$mixer_name" 0dB
+            fi
+        done
+    elif [[ "$SOF_ALSA_TOOL" = "tinyalsa" ]]; then
+        tinymix -D0 controls | sed -e "s/^.*'\(.*\)'.*/\1/" |grep -E 'PGA|gain' |
+
+        while read -r mixer_name
+        do
+            if is_ipc4; then
+                tinymix -D0 set "$mixer_name" 100%
+            else
+                tinymix -D0 set "$mixer_name" 0dB
+            fi
+        done
+    else
+         echo "Unknown alsa tool $SOF_ALSA_TOOL"
+    fi
 }
 
 DO_PERF_ANALYSIS=0
