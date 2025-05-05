@@ -83,6 +83,9 @@ out_str="" check_res=0
 printf "Checking for some OS packages:\t\t"
 func_check_pkg expect
 func_check_pkg aplay
+func_check_pkg sox
+func_check_pkg tinycap
+func_check_pkg tinyplay
 func_check_pkg python3
 # jq is command-line json parser
 func_check_pkg jq
