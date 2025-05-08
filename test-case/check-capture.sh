@@ -64,25 +64,20 @@ setup_kernel_check_point
 func_lib_check_sudo
 func_pipeline_export "$tplg" "type:capture & ${OPT_VAL['S']}"
 
-for round in $(seq 1 $round_cnt)
+for round in $(seq 1 "$round_cnt")
 do
     for idx in $(seq 0 $((PIPELINE_COUNT - 1)))
     do
-        channel=$(func_pipeline_parse_value "$idx" channel)
-        rate=$(func_pipeline_parse_value "$idx" rate)
-        fmt=$(func_pipeline_parse_value "$idx" fmt)
-        dev=$(func_pipeline_parse_value "$idx" dev)
-        pcm=$(func_pipeline_parse_value "$idx" pcm)
-        type=$(func_pipeline_parse_value "$idx" type)
-        snd=$(func_pipeline_parse_value "$idx" snd)
 
-        if [ ${OPT_VAL['F']} = '1' ]; then
-            fmt=$(func_pipeline_parse_value "$idx" fmts)
+        initialize_audio_params "$idx"
+
+        if [ "${OPT_VAL['F']}" = '1' ]; then
+            fmts=$(func_pipeline_parse_value "$idx" fmts)
         fi
 
-        for fmt_elem in $fmt
+        for fmt_elem in $fmts
         do
-            for i in $(seq 1 $loop_cnt)
+            for i in $(seq 1 "$loop_cnt")
             do
                 dlogi "===== Testing: (Round: $round/$round_cnt) (PCM: $pcm [$dev]<$type>) (Loop: $i/$loop_cnt) ====="
                 # get the output file
@@ -90,12 +85,12 @@ do
                     dlogi "no file prefix, use /dev/null as dummy capture output"
                     file=/dev/null
                 else
-                    mkdir -p $out_dir
+                    mkdir -p "$out_dir"
                     file=$out_dir/${file_prefix}_${dev}_${i}.wav
                     dlogi "using $file as capture output"
                 fi
 
-                if ! arecord_opts -D"$dev" -r "$rate" -c "$channel" -f "$fmt_elem" -d $duration "$file" -v -q;
+                if ! arecord_opts -D"$dev" -r "$rate" -c "$channel" -f "$fmt_elem" -d "$duration" "$file" -v -q;
                 then
                     func_lib_lsof_error_dump "$snd"
                     die "arecord on PCM $dev failed at $i/$loop_cnt."
