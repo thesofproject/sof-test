@@ -1030,6 +1030,42 @@ re_enable_ntp_sync()
     sudo timedatectl set-ntp true
 }
 
+# Get alsa-info of DUTs in CI
+print_alsa_info()
+{
+    dlogi "----------- ↓ alsa-info ↓ ------------"
+    alsa-info --stdout --with-aplay --with-amixer --with-alsactl --with-configs --no-upload
+    dlogi "----------- ↑ alsa-info ↑ ------------"
+}
+
+# Check whether a relevant .state file exists
+# If not, save current state for future use
+# param1: script home path
+# param2: platform name
+get_alsactl_state_or_create()
+{
+    ALSACTL_STATE_FILE_PATH="$1"/alsa_settings/alsactl/"$2".state
+    # .state file does not exist. Creating one from current setup.
+    if [ ! -f "$ALSACTL_STATE_FILE_PATH" ]; then
+        alsactl store --file="$ALSACTL_STATE_FILE_PATH"
+    fi
+    echo "$ALSACTL_STATE_FILE_PATH"
+}
+
+# Check whether a relevant .state file exists
+# and return its file path
+# param1: script home path
+# param2: platform name
+get_alsactl_state()
+{
+    ALSACTL_STATE_FILE_PATH="$1"/alsa_settings/alsactl/"$2".state
+    # .state file does not exist.
+    if [ ! -f "$ALSACTL_STATE_FILE_PATH" ]; then
+        return 1;
+    fi
+    echo "$ALSACTL_STATE_FILE_PATH"
+}
+
 # check-alsabat.sh need to run optimum alsa control settings
 # param1: platform name
 set_alsa_settings()
@@ -1048,7 +1084,19 @@ set_alsa_settings()
         ;;
         TGLU_RVP_NOCODEC_IPC4ZPH | ADLP_RVP_NOCODEC_IPC4ZPH | ADLP_RVP_NOCODEC-ipc4 | TGLU_RVP_NOCODEC-ipc4 | MTLP_RVP_NOCODEC | MTLP_RVP_NOCODEC-multicore-2cores | MTLP_RVP_NOCODEC-multicore-3cores | LNLM_RVP_NOCODEC)
             dlogi "Use reset_sof_volume function to set amixer setting."
-	;;
+        ;;
+        LNLM_RVP_HDA | LNLM_SDW_AIOC | MTLP_RVP_HDA | MTLP_RVP_SDW | MTLP_SDW_AIOC | PTLH_HDA_AIOC | PTLH_SDW_RT712 | PTLP_RVP_SDW)
+            dlogi "Using experimental ALSACTL method"
+
+            ALSACTL_STATE_FILE_PATH=$(get_alsactl_state "$SCRIPT_HOME" "$PNAME")
+
+            # No existing state file, finish early
+            if [ -z "${ALSACTL_STATE_FILE_PATH}" ]; then
+                return 0
+            fi
+
+            alsactl restore --file="$ALSACTL_STATE_FILE_PATH"
+	    ;;
         *)
             # if script name is same as platform name, default case will handle all
             if [ -f "$SCRIPT_HOME"/alsa_settings/"$PNAME".sh ]; then
