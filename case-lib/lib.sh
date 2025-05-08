@@ -949,11 +949,21 @@ is_ipc4()
     return 1
 }
 
+set_default_param_for_sof_logger()
+{
+    OPT_NAME['s']='sof-logger'
+    OPT_DESC['s']="Open sof-logger trace the data will store at $LOG_ROOT"
+    OPT_HAS_ARG['s']=0
+    OPT_VAL['s']=1
+}
+
 logger_disabled()
 {
     # Disable logging when available...
-    if [ ${OPT_VAL['s']} -eq 0 ]; then
-        return 0
+    if [ -n "${OPT_VAL['s']}" ]; then
+        [ "${OPT_VAL['s']}" -eq 0 ] && return 0
+    else
+        set_default_param_for_sof_logger
     fi
 
     # ... across all tests at once.
