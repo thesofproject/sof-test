@@ -1,0 +1,14 @@
+state.sofsoundwire {
+	control.1 {
+		iface MIXER
+		name 'rt711 FU05 Playback Volume'
+		value.0 80
+		value.1 80
+	}
+	control.5 {
+		iface MIXER
+		name 'rt711 FU0F Capture Volume'
+		value.0 30
+		value.1 30
+	}
+}

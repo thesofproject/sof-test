@@ -1184,13 +1184,64 @@ re_enable_ntp_sync()
     sudo timedatectl set-ntp true
 }
 
+# Get alsa-info of DUTs in CI
+print_alsa_info()
+{
+    dlogi "----------- ↓ alsa-info ↓ ------------"
+    alsa-info --stdout --with-aplay --with-amixer --with-alsactl --with-configs --no-upload
+    dlogi "----------- ↑ alsa-info ↑ ------------"
+}
+
+# Check whether a relevant .state file exists
+# If not, save current state for future use
+# param1: script home path
+# param2: platform name
+get_alsactl_state_or_create()
+{
+    ALSACTL_STATE_FILE_PATH="$1"/alsa_settings/alsactl/"$2".state
+    # .state file does not exist. Creating one from current setup.
+    if [ ! -f "$ALSACTL_STATE_FILE_PATH" ]; then
+        alsactl store --file="$ALSACTL_STATE_FILE_PATH"
+    fi
+    echo "$ALSACTL_STATE_FILE_PATH"
+}
+
+# Check whether a relevant .state file exists
+# and return its file path
+# param1: script home path
+# param2: platform name
+get_alsactl_state()
+{
+    ALSACTL_STATE_FILE_PATH="$1"/alsa_settings/alsactl/"$2".state
+    # .state file does not exist.
+    if [ ! -f "$ALSACTL_STATE_FILE_PATH" ]; then
+        return 1;
+    fi
+    echo "$ALSACTL_STATE_FILE_PATH"
+}
+
+# Use `alsactl restore` to restore the alsa settings.
+# param1: platform name
+restore_settings_via_alsactl()
+{
+    dlogi "Using experimental ALSACTL method"
+
+    ALSACTL_STATE_FILE_PATH=$(get_alsactl_state "$SCRIPT_HOME" "$1")
+
+    alsactl restore --file="$ALSACTL_STATE_FILE_PATH" --pedantic --no-init-fallback --no-ucm
+}
+
 # check-alsabat.sh need to run optimum alsa control settings
 # param1: platform name
 set_alsa_settings()
 {
+    # This will bring the machine ALSA state to a common known point - a good baseline
+    alsactl init
+
     # ZEPHYR platform shares same tplg, remove '_ZEPHYR' from platform name
     local PNAME="${1%_ZEPHYR}"
     dlogi "Run alsa setting for $PNAME"
+    # Apply configuration on top of the default init
     case $PNAME in
         APL_UP2_NOCODEC | CML_RVP_NOCODEC | JSL_RVP_NOCODEC | TGLU_RVP_NOCODEC | ADLP_RVP_NOCODEC | TGLH_RVP_NOCODEC | ADLP_RVP_NOCODEC-ipc3 | CML_RVP_NOCODEC-ipc3 | JSL_RVP_NOCODEC-ipc3)
             # common nocodec alsa settings
@@ -1202,10 +1253,12 @@ set_alsa_settings()
         ;;
         TGLU_RVP_NOCODEC_IPC4ZPH | ADLP_RVP_NOCODEC_IPC4ZPH | ADLP_RVP_NOCODEC-ipc4 | TGLU_RVP_NOCODEC-ipc4 | MTLP_RVP_NOCODEC | MTLP_RVP_NOCODEC-multicore-2cores | MTLP_RVP_NOCODEC-multicore-3cores | LNLM_RVP_NOCODEC)
             dlogi "Use reset_sof_volume function to set amixer setting."
-	;;
+        ;;
         *)
             # if script name is same as platform name, default case will handle all
-            if [ -f "$SCRIPT_HOME"/alsa_settings/"$PNAME".sh ]; then
+            if get_alsactl_state "$SCRIPT_HOME" "$PNAME"; then
+                restore_settings_via_alsactl "$PNAME"
+            elif [ -f "$SCRIPT_HOME"/alsa_settings/"$PNAME".sh ]; then
                 "$SCRIPT_HOME"/alsa_settings/"$PNAME".sh
             else
                 dlogw "alsa setting for $PNAME is not available"
