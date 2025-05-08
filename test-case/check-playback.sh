@@ -71,25 +71,20 @@ setup_kernel_check_point
 func_lib_check_sudo
 func_pipeline_export "$tplg" "type:playback & ${OPT_VAL['S']}"
 
-for round in $(seq 1 $round_cnt)
+for round in $(seq 1 "$round_cnt")
 do
     for idx in $(seq 0 $((PIPELINE_COUNT - 1)))
     do
-        channel=$(func_pipeline_parse_value "$idx" channel)
-        rate=$(func_pipeline_parse_value "$idx" rate)
-        fmts=$(func_pipeline_parse_value "$idx" fmt)
-        dev=$(func_pipeline_parse_value "$idx" dev)
-        pcm=$(func_pipeline_parse_value "$idx" pcm)
-        type=$(func_pipeline_parse_value "$idx" type)
-        snd=$(func_pipeline_parse_value "$idx" snd)
 
-        if [ ${OPT_VAL['F']} = '1' ]; then
+        initialize_audio_params "$idx"
+
+        if [ "${OPT_VAL['F']}" = '1' ]; then
             fmts=$(func_pipeline_parse_value "$idx" fmts)
         fi
 
         for fmt_elem in $fmts
         do
-            for i in $(seq 1 $loop_cnt)
+            for i in $(seq 1 "$loop_cnt")
             do
                 dlogi "===== Testing: (Round: $round/$round_cnt) (PCM: $pcm [$dev]<$type>) (Loop: $i/$loop_cnt) ====="
                 aplay_opts -D"$dev" -r "$rate" -c "$channel" -f "$fmt_elem" \
