@@ -1206,7 +1206,7 @@ set_alsa_settings()
 {
     # ZEPHYR platform shares same tplg, remove '_ZEPHYR' from platform name
     local PNAME="${1%_ZEPHYR}"
-    dlogi "Run alsa setting for $PNAME"
+    dlogi "Apply ALSA settings for $PNAME"
     case $PNAME in
         APL_UP2_NOCODEC | CML_RVP_NOCODEC | JSL_RVP_NOCODEC | TGLU_RVP_NOCODEC | ADLP_RVP_NOCODEC | TGLH_RVP_NOCODEC | ADLP_RVP_NOCODEC-ipc3 | CML_RVP_NOCODEC-ipc3 | JSL_RVP_NOCODEC-ipc3)
             # common nocodec alsa settings
@@ -1218,13 +1218,25 @@ set_alsa_settings()
         ;;
         TGLU_RVP_NOCODEC_IPC4ZPH | ADLP_RVP_NOCODEC_IPC4ZPH | ADLP_RVP_NOCODEC-ipc4 | TGLU_RVP_NOCODEC-ipc4 | MTLP_RVP_NOCODEC | MTLP_RVP_NOCODEC-multicore-2cores | MTLP_RVP_NOCODEC-multicore-3cores | LNLM_RVP_NOCODEC)
             dlogi "Use reset_sof_volume function to set amixer setting."
-	;;
+        ;;
         *)
             # if script name is same as platform name, default case will handle all
-            if [ -f "$SCRIPT_HOME"/alsa_settings/"$PNAME".sh ]; then
-                "$SCRIPT_HOME"/alsa_settings/"$PNAME".sh
-            else
-                dlogw "alsa setting for $PNAME is not available"
+            local ALSA_SETTINGS_FILE="$SCRIPT_HOME"/alsa_settings/"$PNAME"
+            local rc=0
+            if [ -f "${ALSA_SETTINGS_FILE}.state" ]; then
+                dlogc "alsactl restore --file=${ALSA_SETTINGS_FILE}.state --no-init-fallback --no-ucm"
+                alsactl restore --file="${ALSA_SETTINGS_FILE}".state --no-init-fallback --no-ucm 2>&1 || rc=$?
+                [[ "${rc}" -ne 0 ]] && dloge "alsactl restore error=${rc}"
+                # With `--pedantic` alsactl returns error=2, e.g. "No state is present for card CODEC"
+            fi
+            if [ -f "${ALSA_SETTINGS_FILE}.sh" ]; then
+                dlogc "${ALSA_SETTINGS_FILE}.sh"
+                rc=0
+                "${ALSA_SETTINGS_FILE}".sh 2>&1 || rc=$?
+                [[ "${rc}" -ne 0 ]] && dloge "ALSA settings error=${rc}"
+            fi
+            if [ ! -f "${ALSA_SETTINGS_FILE}.state" ] && [ ! -f "${ALSA_SETTINGS_FILE}.sh" ]; then
+                dlogw "ALSA settings for $PNAME are not available"
             fi
         ;;
     esac
@@ -1294,7 +1306,7 @@ set_alsa()
 
   # If MODEL is defined, set proper gain for the platform
   if [ -z "$MODEL" ]; then
-    dlogw "NO MODEL is defined. Please define MODEL to run alsa_settings/\${MODEL}.sh"
+    dlogw "NO MODEL is defined. Please define MODEL to apply additional settings from ./alsa_settings"
   else
     set_alsa_settings "$MODEL"
   fi
