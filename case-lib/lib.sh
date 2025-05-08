@@ -1030,10 +1030,20 @@ re_enable_ntp_sync()
     sudo timedatectl set-ntp true
 }
 
+# Get alsa-info of DUTs in CI
+print_alsa_info()
+{
+    OUTPUT_FILE="/tmp/alsa-info.txt"
+    alsa-info --output "$OUTPUT_FILE" --with-aplay --with-amixer --with-alsactl --with-configs
+    ALSA_INFO_TEXT=$(cat "$OUTPUT_FILE")
+    dlogi "$ALSA_INFOTEXT"
+}
+
 # check-alsabat.sh need to run optimum alsa control settings
 # param1: platform name
 set_alsa_settings()
 {
+    print_alsa_info
     # ZEPHYR platform shares same tplg, remove '_ZEPHYR' from platform name
     local PNAME="${1%_ZEPHYR}"
     dlogi "Run alsa setting for $PNAME"
