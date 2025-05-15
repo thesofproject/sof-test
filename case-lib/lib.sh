@@ -759,6 +759,7 @@ func_lib_check_pa()
 # before using 'aplay_opts' or 'arecord_opts' function.
 # Default is SOF_ALSA_TOOL='alsa'
 
+: "${SOF_ALSA_TOOL:="alsa"}"
 
 # Function to extract the card number and device number from $dev option (e.g., hw:0,10)
 parse_audio_device() {
@@ -791,7 +792,6 @@ initialize_audio_params()
     type=$(func_pipeline_parse_value "$idx" type)
     snd=$(func_pipeline_parse_value "$idx" snd)
 
-    : "${SOF_ALSA_TOOL:="alsa"}"
     if [[ "$SOF_ALSA_TOOL" = "tinyalsa" ]]; then
        parse_audio_device "$dev"
     fi
