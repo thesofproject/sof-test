@@ -1034,9 +1034,39 @@ re_enable_ntp_sync()
 print_alsa_info()
 {
     OUTPUT_FILE="/tmp/alsa-info.txt"
-    alsa-info --output "$OUTPUT_FILE" --with-aplay --with-amixer --with-alsactl --with-configs
+    alsa-info --output "$OUTPUT_FILE" --with-aplay --with-amixer --with-alsactl --with-configs --no-upload
     ALSA_INFO_TEXT=$(cat "$OUTPUT_FILE")
-    dlogi "$ALSA_INFOTEXT"
+    dlogi "----------- ↓ alsa-info ↓ ------------"
+    dlogi "$ALSA_INFO_TEXT"
+    dlogi "----------- ↑ alsa-info ↑ ------------"
+}
+
+# Check whether a relevant .state file exists
+# If not, save current state for future use
+# param1: script home path
+# param2: platform name
+get_alsactl_state_or_create()
+{
+    ALSACTL_STATE_FILE_PATH="$1"/alsa_settings/alsactl/"$2".state
+    # .state file does not exist. Creating one from current setup.
+    if [ ! -f "$ALSACTL_STATE_FILE_PATH" ]; then
+        alsactl store --file="$ALSACTL_STATE_FILE_PATH"
+    fi
+    echo "$ALSACTL_STATE_FILE_PATH"
+}
+
+# Check whether a relevant .state file exists
+# and return its file path
+# param1: script home path
+# param2: platform name
+get_alsactl_state()
+{
+    ALSACTL_STATE_FILE_PATH="$1"/alsa_settings/alsactl/"$2".state
+    # .state file does not exist.
+    if [ ! -f "$ALSACTL_STATE_FILE_PATH" ]; then
+        return 1;
+    fi
+    echo "$ALSACTL_STATE_FILE_PATH"
 }
 
 # check-alsabat.sh need to run optimum alsa control settings
@@ -1058,6 +1088,59 @@ set_alsa_settings()
         ;;
         TGLU_RVP_NOCODEC_IPC4ZPH | ADLP_RVP_NOCODEC_IPC4ZPH | ADLP_RVP_NOCODEC-ipc4 | TGLU_RVP_NOCODEC-ipc4 | MTLP_RVP_NOCODEC | MTLP_RVP_NOCODEC-multicore-2cores | MTLP_RVP_NOCODEC-multicore-3cores | LNLM_RVP_NOCODEC)
             dlogi "Use reset_sof_volume function to set amixer setting."
+        ;;
+        PTL*)
+            dlogi "Using experimental ALSACTL method"
+
+            ALSACTL_STATE_FILE_PATH=$(get_alsactl_state "$SCRIPT_HOME" "$PNAME")
+
+            # No existing state file, finish early
+            if [ -z "${ALSACTL_STATE_FILE_PATH}" ]; then
+                return 0
+            fi
+
+            alsactl restore --file="$ALSACTL_STATE_FILE_PATH"
+
+            # DEBUG: Show current info
+            dlogi "After ALSACTL"
+            print_alsa_info
+	;;
+        MTL*|TGL*)
+            dlogi "Using experimental ALSACTL method"
+
+            ALSACTL_STATE_FILE_PATH=$(get_alsactl_state_or_create "$SCRIPT_HOME" "$PNAME")
+
+            # No existing state file, finish early
+            if [ -z "${ALSACTL_STATE_FILE_PATH}" ]; then
+                return 0
+            fi
+
+            # DEBUG
+            ALSACTL_STATE_CONTENTS=$(cat "$ALSACTL_STATE_FILE_PATH")
+            dlogi "----------- ↓ $PNAME.state ↓ ------------"
+            dlogi "$ALSACTL_STATE_CONTENTS"
+            dlogi "----------- ↑ $PNAME.state ↑ ------------"
+            # DEBUG
+
+            # DEBUG: Change value to verify restore's function
+            if [ "$PNAME" = "PTLH_SDW_RT712" ]; then
+                amixer -c 0 sset "Headset Mic" off
+            fi
+
+            # DEBUG: Show current info
+            dlogi "Before ALSACTL"
+            print_alsa_info
+
+            alsactl restore --file="$ALSACTL_STATE_FILE_PATH"
+
+            # DEBUG: Show current info
+            dlogi "After ALSACTL"
+            print_alsa_info
+
+            # DEBUG: Change value in case restore failed
+            if [ "$PNAME" = "PTLH_SDW_RT712" ]; then
+                amixer -c 0 sset "Headset Mic" off
+            fi
 	;;
         *)
             # if script name is same as platform name, default case will handle all
