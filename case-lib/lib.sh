@@ -1107,6 +1107,10 @@ set_alsa_settings()
 {
     # ZEPHYR platform shares same tplg, remove '_ZEPHYR' from platform name
     local PNAME="${1%_ZEPHYR}"
+
+    # Initialize alsa settings first
+    alsactl init
+
     dlogi "Run alsa setting for $PNAME"
     case $PNAME in
         APL_UP2_NOCODEC | CML_RVP_NOCODEC | JSL_RVP_NOCODEC | TGLU_RVP_NOCODEC | ADLP_RVP_NOCODEC | TGLH_RVP_NOCODEC | ADLP_RVP_NOCODEC-ipc3 | CML_RVP_NOCODEC-ipc3 | JSL_RVP_NOCODEC-ipc3)
@@ -1133,6 +1137,9 @@ set_alsa_settings()
 
 reset_sof_volume()
 {
+    # Initialize alsa settings first
+    alsactl init
+
     # set all PGA* volume to 0dB
     if [[ "$SOF_ALSA_TOOL" = "alsa" ]]; then
         amixer -Dhw:0 scontrols | sed -e "s/^.*'\(.*\)'.*/\1/" |grep -E 'PGA|gain' |
