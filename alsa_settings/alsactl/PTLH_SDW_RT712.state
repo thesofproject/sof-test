@@ -1,0 +1,72 @@
+state.sofsoundwire {
+    control.1 {
+        iface MIXER
+        name 'rt712 FU06 Playback Volume'
+        value.0 80
+        value.1 80
+        comment {
+            access 'read write'
+            type INTEGER
+            count 2
+            range '0 - 87'
+            dbmin -65.25dB
+        }
+    }
+    control.2 {
+        iface MIXER
+        name 'rt712 FU05 Playback Volume'
+        value.0 80
+        value.1 80
+        comment {
+            access 'read write'
+            type INTEGER
+            count 2
+            range '0 - 87'
+            dbmin -65.25dB
+        }
+    }
+    control.3 {
+        iface MIXER
+        name 'rt712 FU0F Capture Switch'
+        value.0 on
+        value.1 on
+        comment {
+            access 'read write'
+            type BOOLEAN
+            count 2
+        }
+    }
+    control.4 {
+        iface MIXER
+        name 'rt712 FU0F Capture Volume'
+        value.0 46
+        value.1 46
+        comment {
+            access 'read write'
+            type INTEGER
+            count 2
+            range '0 - 63'
+            dbmin -17.25dB
+        }
+    }
+    control.14 {
+        iface MIXER
+        name 'Headphone Switch'
+        value.0 on
+        comment {
+            access 'read write'
+            type BOOLEAN
+            count 1
+        }
+    }
+    control.15 {
+        iface MIXER
+        name 'Headset Mic Switch'
+        value.0 on
+        comment {
+            access 'read write'
+            type BOOLEAN
+            count 1
+        }
+    }
+}
