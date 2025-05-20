@@ -797,9 +797,92 @@ initialize_audio_params()
     fi
 }
 
+set_sof_volume()
+{
+    local device=$1
+    local control_name=$2
+    local value=$3
+
+    case "$SOF_ALSA_TOOL" in
+        'alsa')
+            dlogc "amixer -c$device' cset 'name=$control_name' '$value'"
+            amixer -c"$device" cset name="$control_name" "$value"
+       ;;
+        'tinyalsa')
+            dlogc "tinymix -D'$device' set '$control_name' '$value'"
+            tinymix -D"$device" set "$control_name" "$value"
+        ;;
+        *)
+           die "Unknown alsa tool $SOF_ALSA_TOOL"
+       ;;
+    esac
+}
+
+get_sof_controls()
+{
+    local sofcard=$1
+
+    case  "$SOF_ALSA_TOOL" in
+        'alsa')
+            # Used `scontrols` instead of `controls`.
+	    # Using `controls` causes issues on some platforms when trying to access unavailable controls during setting.
+            amixer -c"$sofcard" scontrols
+       ;;
+        'tinyalsa')
+            tinymix --card "$sofcard" controls
+       ;;
+       *)
+            die "Unknown alsa tool $SOF_ALSA_TOOL"
+        ;;
+    esac
+}
+
+kill_play_record()
+{
+    dloge "$*"
+    case "$SOF_ALSA_TOOL" in
+        'alsa')
+           pkill -9 aplay
+        ;;
+        'tinyalsa')
+           pkill -9 tinyplay
+       ;;
+        *)
+           die "Unknown alsa tool $SOF_ALSA_TOOL"
+       ;;
+    esac
+}
+
+kill_playrecord_die()
+{
+    kill_play_record "&@"
+    die "$1"
+}
+
+check_alsa_tool_process()
+{
+    case "$SOF_ALSA_TOOL" in
+       "alsa")
+           # Check if the aplay process is running
+           pidof -q aplay ||
+                die "aplay process is terminated too early"
+        ;;
+        "tinyalsa")
+            # Check if the tinyplay process is running
+            pidof -q tinyplay ||
+                die "tinyplay process is terminated too early"
+       ;;
+       *)
+            die "Unknown alsa tool $SOF_ALSA_TOOL"
+       ;;
+    esac
+}
+
 aplay_opts()
 {
     if [[ "$SOF_ALSA_TOOL" = "tinyalsa" ]]; then
+        # Duration of playing white noise while testing under tinyalsa
+        duration=50
         # shellcheck disable=SC2154
         if ! sox -n -r "$rate" -c "$channel" noise.wav synth "$duration" white; then
             printf 'Error: sox command failed.\n' >&2
@@ -1133,34 +1216,21 @@ set_alsa_settings()
 
 reset_sof_volume()
 {
+    level_db=$(if is_ipc4; then echo "100%"; else echo "0dB"; fi)
     # set all PGA* volume to 0dB
-    if [[ "$SOF_ALSA_TOOL" = "alsa" ]]; then
-        amixer -Dhw:0 scontrols | sed -e "s/^.*'\(.*\)'.*/\1/" |grep -E 'PGA|gain' |
-
-        while read -r mixer_name
-        do
-            if is_ipc4; then
-                amixer -Dhw:0 -- sset "$mixer_name" 100%
-            else
-               amixer -Dhw:0 -- sset "$mixer_name" 0dB
-            fi
-        done
-    elif [[ "$SOF_ALSA_TOOL" = "tinyalsa" ]]; then
-        tinymix -D0 controls | sed -e "s/^.*'\(.*\)'.*/\1/" |grep -E 'PGA|gain' |
-
-        while read -r mixer_name
-        do
-            if is_ipc4; then
-                tinymix -D0 set "$mixer_name" 100%
-            else
-                tinymix -D0 set "$mixer_name" 0dB
-            fi
-        done
-    else
-         echo "Unknown alsa tool $SOF_ALSA_TOOL"
-    fi
+    get_sof_controls "0" | sed -e "s/^.*'\(.*\)'.*/\1/" |grep -E 'PGA|gain' |
+    while read -r mixer_name
+    do
+        if [[ "$SOF_ALSA_TOOL" = "alsa" ]]; then
+                amixer -Dhw:0 -- sset "$mixer_name" "$level_db"
+       elif [[ "$SOF_ALSA_TOOL" = "tinyalsa" ]]; then
+                tinymix -D0 set "$mixer_name" "$level_db"
+        else
+            echo "Unknown alsa tool $SOF_ALSA_TOOL"
+            break
+        fi
+    done
 }
-
 DO_PERF_ANALYSIS=0
 
 perf_analyze()
