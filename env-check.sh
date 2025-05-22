@@ -81,11 +81,18 @@ main "$@"
 
 out_str="" check_res=0
 printf "Checking for some OS packages:\t\t"
+func_check_pkg gawk
 func_check_pkg expect
 func_check_pkg aplay
 func_check_pkg sox
 func_check_pkg tinycap
 func_check_pkg tinyplay
+# JACK Audio Connection Kit
+func_check_pkg jackd
+func_check_pkg jack_iodelay
+func_check_pkg jack_lsp
+func_check_pkg jack_connect
+#
 func_check_pkg python3
 # jq is command-line json parser
 func_check_pkg jq
