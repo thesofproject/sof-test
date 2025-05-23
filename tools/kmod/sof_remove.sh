@@ -327,6 +327,8 @@ remove_module snd_hda_ext_core
 #-------------------------------------------
 # Remaining core ALSA/ASoC parts
 #-------------------------------------------
+remove_module snd_soc_acpi_intel_sdca_quirks
+remove_module snd_soc_sdca
 remove_module snd_soc_core
 remove_module snd_hda_codec
 remove_module snd_hda_core
