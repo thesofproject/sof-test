@@ -1,0 +1,82 @@
+#!/usr/bin/bpftrace
+
+struct sof_ipc4_msg {
+	union {
+		unsigned long header_u64;
+		struct {
+			unsigned int primary;
+			unsigned int extension;
+		};
+	};
+
+	unsigned long data_size;
+	void *data_ptr;
+};
+
+BEGIN
+{
+	printf("SOF IPC4 tx message logging. Ctrl-C to end.\n\n");
+}
+
+/*
+ * Log the sent IPC4 messages, ignoring the 0x1b060000 notification
+ * from firmware (trace update)
+ * The message payload is printed as 32bit words, arranged by 4 words/line.
+ * In case the payload lenght is not aligned to 32bit words, the remaining 1-3
+ * bytes are printed as bytes (unlikely, just for safety)
+ */
+kprobe:sof_ipc4_log_header {
+	$msg = (struct sof_ipc4_msg *)arg2;
+
+	if ($msg->primary != 0x1b060000 && arg3 == 1 && $msg->data_size != 0) {
+		printf("%s : 0x%x|0x%x [data size:: %llu]\n", str(arg1),
+		       $msg->primary, $msg->extension, $msg->data_size);
+
+		if (!strcontains(str(arg1), "done")) {
+			$count = (int64) $msg->data_size;
+			$ptr = (uint32*) $msg->data_ptr;
+
+			printf("Message payload:\n");
+
+			$line = 0;
+			while ($line < 500) {
+				printf("%08x:", $line * 16);
+
+				$word = 0;
+				while ($word < 4) {
+					if ($count >= 4) {
+						printf(" %08x", *$ptr);
+						$count -= 4;
+					} else {
+						printf("%rh", buf($ptr, $count));
+						$count = 0;
+					}
+
+					if ($count == 0) {
+						break;
+					}
+
+					$ptr++;
+					$word++;
+				}
+
+				printf("\n");
+
+				if ($count == 0) {
+					break;
+				}
+
+				$line++;
+			}
+		} else {
+			printf("\n");
+		}
+	} else if ($msg->primary != 0x1b060000) {
+		printf("%s : 0x%x|0x%x\n", str(arg1), $msg->primary, $msg->extension);
+
+		if (strcontains(str(arg1), "done")) {
+			printf("\n");
+		}
+	}
+}
+
