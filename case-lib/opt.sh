@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright(c) 2021 Intel Corporation. All rights reserved.
+# Copyright(c) 2021-2025 Intel Corporation. All rights reserved.
 
 # These four arrays are used to define script options, and they should
 # be indexed by a character [a-zA-Z], which is the option short name.
@@ -24,6 +24,17 @@ add_common_options()
     OPT_HAS_ARG['h']=0
     OPT_VAL['h']=0
     OPT_DESC['h']='show help information'
+}
+
+# Convert options to a json dictionary.
+options2json()
+{
+  local items_=()
+  for idx_ in "${!OPT_NAME[@]}" ; do
+    items_+=("\"${OPT_NAME[$idx_]}\":\"${OPT_VAL[$idx_]}\"")
+  done
+  # NOTE: use [*] to join array elements into a string, so IFS is applied.
+  echo "$(IFS=',' ; printf "%s" "${items_[*]}")"
 }
 
 # validate command line options, override default option value,
