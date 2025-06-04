@@ -1066,6 +1066,17 @@ get_alsactl_state()
     echo "$ALSACTL_STATE_FILE_PATH"
 }
 
+# Use `alsactl restore` to restore the alsa settings.
+# param1: platform name
+restore_settings_via_alsactl()
+{
+    dlogi "Using experimental ALSACTL method"
+
+    ALSACTL_STATE_FILE_PATH=$(get_alsactl_state "$SCRIPT_HOME" "$1")
+
+    alsactl restore --file="$ALSACTL_STATE_FILE_PATH" --pedantic --no-init-fallback --no-ucm
+}
+
 # check-alsabat.sh need to run optimum alsa control settings
 # param1: platform name
 set_alsa_settings()
@@ -1085,20 +1096,10 @@ set_alsa_settings()
         TGLU_RVP_NOCODEC_IPC4ZPH | ADLP_RVP_NOCODEC_IPC4ZPH | ADLP_RVP_NOCODEC-ipc4 | TGLU_RVP_NOCODEC-ipc4 | MTLP_RVP_NOCODEC | MTLP_RVP_NOCODEC-multicore-2cores | MTLP_RVP_NOCODEC-multicore-3cores | LNLM_RVP_NOCODEC)
             dlogi "Use reset_sof_volume function to set amixer setting."
         ;;
-        LNLM_RVP_HDA | LNLM_SDW_AIOC | MTLP_RVP_HDA | MTLP_RVP_SDW | MTLP_SDW_AIOC | PTLH_HDA_AIOC | PTLH_SDW_RT712 | PTLP_RVP_SDW)
-            dlogi "Using experimental ALSACTL method"
-
-            ALSACTL_STATE_FILE_PATH=$(get_alsactl_state "$SCRIPT_HOME" "$PNAME")
-
-            # No existing state file, finish early
-            if [ -z "${ALSACTL_STATE_FILE_PATH}" ]; then
-                return 0
-            fi
-
-            alsactl restore --file="$ALSACTL_STATE_FILE_PATH"
-	    ;;
         *)
             # if script name is same as platform name, default case will handle all
+            if [ -f "$SCRIPT_HOME"/alsa_settings/alsactl/"$PNAME".state ]; then
+                restore_settings_via_alsactl "$PNAME"
             if [ -f "$SCRIPT_HOME"/alsa_settings/"$PNAME".sh ]; then
                 "$SCRIPT_HOME"/alsa_settings/"$PNAME".sh
             else
