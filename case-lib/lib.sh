@@ -797,6 +797,85 @@ initialize_audio_params()
     fi
 }
 
+set_sof_volume()
+{
+    local device=$1
+    local control_name=$2
+    local value=$3
+
+    case "$SOF_ALSA_TOOL" in
+        'alsa')
+            dlogc "amixer -c$device' cset 'name=$control_name' '$value'"
+            amixer -c"$device" cset name="$control_name" "$value" > /dev/null
+       ;;
+        'tinyalsa')
+            dlogc "tinymix -D'$device' set '$control_name' '$value'"
+            tinymix -D"$device" set "$control_name" "$value"  > /dev/null
+        ;;
+        *)
+           die "Unknown alsa tool $SOF_ALSA_TOOL"
+       ;;
+    esac
+}
+
+get_sof_controls()
+{
+    local sofcard=$1
+
+    case  "$SOF_ALSA_TOOL" in
+        'alsa')
+            amixer -c"$sofcard" controls
+       ;;
+        'tinyalsa')
+            tinymix --card "$sofcard" controls
+       ;;
+       *)
+            die "Unknown alsa tool $SOF_ALSA_TOOL"
+        ;;
+    esac
+}
+
+kill_play_record()
+{
+    dloge "$*"
+    case "$SOF_ALSA_TOOL" in
+        'alsa')
+           pkill -9 aplay
+        ;;
+        'tinyalsa')
+           pkill -9 tinyplay
+       ;;
+        *)
+           die "Unknown alsa tool $SOF_ALSA_TOOL"
+       ;;
+    esac
+}
+
+kill_playrecord_die()
+{
+    kill_play_record
+    die "$1"
+}
+
+check_alsa_tool_process()
+{
+    case "$SOF_ALSA_TOOL" in
+       "alsa")
+           # Check if the aplay process is running
+           pidof -q aplay ||
+                die "aplay process is terminated too early"
+        ;;
+        "tinyalsa")
+            # Check if the tinyplay process is running
+            pidof -q tinyplay ||
+                die "tinyplay process is terminated too early"
+       ;;
+       *)
+            die "Unknown alsa tool $SOF_ALSA_TOOL"
+       ;;
+    esac
+}
+
 aplay_opts()
 {
     if [[ "$SOF_ALSA_TOOL" = "tinyalsa" ]]; then
