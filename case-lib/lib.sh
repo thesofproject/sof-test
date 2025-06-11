@@ -1098,9 +1098,9 @@ set_alsa_settings()
         ;;
         *)
             # if script name is same as platform name, default case will handle all
-            if [ -f "$SCRIPT_HOME"/alsa_settings/alsactl/"$PNAME".state ]; then
+            if get_alsactl_state "$SCRIPT_HOME" "$PNAME"; then
                 restore_settings_via_alsactl "$PNAME"
-            if [ -f "$SCRIPT_HOME"/alsa_settings/"$PNAME".sh ]; then
+            elif [ -f "$SCRIPT_HOME"/alsa_settings/"$PNAME".sh ]; then
                 "$SCRIPT_HOME"/alsa_settings/"$PNAME".sh
             else
                 dlogw "alsa setting for $PNAME is not available"
