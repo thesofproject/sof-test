@@ -87,6 +87,8 @@ func_check_pkg aplay
 func_check_pkg sox
 func_check_pkg tinycap
 func_check_pkg tinyplay
+# MIC privacy / JACK Audio detection relay switch
+func_check_pkg usbrelay
 # JACK Audio Connection Kit
 func_check_pkg jackd
 func_check_pkg jack_iodelay
