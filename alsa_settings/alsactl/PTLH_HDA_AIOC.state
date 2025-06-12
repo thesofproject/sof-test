@@ -4,90 +4,38 @@ state.sofhdadsp {
 		name 'Headphone Playback Volume'
 		value.0 60
 		value.1 60
-		comment {
-			access 'read write'
-			type INTEGER
-			count 2
-			range '0 - 87'
-			dbmin -6525
-			dbmax 0
-			dbvalue.0 -2625
-			dbvalue.1 -2625
-		}
 	}
 	control.2 {
 		iface MIXER
 		name 'Headphone Playback Switch'
 		value.0 true
 		value.1 true
-		comment {
-			access 'read write'
-			type BOOLEAN
-			count 2
-		}
 	}
 	control.6 {
 		iface MIXER
 		name 'Capture Source'
 		value Mic
-		comment {
-			access 'read write'
-			type ENUMERATED
-			count 1
-			item.0 'Internal Mic'
-			item.1 'Internal Mic 1'
-			item.2 Mic
-		}
 	}
 	control.7 {
 		iface MIXER
 		name 'Capture Volume'
 		value.0 30
 		value.1 30
-		comment {
-			access 'read write'
-			type INTEGER
-			count 2
-			range '0 - 63'
-			dbmin -1725
-			dbmax 3000
-			dbvalue.0 1125
-			dbvalue.1 1125
-		}
 	}
 	control.8 {
 		iface MIXER
 		name 'Capture Switch'
 		value.0 true
 		value.1 true
-		comment {
-			access 'read write'
-			type BOOLEAN
-			count 2
-		}
 	}
 	control.12 {
 		iface MIXER
 		name 'Master Playback Volume'
 		value 87
-		comment {
-			access 'read write'
-			type INTEGER
-			count 1
-			range '0 - 87'
-			dbmin -6525
-			dbmax 0
-			dbvalue.0 -2625
-		}
 	}
 	control.13 {
 		iface MIXER
 		name 'Master Playback Switch'
 		value true
-		comment {
-			access 'read write'
-			type BOOLEAN
-			count 1
-		}
 	}
 }
