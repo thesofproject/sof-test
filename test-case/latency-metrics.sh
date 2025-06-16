@@ -235,7 +235,10 @@ report_metric()
     printf '"probes":0, "xruns":0}' >> "${RESULT_JSON}"
     [ -f "${METRICS_JSON}" ] && rm "${METRICS_JSON}"
     [ -f "${EVENTS_JSON}" ] && rm "${EVENTS_JSON}"
-    [ "${trial_mode}" -ne 0 ] || skip_test "No latency metrics collected"
+    if [ "${trial_mode}" -eq 0 ]; then
+      printf ']}' >> "${RESULT_JSON}"
+      skip_test "No latency metrics collected"
+    fi
   else
     local metrics_
     metrics_=$(cat "${METRICS_JSON}")
