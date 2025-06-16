@@ -54,6 +54,7 @@ loop_cnt=${OPT_VAL['l']}
 file=${OPT_VAL['f']}
 
 start_test
+save_alsa_state
 logger_disabled || func_lib_start_log_collect
 
 # checking if source file exists

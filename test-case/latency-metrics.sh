@@ -274,6 +274,7 @@ main()
   setup_kernel_check_point
 
   start_test
+  save_alsa_state
 
   logger_disabled || func_lib_start_log_collect
 

@@ -43,6 +43,7 @@ func_pipeline_export "$tplg" "eq:any"
 sofcard=${SOFCARD:-0}
 
 start_test
+save_alsa_state
 setup_kernel_check_point
 
 # Test equalizer

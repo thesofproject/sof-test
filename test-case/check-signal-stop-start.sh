@@ -44,6 +44,7 @@ interval=${OPT_VAL['i']}
 test_mode=${OPT_VAL['m']}
 
 start_test
+save_alsa_state
 logger_disabled || func_lib_start_log_collect
 
 case $test_mode in

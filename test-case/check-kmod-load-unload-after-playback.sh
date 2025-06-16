@@ -55,6 +55,7 @@ loop_cnt=${OPT_VAL['l']}
 pb_duration=${OPT_VAL['d']}
 
 start_test
+save_alsa_state
 
 func_pipeline_export "$tplg" "type:playback"
 

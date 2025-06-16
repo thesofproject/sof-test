@@ -56,6 +56,7 @@ tplg=${OPT_VAL['t']}
 loop_count=${OPT_VAL['l']}
 
 start_test
+save_alsa_state
 
 [[ -z $tplg ]] && die "Miss tplg file to run"
 

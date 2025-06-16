@@ -45,6 +45,7 @@ func_opt_parse_option "$@"
 setup_kernel_check_point
 
 start_test
+save_alsa_state
 
 round_cnt=${OPT_VAL['r']}
 duration=${OPT_VAL['d']}
