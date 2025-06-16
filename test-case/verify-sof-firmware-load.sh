@@ -22,6 +22,7 @@ func_opt_parse_option "$@"
 disable_kernel_check_point
 
 start_test
+save_alsa_state "${0##*/}".state
 
 cmd="journalctl_cmd"
 
