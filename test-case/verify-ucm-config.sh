@@ -28,6 +28,7 @@ func_opt_parse_option "$@"
 setup_kernel_check_point
 
 start_test
+save_alsa_state
 
 declare -A verb_array
 

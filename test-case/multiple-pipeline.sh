@@ -61,6 +61,7 @@ tplg=${OPT_VAL['t']}
 f_arg=${OPT_VAL['f']}
 
 start_test
+save_alsa_state
 logger_disabled || func_lib_start_log_collect
 
 # skip the Echo Reference pipeline
@@ -222,4 +223,3 @@ do
     # check kernel log for each iteration to catch issues
     sof-kernel-log-check.sh "$KERNEL_CHECKPOINT" || die "Caught error in kernel log"
 done
-

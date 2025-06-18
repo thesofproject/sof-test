@@ -185,6 +185,11 @@ function func_exit_handler()
         fi
     }
 
+    # Restore ALSA settings after execution if state file exists
+    if [ -f /var/tmp/"${SCRIPT_NAME##*/}".state ]; then
+        restore_alsa_state
+    fi
+
     print_test_result_exit $exit_status
 }
 

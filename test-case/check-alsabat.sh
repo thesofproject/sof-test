@@ -74,6 +74,7 @@ sigmak=${OPT_VAL['k']}
 frames=${OPT_VAL['n']}
 
 start_test
+save_alsa_state
 
 if [ "$pcm_p" = "" ]||[ "$pcm_c" = "" ];
 then

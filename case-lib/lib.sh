@@ -1187,3 +1187,27 @@ perf_analyze()
     fi
 }
 
+# Restore the machine state from a file.
+# Should be triggered at the end of
+# every test touching ALSA.
+# Couple with save_machine_state.
+restore_alsa_state()
+{
+    dlogi "restore_alsa_state called in ${SCRIPT_NAME##*/}"
+    if [ -f /var/tmp/"${SCRIPT_NAME##*/}".state ]; then
+        dlogi "restore_alsa_state found a relevant state file."
+        alsactl restore --file /var/tmp/"${SCRIPT_NAME##*/}".state --pedantic --no-ucm --no-init-fallback || dlogi "alsactl state restoration failed!"
+        rm /var/tmp/"${SCRIPT_NAME##*/}".state || dlogi "Old state file removal failed!"
+    fi
+}
+
+# Save the machine state to a file.
+# Should be used at the start of
+# every test touching ALSA.
+# Coupled with restore_machine_state
+# on an exit signal inside func_exit_handler.
+save_alsa_state()
+{
+    dlogi "save_alsa_state called in ${SCRIPT_NAME##*/}"
+    alsactl store --file /var/tmp/"${SCRIPT_NAME##*/}".state || dlogi "alsactl state storage failed!"
+}

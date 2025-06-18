@@ -56,6 +56,7 @@ rnd_max=${OPT_VAL['a']}
 rnd_range=$((rnd_max - rnd_min))
 
 start_test
+save_alsa_state
 
 [[ $rnd_range -le 0 ]] && dlogw "Error random range scope [ min:$rnd_min - max:$rnd_max ]" && exit 2
 
@@ -140,7 +141,7 @@ func_pause_resume_pipeline()
 }
 
 # to prevent infinite loop, 5 second per a repeat is plenty
-max_wait_time=$((5 * repeat_count)) 
+max_wait_time=$((5 * repeat_count))
 
 for i in $(seq 1 "$loop_count")
 do
@@ -203,4 +204,3 @@ do
     # check kernel log for each iteration to catch issues
     sof-kernel-log-check.sh "$KERNEL_CHECKPOINT" || die "Caught error in kernel log"
 done
-
