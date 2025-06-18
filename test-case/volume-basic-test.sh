@@ -39,41 +39,28 @@ maxloop=${OPT_VAL['l']}
 
 start_test
 
-func_error_exit()
-{
-    dloge "$*"
-    pkill -9 aplay
-    exit 1
-}
-
 [[ -z $tplg ]] && die "Missing tplg file needed to run"
 func_pipeline_export "$tplg" "type:playback"
 logger_disabled || func_lib_start_log_collect
 
 [[ $PIPELINE_COUNT -eq 0 ]] && die "Missing playback pipeline for aplay to run"
-channel=$(func_pipeline_parse_value 0 channel)
-rate=$(func_pipeline_parse_value 0 rate)
-fmt=$(func_pipeline_parse_value 0 fmt)
-dev=$(func_pipeline_parse_value 0 dev)
 
-dlogc "aplay -D $dev -c $channel -r $rate -f $fmt /dev/zero &"
+initialize_audio_params "0"
 # play into background, this will wake up DSP and IPC. Need to clean after the test
-aplay -D "$dev" -c "$channel" -r "$rate" -f "$fmt" /dev/zero &
-
+aplay_opts -D "$dev" -c "$channel" -r "$rate" -f "$fmts" /dev/zero &
 sleep 1
-[[ ! $(pidof aplay) ]] && die "aplay process is terminated too early"
-
+check_alsa_tool_process
 sofcard=${SOFCARD:-0}
 
 # https://mywiki.wooledge.org/BashFAQ/024 why cant I pipe data to read?
 readarray -t pgalist < <("$TOPDIR"/tools/topo_vol_kcontrols.py "$tplg")
 
 # This (1) provides some logging (2) avoids skip_test if amixer fails
-amixer -c"$sofcard" controls
+get_sof_controls "$sofcard"
 dlogi "pgalist number = ${#pgalist[@]}"
 [[ ${#pgalist[@]} -ne 0 ]] || skip_test "No PGA control is available"
 
-for i in $(seq 1 $maxloop)
+for i in $(seq 1 "$maxloop")
 do
     setup_kernel_check_point
     dlogi "===== Round($i/$maxloop) ====="
@@ -83,9 +70,8 @@ do
         dlogi "$volctrl"
 
         for vol in "${volume_array[@]}"; do
-            dlogc "amixer -c$sofcard cset name='$volctrl' $vol"
-            amixer -c"$sofcard" cset name="$volctrl" "$vol" > /dev/null ||
-                              func_error_exit "amixer return error, test failed"
+            set_sof_volume "$sofcard" "$volctrl" "$vol" ||
+                              kill_playrecord_die "mixer return error, test failed"
         done
     done
 
@@ -93,11 +79,11 @@ do
 
     dlogi "check dmesg for error"
     sof-kernel-log-check.sh "$KERNEL_CHECKPOINT" ||
-                      func_error_exit "dmesg has errors!"
+                      kill_playrecord_die "dmesg has errors!"
 done
 
-#clean up background aplay
-pkill -9 aplay || true
+#clean up background play record
+kill_play_record || true
 
 dlogi "Reset all PGA volume to 0dB"
 reset_sof_volume || die "Failed to reset some PGA volume to 0dB."
