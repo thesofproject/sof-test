@@ -41,7 +41,7 @@ wait_time=${OPT_VAL['w']}
 loop_cnt=${OPT_VAL['l']}
 
 start_test
-save_alsa_state "${0##*/}".state
+save_alsa_state
 
 # get 'both' pcm, it means pcm have same id with different type
 declare -A tmp_id_lst

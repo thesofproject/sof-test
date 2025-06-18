@@ -28,7 +28,7 @@ source "${TOPDIR}"/case-lib/lib.sh
 func_opt_parse_option "$@"
 
 start_test
-save_alsa_state "${0##*/}".state
+save_alsa_state
 
 # check sof-logger location
 type -a sof-logger ||

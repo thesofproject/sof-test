@@ -52,7 +52,7 @@ rate=${OPT_VAL['R']}
 channel=${OPT_VAL['C']}
 
 start_test
-save_alsa_state "${0##*/}".state
+save_alsa_state
 
 [[ -e $file ]] || { dlogw "$file does not exist, use /dev/zero as dummy playback source" && file=/dev/null; }
 

@@ -38,7 +38,7 @@ tplg=${OPT_VAL['t']}
 maxloop=${OPT_VAL['l']}
 
 start_test
-save_alsa_state "${0##*/}".state
+save_alsa_state
 
 func_error_exit()
 {

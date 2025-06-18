@@ -95,7 +95,7 @@ test_mode=${OPT_VAL['m']}
 file_name=${OPT_VAL['F']}
 
 start_test
-save_alsa_state "${0##*/}".state
+save_alsa_state
 
 case $test_mode in
     "playback")

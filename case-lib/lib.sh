@@ -1191,35 +1191,23 @@ perf_analyze()
 # Should be triggered at the end of
 # every test touching ALSA.
 # Couple with save_machine_state.
-# Passes through the status of the previous command
-# so as to not interefere with the func_exit_handler
-# param1: file name
 restore_alsa_state()
 {
-    status=$?
-    dlogi "restore_alsa_state called with ${1}"
-    if [ -f "$1" ]; then
-        dlogi "restore_alsa_state found relevant state file."
-        alsactl restore --file /var/tmp/"$1" --pedantic --no-ucm --no-init-fallback || dlogi "alsactl state restoration failed!"
-        rm /var/tmp/"$1" || dlogi "Old state file removal failed!"
+    dlogi "restore_alsa_state called in ${SCRIPT_NAME}"
+    if [ -f /var/tmp/"${SCRIPT_NAME}".state ]; then
+        dlogi "restore_alsa_state found a relevant state file."
+        alsactl restore --file /var/tmp/"${SCRIPT_NAME}".state --pedantic --no-ucm --no-init-fallback || dlogi "alsactl state restoration failed!"
+        rm /var/tmp/"${SCRIPT_NAME}".state || dlogi "Old state file removal failed!"
     fi
-    return "$status"
 }
 
 # Save the machine state to a file.
 # Should be used at the start of
 # every test touching ALSA.
-# Coupled with restore_machine_state on an exit signal.
-# param1: file name
+# Coupled with restore_machine_state
+# on an exit signal inside func_exit_handler.
 save_alsa_state()
 {
-    dlogi "save_alsa_state called with ${1}"
-    # Prepend the restore_alsa_state to the preexisting EXIT trap.
-    cur_exit_trap_code=$(trap -p EXIT | awk -F\' '{print $2}')
-    if [[ -z "${cur_exit_trap_code// }" ]]; then
-        trap "restore_alsa_state ${1}" EXIT
-    else
-        trap "restore_alsa_state ${1}; ${cur_exit_trap_code}" EXIT
-    fi
-    alsactl store --file /var/tmp/"$1" || dlogi "alsactl state storage failed!"
+    dlogi "save_alsa_state called in ${SCRIPT_NAME}"
+    alsactl store --file /var/tmp/"${SCRIPT_NAME}".state || dlogi "alsactl state storage failed!"
 }
