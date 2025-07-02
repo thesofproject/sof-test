@@ -38,6 +38,7 @@ tplg=${OPT_VAL['t']}
 maxloop=${OPT_VAL['l']}
 
 start_test
+save_alsa_state
 
 [[ -z $tplg ]] && die "Missing tplg file needed to run"
 func_pipeline_export "$tplg" "type:playback"

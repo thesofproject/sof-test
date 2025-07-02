@@ -185,6 +185,11 @@ function func_exit_handler()
         fi
     }
 
+    # Restore ALSA settings after execution if state file exists
+    if [ -f "${SOF_TEST_ALSA_STATE_FILENAME}" ]; then
+        restore_alsa_state
+    fi
+
     print_test_result_exit $exit_status
 }
 

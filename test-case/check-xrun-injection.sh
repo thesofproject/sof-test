@@ -43,6 +43,7 @@ count=${OPT_VAL['c']}
 interval=${OPT_VAL['i']}
 
 start_test
+save_alsa_state
 logger_disabled || func_lib_start_log_collect
 
 setup_kernel_check_point

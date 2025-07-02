@@ -27,6 +27,7 @@ func_opt_parse_option "$@"
 tplg=${OPT_VAL['t']}
 
 start_test
+save_alsa_state
 
 tplg_path=$(func_lib_get_tplg_path "$tplg") ||
        	die "No available topology for this test case"

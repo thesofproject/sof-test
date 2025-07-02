@@ -28,6 +28,7 @@ source "${TOPDIR}"/case-lib/lib.sh
 func_opt_parse_option "$@"
 
 start_test
+save_alsa_state
 
 # check sof-logger location
 type -a sof-logger ||
@@ -72,7 +73,7 @@ sof_alsa_card_found()
     #   - /proc/asound/sofsoundwire/id
     #   - /proc/asound/sofhdadsp/id
     # - https://github.com/thesofproject/sof-test/issues/1243
-    # Designed to support multiple SOF instances with SOF probes 
+    # Designed to support multiple SOF instances with SOF probes
     for i in /proc/asound/sof*/id; do
         if test -e "$i"; then return 0; fi
     done
