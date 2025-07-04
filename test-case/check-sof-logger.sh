@@ -33,6 +33,7 @@ start_test
 type -a sof-logger ||
     die "sof-logger Not Installed!"
 
+setup_alsa
 
 # Checksum a list of files, one filename per stdin line.
 # Whitespace-safe and shellcheck-approved.
@@ -72,7 +73,7 @@ sof_alsa_card_found()
     #   - /proc/asound/sofsoundwire/id
     #   - /proc/asound/sofhdadsp/id
     # - https://github.com/thesofproject/sof-test/issues/1243
-    # Designed to support multiple SOF instances with SOF probes 
+    # Designed to support multiple SOF instances with SOF probes
     for i in /proc/asound/sof*/id; do
         if test -e "$i"; then return 0; fi
     done

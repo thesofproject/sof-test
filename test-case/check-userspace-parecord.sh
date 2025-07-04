@@ -53,6 +53,8 @@ channel=${OPT_VAL['C']}
 
 start_test
 
+setup_alsa
+
 [[ -e $file ]] || { dlogw "$file does not exist, use /dev/zero as dummy playback source" && file=/dev/null; }
 
 # TODO: check the parameter is valid or not

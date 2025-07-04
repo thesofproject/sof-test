@@ -39,6 +39,8 @@ maxloop=${OPT_VAL['l']}
 
 start_test
 
+setup_alsa
+
 [[ -z $tplg ]] && die "Missing tplg file needed to run"
 func_pipeline_export "$tplg" "type:playback"
 logger_disabled || func_lib_start_log_collect

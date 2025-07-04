@@ -1231,6 +1231,24 @@ restore_settings_via_alsactl()
     alsactl restore --file="$ALSACTL_STATE_FILE_PATH" --pedantic --no-init-fallback --no-ucm
 }
 
+# One-stop shop to initialise alsa-related stuff for tests using it.
+setup_alsa()
+{
+    check_locale_for_alsabat
+
+    # reset sof volume to 0dB
+    reset_sof_volume
+
+    # If MODEL is defined, set proper gain for the platform
+    if [ -z "$MODEL" ]; then
+        # treat as warning only
+        dlogw "NO MODEL is defined. Please define MODEL to run MODEL-based settings configuration"
+    else
+        #dlogi "apply alsa settings for alsa_settings/MODEL.sh"
+        set_alsa_settings "$MODEL"
+    fi
+}
+
 # check-alsabat.sh need to run optimum alsa control settings
 # param1: platform name
 set_alsa_settings()

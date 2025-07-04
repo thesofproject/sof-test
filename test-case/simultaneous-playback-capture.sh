@@ -42,6 +42,8 @@ loop_cnt=${OPT_VAL['l']}
 
 start_test
 
+setup_alsa
+
 # get 'both' pcm, it means pcm have same id with different type
 declare -A tmp_id_lst
 id_lst_str=""

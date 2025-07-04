@@ -44,6 +44,7 @@ sofcard=${SOFCARD:-0}
 
 start_test
 setup_kernel_check_point
+setup_alsa
 
 # Test equalizer
 func_test_eq()
