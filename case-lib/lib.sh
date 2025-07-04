@@ -1236,6 +1236,7 @@ restore_settings_via_alsactl()
 set_alsa_settings()
 {
     # This will bring the machine ALSA state to a common known point - a good baseline
+    dlogi "Initialising ALSA configuration for $PNAME with alsactl"
     alsactl init
 
     # ZEPHYR platform shares same tplg, remove '_ZEPHYR' from platform name
