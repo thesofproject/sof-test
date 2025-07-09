@@ -774,9 +774,24 @@ parse_audio_device() {
 # There is passes PCM sample format while using ALSA tool (arecord)
 # While using TinyALSA (tinycap -b) we need to convert PCM sample fomrat to bits.
 extract_format_number() {
-    # (e.g., extracting '16' from 'S16_LE')
-    printf '%s' "$1" | grep '[0-9]\+' -o
-}
+    local format_string="$1"
+    local extracted_num
+
+    if [[ "$format_string" =~ ^[SU][0-9]+(_.*)?$ ]]; then
+        extracted_num=$(printf '%s' "${format_string}" | sed -E 's/^[SU]([0-9]+).*$/\1/')
+        printf '%s' "$extracted_num"
+    elif [[ "$format_string" =~ ^FLOAT[0-9]*$ ]]; then
+        extracted_num=$(printf '%s' "${format_string}" | sed -E 's/^FLOAT([0-9]*).*$/\1/')
+        # If extracted_num is empty (i.e., just "FLOAT"), default to 32
+        if [[ -z "$extracted_num" ]]; then
+            printf '32'
+        else
+            printf '%s' "$extracted_num"
+        fi
+    else
+        die "Error: Unknown format: %s\n"
+    fi
+}  
 
 # Initialize the parameters using for audio testing.
 # shellcheck disable=SC2034
