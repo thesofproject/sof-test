@@ -1255,7 +1255,16 @@ set_alsa_settings()
 {
     # This will bring the machine ALSA state to a common known point - a good baseline
     dlogi "Initialising ALSA configuration for $PNAME with alsactl"
+
+    # If alsactl init does not recognise the device, it will return error code 99 and bring down the whole test.
+    # We do not care for unrecognised devices and will ignore it instead.
+    E_FLAG=0
+    [[ "$-" == *e* ]] || E_FLAG=$?
+    set +e
     alsactl init
+    if [ "$E_FLAG" -eq 0 ] then
+        set -e
+    fi
 
     # ZEPHYR platform shares same tplg, remove '_ZEPHYR' from platform name
     local PNAME="${1%_ZEPHYR}"
