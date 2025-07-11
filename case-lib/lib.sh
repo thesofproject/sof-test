@@ -1262,7 +1262,7 @@ set_alsa_settings()
     [[ "$-" == *e* ]] || E_FLAG=$?
     set +e
     alsactl init
-    if [ "$E_FLAG" -eq 0 ] then
+    if [ "$E_FLAG" -eq 0 ]; then
         set -e
     fi
 
