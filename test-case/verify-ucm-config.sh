@@ -29,6 +29,8 @@ setup_kernel_check_point
 
 start_test
 
+setup_alsa
+
 declare -A verb_array
 
 # get the cards all verbs. The verbs are the items of SectionUseCase in

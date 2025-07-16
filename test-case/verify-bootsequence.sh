@@ -34,6 +34,8 @@ setup_kernel_check_point
 
 start_test
 
+setup_alsa
+
 main()
 {
     local tmp

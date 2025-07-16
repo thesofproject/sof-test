@@ -23,6 +23,8 @@ disable_kernel_check_point
 
 start_test
 
+setup_alsa
+
 cmd="journalctl_cmd"
 
 dlogi "Checking SOF Firmware load info in kernel log"

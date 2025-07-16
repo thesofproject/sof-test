@@ -65,6 +65,8 @@ tplg=${OPT_VAL['t']}
 start_test
 logger_disabled || func_lib_start_log_collect
 
+setup_alsa
+
 # overwrite the subscript: test-case LOG_ROOT environment
 # so when load the test-case in current script
 # the test-case will write the log to the store folder LOG_ROOT

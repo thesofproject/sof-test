@@ -50,7 +50,7 @@ if [ "$PIPELINE_COUNT" != "2" ]; then
     die "Only detect $PIPELINE_COUNT pipeline(s) from topology, but two are needed"
 fi
 
-check_locale_for_alsabat
+setup_alsa
 
 for idx in $(seq 0 $((PIPELINE_COUNT - 1)))
 do

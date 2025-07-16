@@ -46,6 +46,8 @@ setup_kernel_check_point
 
 start_test
 
+setup_alsa
+
 round_cnt=${OPT_VAL['r']}
 duration=${OPT_VAL['d']}
 file=${OPT_VAL['f']}

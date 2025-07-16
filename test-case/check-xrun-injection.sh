@@ -45,6 +45,8 @@ interval=${OPT_VAL['i']}
 start_test
 logger_disabled || func_lib_start_log_collect
 
+setup_alsa
+
 setup_kernel_check_point
 func_lib_check_sudo
 

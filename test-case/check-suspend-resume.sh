@@ -53,6 +53,8 @@ func_lib_check_sudo
 
 start_test
 
+setup_alsa
+
 type=${OPT_VAL['T']}
 # switch type
 if [ "$type" ]; then

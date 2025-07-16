@@ -28,6 +28,8 @@ tplg=${OPT_VAL['t']}
 
 start_test
 
+setup_alsa
+
 tplg_path=$(func_lib_get_tplg_path "$tplg") ||
        	die "No available topology for this test case"
 

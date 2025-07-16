@@ -24,6 +24,8 @@ setup_kernel_check_point
 
 start_test
 
+setup_alsa
+
 # check pulseaudio runs properly or not
 func_lib_check_pa || die "Please check whether pulseaudio runs correctly or not"
 

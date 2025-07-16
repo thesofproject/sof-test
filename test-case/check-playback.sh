@@ -68,6 +68,9 @@ else
 fi
 
 setup_kernel_check_point
+
+setup_alsa
+
 func_lib_check_sudo
 func_pipeline_export "$tplg" "type:playback & ${OPT_VAL['S']}"
 

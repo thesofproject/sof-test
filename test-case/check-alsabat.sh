@@ -81,19 +81,7 @@ then
 	exit 2
 fi
 
-check_locale_for_alsabat
-
-# reset sof volume to 0dB
-reset_sof_volume
-
-# If MODEL is defined, set proper gain for the platform
-if [ -z "$MODEL" ]; then
-    # treat as warning only
-    dlogw "NO MODEL is defined. Please define MODEL to run alsa_settings/MODEL.sh"
-else
-    #dlogi "apply alsa settings for alsa_settings/MODEL.sh"
-    set_alsa_settings "$MODEL"
-fi
+setup_alsa
 
 logger_disabled || func_lib_start_log_collect
 
