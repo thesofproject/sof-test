@@ -301,6 +301,7 @@ remove_module snd_soc_max98390
 
 remove_module snd_soc_hdac_hda
 remove_module snd_soc_hdac_hdmi
+remove_module snd_hda_codec_intelhdmi
 remove_module snd_hda_codec_hdmi
 remove_module snd_soc_dmic
 
