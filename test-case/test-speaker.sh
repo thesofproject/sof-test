@@ -32,6 +32,7 @@ func_opt_parse_option "$@"
 tplg=${OPT_VAL['t']}
 
 start_test
+save_alsa_state
 logger_disabled || func_lib_start_log_collect
 
 func_pipeline_export "$tplg" "type:playback"

@@ -8,6 +8,8 @@ SCRIPT_HOME=$(cd "$SCRIPT_HOME/.." && pwd)
 SCRIPT_NAME="$0"  # get test-case script load name
 # shellcheck disable=SC2034 # external script can use it
 SCRIPT_PRAM="$*"  # get test-case parameter
+# shellcheck disable=SC2034 # external script can use it
+SOF_TEST_ALSA_STATE_FILENAME=/tmp/"${SCRIPT_NAME##*/}".$$.state
 
 # Source from the relative path of current folder
 # shellcheck source=case-lib/config.sh
@@ -1272,3 +1274,27 @@ perf_analyze()
     fi
 }
 
+# Restore the machine state from a file.
+# Should be triggered at the end of
+# every test touching ALSA.
+# Couple with save_machine_state.
+restore_alsa_state()
+{
+    dlogi "restore_alsa_state called in ${SOF_TEST_ALSA_STATE_FILENAME}"
+    if [ -f "${SOF_TEST_ALSA_STATE_FILENAME}" ]; then
+        dlogi "restore_alsa_state found a relevant state file."
+        alsactl restore --file "${SOF_TEST_ALSA_STATE_FILENAME}" --pedantic --no-ucm --no-init-fallback || dlogi "alsactl state restoration failed!"
+        rm "${SOF_TEST_ALSA_STATE_FILENAME}" || dlogi "Old state file removal failed!"
+    fi
+}
+
+# Save the machine state to a file.
+# Should be used at the start of
+# every test touching ALSA.
+# Coupled with restore_machine_state
+# on an exit signal inside func_exit_handler.
+save_alsa_state()
+{
+    dlogi "save_alsa_state called in ${SOF_TEST_ALSA_STATE_FILENAME}"
+    alsactl store --file "${SOF_TEST_ALSA_STATE_FILENAME}" || dlogi "alsactl state storage failed!"
+}

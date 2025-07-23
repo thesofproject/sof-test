@@ -63,6 +63,7 @@ func_lib_check_sudo
 tplg=${OPT_VAL['t']}
 
 start_test
+save_alsa_state
 logger_disabled || func_lib_start_log_collect
 
 # overwrite the subscript: test-case LOG_ROOT environment
@@ -139,4 +140,3 @@ do
     dlogi "Killing $cmd_args"
     kill -9 $process_id || true
 done
-

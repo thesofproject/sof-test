@@ -23,6 +23,7 @@ func_opt_parse_option "$@"
 setup_kernel_check_point
 
 start_test
+save_alsa_state
 
 # check pulseaudio runs properly or not
 func_lib_check_pa || die "Please check whether pulseaudio runs correctly or not"
