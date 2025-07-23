@@ -102,13 +102,13 @@ function __upload_wav_file
 
 # check the PCMs before alsabat test
 dlogi "check the PCMs before alsabat test"
-aplay   -Dplug$pcm_p -d 1 /dev/zero -q || die "Failed to play on PCM: $pcm_p"
-arecord -Dplug$pcm_c -d 1 /dev/null -q || die "Failed to capture on PCM: $pcm_c"
+aplay   "-Dplug${pcm_p}" -d 1 /dev/zero -q || die "Failed to play on PCM: ${pcm_p}"
+arecord "-Dplug${pcm_c}" -d 1 /dev/null -q || die "Failed to capture on PCM: ${pcm_c}"
 
 # alsabat test
 # BT offload PCMs also support mono playback.
 dlogc "alsabat -P$pcm_p --standalone -n $frames -r $rate -c $channel_p -f $format -F $frequency -k $sigmak"
-alsabat -P$pcm_p --standalone -n $frames -c $channel_p -r $rate -f $format -F $frequency -k $sigmak & playPID=$!
+alsabat "-P${pcm_p}" --standalone -n "${frames}" -c "${channel_p}" -r "${rate}" -f "${format}" -F "${frequency}" -k "${sigmak}" & playPID=$!
 
 # playback may have low latency, add one second delay to aviod recording zero at beginning.
 sleep 1
@@ -122,7 +122,7 @@ amixer -c "${first_card_name}" contents > "$LOG_ROOT"/amixer_settings.txt
 # We use different USB sound cards in CI, part of them only support 1 channel for capture,
 # so make the channel as an option and config it in alsabat-playback.csv
 dlogc "alsabat -C$pcm_c -c $channel_c -r $rate -f $format -F $frequency -k $sigmak"
-alsabat -C$pcm_c -c $channel_c -r $rate -f $format -F $frequency -k $sigmak || {
+alsabat "-C${pcm_c}" -c "${channel_c}" -r "${rate}" -f "${format}" -F "${frequency}" -k "${sigmak}" || {
         # upload failed wav file
         __upload_wav_file
         exit 1
