@@ -1247,8 +1247,48 @@ reset_sof_volume()
     done
 }
 
+# Initialize and restore ALSA mixer state to the last saved on the DUT,
+# reset volume, and apply the HW MODEL-specific settings, if defined.
+#
+# This initialization procedure assumes that the DUT's ALSA init files,
+# UCM2, and default state (/var/lib/alsa/asound.state) are either kept
+# unchanged as a 'golden' config, or _mostly_ consistent with the MODEL.
+# The latter case is when the alsa-restore service is active on the DUT and
+# the state file keeps the last active mixer settings persistent to restore
+# them after the DUT's reboot.
+# The init files and the persistent state file should diverge not more
+# than set_alsa_settings() aligns and should be reset to a 'golden' config
+# during the DUT's deployment step of the test plan execution,
+# which is external to the test case scope of operations.
+#
 set_alsa()
 {
+  local alsa_log="${LOG_ROOT}/alsa_setup.log"
+  local asound_state="${LOG_ROOT}/asound_state"
+  local rc=0
+
+  # Read the ALSA restore service status
+  systemctl --no-pager status alsa-restore.service > "${alsa_log}" 2>&1 || rc=$?
+  [[ "${rc}" -ne 0 ]] && dlogw "alsa-restore check error=${rc}" && rc=0
+  [ -f /lib/systemd/system/alsa-restore.service ] && cat /lib/systemd/system/alsa-restore.service >> "${alsa_log}"
+
+  alsactl store -f "${asound_state}_old.txt" 2>&1 || rc=$?
+  [[ "${rc}" -ne 0 ]] && dlogw "alsactl store error=${rc}" && rc=0
+
+  dlogi "Try to initialize all devices to their default ALSA state (alsactl init)."
+  printf '%s\n' '-vv------- ALSA init -------vv-' >> "${alsa_log}"
+  alsactl -d init >> "${alsa_log}" 2>&1 || rc=$?
+  [[ "${rc}" -ne 0 ]] && dlogw "alsactl init error=${rc}" && rc=0
+  printf '%s\n' '-^^------- ALSA init -------^^-' >> "${alsa_log}"
+
+  dlogi "Restore ALSA defaults from /var/lib/alsa/asound.state"
+  printf '%s\n' '-vv------- Restore ALSA defaults -------vv-' >> "${alsa_log}"
+  # We don't need in sudo to write our log file, but to call `alsactl`
+  # shellcheck disable=SC2024
+  sudo alsactl -d restore >> "${alsa_log}" 2>&1 || rc=$?
+  [[ "${rc}" -ne 0 ]] && dlogw "alsactl restore error=${rc}" && rc=0
+  printf '%s\n' '-^^------- Restore ALSA defaults -------^^-' >> "${alsa_log}"
+
   reset_sof_volume
 
   # If MODEL is defined, set proper gain for the platform
@@ -1257,6 +1297,9 @@ set_alsa()
   else
     set_alsa_settings "$MODEL"
   fi
+
+  alsactl store -f "${asound_state}.txt" 2>&1 || rc=$?
+  [[ "${rc}" -ne 0 ]] && dlogw "alsactl store error=${rc}"
 }
 
 DO_PERF_ANALYSIS=0
