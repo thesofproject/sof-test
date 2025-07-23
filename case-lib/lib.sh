@@ -1246,6 +1246,19 @@ reset_sof_volume()
         fi
     done
 }
+
+set_alsa()
+{
+  reset_sof_volume
+
+  # If MODEL is defined, set proper gain for the platform
+  if [ -z "$MODEL" ]; then
+    dlogw "NO MODEL is defined. Please define MODEL to run alsa_settings/\${MODEL}.sh"
+  else
+    set_alsa_settings "$MODEL"
+  fi
+}
+
 DO_PERF_ANALYSIS=0
 
 perf_analyze()

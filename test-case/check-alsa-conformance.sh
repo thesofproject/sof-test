@@ -221,18 +221,6 @@ select_PCMs()
   done
   dlogi "Capture devices: ${CAPTURE_DEVICES[*]}"
 }
-  
-set_alsa()
-{
-  reset_sof_volume
-
-  # If MODEL is defined, set proper gain for the platform
-  if [ -z "$MODEL" ]; then
-    dlogw "No MODEL is defined. Please define MODEL to run alsa_settings/\${MODEL}.sh"
-  else
-    set_alsa_settings "$MODEL"
-  fi
-}
 
 alsa_conformance_device_info()
 {
