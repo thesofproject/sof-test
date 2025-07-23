@@ -142,18 +142,6 @@ check_latency_options()
   fi
 }
 
-set_alsa()
-{
-  reset_sof_volume
-
-  # If MODEL is defined, set proper gain for the platform
-  if [ -z "$MODEL" ]; then
-    dlogw "NO MODEL is defined. Please define MODEL to run alsa_settings/MODEL.sh"
-  else
-    set_alsa_settings "$MODEL"
-  fi
-}
-
 # set/update commands in case the test iterates or sweep over a range
 compose_commands()
 {
