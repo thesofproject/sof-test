@@ -828,7 +828,7 @@ set_sof_volume()
             tinymix -D"$device" set "$control_name" "$value"
         ;;
         *)
-           die "Unknown alsa tool $SOF_ALSA_TOOL"
+           die "Unknown ALSA tool ${SOF_ALSA_TOOL}"
        ;;
     esac
 }
@@ -847,7 +847,7 @@ get_sof_controls()
             tinymix --card "$sofcard" controls
        ;;
        *)
-            die "Unknown alsa tool $SOF_ALSA_TOOL"
+            die "Unknown ALSA tool ${SOF_ALSA_TOOL}"
         ;;
     esac
 }
@@ -863,7 +863,7 @@ kill_play_record()
            pkill -9 tinyplay
        ;;
         *)
-           die "Unknown alsa tool $SOF_ALSA_TOOL"
+           die "Unknown ALSA tool ${SOF_ALSA_TOOL}"
        ;;
     esac
 }
@@ -888,7 +888,7 @@ check_alsa_tool_process()
                 die "tinyplay process is terminated too early"
        ;;
        *)
-            die "Unknown alsa tool $SOF_ALSA_TOOL"
+            die "Unknown ALSA tool ${SOF_ALSA_TOOL}"
        ;;
     esac
 }
@@ -911,7 +911,7 @@ aplay_opts()
         # shellcheck disable=SC2086
         aplay $SOF_ALSA_OPTS $SOF_APLAY_OPTS "$@"
     else
-        die "Unknown ALSA tool: $SOF_ALSA_TOOL"
+        die "Unknown ALSA tool: ${SOF_ALSA_TOOL}"
     fi
 }
 
@@ -930,7 +930,7 @@ arecord_opts()
         # shellcheck disable=SC2086
         arecord $SOF_ALSA_OPTS $SOF_ARECORD_OPTS "$@"
     else
-        die "Unknown ALSA tool: $SOF_ALSA_TOOL"
+        die "Unknown ALSA tool: ${SOF_ALSA_TOOL}"
     fi
 }
 
@@ -1236,13 +1236,13 @@ reset_sof_volume()
     get_sof_controls "0" | sed -e "s/^.*'\(.*\)'.*/\1/" |grep -E 'PGA|gain' |
     while read -r mixer_name
     do
+        dlogi "Reset volume to ${level_db} on ${mixer_name}"
         if [[ "$SOF_ALSA_TOOL" = "alsa" ]]; then
                 amixer -Dhw:0 -- sset "$mixer_name" "$level_db"
-       elif [[ "$SOF_ALSA_TOOL" = "tinyalsa" ]]; then
+        elif [[ "$SOF_ALSA_TOOL" = "tinyalsa" ]]; then
                 tinymix -D0 set "$mixer_name" "$level_db"
         else
-            echo "Unknown alsa tool $SOF_ALSA_TOOL"
-            break
+            die "Unknown ALSA tool ${SOF_ALSA_TOOL}"
         fi
     done
 }
