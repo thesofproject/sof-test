@@ -107,6 +107,29 @@ proc cr_to_lf {arg} {
 #
 #    arecord $cmd_opts -D $dev -r $rate -c $channel -f $fmt -vv -i $file_name ...
 log 0 "$argv0 spawning: $argv"
+
+set device [lindex $argv 2]
+set command [lindex $argv 0]
+
+# Determine direction based on the command
+if {$command eq "aplay"} {
+    set direction "p"  ; # Playback
+} else {
+    set direction "c"  ; # Capture
+}
+
+# parse the card number and device
+if {![regexp {hw:(\d+),(\d+)} $device match card_number device_id]} {
+    log 0 "ERROR: Failed to parse hw string: $hw_string"
+}
+
+set pcm_status_file "/proc/asound/card${card_number}/pcm${device_id}${direction}/sub0/status"
+
+if {![file exists $pcm_status_file]} {
+    log 0 "ERROR: PCM status file not found: $pcm_status_file"
+    exit 1
+}
+
 spawn  {*}$argv
 set start_time_ms [clock milliseconds]; # re-adjust
 set last_space_time 0 ; # could not resist that name
@@ -218,6 +241,26 @@ expect {
                 log 1 "($pauses_counter/$repeat_count) Found volume ### | __%, active for $_record_for ms"
 
                 set _delay [substract_time_since_last_space $_record_for]
+
+                # wait 50ms for the PCM status to be RUNNING before pausing
+                # this is to make sure that in the case of an xrun the application
+                # successfully recovers and restarts the stream.
+                set max_attempts 50
+                set attempt 0
+                while {$attempt < $max_attempts} {
+                    set pcm_status [exec cat $pcm_status_file]
+                    if {[regexp {state:\s*RUNNING} $pcm_status]} {
+                        break
+                    }
+                    incr attempt
+                    after 1
+                }
+                if {$attempt >= $max_attempts} {
+                    log 0 "ERROR: timeout waiting for PCM to be in RUNNING state before pause"
+                    log 0 "Current state: $pcm_status"
+                    exit 1
+                }
+
                 after $_delay "press_space; set state pause_requested"
                 log 3 "last_space_time=$last_space_time; timer in $_delay"
 
