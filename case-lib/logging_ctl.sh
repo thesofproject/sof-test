@@ -44,8 +44,9 @@ _func_log_cmd()
 
     for key in "${!LOG_LIST[@]}";
     do
-        # dymaic alias the command with different content
-        cmd="alias $key='echo \$(date -u \"+%F %T %Z\")$ext_message ${LOG_LIST[$key]}'"
+        # shellcheck disable=SC2016
+        local date_cmd='$(date -u "+%F %T %Z")'
+        local cmd="$key() { printf '%s%s %s\n' \"$date_cmd\" '$ext_message ${LOG_LIST[$key]}' \"\$*\" ; }"
         eval "$cmd"
     done
 }
