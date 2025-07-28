@@ -1,6 +1,7 @@
 #!/bin/bash
 
 set -e
+set -o pipefail
 
 ##
 ## Case Name: check-audio-equalizer.sh
@@ -51,6 +52,10 @@ func_test_eq()
     local id=$1
     local conf=$2
     local double_quoted_id=\""$id"\"
+    local default_conf="/tmp/default_${id}.txt"
+    local ret=0
+
+    sof-ctl -Dhw:"$sofcard" -c name="$double_quoted_id" | tail -n1 > "$default_conf"
 
     dlogc "sof-ctl -Dhw:$sofcard -c name=$double_quoted_id -s $conf"
     sof-ctl -Dhw:"$sofcard" -c name="$double_quoted_id" -s "$conf" || {
@@ -59,10 +64,13 @@ func_test_eq()
     }
 
     dlogc "$cmd -D $dev -f $fmt -c $channel -r $rate -d $duration $dummy_file"
-    $cmd -D "$dev" -f "$fmt" -c "$channel" -r "$rate" -d "$duration" "$dummy_file" || {
+    $cmd -D "$dev" -f "$fmt" -c "$channel" -r "$rate" -d "$duration" "$dummy_file" || ret=$?
+
+    sof-ctl -Dhw:"$sofcard" -c name="$double_quoted_id" -s "$default_conf"
+    if [ $ret -ne 0 ]; then
         dloge "Equalizer test failure with $conf"
         return 1
-    }
+    fi
     sleep 1
 }
 
