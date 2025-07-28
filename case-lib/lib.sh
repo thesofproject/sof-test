@@ -571,6 +571,25 @@ func_lib_check_sudo()
     }
 }
 
+func_lib_enable_pipewire()
+{
+    #Unmask doesn't work
+    sudo rm /etc/systemd/user/pipewire-pulse.socket
+    sudo rm /etc/xdg/systemd/user/pipewire-pulse.socket
+    
+    systemctl --user daemon-reexec
+    systemctl --user daemon-reload
+    # systemctl --user unmask pipewire-pulse.socket
+    systemctl --user enable --now pipewire-pulse.socket
+    systemctl --user enable --now pipewire-pulse.service
+}
+
+func_lib_disable_pipewire()
+{
+    systemctl --user stop pipewire-pulse.service pipewire-pulse.socket
+    systemctl --user mask pipewire-pulse.service pipewire-pulse.socket
+}
+
 systemctl_show_pulseaudio()
 {
     printf '\n'
