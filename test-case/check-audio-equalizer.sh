@@ -1,6 +1,7 @@
 #!/bin/bash
 
 set -e
+set -o pipefail
 
 ##
 ## Case Name: check-audio-equalizer.sh
@@ -51,6 +52,11 @@ func_test_eq()
     local id=$1
     local conf=$2
     local double_quoted_id=\""$id"\"
+    local eq_last_conf="/tmp/eq_last_conf_${sofcard}_${id}.txt"
+    local ret=0
+
+    rm -f "$eq_last_conf"
+    sof-ctl -Dhw:"$sofcard" -c name="$double_quoted_id" | tail -n1 > "$eq_last_conf" || die "Failed to get equalizer config"
 
     dlogc "sof-ctl -Dhw:$sofcard -c name=$double_quoted_id -s $conf"
     sof-ctl -Dhw:"$sofcard" -c name="$double_quoted_id" -s "$conf" || {
@@ -59,10 +65,15 @@ func_test_eq()
     }
 
     dlogc "$cmd -D $dev -f $fmt -c $channel -r $rate -d $duration $dummy_file"
-    $cmd -D "$dev" -f "$fmt" -c "$channel" -r "$rate" -d "$duration" "$dummy_file" || {
-        dloge "Equalizer test failure with $conf"
-        return 1
-    }
+    $cmd -D "$dev" -f "$fmt" -c "$channel" -r "$rate" -d "$duration" "$dummy_file" || ret=$?
+
+    [ -r "$eq_last_conf" ] ||
+        die "Failed to read equalizer config from $eq_last_conf"
+
+    sof-ctl -Dhw:"$sofcard" -c name="$double_quoted_id" -s "$eq_last_conf" || die "Failed to restore equalizer config from $eq_last_conf"
+
+    [ "$ret" -eq 0 ] || return 1
+
     sleep 1
 }
 
