@@ -579,9 +579,7 @@ func_lib_enable_pipewire()
     systemctl --user unmask pipewire{,-pulse}.{socket,service}
     systemctl --user --now enable pipewire{,-pulse}.{socket,service}
 
-    sleep 1s # wait for pipewire
-
-    if [ "$(ps -C /usr/bin/pipewire --no-header)" ]; then
+    if [ "$(ps -C pipewire --no-header)" ]; then
         dlogi "Pipewire enabled"
     else
         die "Failed to enable pipewire"
@@ -594,7 +592,7 @@ func_lib_disable_pipewire()
     systemctl --user --now disable pipewire{,-pulse}.{socket,service}
     systemctl --user mask pipewire{,-pulse}.{socket,service}
 
-    if [ ! "$(ps -C /usr/bin/pipewire --no-header)" ]; then
+    if [ ! "$(ps -C pipewire --no-header)" ]; then
         dlogi "Pipewire disabled"
     else
         die "Failed to disable pipewire"
