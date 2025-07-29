@@ -573,28 +573,18 @@ func_lib_check_sudo()
 
 func_lib_enable_pipewire()
 {
-    # local socket_list; socket_list=("~/.config/systemd/user/pipewire-pulse.socket" "/etc/systemd/user/pipewire-pulse.socket" "/etc/xdg/systemd/user/pipewire-pulse.socket")
-
-    # local socket
-    # for socket in ${socket_list[@]}; do
-    #     local check_mask_output; check_mask_output=$(ls -l $socket) || true
-    #     if echo "$check_mask_output" | grep -q "/dev/null"; then
-    #         rm $socket
-    #     fi
-    # done
-    
+    dlogi "Enabling Pipewire"
     systemctl --user daemon-reexec
     systemctl --user daemon-reload
-    systemctl --user unmask pipewire-pulse.socket
-    systemctl --user unmask pipewire-pulse.service
-    systemctl --user enable --now pipewire-pulse.socket
-    systemctl --user enable --now pipewire-pulse.service
+    systemctl --user unmask pipewire{,-pulse}.{socket,service}
+    systemctl --user --now enable pipewire{,-pulse}.{socket,service}
 }
 
 func_lib_disable_pipewire()
 {
-    systemctl --user stop pipewire-pulse.service pipewire-pulse.socket
-    systemctl --user mask pipewire-pulse.service pipewire-pulse.socket
+    dlogi "Disabling Pipewire"
+    systemctl --user --now disable pipewire{,-pulse}.{socket,service}
+    systemctl --user mask pipewire{,-pulse}.{socket,service}
 }
 
 systemctl_show_pulseaudio()
