@@ -573,18 +573,30 @@ func_lib_check_sudo()
 
 func_lib_enable_pipewire()
 {
-    dlogi "Enabling Pipewire"
+    dlogi "Enabling Pipewire..."
     systemctl --user daemon-reexec
     systemctl --user daemon-reload
     systemctl --user unmask pipewire{,-pulse}.{socket,service}
     systemctl --user --now enable pipewire{,-pulse}.{socket,service}
+
+    if [ "$(ps -C pipewire --no-header)" ]; then
+        dlogi "Pipewire enabled"
+    else
+        die "Failed to enable pipewire"
+    fi
 }
 
 func_lib_disable_pipewire()
 {
-    dlogi "Disabling Pipewire"
+    dlogi "Disabling Pipewire..."
     systemctl --user --now disable pipewire{,-pulse}.{socket,service}
     systemctl --user mask pipewire{,-pulse}.{socket,service}
+
+    if [ ! "$(ps -C pipewire --no-header)" ]; then
+        dlogi "Pipewire disabled"
+    else
+        die "Failed to disable pipewire"
+    fi
 }
 
 systemctl_show_pulseaudio()
