@@ -579,6 +579,8 @@ func_lib_enable_pipewire()
     systemctl --user unmask pipewire{,-pulse}.{socket,service}
     systemctl --user --now enable pipewire{,-pulse}.{socket,service}
 
+    sleep 1s # wait for pipewire
+
     if [ "$(ps -C /usr/bin/pipewire --no-header)" ]; then
         dlogi "Pipewire enabled"
     else
