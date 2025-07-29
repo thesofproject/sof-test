@@ -577,7 +577,7 @@ func_lib_enable_pipewire()
 
     local socket
     for socket in $socket_list; do
-        local check_mask_output; check_mask_output=$(ls -l $socket)
+        local check_mask_output; check_mask_output=$(ls -l $socket) || true
         if echo "$check_mask_output" | grep -q "/dev/null"; then
             rm $socket
         fi
