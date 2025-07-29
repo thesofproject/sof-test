@@ -573,19 +573,20 @@ func_lib_check_sudo()
 
 func_lib_enable_pipewire()
 {
-    local socket_list; socket_list=("~/.config/systemd/user/pipewire-pulse.socket" "/etc/systemd/user/pipewire-pulse.socket" "/etc/xdg/systemd/user/pipewire-pulse.socket")
+    # local socket_list; socket_list=("~/.config/systemd/user/pipewire-pulse.socket" "/etc/systemd/user/pipewire-pulse.socket" "/etc/xdg/systemd/user/pipewire-pulse.socket")
 
-    local socket
-    for socket in ${socket_list[@]}; do
-        local check_mask_output; check_mask_output=$(ls -l $socket) || true
-        if echo "$check_mask_output" | grep -q "/dev/null"; then
-            rm $socket
-        fi
-    done
+    # local socket
+    # for socket in ${socket_list[@]}; do
+    #     local check_mask_output; check_mask_output=$(ls -l $socket) || true
+    #     if echo "$check_mask_output" | grep -q "/dev/null"; then
+    #         rm $socket
+    #     fi
+    # done
     
     systemctl --user daemon-reexec
     systemctl --user daemon-reload
-    # systemctl --user unmask pipewire-pulse.socket
+    systemctl --user unmask pipewire-pulse.socket
+    systemctl --user unmask pipewire-pulse.service
     systemctl --user enable --now pipewire-pulse.socket
     systemctl --user enable --now pipewire-pulse.service
 }
