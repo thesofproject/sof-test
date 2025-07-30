@@ -595,7 +595,8 @@ func_lib_disable_pipewire()
     if [ ! "$(ps -C pipewire --no-header)" ]; then
         dlogi "Pipewire disabled"
     else
-        die "Failed to disable pipewire"
+        # die "Failed to disable pipewire"
+        dlogi "Failed to disable pipewire"
     fi
 }
 
