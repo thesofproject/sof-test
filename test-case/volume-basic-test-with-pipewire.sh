@@ -49,7 +49,7 @@ logger_disabled || func_lib_start_log_collect
 
 initialize_audio_params "0"
 # play into background, this will wake up DSP and IPC. Need to clean after the test
-aplay_opts -D "$dev" -c "$channel" -r "$rate" -f "$fmts" /dev/zero &
+aplay_opts -Ddefault -c "$channel" -r "$rate" -f "$fmts" /dev/zero &
 sleep 1
 check_alsa_tool_process
 sofcard=${SOFCARD:-0}
