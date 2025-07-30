@@ -161,7 +161,7 @@ compose_commands()
   [ -z "${run_verbose}" ] || TIMEOUT_RUN+=("${run_verbose}")
 
   [ -z "${run_verbose}" ] || JACKD_OPTIONS+=("${run_verbose}")
-  JACKD_RUN=(jackd "${JACKD_OPTIONS[@]}" -d "${JACKD_BACKEND}" "${JACKD_BACKEND_OPTIONS[@]}" -p "${jackd_period}")
+  JACKD_RUN=(pw-jack "${JACKD_OPTIONS[@]}" -d "${JACKD_BACKEND}" "${JACKD_BACKEND_OPTIONS[@]}" -p "${jackd_period}")
 
   TIMEOUT_JACKD_RUN=("${TIMEOUT_RUN[@]}" "${JACKD_TIMEOUT}" "${JACKD_RUN[@]}")
 }
