@@ -1272,3 +1272,10 @@ perf_analyze()
     fi
 }
 
+# Use this function to reboot the DUT. Framework will read
+# "Reboot command" and handle the reboot
+reboot_wrapper()
+{
+    echo "Reboot command" && sleep 5
+    sudo reboot now
+}
