@@ -56,6 +56,8 @@ duration=${OPT_VAL['d']}
 start_test
 logger_disabled || func_lib_start_log_collect
 
+setup_alsa
+
 func_pipeline_export "$tplg" "kpb:any"
 
 if test "$PIPELINE_COUNT" != "1"; then

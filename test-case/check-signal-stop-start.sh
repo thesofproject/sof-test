@@ -62,6 +62,8 @@ esac
 
 setup_kernel_check_point
 
+setup_alsa
+
 func_stop_start_pipeline()
 {
     local i=1

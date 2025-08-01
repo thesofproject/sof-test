@@ -1,0 +1,8 @@
+state.sofhdadsp {
+	control.1 {
+		iface MIXER
+		name 'Headphone Playback Volume'
+		value.0 60
+		value.1 60
+	}
+}

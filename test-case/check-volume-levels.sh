@@ -289,6 +289,8 @@ do_preparations () {
     dlogi "Capture device is $CAP_HW"
     dlogi "Capture PGA is $CAP_PGA"
 
+    setup_alsa
+
     # Find amixer controls for capture, error if more than one PGA
     numpga=${#CAP_PGA[@]}
     test "$numpga" = 1 || die "Error: more than one capture PGA found."

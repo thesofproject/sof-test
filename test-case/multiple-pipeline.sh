@@ -63,6 +63,8 @@ f_arg=${OPT_VAL['f']}
 start_test
 logger_disabled || func_lib_start_log_collect
 
+setup_alsa
+
 # skip the Echo Reference pipeline
 MULTI_PIPELINE_FILTER='~pcm:Amplifier Reference'
 max_count=0

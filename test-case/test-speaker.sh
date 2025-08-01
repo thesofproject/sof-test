@@ -34,6 +34,8 @@ tplg=${OPT_VAL['t']}
 start_test
 logger_disabled || func_lib_start_log_collect
 
+setup_alsa
+
 func_pipeline_export "$tplg" "type:playback"
 tcnt=${OPT_VAL['l']}
 setup_kernel_check_point

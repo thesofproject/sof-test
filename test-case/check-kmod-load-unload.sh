@@ -40,6 +40,8 @@ setup_kernel_check_point
 
 start_test
 
+setup_alsa
+
 loop_cnt=${OPT_VAL['l']}
 
 PATH="${PATH%%:*}/kmod:$PATH"

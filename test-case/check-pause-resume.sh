@@ -80,6 +80,8 @@ esac
 
 logger_disabled || func_lib_start_log_collect
 
+setup_alsa
+
 [[ -z $file_name ]] && file_name=$dummy_file
 
 func_pipeline_export "$tplg" "type:$test_mode & ${OPT_VAL['S']}"
