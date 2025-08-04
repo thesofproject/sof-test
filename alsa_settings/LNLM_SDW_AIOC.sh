@@ -12,5 +12,5 @@ amixer -c sofsoundwire cset name='rt711 GE49 Selected Mode' 2 || true
 amixer -c sofsoundwire cset name='Headset Mic Switch' on
 amixer -c sofsoundwire cset name='rt711 FU0F Capture Switch' on
 amixer -c sofsoundwire cset name='rt711 FU1E Capture Switch' on
-amixer -c sofsoundwire cset name='rt711 FU0F Capture Volume' 30
-amixer -c sofsoundwire cset name='rt711 FU1E Capture Volume' 30
+amixer -c sofsoundwire cset name='rt711 FU0F Capture Volume' 25
+amixer -c sofsoundwire cset name='rt711 FU1E Capture Volume' 25
