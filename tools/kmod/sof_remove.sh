@@ -305,7 +305,9 @@ remove_module snd_hda_codec_intelhdmi
 remove_module snd_hda_codec_hdmi
 remove_module snd_soc_dmic
 
+remove_module snd_hda_codec_alc269
 remove_module snd_hda_codec_realtek
+remove_module snd_hda_codec_realtek_lib
 remove_module snd_hda_codec_generic
 
 remove_module snd_soc_wm8960
