@@ -132,17 +132,29 @@ function func_exit_handler()
         storage_checks || exit_status=1
     fi
 
+    local journalctl_logs="$LOG_ROOT/dmesg.txt"
     if [[ "$KERNEL_CHECKPOINT" =~ ^[0-9]{10} ]]; then
         # Do not collect the entire duration of the test but only the
         # last iteration.
-        journalctl_cmd --since=@"$KERNEL_CHECKPOINT" > "$LOG_ROOT/dmesg.txt"
+        dlogi "Save kernel messages since ${KERNEL_CHECKPOINT} to ${journalctl_logs}"
+        journalctl_cmd --since=@"$KERNEL_CHECKPOINT" > "${journalctl_logs}"
     elif [[ "$KERNEL_CHECKPOINT" == "disabled" ]]; then
-        journalctl_cmd > "$LOG_ROOT/dmesg.txt"
+        dlogi "Save all kernel messages to ${journalctl_logs}"
+        journalctl_cmd > "${journalctl_logs}"
     else
        dloge 'Kernel check point "KERNEL_CHECKPOINT" is not properly set'
        dloge "KERNEL_CHECKPOINT=$KERNEL_CHECKPOINT"
        test "$exit_status" -ne 0 || exit_status=1
     fi
+    if test -s "${journalctl_logs}"; then
+       wcLog=$(wc -l "${journalctl_logs}")
+       dlogi  "nlines=$wcLog"
+    else
+       dlogw "Empty ${journalctl_logs}"
+    fi
+    # Make sure the logs are written on disk just in case of DUT power reset.
+    sync
+
     # After log collected, KERNEL_CHECKPOINT will not be used any more
     unset KERNEL_CHECKPOINT
 
