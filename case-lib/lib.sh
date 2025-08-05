@@ -280,6 +280,7 @@ setup_kernel_check_point()
         # the mistake to call this function _after_ checking the logs.
         KERNEL_CHECKPOINT=$(($(date +%s) - 1))
     fi
+    dlogi "KERNEL_CHECKPOINT=${KERNEL_CHECKPOINT}"
 }
 
 # This function adds a fake error to dmesg (which is always saved by
