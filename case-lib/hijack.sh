@@ -21,7 +21,7 @@ function func_exit_handler()
 
             line_no=${BASH_LINENO[$((i-1))]} || true
             # BASH_LINENO doesn't always work
-            if [ $line_no -gt 1 ]; then line_no=":$line_no"; else line_no=""; fi
+            if [ "$line_no" -gt 1 ]; then line_no=":$line_no"; else line_no=""; fi
 
             dloge " ${FUNCNAME[i]}()  @  ${BASH_SOURCE[i]}${line_no}"
         done
@@ -76,7 +76,7 @@ function func_exit_handler()
                 printf \
    'https://github.com/thesofproject/sof/issues/5352\n' |
                     sudo tee -a "$logfile"
-                if [ $exit_status = 0 ]; then
+                if [ "$exit_status" = 0 ]; then
                    exit_status=2 # skip
                 fi
             else # 5352 corruption affects only Zephyr for some unknown reason
@@ -197,7 +197,7 @@ function func_exit_handler()
         fi
     }
 
-    print_test_result_exit $exit_status
+    print_test_result_exit "$exit_status"
 }
 
 print_test_result_exit()
