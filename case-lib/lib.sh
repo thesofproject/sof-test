@@ -1313,6 +1313,10 @@ set_alsa()
 
   alsactl store -f "${asound_state}.txt" 2>&1 || rc=$?
   [[ "${rc}" -ne 0 ]] && dlogw "alsactl store error=${rc}"
+
+  printf '%s\n' '-vv------- Check ALSA state difference -------vv-' >> "${alsa_log}"
+  diff -u --report-identical-files "${asound_state}_old.txt" "${asound_state}.txt" >> "${alsa_log}" 2>&1 || rc=$?
+  dlogi "ALSA state difference check result=${rc}"
 }
 
 DO_PERF_ANALYSIS=0
