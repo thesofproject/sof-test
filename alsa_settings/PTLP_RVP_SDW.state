@@ -1,0 +1,43 @@
+state.sofsoundwire {
+	control.2 {
+		iface MIXER
+		name 'rt722 FU0F Capture Switch'
+		value.0 true
+		value.1 true
+	}
+	control.3 {
+		iface MIXER
+		name 'rt722 FU0F Capture Volume'
+		value.0 15
+		value.1 15
+	}
+	control.5 {
+		iface MIXER
+		name 'rt722 FU06 Playback Volume'
+		value.0 50
+		value.1 50
+	}
+	control.6 {
+		iface MIXER
+		name 'rt722 FU1E Capture Switch'
+		value.0 true
+		value.1 true
+		value.2 true
+		value.3 true
+	}
+	control.9 {
+		iface MIXER
+		name 'Headphone Switch'
+		value true
+	}
+	control.10 {
+		iface MIXER
+		name 'Headset Mic Switch'
+		value true
+	}
+	control.13 {
+		iface MIXER
+		name 'Speaker Switch'
+		value true
+	}
+}
