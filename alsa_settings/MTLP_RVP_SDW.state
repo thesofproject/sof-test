@@ -1,0 +1,35 @@
+state.sofsoundwire {
+	control.1 {
+		iface MIXER
+		name 'rt711 FU05 Playback Volume'
+		value.0 80
+		value.1 80
+	}
+	control.3 {
+		iface MIXER
+		name 'rt711 FU0F Capture Switch'
+		value.0 true
+		value.1 true
+	}
+	control.5 {
+		iface MIXER
+		name 'rt711 FU0F Capture Volume'
+		value.0 26
+		value.1 26
+	}
+	control.8 {
+		iface MIXER
+		name 'rt711 GE49 Selected Mode'
+		value Headset
+	}
+	control.9 {
+		iface MIXER
+		name 'Headphone Switch'
+		value true
+	}
+	control.10 {
+		iface MIXER
+		name 'Headset Mic Switch'
+		value true
+	}
+}
