@@ -1,0 +1,36 @@
+state.sofhdadsp {
+	control.1 {
+		iface MIXER
+		name 'Headphone Playback Volume'
+		value.0 60
+		value.1 60
+	}
+	control.2 {
+		iface MIXER
+		name 'Headphone Playback Switch'
+		value.0 true
+		value.1 true
+	}
+	control.6 {
+		iface MIXER
+		name 'Capture Volume'
+		value.0 30
+		value.1 30
+	}
+	control.7 {
+		iface MIXER
+		name 'Capture Switch'
+		value.0 true
+		value.1 true
+	}
+	control.9 {
+		iface MIXER
+		name 'Master Playback Volume'
+		value 87
+	}
+	control.10 {
+		iface MIXER
+		name 'Master Playback Switch'
+		value true
+	}
+}
