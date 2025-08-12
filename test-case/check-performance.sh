@@ -54,11 +54,11 @@ arecord_num=0
 if [ "$TEST_WITH_PIPEWIRE" == true ]; then
 
     # aplay's for sinks
-    pw_outputs_list=("Speaker" "Headphones" "HDMI")
+    pw_outputs_list=("Speaker" "Headphones" "HDMI" "Stereo")
 
     for device_type in "${pw_outputs_list[@]}"
     do
-        device_id=$(pw-dump | grep -A3 "$device_type" | grep "object.id" | awk '{print $2}' | tr -d ',' | head -n 1)
+        device_id=$(pw-dump | grep -A6 "Audio/Sink" | grep -A3 "$device_type" | grep "object.id" | awk '{print $2}' | tr -d ',' | head -n 1)
         if [ -z "$device_id" ]; then
             echo "No $device_type found, skipping to the next one"
             continue # skip if that device type isn't available
@@ -70,11 +70,11 @@ if [ "$TEST_WITH_PIPEWIRE" == true ]; then
     done
 
     # arecord's for sources
-    pw_inputs_list=("Digital Microphone" "Headset Microphone" "SoundWire microphones")
+    pw_inputs_list=("Digital Microphone" "Headset Microphone" "SoundWire microphones" "Stereo")
 
     for device_type in "${pw_inputs_list[@]}"
     do
-        device_id=$(pw-dump | grep -A3 "$device_type" | grep "object.id" | awk '{print $2}' | tr -d ',' | head -n 1)
+        device_id=$(pw-dump | grep -A6 "Audio/Source" | grep -A3 "$device_type" | grep "object.id" | awk '{print $2}' | tr -d ',' | head -n 1)
         if [ -z "$device_id" ]; then
             continue # skip if that device type isn't available
         fi
