@@ -51,27 +51,63 @@ func_pipeline_export "$tplg" "type:any"
 aplay_num=0
 arecord_num=0
 
-for idx in $(seq 0 $((PIPELINE_COUNT - 1)))
-do
-        channel=$(func_pipeline_parse_value "$idx" channel)
-        rate=$(func_pipeline_parse_value "$idx" rate)
-        dev=$(func_pipeline_parse_value "$idx" dev)
-        pcm=$(func_pipeline_parse_value "$idx" pcm)
-        type=$(func_pipeline_parse_value "$idx" type)
+if [ "$TEST_WITH_PIPEWIRE" == true ]; then
 
-        # Currently, copier will convert bit depth to S32_LE despite what bit depth
-        # is used in aplay, so make S32_LE as base bit depth for performance analysis.
-        fmt=S32_LE
+    # aplay's for sinks
+    pw_outputs_list=("Speaker" "Headphones" "HDMI")
 
-        dlogi "Running (PCM: $pcm [$dev]<$type>) in background"
-        if [ "$type" == "playback" ]; then
-            aplay_opts -D "$dev" -c "$channel" -r "$rate" -f "$fmt" -d "$duration" /dev/zero -q &
-            aplay_num=$((aplay_num+1))
-        else
-            arecord_opts -D "$dev" -c "$channel" -r "$rate" -f "$fmt" -d "$duration" /dev/null -q &
-            arecord_num=$((arecord_num+1))
+    for sink_type in "${pw_outputs_list[@]}"
+    do
+        sink_id=$(wpctl status | grep -A6 "Sinks" | grep -A3 -i "$sink_type" | tr -d '*' | awk '{print $2}' | tr -d '.' | head -n 1)
+        if [ -z "$sink_id" ]; then
+            echo "No $sink_type found, skipping to the next one"
+            continue # skip if that device type isn't available
         fi
-done
+        echo "Setting default sink to $sink_id: $sink_type"
+        wpctl set-default "$sink_id"
+        aplay_opts -Ddefault /dev/zero -q &
+        aplay_num=$((aplay_num+1))
+    done
+
+    # arecord's for sources
+    pw_inputs_list=("Digital Microphone" "Headset Microphone" "SoundWire microphones")
+
+    for source_type in "${pw_inputs_list[@]}"
+    do
+        source_id=$(wpctl status | grep -A6 "Sources" | grep -A3 -i "$source_type" | tr -d '*' | awk '{print $2}' | tr -d '.' | head -n 1)
+        if [ -z "$source_id" ]; then
+            continue # skip if that device type isn't available
+        fi
+        echo "Setting default source to $source_id: $source_type"
+        wpctl set-default "$source_id"
+        arecord_opts -Ddefault /dev/zero -q &
+        arecord_num=$((arecord_num+1))
+    done
+
+else
+
+    for idx in $(seq 0 $((PIPELINE_COUNT - 1)))
+    do
+            channel=$(func_pipeline_parse_value "$idx" channel)
+            rate=$(func_pipeline_parse_value "$idx" rate)
+            dev=$(func_pipeline_parse_value "$idx" dev)
+            pcm=$(func_pipeline_parse_value "$idx" pcm)
+            type=$(func_pipeline_parse_value "$idx" type)
+
+            # Currently, copier will convert bit depth to S32_LE despite what bit depth
+            # is used in aplay, so make S32_LE as base bit depth for performance analysis.
+            fmt=S32_LE
+
+            dlogi "Running (PCM: $pcm [$dev]<$type>) in background"
+            if [ "$type" == "playback" ]; then
+                aplay_opts -D "$dev" -c "$channel" -r "$rate" -f "$fmt" -d "$duration" /dev/zero -q &
+                aplay_num=$((aplay_num+1))
+            else
+                arecord_opts -D "$dev" -c "$channel" -r "$rate" -f "$fmt" -d "$duration" /dev/null -q &
+                arecord_num=$((arecord_num+1))
+            fi
+    done
+fi
 
 sleep 1 # waiting stable streaming of aplay/arecord
 dlogi "Number of aplay/arecord process started: $aplay_num, $arecord_num"

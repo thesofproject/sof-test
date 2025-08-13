@@ -83,6 +83,10 @@ minvalue() { printf '%d' $(( "$1" < "$2"  ? "$1" : "$2" )); }
 #
 start_test()
 {
+    if [ "$TEST_WITH_PIPEWIRE" == true ]; then
+        func_lib_enable_pipewire
+    fi
+
     if is_subtest; then
         return 0
     fi
@@ -571,6 +575,44 @@ func_lib_check_sudo()
     }
 }
 
+func_lib_enable_pipewire()
+{
+    dlogi "Starting Pipewire..."
+    systemctl --user daemon-reexec
+    systemctl --user daemon-reload
+    systemctl --user unmask pipewire{,-pulse}.{socket,service}
+    systemctl --user start pipewire{,-pulse}.{socket,service}
+    systemctl --user unmask wireplumber.service
+    systemctl --user start wireplumber.service
+
+    # Wait for pipewire to start
+    sleep 5s
+
+    if [ "$(ps -C pipewire --no-header)" ]; then
+        dlogi "Pipewire started"
+    else
+        die "Failed to start pipewire"
+    fi
+}
+
+func_lib_disable_pipewire()
+{
+    dlogi "Stopping Pipewire..."
+
+    # Kill any left pipewire processes
+    # pkill -9 arecord
+    # pkill -9 aplay
+    sleep 2s
+
+    systemctl --user stop pipewire{,-pulse}.{socket,service}
+    systemctl --user mask pipewire{,-pulse}.{socket,service}
+    systemctl --user stop wireplumber.service
+    systemctl --user mask wireplumber.service
+
+    # Wait for pipewire to stop
+    sleep 2s
+}
+
 systemctl_show_pulseaudio()
 {
     printf '\n'
@@ -762,6 +804,8 @@ func_lib_check_pa()
 
 : "${SOF_ALSA_TOOL:="alsa"}"
 
+: "${TEST_WITH_PIPEWIRE:="false"}"
+
 # Function to extract the card number and device number from $dev option (e.g., hw:0,10)
 parse_audio_device() {
     # Extract the card number (e.g., "0" from hw:0,10)
@@ -902,15 +946,21 @@ aplay_opts()
         # shellcheck disable=SC2154
         if ! sox -n -r "$rate" -c "$channel" noise.wav synth "$duration" white; then
             printf 'Error: sox command failed.\n' >&2
-	    return 1
-	fi
+        return 1
+    fi
         dlogc "tinyplay $SOF_ALSA_OPTS $SOF_APLAY_OPTS -D $card_nr -d $dev_nr  -i wav noise.wav"
-	# shellcheck disable=SC2086
+    # shellcheck disable=SC2086
         tinyplay $SOF_ALSA_OPTS $SOF_APLAY_OPTS -D "$card_nr" -d "$dev_nr"  -i wav noise.wav
     elif [[ "$SOF_ALSA_TOOL" = "alsa" ]]; then
-        dlogc "aplay $SOF_ALSA_OPTS $SOF_APLAY_OPTS $*"
-        # shellcheck disable=SC2086
-        aplay $SOF_ALSA_OPTS $SOF_APLAY_OPTS "$@"
+        if [[ "$TEST_WITH_PIPEWIRE" == true ]]; then
+            dlogc "timeout -k 60 30 aplay $SOF_ALSA_OPTS $SOF_APLAY_OPTS $*"  # option -d doesn't work with pipewire so we need timeout
+            # shellcheck disable=SC2086
+            timeout -k 60 30 aplay $SOF_ALSA_OPTS $SOF_APLAY_OPTS "$@"
+        else
+            dlogc "aplay $SOF_ALSA_OPTS $SOF_APLAY_OPTS $*"
+            # shellcheck disable=SC2086
+            aplay $SOF_ALSA_OPTS $SOF_APLAY_OPTS "$@"
+        fi
     else
         die "Unknown ALSA tool: ${SOF_ALSA_TOOL}"
     fi
@@ -922,14 +972,20 @@ arecord_opts()
     if [[ "$SOF_ALSA_TOOL" = "tinyalsa" ]]; then
         # shellcheck disable=SC2154
         # Global variable "$fmt_elem" from check_capture.sh test script
-	format=$(extract_format_number "$fmt_elem")
-	dlogc "tinycap $SOF_ALSA_OPTS $SOF_ARECORD_OPTS $file -D $card_nr -d $dev_nr -c $channel -t $duration -r $rate -b $format"
-	# shellcheck disable=SC2086
+    format=$(extract_format_number "$fmt_elem")
+    dlogc "tinycap $SOF_ALSA_OPTS $SOF_ARECORD_OPTS $file -D $card_nr -d $dev_nr -c $channel -t $duration -r $rate -b $format"
+    # shellcheck disable=SC2086
         tinycap $SOF_ALSA_OPTS $SOF_ARECORD_OPTS "$file" -D "$card_nr" -d "$dev_nr" -c "$channel" -t "$duration" -r "$rate" -b "$format"
     elif [[ "$SOF_ALSA_TOOL" = "alsa" ]]; then
-        dlogc "arecord $SOF_ALSA_OPTS $SOF_ARECORD_OPTS $*"
-        # shellcheck disable=SC2086
-        arecord $SOF_ALSA_OPTS $SOF_ARECORD_OPTS "$@"
+        if [[ "$TEST_WITH_PIPEWIRE" == true ]]; then
+            dlogc "timeout -k 60 30 arecord $SOF_ALSA_OPTS $SOF_ARECORD_OPTS $*"  # option -d doesn't work with pipewire so we need timeout
+            # shellcheck disable=SC2086
+            timeout -k 60 30 arecord $SOF_ALSA_OPTS $SOF_ARECORD_OPTS "$@"
+        else
+            dlogc "arecord $SOF_ALSA_OPTS $SOF_ARECORD_OPTS $*"
+            # shellcheck disable=SC2086
+            arecord $SOF_ALSA_OPTS $SOF_ARECORD_OPTS "$@"
+        fi    
     else
         die "Unknown ALSA tool: ${SOF_ALSA_TOOL}"
     fi
