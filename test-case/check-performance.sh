@@ -54,32 +54,32 @@ arecord_num=0
 if [ "$TEST_WITH_PIPEWIRE" == true ]; then
 
     # aplay's for sinks
-    pw_outputs_list=("Speaker" "Headphones" "HDMI" "Stereo")
+    pw_outputs_list=("Speaker" "Headphones" "HDMI")
 
-    for device_type in "${pw_outputs_list[@]}"
+    for sink_type in "${pw_outputs_list[@]}"
     do
-        device_id=$(pw-dump | grep -A6 "Audio/Sink" | grep -A3 "$device_type" | grep "object.id" | awk '{print $2}' | tr -d ',' | head -n 1)
-        if [ -z "$device_id" ]; then
-            echo "No $device_type found, skipping to the next one"
+        sink_id=$(wpctl status | grep -A6 "Sinks" | grep -A3 -i "$sink_type" | tr -d '*' | awk '{print $2}' | tr -d '.' | head -n 1)
+        if [ -z "$sink_id" ]; then
+            echo "No $sink_type found, skipping to the next one"
             continue # skip if that device type isn't available
         fi
-        echo "Setting default sink to $device_id: $device_type"
-        wpctl set-default "$device_id"
+        echo "Setting default sink to $sink_id: $sink_type"
+        wpctl set-default "$sink_id"
         aplay_opts -Ddefault /dev/zero -q &
         aplay_num=$((aplay_num+1))
     done
 
     # arecord's for sources
-    pw_inputs_list=("Digital Microphone" "Headset Microphone" "SoundWire microphones" "Stereo")
+    pw_inputs_list=("Digital Microphone" "Headset Microphone" "SoundWire microphones")
 
-    for device_type in "${pw_inputs_list[@]}"
+    for source_type in "${pw_inputs_list[@]}"
     do
-        device_id=$(pw-dump | grep -A6 "Audio/Source" | grep -A3 "$device_type" | grep "object.id" | awk '{print $2}' | tr -d ',' | head -n 1)
-        if [ -z "$device_id" ]; then
+        source_id=$(wpctl status | grep -A6 "Sources" | grep -A3 -i "$source_type" | tr -d '*' | awk '{print $2}' | tr -d '.' | head -n 1)
+        if [ -z "$source_id" ]; then
             continue # skip if that device type isn't available
         fi
-        echo "Setting default source to $device_id: $device_type"
-        wpctl set-default "$device_id"
+        echo "Setting default source to $source_id: $source_type"
+        wpctl set-default "$source_id"
         arecord_opts -Ddefault /dev/zero -q &
         arecord_num=$((arecord_num+1))
     done
