@@ -946,10 +946,10 @@ aplay_opts()
         # shellcheck disable=SC2154
         if ! sox -n -r "$rate" -c "$channel" noise.wav synth "$duration" white; then
             printf 'Error: sox command failed.\n' >&2
-            return 1
-        fi
+        return 1
+    fi
         dlogc "tinyplay $SOF_ALSA_OPTS $SOF_APLAY_OPTS -D $card_nr -d $dev_nr  -i wav noise.wav"
-	    # shellcheck disable=SC2086
+    # shellcheck disable=SC2086
         tinyplay $SOF_ALSA_OPTS $SOF_APLAY_OPTS -D "$card_nr" -d "$dev_nr"  -i wav noise.wav
     elif [[ "$SOF_ALSA_TOOL" = "alsa" ]]; then
         if [[ "$TEST_WITH_PIPEWIRE" == true ]]; then
@@ -972,9 +972,9 @@ arecord_opts()
     if [[ "$SOF_ALSA_TOOL" = "tinyalsa" ]]; then
         # shellcheck disable=SC2154
         # Global variable "$fmt_elem" from check_capture.sh test script
-        format=$(extract_format_number "$fmt_elem")
-        dlogc "tinycap $SOF_ALSA_OPTS $SOF_ARECORD_OPTS $file -D $card_nr -d $dev_nr -c $channel -t $duration -r $rate -b $format"
-        # shellcheck disable=SC2086
+    format=$(extract_format_number "$fmt_elem")
+    dlogc "tinycap $SOF_ALSA_OPTS $SOF_ARECORD_OPTS $file -D $card_nr -d $dev_nr -c $channel -t $duration -r $rate -b $format"
+    # shellcheck disable=SC2086
         tinycap $SOF_ALSA_OPTS $SOF_ARECORD_OPTS "$file" -D "$card_nr" -d "$dev_nr" -c "$channel" -t "$duration" -r "$rate" -b "$format"
     elif [[ "$SOF_ALSA_TOOL" = "alsa" ]]; then
         if [[ "$TEST_WITH_PIPEWIRE" == true ]]; then
