@@ -12,6 +12,8 @@ function func_exit_handler()
 
     dlogi "Starting func_exit_handler($exit_status)"
 
+    func_lib_check_and_disable_pipewire
+
     # call trace
     if [ "$exit_status" -ne 0 ] ; then
         dloge "Starting ${FUNCNAME[0]}(), exit status=$exit_status, FUNCNAME stack:"
