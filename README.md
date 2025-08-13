@@ -64,6 +64,8 @@ Some tests support these environment variables (work in progress):
   - SOF_ALSA_OPTS contains optional parameters passed on both play and record.
   - SOF_APLAY_OPTS and SOF_ARECORD_OPTS contain optional parameters passed additionally on play and record respectively.
 These options are applied to the selected tool (alsa or tinyalsa) based on the value of SOF_ALSA_TOOL 
+  - SOF_TEST_PIPEWIRE (default: false) allows to use pipewire instead of ALSA direct mode. Supported by a limited number of tests,
+    try 'git grep SOF_TEST_PIPEWIRE' to find them.
 
 Warning, these environment variables do NOT support parameters
 with whitespace or globbing characters, in other words this does NOT
