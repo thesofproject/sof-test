@@ -21,6 +21,8 @@ state.sofsoundwire {
 		iface MIXER
 		name 'rt711 GE49 Selected Mode'
 		value Headset
+		# override jack detection mode to headset
+		# related to https://github.com/thesofproject/linux/pull/4969
 	}
 	control.36 {
 		iface MIXER
