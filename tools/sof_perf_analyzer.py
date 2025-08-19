@@ -106,6 +106,7 @@ def skip_to_first_trace(trace_item_gen: TraceItemGenerator):
         # The first trace must have a timestamp with integral part equals to 0.
         if int(item.timestamp) == 0:
             return item
+    return next(trace_item_gen)
 
 def make_trace_item(fileio: TextIO) -> TraceItemGenerator:
     '''Filter and parse a line of trace in string form into TraceItem object, for example:
