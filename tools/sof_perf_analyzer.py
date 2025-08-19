@@ -263,10 +263,10 @@ def print_perf_info():
         print(stats)
 
     if args.out2csv is not None:
-        stats.to_csv(args.out2csv, sep=',', float_format='%.3f', index=False)
+        stats.to_csv(args.out2csv, sep=',', float_format='{:.3f}'.format, index=False)
 
     if args.out2html is not None:
-        stats.to_html(args.out2html, float_format='%.3f', index=False)
+        stats.to_html(args.out2html, float_format='{:.3f}'.format, index=False)
 
 def parse_args():
     '''Parse command line arguments'''
