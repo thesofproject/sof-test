@@ -1000,6 +1000,18 @@ arecord_opts()
     fi
 }
 
+# Get the ID for a given sink or source type, e.g. "Speaker" or "Headphones"
+get_id_of_pipewire_endpoint()
+{
+    # $ wpctl status returns list of all endpoints managed by wireplumber. We filter by given sink/source type, which returns something like this: 
+    # │  *   48. sof-soundwire Headphones            [vol: 0.40]  (or without the * when it's not the current default)
+    # We filter out everything but ID, and only take the first line of the output (if there's more that one object of that type we ignore the rest)
+
+    local object_name="$1"
+    object_id=$(wpctl status | grep -i "$object_name" | tr -d '*' | awk '{print $2}' | tr -d '.' | head -n 1)
+    echo $object_id 
+}
+
 die()
 {
     dloge "$@"

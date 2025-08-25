@@ -20,6 +20,9 @@
 
 set -e
 
+PIPEWIRE_OUTPUTS=("Speaker" "Headphones" "HDMI")
+PIPEWIRE_INPUTS=("Digital Microphone" "Headset Microphone" "SoundWire microphones")
+
 # It is pointless to perf component in HDMI pipeline, so filter out HDMI pipelines
 # shellcheck disable=SC2034
 NO_HDMI_MODE=true
@@ -51,14 +54,14 @@ func_pipeline_export "$tplg" "type:any"
 aplay_num=0
 arecord_num=0
 
-if [ "$SOF_TEST_PIPEWIRE" == true ]; then
+# run aplay for all sink types given as a parameter and save the number of started aplay processes
+run_aplays()
+{
+    local sinks=("$@")
 
-    # aplay's for sinks
-    pw_outputs_list=("Speaker" "Headphones" "HDMI")
-
-    for sink_type in "${pw_outputs_list[@]}"
+    for sink_type in "${sinks[@]}"
     do
-        sink_id=$(wpctl status | grep -A6 "Sinks" | grep -A3 -i "$sink_type" | tr -d '*' | awk '{print $2}' | tr -d '.' | head -n 1)
+        sink_id=$(get_id_of_pipewire_endpoint "$sink_type")
         if [ -z "$sink_id" ]; then
             dlogi "No $sink_type found, skipping to the next one"
             continue
@@ -68,25 +71,37 @@ if [ "$SOF_TEST_PIPEWIRE" == true ]; then
         aplay_opts -Ddefault /dev/zero -q &
         aplay_num=$((aplay_num+1))
     done
+}
 
-    # arecord's for sources
-    pw_inputs_list=("Digital Microphone" "Headset Microphone" "SoundWire microphones")
+# run arecord for all source types given as a parameter and save the number of started arecord processes
+run_arecords()
+{
+    local sources=("$@")
 
-    for source_type in "${pw_inputs_list[@]}"
+    for source_type in "${sources[@]}"
     do
-        source_id=$(wpctl status | grep -A6 "Sources" | grep -A3 -i "$source_type" | tr -d '*' | awk '{print $2}' | tr -d '.' | head -n 1)
+        source_id=$(get_id_of_pipewire_endpoint "$source_type")
         if [ -z "$source_id" ]; then
             dlogi "No $source_type found, skipping to the next one"
-            continue # skip if that device type isn't available
+            continue
         fi
         dlogi "Setting default source to $source_id: $source_type"
         wpctl set-default "$source_id"
         arecord_opts -Ddefault /dev/zero -q &
         arecord_num=$((arecord_num+1))
     done
+}
 
-    if [ $aplay_num == 0 ] && [ $arecord_num == 0 ]; then
-        skip_test "No sinks/sources to be tested found, exiting test"
+if [ "$SOF_TEST_PIPEWIRE" == true ]; then
+
+    dlogi "Running aplays"
+    run_aplays "${PIPEWIRE_OUTPUTS[@]}"
+    dlogi "Running arecords"
+    run_arecords "${PIPEWIRE_INPUTS[@]}"
+    dlogi "Done"
+
+    if [ "$aplay_num" == 0 ] && [ "$arecord_num" == 0 ]; then
+        skip_test "No sinks/sources to be tested found, skipping test"
     fi
 
 else
