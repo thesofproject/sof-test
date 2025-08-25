@@ -61,7 +61,7 @@ if [ "$SOF_TEST_PIPEWIRE" == true ]; then
         sink_id=$(wpctl status | grep -A6 "Sinks" | grep -A3 -i "$sink_type" | tr -d '*' | awk '{print $2}' | tr -d '.' | head -n 1)
         if [ -z "$sink_id" ]; then
             dlogi "No $sink_type found, skipping to the next one"
-            continue # skip if that device type isn't available
+            continue
         fi
         dlogi "Setting default sink to $sink_id: $sink_type"
         wpctl set-default "$sink_id"
