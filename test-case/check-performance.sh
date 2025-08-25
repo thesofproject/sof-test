@@ -86,8 +86,7 @@ if [ "$SOF_TEST_PIPEWIRE" == true ]; then
     done
 
     if [ $aplay_num == 0 ] && [ $arecord_num == 0 ]; then
-        dloge "No sinks/sources to be tested found, exiting test"
-        exit 1  #To be discussed: exit with 0 or 1 here?
+        skip_test "No sinks/sources to be tested found, exiting test"
     fi
 
 else
