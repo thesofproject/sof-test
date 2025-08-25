@@ -83,6 +83,10 @@ minvalue() { printf '%d' $(( "$1" < "$2"  ? "$1" : "$2" )); }
 #
 start_test()
 {
+    if [ "$SOF_TEST_PIPEWIRE" == true ]; then
+        func_lib_enable_pipewire
+    fi
+
     if is_subtest; then
         return 0
     fi
@@ -571,6 +575,55 @@ func_lib_check_sudo()
     }
 }
 
+pipewire_unmask_manually()
+{
+    services=("pipewire.service" "pipewire-pulse.service" "wireplumber.service" "pipewire.socket" "pipewire-pulse.socket")
+
+    for service in "${services[@]}"; do
+        pw_service_path=$(systemctl --user show -p FragmentPath "$service")
+        pw_service_path=${pw_service_path/"FragmentPath="/}
+        pw_service_link=$(ls -l "$pw_service_path")
+        if [[ "$pw_service_link" == *"/dev/null" ]]; then  # Delete link if it points to /dev/null
+            dlogi "Found ->/dev/null link:  $pw_service_path, removing it"
+            sudo rm "$pw_service_path"
+        fi
+    done
+}
+
+start_pipewire_services()
+{
+    systemctl --user daemon-reexec
+    systemctl --user daemon-reload
+    systemctl --user unmask pipewire{,-pulse}.{socket,service}
+    systemctl --user start pipewire{,-pulse}.{socket,service}   
+    systemctl --user unmask wireplumber.service
+    systemctl --user start wireplumber.service
+}
+
+func_lib_enable_pipewire()
+{
+    dlogi "Starting Pipewire..."
+    # Sometimes unmasking does not work as expected, and we need to manually delete /dev/null links and try again
+    start_pipewire_services || true
+    pipewire_unmask_manually
+    start_pipewire_services
+
+    # Wait for pipewire to start
+    sleep 5s
+}
+
+func_lib_disable_pipewire()
+{
+    dlogi "Stopping Pipewire..."
+    systemctl --user stop pipewire{,-pulse}.{socket,service}
+    systemctl --user mask pipewire{,-pulse}.{socket,service}
+    systemctl --user stop wireplumber.service
+    systemctl --user mask wireplumber.service
+
+    # Wait for pipewire to stop
+    sleep 2s
+}
+
 systemctl_show_pulseaudio()
 {
     printf '\n'
@@ -908,9 +961,15 @@ aplay_opts()
 	# shellcheck disable=SC2086
         tinyplay $SOF_ALSA_OPTS $SOF_APLAY_OPTS -D "$card_nr" -d "$dev_nr"  -i wav noise.wav
     elif [[ "$SOF_ALSA_TOOL" = "alsa" ]]; then
-        dlogc "aplay $SOF_ALSA_OPTS $SOF_APLAY_OPTS $*"
-        # shellcheck disable=SC2086
-        aplay $SOF_ALSA_OPTS $SOF_APLAY_OPTS "$@"
+        if [[ "$SOF_TEST_PIPEWIRE" == true ]]; then
+            dlogc "timeout -k 60 30 aplay $SOF_ALSA_OPTS $SOF_APLAY_OPTS $*"  # option -d doesn't work with pipewire so we need timeout
+            # shellcheck disable=SC2086
+            timeout -k 60 30 aplay $SOF_ALSA_OPTS $SOF_APLAY_OPTS "$@"
+        else
+            dlogc "aplay $SOF_ALSA_OPTS $SOF_APLAY_OPTS $*"
+            # shellcheck disable=SC2086
+            aplay $SOF_ALSA_OPTS $SOF_APLAY_OPTS "$@"
+        fi
     else
         die "Unknown ALSA tool: ${SOF_ALSA_TOOL}"
     fi
@@ -927,12 +986,30 @@ arecord_opts()
 	# shellcheck disable=SC2086
         tinycap $SOF_ALSA_OPTS $SOF_ARECORD_OPTS "$file" -D "$card_nr" -d "$dev_nr" -c "$channel" -t "$duration" -r "$rate" -b "$format"
     elif [[ "$SOF_ALSA_TOOL" = "alsa" ]]; then
-        dlogc "arecord $SOF_ALSA_OPTS $SOF_ARECORD_OPTS $*"
-        # shellcheck disable=SC2086
-        arecord $SOF_ALSA_OPTS $SOF_ARECORD_OPTS "$@"
+        if [[ "$SOF_TEST_PIPEWIRE" == true ]]; then
+            dlogc "timeout -k 60 30 arecord $SOF_ALSA_OPTS $SOF_ARECORD_OPTS $*"  # option -d doesn't work with pipewire so we need timeout
+            # shellcheck disable=SC2086
+            timeout -k 60 30 arecord $SOF_ALSA_OPTS $SOF_ARECORD_OPTS "$@"
+        else
+            dlogc "arecord $SOF_ALSA_OPTS $SOF_ARECORD_OPTS $*"
+            # shellcheck disable=SC2086
+            arecord $SOF_ALSA_OPTS $SOF_ARECORD_OPTS "$@"
+        fi  
     else
         die "Unknown ALSA tool: ${SOF_ALSA_TOOL}"
     fi
+}
+
+# Get the ID for a given sink or source type, e.g. "Speaker" or "Headphones"
+get_id_of_pipewire_endpoint()
+{
+    # $ wpctl status returns list of all endpoints managed by wireplumber. We filter by given sink/source type, which returns something like this: 
+    # │  *   48. sof-soundwire Headphones            [vol: 0.40]  (or without the * when it's not the current default)
+    # We filter out everything but ID, and only take the first line of the output (if there's more that one object of that type we ignore the rest)
+
+    local object_name="$1"
+    object_id=$(wpctl status | grep -i "$object_name" | tr -d '*' | awk '{print $2}' | tr -d '.' | head -n 1)
+    echo $object_id 
 }
 
 die()
