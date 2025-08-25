@@ -83,7 +83,7 @@ minvalue() { printf '%d' $(( "$1" < "$2"  ? "$1" : "$2" )); }
 #
 start_test()
 {
-    if [ "$TEST_WITH_PIPEWIRE" == true ]; then
+    if [ "$SOF_TEST_PIPEWIRE" == true ]; then
         func_lib_enable_pipewire
     fi
 
@@ -961,7 +961,7 @@ aplay_opts()
 	# shellcheck disable=SC2086
         tinyplay $SOF_ALSA_OPTS $SOF_APLAY_OPTS -D "$card_nr" -d "$dev_nr"  -i wav noise.wav
     elif [[ "$SOF_ALSA_TOOL" = "alsa" ]]; then
-        if [[ "$TEST_WITH_PIPEWIRE" == true ]]; then
+        if [[ "$SOF_TEST_PIPEWIRE" == true ]]; then
             dlogc "timeout -k 60 30 aplay $SOF_ALSA_OPTS $SOF_APLAY_OPTS $*"  # option -d doesn't work with pipewire so we need timeout
             # shellcheck disable=SC2086
             timeout -k 60 30 aplay $SOF_ALSA_OPTS $SOF_APLAY_OPTS "$@"
@@ -986,7 +986,7 @@ arecord_opts()
 	# shellcheck disable=SC2086
         tinycap $SOF_ALSA_OPTS $SOF_ARECORD_OPTS "$file" -D "$card_nr" -d "$dev_nr" -c "$channel" -t "$duration" -r "$rate" -b "$format"
     elif [[ "$SOF_ALSA_TOOL" = "alsa" ]]; then
-        if [[ "$TEST_WITH_PIPEWIRE" == true ]]; then
+        if [[ "$SOF_TEST_PIPEWIRE" == true ]]; then
             dlogc "timeout -k 60 30 arecord $SOF_ALSA_OPTS $SOF_ARECORD_OPTS $*"  # option -d doesn't work with pipewire so we need timeout
             # shellcheck disable=SC2086
             timeout -k 60 30 arecord $SOF_ALSA_OPTS $SOF_ARECORD_OPTS "$@"

@@ -9,7 +9,7 @@
 ##    It expects the test case script file name (without path) as the first parameter,
 ##    followed by other parameters required for that test case.
 ## Case step:
-##    1. TEST_WITH_PIPEWIRE environment variable is set to true.
+##    1. SOF_TEST_PIPEWIRE environment variable is set to true.
 ##    2. The test case script is executed.
 ## Expected result:
 ##    The test case script is executed using Pipewire.
@@ -22,7 +22,7 @@ if [ -z "$1" ]; then
     exit 1
 fi
 
-export TEST_WITH_PIPEWIRE=true
+export SOF_TEST_PIPEWIRE=true
 
 TESTDIR=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 

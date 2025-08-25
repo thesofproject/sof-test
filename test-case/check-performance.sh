@@ -51,7 +51,7 @@ func_pipeline_export "$tplg" "type:any"
 aplay_num=0
 arecord_num=0
 
-if [ "$TEST_WITH_PIPEWIRE" == true ]; then
+if [ "$SOF_TEST_PIPEWIRE" == true ]; then
 
     # aplay's for sinks
     pw_outputs_list=("Speaker" "Headphones" "HDMI")

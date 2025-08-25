@@ -12,7 +12,7 @@ function func_exit_handler()
 
     dlogi "Starting func_exit_handler($exit_status)"
 
-    if [ "$TEST_WITH_PIPEWIRE" == true ]; then
+    if [ "$SOF_TEST_PIPEWIRE" == true ]; then
         func_lib_disable_pipewire
     fi
 
