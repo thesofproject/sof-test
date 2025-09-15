@@ -5,7 +5,7 @@
 ## Preconditions:
 ##    N/A
 ## Description:
-##    run arecord on each pepeline
+##    run arecord on each pipeline
 ##    default duration is 10s
 ##    default loop count is 3
 ## Case step:
@@ -48,6 +48,12 @@ OPT_HAS_ARG['F']=0         OPT_VAL['F']=0
 OPT_NAME['S']='filter_string'   OPT_DESC['S']="run this case on specified pipelines"
 OPT_HAS_ARG['S']=1             OPT_VAL['S']="id:any"
 
+OPT_NAME['R']='samplerate'   OPT_DESC['R']='sample rate'
+OPT_HAS_ARG['R']=1         OPT_VAL['R']=48000  # Default sample rate
+
+OPT_NAME['T']='tplg_filename'   OPT_DESC['T']='new topology filename'
+OPT_HAS_ARG['T']=1         OPT_VAL['T']=''  # Default empty
+
 func_opt_parse_option "$@"
 
 tplg=${OPT_VAL['t']}
@@ -56,11 +62,77 @@ duration=${OPT_VAL['d']}
 loop_cnt=${OPT_VAL['l']}
 out_dir=${OPT_VAL['o']}
 file_prefix=${OPT_VAL['f']}
+samplerate=${OPT_VAL['R']}  # Use the sample rate specified by the -R option
+new_tplg_filename=${OPT_VAL['T']}  # New topology filename
+modprobe_file="/etc/modprobe.d/tplg_filename.conf"
 
+script_name=$(basename "${BASH_SOURCE[0]}")
+
+reboot_file="/var/tmp/$script_name/rebooted"
+
+# Function to check and update topology filename, reload drivers, and confirm update
+update_topology_filename() {
+    if [[ -f "$modprobe_file" ]]; then
+        old_topology=$(sudo cat "$modprobe_file")
+        echo "Old topology: $old_topology"
+    fi
+
+    # Confirm current topology
+    tplg_file=$(sudo journalctl -q -k | grep -i 'loading topology' | awk -F: '{ topo=$NF; } END { print topo }')
+    echo "Current topology loaded: $tplg_file"
+
+    if [[ -n "$new_tplg_filename" ]]; then
+        echo "options snd-sof-pci tplg_filename=$new_tplg_filename" | sudo tee "$modprobe_file" > /dev/null
+        echo "Updated topology filename to: $new_tplg_filename"
+
+        # Reload drivers
+        sudo sof-test/tools/kmod/sof_remove.sh
+        sleep 5
+        sudo sof-test/tools/kmod/sof_insert.sh
+        sleep 5
+
+        # Confirm updated topology
+        tplg_file=$(sudo journalctl -q -k | grep -i 'loading topology' | awk -F: '{ topo=$NF; } END { print topo }')
+        echo "Updated topology loaded: $tplg_file"
+    fi
+}
+
+# Restore the original topology after the test
+restore_topology() {
+    if [[ -n "$old_topology" ]]; then
+        # sleep 10
+        echo "$old_topology" | sudo tee "$modprobe_file" > /dev/null
+        echo "Restored original topology: $old_topology"
+        # reboot_wrapper
+        #Reload drivers to apply the original topology
+        # sleep 5
+        # sudo sof-test/tools/kmod/sof_remove.sh
+        # sleep 5
+        # sudo sof-test/tools/kmod/sof_insert.sh
+        # sleep 5
+
+        # Confirm restored topology
+        # tplg_file=$(sudo journalctl -q -k | grep -i 'loading topology' | awk -F: '{ topo=$NF; } END { print topo }')
+        # echo "Restored topology loaded: $tplg_file"
+    fi
+}
+
+# Update topology filename if -T option is used
+update_topology_filename
 start_test
-logger_disabled || func_lib_start_log_collect
+if [ ! -f "$reboot_file" ]; then
+    logger_disabled || func_lib_start_log_collect
+fi
 
 setup_kernel_check_point
+
+if [ -f $reboot_file ]; then
+    dlogi "System rebooted"
+    rm "$reboot_file"
+    sof-kernel-log-check.sh "$KERNEL_CHECKPOINT"
+    exit $?
+fi
+
 func_lib_check_sudo
 func_pipeline_export "$tplg" "type:capture & ${OPT_VAL['S']}"
 
@@ -90,9 +162,11 @@ do
                     dlogi "using $file as capture output"
                 fi
 
-                if ! arecord_opts -D"$dev" -r "$rate" -c "$channel" -f "$fmt_elem" -d "$duration" "$file" -v -q;
+                # Ensure the sample rate is set correctly
+                if ! arecord_opts -D"$dev" -r "$samplerate" -c "$channel" -f "$fmt_elem" -d "$duration" "$file" -v -q;
                 then
                     func_lib_lsof_error_dump "$snd"
+                    echo "arecord on PCM $dev failed at $i/$loop_cnt."
                     die "arecord on PCM $dev failed at $i/$loop_cnt."
                 fi
             done
@@ -100,5 +174,9 @@ do
     done
 done
 
-sof-kernel-log-check.sh "$KERNEL_CHECKPOINT"
-exit $?
+echo "Wait for remove"
+#sleep 1000
+restore_topology
+mkdir -p "/var/tmp/$script_name"
+touch "$reboot_file"
+reboot_wrapper
