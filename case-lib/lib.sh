@@ -1352,3 +1352,27 @@ reboot_wrapper()
     echo "Reboot command" && sleep 5
     sudo reboot now
 }
+
+# Play sound and record it
+# Parameters: 1-arecord options 2-aplay options
+play_and_record()
+{
+    dlogi "Play [aplay $2] and capture sound [arecord $1]"
+    arecord $1 & PID=$!
+    sleep 1
+    aplay $2
+    wait $PID
+    sleep 1
+}
+
+# Play sound with speaker-test and record it
+# Parameters: 1-arecord options 2-speaker-test options
+play_on_speakers_and_record()
+{
+    dlogi "Play [speaker-test $2] and capture sound [arecord $1]"
+    arecord $1 & PID=$!
+    sleep 1
+    speaker-test $2
+    wait $PID
+    sleep 1
+}
