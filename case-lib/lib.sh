@@ -1477,3 +1477,69 @@ restore_topology() {
         sudo "$insert_script"
         check_topology
 }
+
+# Play sound and record it
+# Arguments: 1-arecord options 2-aplay options
+play_and_record()
+{
+    dlogi "Play [aplay $SOF_ALSA_OPTS $SOF_APLAY_OPTS $2] and capture sound [arecord $1]"
+    # shellcheck disable=SC2086
+    arecord $SOF_ALSA_OPTS $SOF_ARECORD_OPTS $1 & PID=$!
+    # shellcheck disable=SC2086
+    aplay $SOF_ALSA_OPTS $SOF_APLAY_OPTS $2
+    wait $PID
+    sleep 1
+}
+
+# Analyze files to look for glitches.
+# Returns exit code 0 if there are no glitches, 1 if there are.
+# Arguments: the list of filenames
+check_soundfile_for_glitches()
+{
+    glitched_files=0
+    # shellcheck disable=SC2154
+    for result_filename in "${all_result_files[@]}"
+    do
+        if [ -f "$result_filename" ]; then
+            dlogi "Analyzing $result_filename file..."
+            if python3 "$SCRIPT_HOME"/tools/analyze-wav.py "$result_filename"; then
+                dlogi "$result_filename file is correct" 
+            else
+                dlogw "Found issues in $result_filename file"
+                glitched_files=$((glitched_files+1))
+            fi
+        else
+            dlogw "$result_filename file not found, check for previous errors"
+            glitched_files=$((glitched_files+1))
+        fi
+    done
+
+    if [ $glitched_files -eq 0 ]; then
+        dlogi "Analysis finished, no issues found"
+        return 0
+    else
+        dlogi "$glitched_files files corrupted"
+        return 1
+    fi
+}
+
+# Analyze files to check if they contain expected number of sound fragments.
+# Used for testing channels mapping.
+# Returns exit code 0 if they do, 1 if the don't or file doesn't exist.
+# Arguments: 1-filename, 2-expected nr of fragments
+analyze_mixed_sound()
+{
+    if [ -f "$1" ]; then
+        dlogi "Analyzing $1 file..."
+        if python3 "$SCRIPT_HOME"/tools/analyze-sound-fragments.py "$1" "$2"; then
+            dlogi "$1 file is correct"
+            return 0
+        else
+            dlogw "Found issues in $1 file"
+            return 1
+        fi
+    else
+        dlogw "$1 file not found, check for previous errors"
+        return 1
+    fi
+}
