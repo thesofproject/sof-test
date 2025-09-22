@@ -40,53 +40,56 @@ TESTLIB="${TESTDIR}/case-lib"
 # shellcheck source=case-lib/lib.sh
 source "${TESTLIB}/lib.sh"
 
-OPT_NAME['R']='running-time'    OPT_DESC['R']='Test running time (in seconds) to collect latency probes.'
-OPT_HAS_ARG['R']=1              OPT_VAL['R']="30"
+OPT_NAME['R']='running-time'        OPT_DESC['R']='Test running time (in seconds) to collect latency probes.'
+OPT_HAS_ARG['R']=1                  OPT_VAL['R']="30"
 
-OPT_NAME['d']='device'          OPT_DESC['d']='ALSA pcm device for playback and capture. Example: hw:0'
-OPT_HAS_ARG['d']=1              OPT_VAL['d']=''
+OPT_NAME['d']='device'              OPT_DESC['d']='ALSA pcm device for playback and capture. Example: hw:0'
+OPT_HAS_ARG['d']=1                  OPT_VAL['d']=''
 
-OPT_NAME['p']='pcm_p'           OPT_DESC['p']='ALSA pcm device for playback only. Example: hw:soundwire,0'
-OPT_HAS_ARG['p']=1              OPT_VAL['p']=''
+OPT_NAME['p']='pcm_p'               OPT_DESC['p']='ALSA pcm device for playback only. Example: hw:soundwire,0'
+OPT_HAS_ARG['p']=1                  OPT_VAL['p']=''
 
-OPT_NAME['c']='pcm_c'           OPT_DESC['c']='ALSA pcm device for capture only. Example: hw:soundwire,1'
-OPT_HAS_ARG['c']=1              OPT_VAL['c']=''
+OPT_NAME['c']='pcm_c'               OPT_DESC['c']='ALSA pcm device for capture only. Example: hw:soundwire,1'
+OPT_HAS_ARG['c']=1                  OPT_VAL['c']=''
 
-OPT_NAME['r']='rate'            OPT_DESC['r']='Sample rate to try latency with'
-OPT_HAS_ARG['r']=1              OPT_VAL['r']=48000
+OPT_NAME['r']='rate'                OPT_DESC['r']='Sample rate to try latency with'
+OPT_HAS_ARG['r']=1                  OPT_VAL['r']=48000
 
-OPT_NAME['f']='frames'          OPT_DESC['f']='jackd alsa --period, number of frames.'
-OPT_HAS_ARG['f']=1              OPT_VAL['f']=1024  # JACK's default
+OPT_NAME['f']='frames'              OPT_DESC['f']='jackd alsa --period, number of frames.'
+OPT_HAS_ARG['f']=1                  OPT_VAL['f']=1024  # JACK's default
 
-OPT_NAME['n']='nperiods'        OPT_DESC['n']='jackd alsa --nperiods, periods in the buffer.'
-OPT_HAS_ARG['n']=1              OPT_VAL['n']=2  # JACK's default and min value.
+OPT_NAME['n']='nperiods'            OPT_DESC['n']='jackd alsa --nperiods, periods in the buffer.'
+OPT_HAS_ARG['n']=1                  OPT_VAL['n']=2     # JACK's default and min value.
 
-OPT_NAME['S']='shorts'          OPT_DESC['S']='Try to use 16-bit samples instead of 32-bit, if possible.'
-OPT_HAS_ARG['S']=0              OPT_VAL['S']=0
+OPT_NAME['S']='shorts'              OPT_DESC['S']='Try to use 16-bit samples instead of 32-bit, if possible.'
+OPT_HAS_ARG['S']=0                  OPT_VAL['S']=0
 
-OPT_NAME['P']='port_p'          OPT_DESC['P']='JACK playback port with loopback.'
-OPT_HAS_ARG['P']=1              OPT_VAL['P']='system:playback_1'
+OPT_NAME['P']='port_p'              OPT_DESC['P']='JACK playback port with loopback.'
+OPT_HAS_ARG['P']=1                  OPT_VAL['P']='system:playback_1'
 
-OPT_NAME['C']='port_c'          OPT_DESC['C']='JACK capture port with loopback.'
-OPT_HAS_ARG['C']=1              OPT_VAL['C']='system:capture_1'
+OPT_NAME['C']='port_c'              OPT_DESC['C']='JACK capture port with loopback.'
+OPT_HAS_ARG['C']=1                  OPT_VAL['C']='system:capture_1'
 
-OPT_NAME['s']='sof-logger'      OPT_DESC['s']="Open sof-logger trace the data will store at $LOG_ROOT"
-OPT_HAS_ARG['s']=0              OPT_VAL['s']=1
+OPT_NAME['s']='sof-logger'          OPT_DESC['s']="Open sof-logger trace the data will store at $LOG_ROOT"
+OPT_HAS_ARG['s']=0                  OPT_VAL['s']=1
 
-OPT_NAME['v']='verbose'         OPT_DESC['v']='Verbose logging.'
-OPT_HAS_ARG['v']=0              OPT_VAL['v']=0
+OPT_NAME['v']='verbose'             OPT_DESC['v']='Verbose logging.'
+OPT_HAS_ARG['v']=0                  OPT_VAL['v']=0
 
-OPT_NAME['X']='xruns-ignore'    OPT_DESC['X']="How many 'xrun' errors to ignore."
-OPT_HAS_ARG['X']=1              OPT_VAL['X']=0
+OPT_NAME['X']='xruns-ignore'        OPT_DESC['X']="How many 'xrun' errors to ignore."
+OPT_HAS_ARG['X']=1                  OPT_VAL['X']=0
 
-OPT_NAME['L']='loopback'        OPT_DESC['L']="Set internal loopback at JACK instead of ports."
-OPT_HAS_ARG['L']=0              OPT_VAL['L']=0
+OPT_NAME['L']='loopback'            OPT_DESC['L']="Set internal loopback at JACK instead of ports."
+OPT_HAS_ARG['L']=0                  OPT_VAL['L']=0
 
-OPT_NAME['t']='trial'           OPT_DESC['t']="Trial mode: repeat measurements decreasing buffer."
-OPT_HAS_ARG['t']=0              OPT_VAL['t']=0
+OPT_NAME['t']='trial'               OPT_DESC['t']="Trial mode: repeat measurements decreasing buffer."
+OPT_HAS_ARG['t']=0                  OPT_VAL['t']=0
 
-OPT_NAME['T']='trial-until'     OPT_DESC['T']="Trial mode: repeat until this value."
-OPT_HAS_ARG['T']=1              OPT_VAL['T']=2
+OPT_NAME['T']='trial-until'         OPT_DESC['T']="Trial mode: repeat until this value."
+OPT_HAS_ARG['T']=1                  OPT_VAL['T']=2
+
+OPT_NAME['l']='latency_threshold'   OPT_DESC['l']='latency threshold in ms'
+OPT_HAS_ARG['l']=1                  OPT_VAL['l']=85
 
 func_opt_parse_option "$@"
 
@@ -106,6 +109,7 @@ jackd_period=${jackd_frames}
 jackd_nperiods=${OPT_VAL['n']}
 trial_mode=${OPT_VAL['t']}
 trial_until=${OPT_VAL['T']}
+latency_threshold=${OPT_VAL['l']}
 
 METRICS_JSON="${LOG_ROOT}/metrics_iodelay.json"
 EVENTS_JSON="${LOG_ROOT}/events_jackd.json"
@@ -242,6 +246,12 @@ report_metric()
 
     printf '%s}' "${metrics_}" >> "${RESULT_JSON}" && rm "${METRICS_JSON}"
 
+    avg_latency=$(echo "{${metrics_}}" | jq '.avg_ms')
+    dlogi "Avg latency: ${avg_latency}ms"
+    dlogi "Threshold: ${latency_threshold}ms"
+    if (( $(echo "$avg_latency > $latency_threshold" | bc -l) )); then
+      die "Avg latency ${avg_latency}ms is higher than threshold ${latency_threshold}ms"
+    fi
     xruns=$(echo "{${metrics_}}" | jq 'select(.xruns > 0).xruns')
     if [ -n "${xruns}" ] && [ "${xruns}" -gt "${max_xruns}" ]; then
       printf ']}' >> "${RESULT_JSON}"
