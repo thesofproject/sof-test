@@ -1425,3 +1425,55 @@ reboot_wrapper()
     echo "Reboot command" && sleep 5
     sudo reboot now
 }
+
+check_topology() {
+    # Confirm topology on the dut
+    tplg_file=$(sudo journalctl -q -k | grep -i 'loading topology' | awk -F: '{ topo=$NF; } END { print topo }')
+    echo "Updated topology loaded: $tplg_file"
+}
+
+# Function to check and update topology filename, reload drivers, and confirm update
+update_topology_filename() {
+    firmware_dir="/lib/firmware/"
+    modprobe_file="/etc/modprobe.d/tplg_filename.conf"
+    remove_script="$SCRIPT_HOME/tools/kmod/sof_remove.sh"
+    insert_script="$SCRIPT_HOME/tools/kmod/sof_insert.sh"
+    if ! find "$firmware_dir" -type f -name "$new_tplg_filename" -print -quit | grep -q .; then
+        echo "File $new_tplg_filename does not exist in $firmware_dir or its subdirectories, exiting."
+        exit 1
+    fi
+    if [[ -f "$modprobe_file" ]]; then
+        old_topology=$(sudo cat "$modprobe_file")
+        echo "Old topology: $old_topology"
+    fi
+    # Check if the remove and insert scripts exist
+    if [[ ! -f "$remove_script" ]]; then
+        echo "Error: File $remove_script does not exist. Exiting."
+        exit 1
+    fi
+
+    if [[ ! -f "$insert_script" ]]; then
+        echo "Error: File $insert_script does not exist. Exiting."
+        exit 1
+    fi
+
+    if [[ -n "$new_tplg_filename" ]]; then
+        echo "options snd-sof-pci tplg_filename=$new_tplg_filename" | sudo tee "$modprobe_file" > /dev/null
+        echo "Updated topology filename to: $new_tplg_filename"
+
+        # Reload drivers
+        echo "Reloading drivers"
+        sudo "$remove_script"
+        sudo "$insert_script"
+        check_topology
+    fi
+}
+
+# Restore the original topology after the test
+restore_topology() {
+        echo "$old_topology" | sudo tee "$modprobe_file" > /dev/null
+        echo "Restored original topology: $old_topology"
+        sudo "$remove_script"
+        sudo "$insert_script"
+        check_topology
+}
