@@ -199,6 +199,10 @@ function func_exit_handler()
         fi
     }
 
+    # Only run when changing topology was initiated during the test
+    if [[ -n "$new_tplg_filename" ]]; then
+        restore_topology
+    fi
     print_test_result_exit "$exit_status"
 }
 
