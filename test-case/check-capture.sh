@@ -21,32 +21,38 @@ set -e
 # shellcheck source=case-lib/lib.sh
 source "$(dirname "${BASH_SOURCE[0]}")"/../case-lib/lib.sh
 
-OPT_NAME['t']='tplg'     OPT_DESC['t']='tplg file, default value is env TPLG: $''TPLG'
-OPT_HAS_ARG['t']=1         OPT_VAL['t']="$TPLG"
+OPT_NAME['t']='tplg'            OPT_DESC['t']='tplg file, default value is env TPLG: $''TPLG'
+OPT_HAS_ARG['t']=1              OPT_VAL['t']="$TPLG"
 
-OPT_NAME['r']='round'     OPT_DESC['r']='round count'
-OPT_HAS_ARG['r']=1         OPT_VAL['r']=1
+OPT_NAME['r']='round'           OPT_DESC['r']='round count'
+OPT_HAS_ARG['r']=1              OPT_VAL['r']=1
 
-OPT_NAME['d']='duration' OPT_DESC['d']='arecord duration in second'
-OPT_HAS_ARG['d']=1         OPT_VAL['d']=10
+OPT_NAME['d']='duration'        OPT_DESC['d']='arecord duration in second'
+OPT_HAS_ARG['d']=1              OPT_VAL['d']=10
 
-OPT_NAME['l']='loop'     OPT_DESC['l']='loop count'
-OPT_HAS_ARG['l']=1         OPT_VAL['l']=3
+OPT_NAME['l']='loop'            OPT_DESC['l']='loop count'
+OPT_HAS_ARG['l']=1              OPT_VAL['l']=3
 
-OPT_NAME['o']='output'   OPT_DESC['o']='output dir'
-OPT_HAS_ARG['o']=1         OPT_VAL['o']="$LOG_ROOT/wavs"
+OPT_NAME['o']='output'          OPT_DESC['o']='output dir'
+OPT_HAS_ARG['o']=1              OPT_VAL['o']="$LOG_ROOT/wavs"
 
-OPT_NAME['f']='file'   OPT_DESC['f']='file name prefix'
-OPT_HAS_ARG['f']=1         OPT_VAL['f']=''
+OPT_NAME['f']='file'            OPT_DESC['f']='file name prefix'
+OPT_HAS_ARG['f']=1              OPT_VAL['f']=''
 
-OPT_NAME['s']='sof-logger'   OPT_DESC['s']="Open sof-logger trace the data will store at $LOG_ROOT"
-OPT_HAS_ARG['s']=0             OPT_VAL['s']=1
+OPT_NAME['s']='sof-logger'      OPT_DESC['s']="Open sof-logger trace the data will store at $LOG_ROOT"
+OPT_HAS_ARG['s']=0              OPT_VAL['s']=1
 
-OPT_NAME['F']='fmts'   OPT_DESC['F']='Iterate all supported formats'
-OPT_HAS_ARG['F']=0         OPT_VAL['F']=0
+OPT_NAME['F']='fmts'            OPT_DESC['F']='Iterate all supported formats'
+OPT_HAS_ARG['F']=0              OPT_VAL['F']=0
 
 OPT_NAME['S']='filter_string'   OPT_DESC['S']="run this case on specified pipelines"
-OPT_HAS_ARG['S']=1             OPT_VAL['S']="id:any"
+OPT_HAS_ARG['S']=1              OPT_VAL['S']="id:any"
+
+OPT_NAME['R']='samplerate'      OPT_DESC['R']='sample rate'
+OPT_HAS_ARG['R']=1              OPT_VAL['R']=48000  # Default sample rate
+
+OPT_NAME['T']='tplg_filename'   OPT_DESC['T']='new topology filename'
+OPT_HAS_ARG['T']=1              OPT_VAL['T']=''  # Default empty
 
 func_opt_parse_option "$@"
 
@@ -56,7 +62,12 @@ duration=${OPT_VAL['d']}
 loop_cnt=${OPT_VAL['l']}
 out_dir=${OPT_VAL['o']}
 file_prefix=${OPT_VAL['f']}
+samplerate=${OPT_VAL['R']}  # Use the sample rate specified by the -R option
+new_tplg_filename=${OPT_VAL['T']}  # New topology filename
 
+if [[ -n "$new_tplg_filename" ]]; then
+    update_topology_filename
+fi
 start_test
 logger_disabled || func_lib_start_log_collect
 
@@ -90,7 +101,7 @@ do
                     dlogi "using $file as capture output"
                 fi
 
-                if ! arecord_opts -D"$dev" -r "$rate" -c "$channel" -f "$fmt_elem" -d "$duration" "$file" -v -q;
+                if ! arecord_opts -D"$dev" -r "$samplerate" -c "$channel" -f "$fmt_elem" -d "$duration" "$file" -v -q;
                 then
                     func_lib_lsof_error_dump "$snd"
                     die "arecord on PCM $dev failed at $i/$loop_cnt."
@@ -99,6 +110,5 @@ do
         done
     done
 done
-
 sof-kernel-log-check.sh "$KERNEL_CHECKPOINT"
 exit $?
