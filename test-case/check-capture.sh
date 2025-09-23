@@ -48,6 +48,12 @@ OPT_HAS_ARG['F']=0         OPT_VAL['F']=0
 OPT_NAME['S']='filter_string'   OPT_DESC['S']="run this case on specified pipelines"
 OPT_HAS_ARG['S']=1             OPT_VAL['S']="id:any"
 
+OPT_NAME['R']='samplerate'   OPT_DESC['R']='sample rate'
+OPT_HAS_ARG['R']=1         OPT_VAL['R']=48000  # Default sample rate
+
+OPT_NAME['T']='tplg_filename'   OPT_DESC['T']='new topology filename'
+OPT_HAS_ARG['T']=1         OPT_VAL['T']=''  # Default empty
+
 func_opt_parse_option "$@"
 
 tplg=${OPT_VAL['t']}
@@ -56,7 +62,12 @@ duration=${OPT_VAL['d']}
 loop_cnt=${OPT_VAL['l']}
 out_dir=${OPT_VAL['o']}
 file_prefix=${OPT_VAL['f']}
+samplerate=${OPT_VAL['R']}  # Use the sample rate specified by the -R option
+new_tplg_filename=${OPT_VAL['T']}  # New topology filename
 
+if [[ -n "$new_tplg_filename" ]]; then
+    update_topology_filename
+fi
 start_test
 logger_disabled || func_lib_start_log_collect
 
@@ -90,7 +101,7 @@ do
                     dlogi "using $file as capture output"
                 fi
 
-                if ! arecord_opts -D"$dev" -r "$rate" -c "$channel" -f "$fmt_elem" -d "$duration" "$file" -v -q;
+                if ! arecord_opts -D"$dev" -r "$samplerate" -c "$channel" -f "$fmt_elem" -d "$duration" "$file" -v -q;
                 then
                     func_lib_lsof_error_dump "$snd"
                     die "arecord on PCM $dev failed at $i/$loop_cnt."
@@ -99,6 +110,5 @@ do
         done
     done
 done
-
 sof-kernel-log-check.sh "$KERNEL_CHECKPOINT"
 exit $?
