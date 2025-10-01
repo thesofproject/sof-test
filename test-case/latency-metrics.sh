@@ -245,7 +245,7 @@ report_metric()
     xruns=$(echo "{${metrics_}}" | jq 'select(.xruns > 0).xruns')
     if [ -n "${xruns}" ] && [ "${xruns}" -gt "${max_xruns}" ]; then
       printf ']}' >> "${RESULT_JSON}"
-      skip_test "XRuns: ${xruns} detected!"
+      die "XRuns: ${xruns} detected!"
     fi
   fi
   json_next_sep=","
