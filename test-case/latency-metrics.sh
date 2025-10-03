@@ -260,7 +260,7 @@ report_end()
 
 main()
 {
-  pkill jackd || True
+  pkill jackd || true
   check_latency_options
 
   setup_kernel_check_point
