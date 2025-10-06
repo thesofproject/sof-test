@@ -123,11 +123,11 @@ check_latency_options()
 {
   if [ -n "${alsa_device}" ]; then
     if [ -n "${pcm_p}" ] || [ -n "${pcm_c}" ]; then
-      skip_test "Give either ALSA device, or ALSA playback/capture pcm-s."
+      die "Give either ALSA device, or ALSA playback/capture pcm-s."
     fi
     JACKD_BACKEND_OPTIONS=("-d" "${alsa_device}" "${JACKD_BACKEND_OPTIONS[@]}")
   elif [ -z "${pcm_p}" ] || [ -z "${pcm_c}" ]; then
-      skip_test "No playback or capture ALSA PCM is specified."
+      die "No playback or capture ALSA PCM is specified."
   else
     JACKD_BACKEND_OPTIONS=("-P" "${pcm_p}" "-C" "${pcm_c}" "${JACKD_BACKEND_OPTIONS[@]}")
   fi
@@ -138,7 +138,7 @@ check_latency_options()
   fi
 
   if [ -z "${port_playback}" ] || [ -z "${port_capture}" ]; then
-    skip_test "No playback or capture JACK port is specified."
+    die "No playback or capture JACK port is specified."
   fi
 }
 
