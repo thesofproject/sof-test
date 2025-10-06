@@ -29,3 +29,5 @@ lsmod | grep "sof" || {
     lsmod
     die "No available sof module found!"
 }
+
+reboot_wrapper
