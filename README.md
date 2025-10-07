@@ -148,3 +148,20 @@ not to make your system vulnerable.
 On systems using auditd, sof-test will also generate a huge amount of
 log. If you need to keep `audit`, check `man auditctl` to find how to
 filter out sudo noise.
+
+## Rebooting DUT during tests
+
+The SOF test automation framework supports rebooting the DUT during tests.
+In order to use it, the test developer needs to use the `reboot_wrapper`
+function from `case-lib/lib.sh`.
+
+It is important to note that after the DUT is rebooted, the framework will run
+the test script again. This allows reboots to be carried out during test
+execution. To avoid infinite loops where the test keeps running and rebooting
+the platform, the developer needs to provide a way to detect that the reboot was
+performed and continue test execution from that point. This can be achieved by
+creating a persistent file before the reboot and reading it within the test
+script. This file can also contain context of the test, e.g. the number of
+reboots already performed (if the test requires several reboots). Since there
+can be many use cases of the reboot wrapper, no particular format of the file is
+enforced. It is up to the test developer to handle the reboots.
