@@ -215,6 +215,7 @@ remove_module snd_sof_ipc_flood_test
 remove_module snd_sof_ipc_msg_injector
 remove_module snd_sof_ipc_kernel_injector
 remove_module snd_sof_dma_trace
+remove_module snd_sof_fw_gdb
 
 #-------------------------------------------
 # SOF OF driver
