@@ -59,7 +59,7 @@ run_aplays()
         fi
         dlogi "Setting default sink to $sink_id: $sink_type"
         wpctl set-default "$sink_id"
-        aplay_opts -D pipewire /dev/zero -q &
+        aplay_opts -D pipewire /dev/zero -d "$duration" -q &
         aplay_num=$((aplay_num+1))
     done
 }
@@ -78,7 +78,7 @@ run_arecords()
         fi
         dlogi "Setting default source to $source_id: $source_type"
         wpctl set-default "$source_id"
-        arecord_opts -D pipewire /dev/null -q &
+        arecord_opts -D pipewire /dev/null -d "$duration" -q &
         arecord_num=$((arecord_num+1))
     done
 }
