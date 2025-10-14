@@ -588,6 +588,7 @@ func_lib_enable_pipewire()
     systemctl --user start wireplumber.service
 
     systemctl --user daemon-reload
+    sleep 1
 
     systemctl is-active --user --quiet pipewire{,-pulse}.{socket,service} && dlogi "Pipewire started"
     systemctl is-active --user --quiet wireplumber.service && dlogi "Wireplumber started"
@@ -609,6 +610,7 @@ func_lib_disable_pipewire()
 
     sudo systemctl --global mask wireplumber.service
     sudo systemctl --global mask pipewire{,-pulse}.{socket,service}
+    sleep 3
 
     if systemctl is-active --user --quiet wireplumber.service; then dlogi "Wireplumber not stopped"; else dlogi "Wireplumber stopped"; fi
     if systemctl is-active --user --quiet pipewire{,-pulse}.{socket,service}; then dlogi "Pipewire not stopped"; else dlogi "Pipewire stopped"; fi
@@ -951,15 +953,9 @@ aplay_opts()
 	# shellcheck disable=SC2086
         tinyplay $SOF_ALSA_OPTS $SOF_APLAY_OPTS -D "$card_nr" -d "$dev_nr"  -i wav noise.wav
     elif [[ "$SOF_ALSA_TOOL" = "alsa" ]]; then
-        if [[ "$SOF_TEST_PIPEWIRE" == true ]]; then
-            dlogc "timeout -k $duration $duration aplay $SOF_ALSA_OPTS $SOF_APLAY_OPTS $*"  # option -d doesn't work with pipewire so we need timeout
-            # shellcheck disable=SC2086
-            timeout -k "$duration" "$duration" aplay $SOF_ALSA_OPTS $SOF_APLAY_OPTS "$@"
-        else
-            dlogc "aplay $SOF_ALSA_OPTS $SOF_APLAY_OPTS $*"
-            # shellcheck disable=SC2086
-            aplay $SOF_ALSA_OPTS $SOF_APLAY_OPTS "$@"
-        fi
+        dlogc "aplay $SOF_ALSA_OPTS $SOF_APLAY_OPTS $*"
+        # shellcheck disable=SC2086
+        aplay $SOF_ALSA_OPTS $SOF_APLAY_OPTS "$@"
     else
         die "Unknown ALSA tool: ${SOF_ALSA_TOOL}"
     fi
@@ -976,18 +972,31 @@ arecord_opts()
 	# shellcheck disable=SC2086
         tinycap $SOF_ALSA_OPTS $SOF_ARECORD_OPTS "$file" -D "$card_nr" -d "$dev_nr" -c "$channel" -t "$duration" -r "$rate" -b "$format"
     elif [[ "$SOF_ALSA_TOOL" = "alsa" ]]; then
-        if [[ "$SOF_TEST_PIPEWIRE" == true ]]; then
-            dlogc "timeout -k $duration $duration arecord $SOF_ALSA_OPTS $SOF_ARECORD_OPTS $*"  # option -d doesn't work with pipewire so we need timeout
-            # shellcheck disable=SC2086
-            timeout -k "$duration" "$duration" arecord $SOF_ALSA_OPTS $SOF_ARECORD_OPTS "$@"
-        else
-            dlogc "arecord $SOF_ALSA_OPTS $SOF_ARECORD_OPTS $*"
-            # shellcheck disable=SC2086
-            arecord $SOF_ALSA_OPTS $SOF_ARECORD_OPTS "$@"
-        fi  
+        dlogc "arecord $SOF_ALSA_OPTS $SOF_ARECORD_OPTS $*"
+        # shellcheck disable=SC2086
+        arecord $SOF_ALSA_OPTS $SOF_ARECORD_OPTS "$@"
     else
         die "Unknown ALSA tool: ${SOF_ALSA_TOOL}"
     fi
+}
+
+# Get the ID of the first source of a given type, e.g. "Microphone" or "Audio codec". Print an empty line if ID not found.
+get_id_of_pipewire_source()
+{
+    # $ wpctl status returns list of all endpoints managed by wireplumber. We use grep to get only lines after "Sources".
+    # Then we filter by given sink/source type, which returns something like this: 
+    # │  *   48. sof-soundwire Microphone            [vol: 0.40]  (or without the * when it's not the current default)
+    # We filter out everything but ID, and only take the first line of the output (if there's more that one object of that type we ignore the rest)
+
+    local object_name="$1"
+    object_id=$(wpctl status | grep "Sources" -A 10 | awk -v name="$object_name" 'tolower($0) ~ tolower(name) { sub(/\*/,""); sub(/\./,"",$2); print $2; exit }')
+
+    # Check if object_id is a number
+    re='^[0-9]+$'
+    if [[ "$object_id" =~ $re ]] ; then
+        printf '%s' "$object_id"
+    fi
+
 }
 
 # Get the ID of the first sink/source of a given type, e.g. "Speaker" or "Headphones". Print an empty line if ID not found.
