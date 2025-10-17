@@ -100,32 +100,123 @@ function __upload_wav_file
     done
 }
 
-# check the PCMs before alsabat test
-dlogi "check the PCMs before alsabat test"
-aplay   "-Dplug${pcm_p}" -d 1 /dev/zero -q || die "Failed to play on PCM: ${pcm_p}"
-arecord "-Dplug${pcm_c}" -d 1 /dev/null -q || die "Failed to capture on PCM: ${pcm_c}"
+# Set default pipewire sink and source
+set_pcms_in_pipewire()
+{
+    if [[ "$TPLG" == *"nocodec"* ]]; then
+        sink="sof-nocodec Stereo"
+        source="sof-nocodec Stereo"
+    elif [[ "$TPLG" == *"hda"* ]]; then
+        sink="Headphones"  # confirm that
+        source="Audio Codec Analog"
+    elif [[ "$TPLG" == *"sdw"* ]]; then
+        sink="Headphones"  # confirm that
+        source="Audio Codec Analog"
+    else
+        skip_test "Test not supported for this configuration"
+    fi
 
-# alsabat test
-# BT offload PCMs also support mono playback.
-dlogc "alsabat -P$pcm_p --standalone -n $frames -r $rate -c $channel_p -f $format -F $frequency -k $sigmak"
-alsabat "-P${pcm_p}" --standalone -n "${frames}" -c "${channel_p}" -r "${rate}" -f "${format}" -F "${frequency}" -k "${sigmak}" & playPID=$!
+    # Set default sink
+    sink_id=$(get_id_of_pipewire_endpoint "$sink")
+    if [ -z "$sink_id" ]; then
+        die "Expected pipewire sink not found"
+    fi
+    dlogi "Setting default pipewire sink to $sink_id: $sink"
+    wpctl set-default $sink_id
 
-# playback may have low latency, add one second delay to aviod recording zero at beginning.
-sleep 1
-
-# Select the first card
-first_card_name=$(aplay -l | awk '/^card ([0-9]+)/ {print $3; exit}')
-# dump amixer contents always.
-# Good case amixer settings is for reference, bad case for debugging.
-amixer -c "${first_card_name}" contents > "$LOG_ROOT"/amixer_settings.txt
-
-# We use different USB sound cards in CI, part of them only support 1 channel for capture,
-# so make the channel as an option and config it in alsabat-playback.csv
-dlogc "alsabat -C$pcm_c -c $channel_c -r $rate -f $format -F $frequency -k $sigmak"
-alsabat "-C${pcm_c}" -c "${channel_c}" -r "${rate}" -f "${format}" -F "${frequency}" -k "${sigmak}" || {
-        # upload failed wav file
-        __upload_wav_file
-        exit 1
+    # Set default source
+    source_id=$(get_id_of_pipewire_source "$source")
+    if [ -z "$source_id" ]; then
+        die "Expected pipewire source not found"
+    fi
+    dlogi "Setting default pipewire source to $source_id: $source"
+    wpctl set-default $source_id
 }
 
-wait $playPID
+check_the_pcms()
+{
+    aplay   "-Dplug${pcm_p}" -d 1 /dev/zero -q || die "Failed to play on PCM: ${pcm_p}"
+    arecord "-Dplug${pcm_c}" -d 1 /dev/null -q || die "Failed to capture on PCM: ${pcm_c}"
+}
+
+check_the_pcms_with_pipewire()
+{
+    aplay   -D pipewire -d 1 /dev/zero -q || die "Failed to play on pipewire"
+    arecord -D pipewire -d 1 /dev/null -q || die "Failed to capture on pipewire"
+}
+
+run_test_on_pipewire()
+{
+    # Set correct sink and source in pipewire
+    set_pcms_in_pipewire
+
+    # check the PCMs before alsabat test
+    check_the_pcms_with_pipewire
+
+    # alsabat test
+    # when ran without specified PCM, alsabat does playback and capture in one command
+    dlogc "alsabat -n $frames -r $rate -c $channel_p -f $format -F $frequency -k $sigmak"
+    alsabat -n "${frames}" -c "${channel_p}" -r "${rate}" -f "${format}" -F "${frequency}" -k "${sigmak}" || {
+            # upload failed wav file
+            __upload_wav_file
+            exit 1
+    }
+}
+
+run_test_on_alsa_direct_mode()
+{
+    # check the PCMs before alsabat test
+    check_the_pcms
+
+    # alsabat test
+    # BT offload PCMs also support mono playback.
+    dlogc "alsabat -P$pcm_p --standalone -n $frames -r $rate -c $channel_p -f $format -F $frequency -k $sigmak"
+    alsabat "-P${pcm_p}" --standalone -n "${frames}" -c "${channel_p}" -r "${rate}" -f "${format}" -F "${frequency}" -k "${sigmak}" & playPID=$!
+
+    # playback may have low latency, add one second delay to aviod recording zero at beginning.
+    sleep 1
+
+    # Select the first card
+    first_card_name=$(aplay -l | awk '/^card ([0-9]+)/ {print $3; exit}')
+    # dump amixer contents always.
+    # Good case amixer settings is for reference, bad case for debugging.
+    amixer -c "${first_card_name}" contents > "$LOG_ROOT"/amixer_settings.txt
+
+    # We use different USB sound cards in CI, part of them only support 1 channel for capture,
+    # so make the channel as an option and config it in alsabat-playback.csv
+    dlogc "alsabat -C$pcm_c -c $channel_c -r $rate -f $format -F $frequency -k $sigmak"
+    alsabat "-C${pcm_c}" -c "${channel_c}" -r "${rate}" -f "${format}" -F "${frequency}" -k "${sigmak}" || {
+            # upload failed wav file
+            __upload_wav_file
+            exit 1
+    }
+
+    wait $playPID
+}
+
+main()
+{
+    start_test
+
+    if [ "$pcm_p" = "" ]||[ "$pcm_c" = "" ];
+    then
+        dloge "No playback or capture PCM is specified. Skip the alsabat test"
+        exit 2
+    fi
+
+    check_locale_for_alsabat
+
+    logger_disabled || func_lib_start_log_collect
+
+    set_alsa
+
+    if [ "$SOF_TEST_PIPEWIRE" == true ]; then
+        run_test_on_pipewire
+    else
+        run_test_on_alsa_direct_mode
+    fi
+}
+
+{
+    main "$@"; exit "$?"
+}
