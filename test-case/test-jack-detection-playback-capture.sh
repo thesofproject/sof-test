@@ -47,25 +47,35 @@ source "${TESTLIB}/lib.sh"
 source "${TESTLIB}/relay.sh"
 
 # shellcheck disable=SC2153
-OPT_NAME['t']='tplg'        OPT_DESC['t']="tplg file, default value is env TPLG: $TPLG"
-OPT_HAS_ARG['t']=1          OPT_VAL['t']="$TPLG"
+OPT_NAME['t']='tplg'                OPT_DESC['t']="tplg file, default value is env TPLG: $TPLG"
+OPT_HAS_ARG['t']=1                  OPT_VAL['t']="$TPLG"
 
-OPT_NAME['l']='loop'        OPT_DESC['l']='loop count'
-OPT_HAS_ARG['l']=1          OPT_VAL['l']=1
+OPT_NAME['l']='loop'                OPT_DESC['l']='loop count'
+OPT_HAS_ARG['l']=1                  OPT_VAL['l']=1
 
-OPT_NAME['s']='sof-logger'  OPT_DESC['s']="Open sof-logger trace the data will store at $LOG_ROOT"
-OPT_HAS_ARG['s']=0          OPT_VAL['s']=1
+OPT_NAME['s']='sof-logger'          OPT_DESC['s']="Open sof-logger trace the data will store at $LOG_ROOT"
+OPT_HAS_ARG['s']=0                  OPT_VAL['s']=1
 
-OPT_NAME['u']='relay'       OPT_DESC['u']='name of usbrelay switch, default value is HURTM_2'
-OPT_HAS_ARG['u']=1          OPT_VAL['u']="HURTM_2"
+OPT_NAME['d']='dsp-settle-sleep'    OPT_DESC['d']="Waitng time to change control state"
+OPT_HAS_ARG['d']=1                  OPT_VAL['d']=3
+
+OPT_NAME['u']='relay'               OPT_DESC['u']='name of usbrelay switch, default value is HURTM_2'
+OPT_HAS_ARG['u']=1                  OPT_VAL['u']="HURTM_2"
+
+OPT_NAME['H']='headphone'           OPT_DESC['H']='name of pcm control for headphone jack'
+OPT_HAS_ARG['H']=1                  OPT_VAL['H']="headphone jack"
+
+OPT_NAME['M']='headset'             OPT_DESC['M']='name of pcm control for headset mic jack'
+OPT_HAS_ARG['M']=1                  OPT_VAL['M']="headset [a-z ]*jack"
 
 func_opt_parse_option "$@"
 
 tplg=${OPT_VAL['t']}
 relay=${OPT_VAL['u']}
 loop_cnt=${OPT_VAL['l']}
-
-DSP_SETTLE_TIME=2
+dsp_settle_time=${OPT_VAL['d']}
+headphone_jack_name=${OPT_VAL['H']}
+headset_mic_jack_name=${OPT_VAL['M']}
 
 check_control_switch_state()
 {
@@ -77,16 +87,8 @@ check_control_switch_state()
     local expected_control_state="$2"
     local control_state
 
-    control_state=$(amixer -c "$SOFCARD" contents | awk -v name="$control_name" '
-        BEGIN {
-            RS = "";
-            IGNORECASE = 1;
-            split(name, parts, " ");
-        };
-        $0 ~ parts[1] && $0 ~ parts[2] {
-            if (match($0, /values=(on|off)/, m)) print m[1];
-        }
-    ')
+    control_state=$(amixer -c "$SOFCARD" contents | \
+                        gawk -v name="$control_name" -f "${TESTLIB}/control_state.awk")
     dlogi "$control_name switch is: $control_state"
 
     if [[ "$expected_control_state" == "$control_state" ]]; then
@@ -116,7 +118,7 @@ testing_one_pcm()
     usbrelay_switch "$relay" 1
 
     # Wait for a short period to allow the system to detect the unplug event
-    sleep $DSP_SETTLE_TIME
+    sleep "$dsp_settle_time"
 
     # check if the aplay process is still running after unplugging the jack
     ps -p "$pid_playback" > /dev/null || {
@@ -124,19 +126,19 @@ testing_one_pcm()
         die "Playback process terminated unexpectedly after unplugging the jack."
     }
 
-    check_control_switch_state "headset" "off" || {
-        die "unplug headset jack failed."
+    check_control_switch_state "$headset_mic_jack_name" "off" || {
+        die "unplug $headset_mic_jack_name jack failed."
     }
 
-    check_control_switch_state "headphone" 'off' || {
-        die "unplug headphone jack failed."
+    check_control_switch_state "$headphone_jack_name" "off" || {
+        die "unplug $headphone_jack_name jack failed."
     }
 
     dlogi "Plug jack audio."
     usbrelay_switch "$relay" 0
 
     # Wait for a short period to allow the system to detect the plug event
-    sleep $DSP_SETTLE_TIME
+    sleep "$dsp_settle_time"
 
     # check if the aplay process is still running after unplugging the jack
     ps -p "$pid_playback" > /dev/null || {
@@ -144,12 +146,12 @@ testing_one_pcm()
         die "Playback process terminated unexpectedly after plugging the jack."
     }
 
-    check_control_switch_state "headset" "on" || {
-        die "Plug headset jack failed."
+    check_control_switch_state "$headset_mic_jack_name" "on" || {
+        die "Plug $headset_mic_jack_name failed."
     }
 
-    check_control_switch_state "headphone" "on" || {
-        die "Plug headphone jack failed."
+    check_control_switch_state "$headphone_jack_name" "on" || {
+        die "Plug $headphone_jack_name jack failed."
     }
 
     kill -9 $pid_playback > /dev/null 2>&1
@@ -184,6 +186,9 @@ main()
 
     dlogi "Reset - plug jack audio"
     usbrelay_switch "$relay" 0
+
+    dlogi "Headphone patten: $headphone_jack_name"
+    dlogi "Headset mic pattern: $headset_mic_jack_name"
 
     for idx in $(seq 0 $((PIPELINE_COUNT - 1)))
     do
