@@ -171,13 +171,13 @@ main()
 
     start_test
 
-    logger_disabled || func_lib_start_log_collect
-
-    # Check if usbrelay tool is installed
+    dlogi "Checking usbrelay availability..."
     command -v usbrelay || {
         # If usbrelay package is not installed
         skip_test "usbrelay command not found. Please install usbrelay package."
     }
+
+    logger_disabled || func_lib_start_log_collect
 
     # display current status of relays
     usbrelay --debug
