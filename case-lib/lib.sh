@@ -1471,9 +1471,11 @@ update_topology_filename() {
 
 # Restore the original topology after the test
 restore_topology() {
-        echo "$old_topology" | sudo tee "$modprobe_file" > /dev/null
-        echo "Restored original topology: $old_topology"
-        sudo "$remove_script"
-        sudo "$insert_script"
+        if [[ -f "$old_topology" ]]; then
+            echo "$old_topology" | sudo tee "$modprobe_file" > /dev/null
+            echo "Restored original topology: $old_topology"
+            sudo "$remove_script"
+            sudo "$insert_script"
+        fi
         check_topology
 }
