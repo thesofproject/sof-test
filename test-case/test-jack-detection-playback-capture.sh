@@ -87,6 +87,7 @@ check_control_switch_state()
     local expected_control_state="$2"
     local control_state
 
+    dlogi "Check if the state of control: $control_name is correct."
     control_state=$(amixer -c "$SOFCARD" contents | \
                         gawk -v name="$control_name" -f "${TESTLIB}/control_state.awk")
     dlogi "$control_name switch is: $control_state"
@@ -94,6 +95,7 @@ check_control_switch_state()
     if [[ "$expected_control_state" == "$control_state" ]]; then
         return 0
     else
+        dloge "Expected control state ($expected_control_state) but got ($control_state)."
         return 1
     fi
 }
@@ -176,13 +178,15 @@ main()
     dlogi "Checking usbrelay availability..."
     command -v usbrelay || {
         # If usbrelay package is not installed
-        skip_test "usbrelay command not found. Please install usbrelay package."
+        skip_test "usbrelay command not found."
+    }
+
+    # display current status of relays
+    usbrelay_switch --debug || {
+        skip_test "Failed to get usbrelay status."
     }
 
     logger_disabled || func_lib_start_log_collect
-
-    # display current status of relays
-    usbrelay --debug
 
     dlogi "Reset - plug jack audio"
     usbrelay_switch "$relay" 0

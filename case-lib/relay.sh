@@ -10,11 +10,13 @@ usbrelay_switch()
 {
     if [[ "$1" == "--debug" ]]; then
         dlogi "Debug mode: Current status of all relays:"
-        usbrelay || {
-            die "Failed to get usbrelay status.
-            The usbrelay hw module is not responding or no relays detected.
-            Check hardware connection."
-        }
+        if usbrelay --debug 2>&1 | grep -q "Found 0 devices"; then
+            dloge "No relays detected. Found 0 devices. Check hardware connection."
+            dloge "The usbrelay hw module is not responding or no relays detected. Check hardware connection."
+            # Skip the test if no relays are detected
+            exit 2
+        fi
+        return 0
     fi
 
     # Declare a constant for the relay settle time
