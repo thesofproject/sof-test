@@ -65,10 +65,14 @@ file_prefix=${OPT_VAL['f']}
 samplerate=${OPT_VAL['R']}  # Use the sample rate specified by the -R option
 new_tplg_filename=${OPT_VAL['T']}  # New topology filename
 
-if [[ -n "$new_tplg_filename" ]]; then
+if [[ -n "$new_tplg_filename" && "$TPLG" == *nocodec* ]]; then
     update_topology_filename
 fi
+
 start_test
+if [[ -n "$new_tplg_filename" && "$TPLG" != *nocodec* ]]; then
+    skip_test "Skipping: this test is supported only on NOCODEC platforms."
+fi
 logger_disabled || func_lib_start_log_collect
 
 setup_kernel_check_point
