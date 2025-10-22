@@ -33,3 +33,11 @@ state.sofsoundwire {
 		value true
 	}
 }
+state.CODEC {
+	control.4 {
+		iface MIXER
+		name 'PCM Playback Volume'
+		value.0 110
+		value.1 110
+	}
+}
