@@ -361,7 +361,12 @@ main()
 
             # Workaround for DMA trace bug
             # https://github.com/thesofproject/sof/issues/4333
-            if [ "$f" = data ]; then
+#            if [ "$f" = data ]; then
+
+            # let's check whether #4333 was finally fixed by sof #4763
+            # + linux #3523
+            if false; then
+
                 dloge "Empty or stuck DMA trace? Let's try to nudge it."
                 dloge '  vv  Workaround for SOF issue 4333  vv'
                 local second_chance="$LOG_ROOT/logger.dma_trace_bug_4333.txt"
