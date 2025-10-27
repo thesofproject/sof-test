@@ -5,7 +5,7 @@ set -e
 ##
 ## Case Name: check suspend/resume status
 ## Preconditions:
-##    N/A
+##    - (if ran with --sleepgraph) Sleepgraph installed on dut
 ## Description:
 ##    Run the suspend/resume command to check device status
 ## Case step:
@@ -26,27 +26,39 @@ source "$TOPDIR"/case-lib/lib.sh
 random_min=3    # wait time should >= 3 for other device wakeup from sleep
 random_max=20
 
-OPT_NAME['l']='loop'     OPT_DESC['l']='loop count'
-OPT_HAS_ARG['l']=1       OPT_VAL['l']=5
+OPT_NAME['l']='loop'                   OPT_DESC['l']='loop count'
+OPT_HAS_ARG['l']=1                     OPT_VAL['l']=5
 
-OPT_NAME['T']='type'     OPT_DESC['T']="suspend/resume type from /sys/power/mem_sleep"
-OPT_HAS_ARG['T']=1       OPT_VAL['T']=""
+OPT_NAME['T']='type'                   OPT_DESC['T']="suspend/resume type from /sys/power/mem_sleep"
+OPT_HAS_ARG['T']=1                     OPT_VAL['T']=""
 
-OPT_NAME['S']='sleep'    OPT_DESC['S']='suspend/resume command:rtcwake sleep duration'
-OPT_HAS_ARG['S']=1       OPT_VAL['S']=5
+OPT_NAME['S']='sleep'                  OPT_DESC['S']='suspend/resume command:rtcwake sleep duration'
+OPT_HAS_ARG['S']=1                     OPT_VAL['S']=5
 
-OPT_NAME['u']='unload-audio'  OPT_DESC['u']='unload audio modules for the test'
-OPT_HAS_ARG['u']=0            OPT_VAL['u']=0
+OPT_NAME['u']='unload-audio'           OPT_DESC['u']='unload audio modules for the test'
+OPT_HAS_ARG['u']=0                     OPT_VAL['u']=0
 
-OPT_NAME['w']='wait'     OPT_DESC['w']='idle time after suspend/resume wakeup'
-OPT_HAS_ARG['w']=1       OPT_VAL['w']=5
+OPT_NAME['w']='wait'                   OPT_DESC['w']='idle time after suspend/resume wakeup'
+OPT_HAS_ARG['w']=1                     OPT_VAL['w']=5
 
-OPT_NAME['r']='random'   OPT_DESC['r']="Randomly setup wait/sleep time, range is [$random_min-$random_max], this option will overwrite s & w option"
-OPT_HAS_ARG['r']=0       OPT_VAL['r']=0
+OPT_NAME['r']='random'                 OPT_DESC['r']="Randomly setup wait/sleep time, range is [$random_min-$random_max], this option will overwrite s & w option"
+OPT_HAS_ARG['r']=0                     OPT_VAL['r']=0
 
 # processid is set by check-suspend-resume-with-audio.sh for audio test case
-OPT_NAME['p']='processid'     OPT_DESC['p']='Fail immediately if this process dies'
-OPT_HAS_ARG['p']=1            OPT_VAL['p']=''
+OPT_NAME['p']='processid'              OPT_DESC['p']='Fail immediately if this process dies'
+OPT_HAS_ARG['p']=1                     OPT_VAL['p']=''
+
+OPT_NAME['s']='sleepgraph'             OPT_DESC['s']='run with sleepgraph (http://github.com/intel/pm-graph.git)'
+OPT_HAS_ARG['s']=0                     OPT_VAL['s']=0
+
+OPT_NAME['c']='component-name'         OPT_DESC['c']='component for which we check resume time'
+OPT_HAS_ARG['c']=1                     OPT_VAL['c']=''
+
+OPT_NAME['t']='resume-time'            OPT_DESC['t']='resume time threshold'
+OPT_HAS_ARG['t']=1                     OPT_VAL['t']=''
+
+OPT_NAME['a']='acceptance-range'       OPT_DESC['a']='acceptance range for thresholds'
+OPT_HAS_ARG['a']=1                     OPT_VAL['a']=0.3
 
 func_opt_parse_option "$@"
 func_lib_check_sudo
@@ -69,19 +81,26 @@ dlogi "Current suspend/resume type mode: $(cat /sys/power/mem_sleep)"
 loop_count=${OPT_VAL['l']}
 declare -a sleep_lst wait_lst
 
-if [ ${OPT_VAL['r']} -eq 1 ]; then
+if [ "${OPT_VAL['r']}" -eq 1 ]; then
     # create random number list
-    for i in $(seq 1 $loop_count)
+    for i in $(seq 1 "$loop_count")
     do
-        sleep_lst[$i]=$(func_lib_get_random $random_max $random_min)
-        wait_lst[$i]=$(func_lib_get_random $random_max $random_min)
+        sleep_lst[i]=$(func_lib_get_random $random_max $random_min)
+        wait_lst[i]=$(func_lib_get_random $random_max $random_min)
     done
 else
-    for i in $(seq 1 $loop_count)
+    for i in $(seq 1 "$loop_count")
     do
-        sleep_lst[$i]=${OPT_VAL['S']}
-        wait_lst[$i]=${OPT_VAL['w']}
+        sleep_lst[i]=${OPT_VAL['S']}
+        wait_lst[i]=${OPT_VAL['w']}
     done
+fi
+
+if [ "${OPT_VAL['s']}" -eq 1 ]; then
+    if ! command -v sleepgraph >/dev/null 2>&1; then
+        echo "Sleepgraph is not installed! Exiting..."
+        exit 1
+    fi
 fi
 
 save_initial_stats()
@@ -142,8 +161,9 @@ main()
     sleep 1
 
     local keep_modules=true already_unloaded=false
+    sleepgraph_failures=0
 
-    if [ ${OPT_VAL['u']} = 1 ]; then
+    if [ "${OPT_VAL['u']}" = 1 ]; then
         keep_modules=false
     fi
 
@@ -159,7 +179,7 @@ main()
     expected_wakeup_count=$(cat /sys/power/wakeup_count)
     expected_stats_success=$(cat /sys/power/suspend_stats/success)
     save_initial_stats
-    for i in $(seq 1 $loop_count)
+    for i in $(seq 1 "$loop_count")
     do
         sleep_once "$i"
     done
@@ -168,6 +188,51 @@ main()
         die "Failed to reload audio drivers"
     sof-kernel-log-check.sh "$KERNEL_CHECKPOINT" ||
         die "Found kernel error after reloading audio drivers"
+
+    if [ $sleepgraph_failures -eq 0 ]; then
+        dlogi "FINAL TEST RESULT: All time measurements within the thresholds."
+    else
+        die "FINAL TEST RESULT: Some time measurements not within the thresholds!"
+    fi
+}
+
+analyze_sleepgraph_results()
+{
+    dlogi "Analyzing sleepgraph results"
+    results_file=$(find suspend-*/*.html)
+    cp "$results_file" "$LOG_ROOT/"
+
+    thresholds=$( jq -n \
+                --arg component_name "${OPT_VAL['c']}" \
+                --arg resume_time "${OPT_VAL['t']}" \
+                '{$component_name:{"resume":$resume_time}}')
+
+    thresholds_acceptance_range="${OPT_VAL['a']}"
+
+    dlogi "Analyzing $results_file file..."
+    if python3 "$SCRIPT_HOME"/tools/analyze-sleepgraph-results.py "$results_file" "$thresholds" "$thresholds_acceptance_range"; then
+        dlogi "All times measurements within the thresholds"
+    else
+        dlogw "Time measurements not within the thresholds!"
+        sleepgraph_failures=$((sleepgraph_failures+1))
+    fi
+}
+
+run_rtcwake()
+{
+    if [ "${OPT_VAL['s']}" -eq 1 ]; then
+        # remove any files from previous sleepgraph runs
+        rm -rf suspend-*
+
+        dlogc "Run the command: sleepgraph -rtcwake ${sleep_lst[$i]} -m freeze"
+        sudo sleepgraph -rtcwake "${sleep_lst[$i]}" -m freeze ||
+            dump_and_die "rtcwake returned $?"
+        analyze_sleepgraph_results
+    else
+        dlogc "Run the command: rtcwake -m mem -s ${sleep_lst[$i]}"
+        sudo rtcwake -m mem -s "${sleep_lst[$i]}" ||
+            dump_and_die "rtcwake returned $?"
+    fi
 }
 
 sleep_once()
@@ -179,11 +244,9 @@ sleep_once()
     setup_kernel_check_point
     expected_wakeup_count=$((expected_wakeup_count+1))
     expected_stats_success=$((expected_stats_success+1))
-    dlogc "Run the command: rtcwake -m mem -s ${sleep_lst[$i]}"
-    sudo rtcwake -m mem -s "${sleep_lst[$i]}" ||
-        dump_and_die "rtcwake returned $?"
+    run_rtcwake
     dlogc "sleep for ${wait_lst[$i]}"
-    sleep ${wait_lst[$i]}
+    sleep "${wait_lst[$i]}"
     dlogi "Check for the kernel log status"
     # check kernel log for each iteration to catch issues
     sof-kernel-log-check.sh "$KERNEL_CHECKPOINT" || dump_and_die "Caught error in kernel log"
