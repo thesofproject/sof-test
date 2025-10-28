@@ -124,8 +124,8 @@ main()
 
     start_test
 
-    if [[ "$tplg" != *"nocodec"* ]]; then
-        skip_test "Test currently supported for NO-CODEC platforms only"
+    if [[ "$tplg" != *nocodec* ]]; then
+        skip_test "Skipping: test currently supported for NO-CODEC platforms only"
     fi
 
     logger_disabled || func_lib_start_log_collect

@@ -87,6 +87,10 @@ main()
     init_globals
 
     start_test
+    if [[ "$TPLG" != *nocodec* ]]; then
+        skip_test "Skipping: this test is supported only on NOCODEC platforms."
+    fi
+    
     logger_disabled || func_lib_start_log_collect
 
     setup_kernel_check_point
