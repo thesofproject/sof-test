@@ -41,37 +41,43 @@ source "${TESTLIB}/relay.sh"
 ALSABAT_WAV_FILES="/tmp/mc.wav.*"
 rm -f "$ALSABAT_WAV_FILES"
 
-DSP_SETTLE_TIME=2
+OPT_NAME['l']='loop'                OPT_DESC['l']='loop count'
+OPT_HAS_ARG['l']=1                  OPT_VAL['l']=1
 
-OPT_NAME['p']='pcm_p'     	OPT_DESC['p']='pcm for playback. Example: hw:0,0'
-OPT_HAS_ARG['p']=1          OPT_VAL['p']='hw:0,0'
+OPT_NAME['p']='pcm_p'     	        OPT_DESC['p']='pcm for playback. Example: hw:0,0'
+OPT_HAS_ARG['p']=1                  OPT_VAL['p']='hw:0,0'
 
-OPT_NAME['N']='channel_p'   OPT_DESC['N']='channel number for playback.'
-OPT_HAS_ARG['N']=1          OPT_VAL['N']='2'
+OPT_NAME['N']='channel_p'           OPT_DESC['N']='channel number for playback.'
+OPT_HAS_ARG['N']=1                  OPT_VAL['N']='2'
 
-OPT_NAME['c']='pcm_c'      	OPT_DESC['c']='pcm for capture. Example: hw:0,1'
-OPT_HAS_ARG['c']=1          OPT_VAL['c']='hw:0,1'
+OPT_NAME['c']='pcm_c'      	        OPT_DESC['c']='pcm for capture. Example: hw:0,1'
+OPT_HAS_ARG['c']=1                  OPT_VAL['c']='hw:0,1'
 
-OPT_NAME['C']='channel_c'   OPT_DESC['C']='channel number for capture.'
-OPT_HAS_ARG['C']=1          OPT_VAL['C']='2'
+OPT_NAME['C']='channel_c'           OPT_DESC['C']='channel number for capture.'
+OPT_HAS_ARG['C']=1                  OPT_VAL['C']='2'
 
-OPT_NAME['s']='sof-logger'  OPT_DESC['s']="Open sof-logger trace the data will store at $LOG_ROOT"
-OPT_HAS_ARG['s']=0          OPT_VAL['s']=1
+OPT_NAME['s']='sof-logger'          OPT_DESC['s']="Open sof-logger trace the data will store at $LOG_ROOT"
+OPT_HAS_ARG['s']=0                  OPT_VAL['s']=1
 
-OPT_NAME['r']='rate'        OPT_DESC['r']='sample rate'
-OPT_HAS_ARG['r']=1          OPT_VAL['r']=48000
+OPT_NAME['d']='relay-settle-sleep'  OPT_DESC['d']="waiting time to stabilize after relay change state"
+OPT_HAS_ARG['d']=1                  OPT_VAL['d']=1
 
-OPT_NAME['u']='relay'       OPT_DESC['u']='name of usbrelay switch, default value is HURTM_1'
-OPT_HAS_ARG['u']=1          OPT_VAL['u']='HURTM_1'
+OPT_NAME['r']='rate'                OPT_DESC['r']='sample rate'
+OPT_HAS_ARG['r']=1                  OPT_VAL['r']=48000
+
+OPT_NAME['u']='relay'               OPT_DESC['u']='name of usbrelay switch, default value is HURTM_1'
+OPT_HAS_ARG['u']=1                  OPT_VAL['u']='HURTM_1'
 
 func_opt_parse_option "$@"
 
+loop_cnt=${OPT_VAL['l']}
 pcm_p=${OPT_VAL['p']}
 pcm_c=${OPT_VAL['c']}
 channel_c=${OPT_VAL['C']}
 channel_p=${OPT_VAL['N']}
 rate=${OPT_VAL['r']}
 relay=${OPT_VAL['u']}
+relay_settle_time=${OPT_VAL['d']}
 
 dlogi "Params: pcm_p=$pcm_p, pcm_c=$pcm_c, channel_c=$channel_c, channel_p=$channel_p, rate=$rate, LOG_ROOT=$LOG_ROOT"
 
@@ -88,13 +94,21 @@ __upload_wav_files()
 
 check_playback_capture()
 {
+    local expected_control_state
+    expected_control_state=$1
+
     # check if capture and playback work
     dlogc "alsabat -P$pcm_p -C$pcm_c -c 2 -r $rate"
-    alsabat -P"$pcm_p" -C"$pcm_c" -c 2 -r "$rate" || {
-        # upload failed wav file
-        __upload_wav_files
-        die "check_playback_capture() failed - check if a loopback is connected."
+    alsabat_output=$(mktemp)
+    alsabat_status=0
+    alsabat -P"$pcm_p" -C"$pcm_c" -c 2 -r "$rate" > "$alsabat_output" 2>&1 || {
+        alsabat_status=$?
     }
+
+    if [ "$alsabat_status" -ne "$expected_control_state" ]; then
+        __upload_wav_files
+        die "check_playback_capture() failed: expected alsabat status $expected_control_state, got $alsabat_status. See $alsabat_output for details."
+    fi
 }
 
 handle_alsabat_result()
@@ -125,23 +139,11 @@ handle_alsabat_result()
 
 show_control_state()
 {
-    dlogi "Current state of the mic privacy control:"
-    amixer -c 0 contents | awk '
-        /^numid=/ {
-            n=$0
-            show = tolower($0) ~ /capture/
-            found = 0
-        }
-        /type=BOOLEAN/ {
-            t = $0
-            if (show) found = 1
-        }
-        /: values=/ && found {
-            print n
-            print t
-            print $0
-            found = 0
-        }'
+    local card=$1
+
+    dlogi "Current state of the capture switch controls:"
+    amixer -c "$card" contents | \
+        gawk -v name="" -v show_capture_controls=1 -f "${TESTLIB}/control_state.awk"
 }
 
 main()
@@ -150,79 +152,84 @@ main()
 
     start_test
 
-    logger_disabled || func_lib_start_log_collect
+    dlogi "Checking usbrelay availability..."
+    command -v usbrelay || {
+        # If usbrelay package is not installed
+        skip_test "usbrelay command not found."
+    }
+
+    # display current status of relays
+    usbrelay_switch --debug || {
+        skip_test "Failed to initialize usbrelay hardware."
+    }
 
     if [ -z "$pcm_p" ] || [ -z "$pcm_c" ]; then
         skip_test "No playback or capture PCM is specified. Skip the $0 test."
     fi
 
-    # check if usbrelay tool is installed
-    command -v usbrelay || {
-        skip_test "usbrelay command not found. Please install usbrelay to control the mic privacy switch."
-    }
-
     dlogi "Current DSP status is $(sof-dump-status.py --dsp_status 0)" || {
         skip_test "platform doesn't support runtime pm, skip test case"
     }
 
-    dlogi "Starting preconditions check"
-
-    # display current status of relays
-    usbrelay "--debug"
-
-    check_locale_for_alsabat
+    logger_disabled || func_lib_start_log_collect
 
     set_alsa
 
-    dlogi "Reset - Turn off the mic privacy"
+    dlogi "Reset USB Relay - plug in audio jack."
     usbrelay_switch "$relay" 0
 
-    show_control_state
-
     # wait for the switch to settle
-    sleep "$DSP_SETTLE_TIME"
+    sleep "$relay_settle_time"
 
     # check the PCMs before mic privacy test
-    dlogi "Check playback/capture before mic privacy test"
-    check_playback_capture
+    dlogi "Check playback/capture before audio privacy test"
+    check_playback_capture 0
 
     # select the first card
+    local first_card_name
     first_card_name=$(aplay -l | awk '/^card ([0-9]+)/ {print $3; exit}')
+
+    show_control_state "$first_card_name"
+
     # dump amixer contents always.
     # good case amixer settings is for reference, bad case for debugging.
     amixer -c "${first_card_name}" contents > "$LOG_ROOT"/amixer_settings.txt
 
-    check_playback_capture
+    check_playback_capture 0
 
-    dlogi "Preconditions are met, starting mic privacy test"
+    dlogi "Preconditions are met, starting audio privacy test"
 
-    sleep "$DSP_SETTLE_TIME"
+    for i in $(seq 1 "$loop_cnt")
+    do
+        dlogi "===== Testing: Audio privacy (Round: $i/$loop_cnt) ====="
 
-    dlogi "===== Testing: MIC privacy ====="
-    dlogi "Turn on the mic privacy switch"
-    usbrelay_switch "$relay" 1
+        dlogi "Turn ON the audio privacy switch"
+        usbrelay_switch "$relay" 1
 
-    # wait for the switch to settle
-    sleep "$DSP_SETTLE_TIME"
+        # wait for the switch to settle
+        dlogi "Wait for ${relay_settle_time}s to ensure audio privacy is enabled"
+        sleep "$relay_settle_time"
 
-    alsabat_output=$(mktemp)
-    dlogc "alsabat -P$pcm_p -C$pcm_c -c 2 -r $rate"
-    # run alsabat and capture both output and exit status
-    alsabat_status=0
-    alsabat -P"$pcm_p" -C"$pcm_c" -c 2 -r "$rate" > "$alsabat_output" 2>&1 || {
-        alsabat_status=$?
-    }
+        alsabat_output=$(mktemp)
+        dlogc "alsabat -P$pcm_p -C$pcm_c -c 2 -r $rate"
+        # run alsabat and capture both output and exit status
+        alsabat_status=0
+        alsabat -P"$pcm_p" -C"$pcm_c" -c 2 -r "$rate" > "$alsabat_output" 2>&1 || {
+            alsabat_status=$?
+        }
 
-    handle_alsabat_result
+        handle_alsabat_result
 
-    dlogi "Turn off the mic privacy switch."
-    usbrelay_switch "$relay" 0
+        dlogi "Turn OFF the audio privacy switch."
+        usbrelay_switch "$relay" 0
 
-    check_playback_capture
+        dlogi "Wait for ${relay_settle_time}s to ensure audio privacy is disabled"
+        sleep "$relay_settle_time"
 
-    sof-kernel-log-check.sh "$KERNEL_CHECKPOINT"
+        check_playback_capture 0
 
-    dlogi "===== Test completed successfully. ====="
+        sof-kernel-log-check.sh "$KERNEL_CHECKPOINT"
+    done
 
     rm -rf "$alsabat_output"
 }
