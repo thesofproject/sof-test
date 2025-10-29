@@ -119,7 +119,6 @@ run_tests()
 main()
 {
     init_globals
-    prepare_test_soundfiles
     check_tplg
 
     start_test
@@ -127,6 +126,7 @@ main()
     if [[ "$tplg" != *nocodec* ]]; then
         skip_test "Skipping: test currently supported for NO-CODEC platforms only"
     fi
+    prepare_test_soundfiles
 
     logger_disabled || func_lib_start_log_collect
 
