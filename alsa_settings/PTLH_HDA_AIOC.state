@@ -14,8 +14,8 @@ state.sofhdadsp {
 	control.6 {
 		iface MIXER
 		name 'Capture Volume'
-		value.0 30
-		value.1 30
+		value.0 50
+		value.1 50
 	}
 	control.7 {
 		iface MIXER
@@ -26,11 +26,26 @@ state.sofhdadsp {
 	control.9 {
 		iface MIXER
 		name 'Master Playback Volume'
-		value 87
+		value 78
 	}
 	control.10 {
 		iface MIXER
 		name 'Master Playback Switch'
 		value true
+	}
+	control.40 {
+		iface MIXER
+		name 'Pre Mixer Analog Playback Volume'
+		value 42
+	}
+	control.41 {
+		iface MIXER
+		name 'Post Mixer Analog Playback Volume'
+		value 42
+	}
+	control.55 {
+		iface MIXER
+		name 'Pre Mixer Deepbuffer HDA Analog Volume'
+		value 42
 	}
 }
