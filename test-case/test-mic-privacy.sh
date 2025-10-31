@@ -41,37 +41,43 @@ source "${TESTLIB}/relay.sh"
 ALSABAT_WAV_FILES="/tmp/mc.wav.*"
 rm -f "$ALSABAT_WAV_FILES"
 
-DSP_SETTLE_TIME=2
+OPT_NAME['l']='loop'                OPT_DESC['l']='loop count'
+OPT_HAS_ARG['l']=1                  OPT_VAL['l']=1
 
-OPT_NAME['p']='pcm_p'     	OPT_DESC['p']='pcm for playback. Example: hw:0,0'
-OPT_HAS_ARG['p']=1          OPT_VAL['p']='hw:0,0'
+OPT_NAME['p']='pcm_p'     	        OPT_DESC['p']='pcm for playback. Example: hw:0,0'
+OPT_HAS_ARG['p']=1                  OPT_VAL['p']='hw:0,0'
 
-OPT_NAME['N']='channel_p'   OPT_DESC['N']='channel number for playback.'
-OPT_HAS_ARG['N']=1          OPT_VAL['N']='2'
+OPT_NAME['N']='channel_p'           OPT_DESC['N']='channel number for playback.'
+OPT_HAS_ARG['N']=1                  OPT_VAL['N']='2'
 
-OPT_NAME['c']='pcm_c'      	OPT_DESC['c']='pcm for capture. Example: hw:0,1'
-OPT_HAS_ARG['c']=1          OPT_VAL['c']='hw:0,1'
+OPT_NAME['c']='pcm_c'      	        OPT_DESC['c']='pcm for capture. Example: hw:0,1'
+OPT_HAS_ARG['c']=1                  OPT_VAL['c']='hw:0,1'
 
-OPT_NAME['C']='channel_c'   OPT_DESC['C']='channel number for capture.'
-OPT_HAS_ARG['C']=1          OPT_VAL['C']='2'
+OPT_NAME['C']='channel_c'           OPT_DESC['C']='channel number for capture.'
+OPT_HAS_ARG['C']=1                  OPT_VAL['C']='2'
 
-OPT_NAME['s']='sof-logger'  OPT_DESC['s']="Open sof-logger trace the data will store at $LOG_ROOT"
-OPT_HAS_ARG['s']=0          OPT_VAL['s']=1
+OPT_NAME['s']='sof-logger'          OPT_DESC['s']="Open sof-logger trace the data will store at $LOG_ROOT"
+OPT_HAS_ARG['s']=0                  OPT_VAL['s']=1
 
-OPT_NAME['r']='rate'        OPT_DESC['r']='sample rate'
-OPT_HAS_ARG['r']=1          OPT_VAL['r']=48000
+OPT_NAME['d']='relay-settle-sleep'  OPT_DESC['d']="waiting time to stable after relay change state"
+OPT_HAS_ARG['d']=1                  OPT_VAL['d']=1
 
-OPT_NAME['u']='relay'       OPT_DESC['u']='name of usbrelay switch, default value is HURTM_1'
-OPT_HAS_ARG['u']=1          OPT_VAL['u']='HURTM_1'
+OPT_NAME['r']='rate'                OPT_DESC['r']='sample rate'
+OPT_HAS_ARG['r']=1                  OPT_VAL['r']=48000
+
+OPT_NAME['u']='relay'               OPT_DESC['u']='name of usbrelay switch, default value is HURTM_1'
+OPT_HAS_ARG['u']=1                  OPT_VAL['u']='HURTM_1'
 
 func_opt_parse_option "$@"
 
+loop_cnt=${OPT_VAL['l']}
 pcm_p=${OPT_VAL['p']}
 pcm_c=${OPT_VAL['c']}
 channel_c=${OPT_VAL['C']}
 channel_p=${OPT_VAL['N']}
 rate=${OPT_VAL['r']}
 relay=${OPT_VAL['u']}
+relay_settle_time=${OPT_VAL['d']}
 
 dlogi "Params: pcm_p=$pcm_p, pcm_c=$pcm_c, channel_c=$channel_c, channel_p=$channel_p, rate=$rate, LOG_ROOT=$LOG_ROOT"
 
@@ -150,37 +156,38 @@ main()
 
     start_test
 
-    logger_disabled || func_lib_start_log_collect
+    dlogi "Checking usbrelay availability..."
+    command -v usbrelay || {
+        # If usbrelay package is not installed
+        skip_test "usbrelay command not found."
+    }
+
+    # display current status of relays
+    usbrelay_switch --debug || {
+        skip_test "Failed to initialize usbrelay hardware."
+    }
 
     if [ -z "$pcm_p" ] || [ -z "$pcm_c" ]; then
         skip_test "No playback or capture PCM is specified. Skip the $0 test."
     fi
 
-    # check if usbrelay tool is installed
-    command -v usbrelay || {
-        skip_test "usbrelay command not found. Please install usbrelay to control the mic privacy switch."
-    }
-
     dlogi "Current DSP status is $(sof-dump-status.py --dsp_status 0)" || {
         skip_test "platform doesn't support runtime pm, skip test case"
     }
 
-    dlogi "Starting preconditions check"
-
-    # display current status of relays
-    usbrelay "--debug"
+    logger_disabled || func_lib_start_log_collect
 
     check_locale_for_alsabat
 
     set_alsa
 
-    dlogi "Reset - Turn off the mic privacy"
+    dlogi "Reset USB Relay - plug jack audio."
     usbrelay_switch "$relay" 0
 
     show_control_state
 
     # wait for the switch to settle
-    sleep "$DSP_SETTLE_TIME"
+    sleep "$relay_settle_time"
 
     # check the PCMs before mic privacy test
     dlogi "Check playback/capture before mic privacy test"
@@ -196,33 +203,37 @@ main()
 
     dlogi "Preconditions are met, starting mic privacy test"
 
-    sleep "$DSP_SETTLE_TIME"
+    for i in $(seq 1 "$loop_cnt")
+    do
+        dlogi "===== Testing: MIC privacy (Round: $i/$loop_cnt) ====="
 
-    dlogi "===== Testing: MIC privacy ====="
-    dlogi "Turn on the mic privacy switch"
-    usbrelay_switch "$relay" 1
+        dlogi "Turn on the mic privacy switch"
+        usbrelay_switch "$relay" 1
 
-    # wait for the switch to settle
-    sleep "$DSP_SETTLE_TIME"
+        # wait for the switch to settle
+        dlogi "Wait for ${relay_settle_time}s to ensure jack detection is off"
+        sleep "$relay_settle_time"
 
-    alsabat_output=$(mktemp)
-    dlogc "alsabat -P$pcm_p -C$pcm_c -c 2 -r $rate"
-    # run alsabat and capture both output and exit status
-    alsabat_status=0
-    alsabat -P"$pcm_p" -C"$pcm_c" -c 2 -r "$rate" > "$alsabat_output" 2>&1 || {
-        alsabat_status=$?
-    }
+        alsabat_output=$(mktemp)
+        dlogc "alsabat -P$pcm_p -C$pcm_c -c 2 -r $rate"
+        # run alsabat and capture both output and exit status
+        alsabat_status=0
+        alsabat -P"$pcm_p" -C"$pcm_c" -c 2 -r "$rate" > "$alsabat_output" 2>&1 || {
+            alsabat_status=$?
+        }
 
-    handle_alsabat_result
+        handle_alsabat_result
 
-    dlogi "Turn off the mic privacy switch."
-    usbrelay_switch "$relay" 0
+        dlogi "Turn off the mic privacy switch."
+        usbrelay_switch "$relay" 0
 
-    check_playback_capture
+        dlogi "Wait for ${relay_settle_time}s to ensure jack detection is off"
+        sleep "$relay_settle_time"
 
-    sof-kernel-log-check.sh "$KERNEL_CHECKPOINT"
+        check_playback_capture
 
-    dlogi "===== Test completed successfully. ====="
+        sof-kernel-log-check.sh "$KERNEL_CHECKPOINT"
+    done
 
     rm -rf "$alsabat_output"
 }
