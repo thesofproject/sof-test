@@ -99,6 +99,7 @@ remove_module snd_sof_pci_intel_tgl
 remove_module snd_sof_pci_intel_icl
 remove_module snd_sof_pci_intel_cnl
 
+remove_module snd_sof_pci_intel_nvl
 remove_module snd_sof_pci_intel_ptl
 remove_module snd_sof_pci_intel_lnl
 remove_module snd_sof_pci_intel_mtl
