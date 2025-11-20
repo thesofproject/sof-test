@@ -83,6 +83,7 @@ generate_soundfile()
 # Checks for soundfiles needed for test, generates missing ones
 prepare_test_soundfiles()
 {
+    mkdir -p "$HOME/Music"
     for ch_nr in "${channels_to_test[@]}"
     do
         filename="$HOME/Music/${ch_nr}_channels_test.wav"
