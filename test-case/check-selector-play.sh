@@ -53,20 +53,6 @@ init_globals()
     failures=0
 }
 
-# This test requires topology allowing channel downmixing.
-# Checks and changes topology if needed.
-check_tplg()
-{
-    dlogi "Checking topology..."
-    nocodec_tplg="sof-ptl-nocodec.tplg"
-
-    if [[ "$tplg" == *"nocodec"* && "$tplg" != *"$nocodec_tplg"* ]]; then
-        dlogi "NO-CODEC topology change required"
-        new_tplg_filename=$nocodec_tplg
-        update_topology_filename
-    fi
-}
-
 # Arguments: the number of channels soundfile should have
 generate_soundfile()
 {
@@ -120,8 +106,6 @@ run_tests()
 main()
 {
     init_globals
-    check_tplg
-
     start_test
 
     if [[ "$tplg" != *nocodec* ]]; then
