@@ -1443,7 +1443,8 @@ update_topology_filename() {
         exit 1
     fi
     if [[ -f "$modprobe_file" ]]; then
-        old_topology=$(sudo cat "$modprobe_file")
+        modprobe_file_output=$(sudo cat "$modprobe_file")
+        old_topology="${modprobe_file_output#*=}"
         echo "Old topology: $old_topology"
     fi
     # Check if the remove and insert scripts exist
@@ -1471,13 +1472,15 @@ update_topology_filename() {
 
 # Restore the original topology after the test
 restore_topology() {
-        if [[ -f "$old_topology" ]]; then
-            echo "$old_topology" | sudo tee "$modprobe_file" > /dev/null
-            echo "Restored original topology: $old_topology"
-            sudo "$remove_script"
-            sudo "$insert_script"
-        fi
-        check_topology
+    if [[ -f "$old_topology" ]]; then
+        echo "options snd-sof-pci tplg_filename=$old_topology" | sudo tee "$modprobe_file" > /dev/null
+        echo "Restored original topology: $old_topology"
+
+        echo "Reloading drivers"
+        sudo "$remove_script"
+        sudo "$insert_script"
+    fi
+    check_topology
 }
 
 # Play sound and record it
