@@ -547,10 +547,16 @@ check_error_in_fw_logfile()
         dloge "file NOT FOUND: '$1'"
         return 1
     }
+    # Filter out SSP timeout errors and check for remaining errors
+    SSP_timeout_msgs=(
+        -e 'poll timeout reg .* mask .* val .* us .*'
+        -e 'ssp_empty_tx_fifo() warning: timeout'
+    )
     # -B 2 shows the header line when the first etrace message is an ERROR
     # -A 1 shows whether the ERROR is last or not.
     if (set -x
-        grep -B 2 -A 1 -i --word-regexp -e 'ERR' -e 'ERROR' -e '<err>' -e OSError "$1"
+        grep -v "${SSP_timeout_msgs[@]}" "$1" | \
+            grep -B 2 -A 1 -i --word-regexp -e 'ERR' -e 'ERROR' -e '<err>' -e OSError
        ); then
         # See internal Intel bug #448
         dlogw 'An HTML display bug hides the bracketed Zephyr &lt;loglevels&gt; in this tab,'
