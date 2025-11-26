@@ -29,8 +29,8 @@ state.sofsoundwire {
 	control.3 {
 		iface MIXER
 		name 'rt722 FU0F Capture Volume'
-		value.0 34
-		value.1 34
+		value.0 63
+		value.1 63
 		comment {
 			access 'read write'
 			type INTEGER
@@ -38,15 +38,15 @@ state.sofsoundwire {
 			range '0 - 63'
 			dbmin -1725
 			dbmax 3000
-			dbvalue.0 825
-			dbvalue.1 825
+			dbvalue.0 3000
+			dbvalue.1 3000
 		}
 	}
 	control.4 {
 		iface MIXER
 		name 'rt722 FU33 Boost Volume'
-		value.0 0
-		value.1 0
+		value.0 3
+		value.1 3
 		comment {
 			access 'read write'
 			type INTEGER
@@ -54,15 +54,15 @@ state.sofsoundwire {
 			range '0 - 3'
 			dbmin 0
 			dbmax 3000
-			dbvalue.0 0
-			dbvalue.1 0
+			dbvalue.0 3000
+			dbvalue.1 3000
 		}
 	}
 	control.5 {
 		iface MIXER
 		name 'rt722 FU06 Playback Volume'
-		value.0 60
-		value.1 60
+		value.0 45
+		value.1 45
 		comment {
 			access 'read write'
 			type INTEGER
@@ -70,8 +70,8 @@ state.sofsoundwire {
 			range '0 - 87'
 			dbmin -6525
 			dbmax 0
-			dbvalue.0 -2025
-			dbvalue.1 -2025
+			dbvalue.0 -3150
+			dbvalue.1 -3150
 		}
 	}
 	control.6 {
@@ -217,8 +217,8 @@ state.sofsoundwire {
 	control.17 {
 		iface MIXER
 		name 'Pre Mixer Jack Out Playback Volume'
-		value.0 45
-		value.1 45
+		value.0 33
+		value.1 33
 		comment {
 			access 'read write'
 			type INTEGER
@@ -226,15 +226,15 @@ state.sofsoundwire {
 			range '0 - 45'
 			dbmin -9999999
 			dbmax 0
-			dbvalue.0 0
-			dbvalue.1 0
+			dbvalue.0 -2400
+			dbvalue.1 -2400
 		}
 	}
 	control.18 {
 		iface MIXER
 		name 'Post Mixer Jack Out Playback Volume'
-		value.0 36
-		value.1 36
+		value.0 33
+		value.1 33
 		comment {
 			access 'read write'
 			type INTEGER
@@ -242,15 +242,15 @@ state.sofsoundwire {
 			range '0 - 45'
 			dbmin -9999999
 			dbmax 0
-			dbvalue.0 -1800
-			dbvalue.1 -1800
+			dbvalue.0 -2400
+			dbvalue.1 -2400
 		}
 	}
 	control.20 {
 		iface MIXER
 		name 'Pre Mixer Deepbuffer Jack Out Volume'
-		value.0 45
-		value.1 45
+		value.0 0
+		value.1 0
 		comment {
 			access 'read write'
 			type INTEGER
@@ -258,15 +258,15 @@ state.sofsoundwire {
 			range '0 - 45'
 			dbmin -9999999
 			dbmax 0
-			dbvalue.0 0
-			dbvalue.1 0
+			dbvalue.0 -9999999
+			dbvalue.1 -9999999
 		}
 	}
 	control.21 {
 		iface MIXER
 		name 'Pre Mixer Speaker Playback Volume'
-		value.0 45
-		value.1 45
+		value.0 0
+		value.1 0
 		comment {
 			access 'read write'
 			type INTEGER
@@ -274,15 +274,15 @@ state.sofsoundwire {
 			range '0 - 45'
 			dbmin -9999999
 			dbmax 0
-			dbvalue.0 0
-			dbvalue.1 0
+			dbvalue.0 -9999999
+			dbvalue.1 -9999999
 		}
 	}
 	control.22 {
 		iface MIXER
 		name 'Post Mixer Speaker Playback Volume'
-		value.0 45
-		value.1 45
+		value.0 0
+		value.1 0
 		comment {
 			access 'read write'
 			type INTEGER
@@ -290,14 +290,14 @@ state.sofsoundwire {
 			range '0 - 45'
 			dbmin -9999999
 			dbmax 0
-			dbvalue.0 0
-			dbvalue.1 0
+			dbvalue.0 -9999999
+			dbvalue.1 -9999999
 		}
 	}
 	control.26 {
 		iface MIXER
 		name 'Post Mixer Speaker Playback DRC switch'
-		value false
+		value true
 		comment {
 			access 'read write'
 			type BOOLEAN
@@ -340,7 +340,7 @@ state.sofsoundwire {
 	control.31 {
 		iface MIXER
 		name 'Microphone Capture DRC switch'
-		value false
+		value true
 		comment {
 			access 'read write'
 			type BOOLEAN
