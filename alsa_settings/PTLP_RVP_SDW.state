@@ -40,4 +40,16 @@ state.sofsoundwire {
 		name 'Speaker Switch'
 		value true
 	}
+	control.38 {
+		iface MIXER
+		name 'Pre Mixer Jack Out Playback Volume'
+		value.0 42
+		value.1 42
+	}
+	control.39 {
+			iface MIXER
+			name 'Post Mixer Jack Out Playback Volume'
+			value.0 42
+			value.1 42
+	}
 }
