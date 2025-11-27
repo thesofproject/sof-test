@@ -10,6 +10,15 @@
 # Ignoring errors is very dangerous for reasons detailed below so please
 # read this and think twice before making changes in this file.
 
+# You don't need to change this file for errors specific to unusual
+# configurations or unusual devices. Instead, define a
+# sof_local_extra_kernel_ignores=( ... ) array in either
+# /etc/sof/local_config.bash or ${SCRIPT_HOME}/case-lib/local_config.bash
+# This is also a convenient way to stage and test future `ignore_str` changes
+# without git acrobatics.
+#
+# Detailed explanation  in commits 83f5e4190e9f21bf and f94cdc772758692
+
 # Error types
 # -----------
 #
