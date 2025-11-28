@@ -168,14 +168,13 @@ main()
     start_test
 
     dlogi "Checking usbrelay availability..."
-    if ! command -v usbrelay > /dev/null; then
+    command -v usbrelay || {
         # If usbrelay package is not installed
         skip_test "usbrelay command not found."
-    fi
-
-    if ! usbrelay_switch --debug > /dev/null; then
+    }
+    usbrelay_switch --debug || {
         skip_test "Failed to get usbrelay status."
-    fi
+    }
 
     dlogi "Reset USB Relay - plug jack audio."
     usbrelay_switch "$relay" 0
