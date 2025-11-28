@@ -738,7 +738,11 @@ class GroupedTplg:
             rate_max = cap["rate_max"]
             ch_min = cap["channels_min"]
             ch_max = cap["channels_max"]
-            print(f"pcm_id={pcm_id:>2};name={name.ljust(max_name_len, ' ')};type={pcm_type:<8};"
+            if pcm["compress"] == 1:
+                dev_type = "compr_id"
+            else:
+                dev_type = "pcm_id  "
+            print(f"{dev_type}={pcm_id:>2};name={name.ljust(max_name_len, ' ')};type={pcm_type:<8};"
             f"rate_min={rate_min:>6};rate_max={rate_max:>6};ch_min={ch_min};ch_max={ch_max};"
             f"fmts={fmts}")
 
