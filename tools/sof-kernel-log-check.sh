@@ -264,6 +264,9 @@ ignore_str="$ignore_str"'|mei_me 0000:00:16\..: .+'
 # Ignore all types of mei_gsc_proxy errors
 ignore_str="$ignore_str"'|mei_gsc_proxy .+'
 
+# Ignore all mei0 errors
+ignore_str="$ignore_str"'|mei mei0: .+'
+
 case "$platform" in
     # Audio PCI ID on CML Mantis is [8086:9dc8], which is defined as CNL in linux kernel.
     # https://github.com/thesofproject/linux/blob/topic/sof-dev/sound/soc/sof/sof-pci-dev.c
