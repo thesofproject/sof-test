@@ -34,6 +34,8 @@
 * sof-process-state.sh
 <br> Shows the current state of a given process
 
+* eBPF (directory)
+<br> Enhanced Berkeley Packet Filter (eBPF) scripts for kernel tracing
 
 Topologies
 ----------
