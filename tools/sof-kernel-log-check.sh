@@ -333,6 +333,14 @@ ignore_str="$ignore_str"'|kernel: intel_ish_ipc 0000:00:12.0: ISH loader: reques
 # below are new error level kernel logs from journalctl --priority=err
 # that did not influence system and can be ignored
 
+# Ignore IRQ conflict errors - non-audio hardware issue on WCL platform
+# This not affect audio functionality
+ignore_str="$ignore_str"'|irq [[:digit:]]+: nobody cared'
+ignore_str="$ignore_str"'|try booting with the "irqpoll" option'
+ignore_str="$ignore_str"'|Disabling IRQ #[[:digit:]]+'
+ignore_str="$ignore_str"'|kernel: handlers:'
+ignore_str="$ignore_str"'|\[<[0-9a-f]+>\]'
+
 # systemd issues can be ignored
 # seen on mutiple platforms
 # systemd[1]: Failed to mount Mount unit for core.
