@@ -158,6 +158,12 @@ trap - EXIT
 # TODO explain why we ignore this one and where
 ignore_str='error: debugfs write failed to idle -16'
 
+#TWLignore DRM errors
+ignore_str="$ignore_str"'|i915 [[:digit:].:]+: \[drm\] \*ERROR\* Unclaimed access detected prior to suspending'
+
+#Soundwire igone parity erros
+ignore_str="$ignore_str"'|sdw:[0-9]:[0-9]:[A-Za-z0-9]*:[A-Za-z0-9]*:[0-9]*: Parity error detected'
+
 # CML Helios known issue related with xhci_hcd
 # https://bugzilla.kernel.org/show_bug.cgi?id=202541
 ignore_str="$ignore_str"'|xhci_hcd 0000:00:14\.0: WARN Set TR Deq Ptr cmd failed due to incorrect slot or ep state'
