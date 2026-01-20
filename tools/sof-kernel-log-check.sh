@@ -446,6 +446,7 @@ ignore_str="$ignore_str"'|nvme0: Admin Cmd\(0x[[:digit:]]+\), I/O Error \(sct 0x
 
 ignore_str="$ignore_str"'kernel: xe 0000:00:02.0: \[drm\] Tile0: GT1: { key 0x0002 : 64b value 0xfec00000 } # ggtt_size'
 ignore_str="$ignore_str"'kernel: xe 0000:00:02.0: \[drm\] \*ERROR\* Tile0: GT1: PF: Failed to push self configuration \(-ECANCELED\)'
+ignore_str="$ignore_str"'kernel: xe 0000:00:02.0: \[drm\] \*ERROR\* Tile0: GT1: PF: Failed to push self configuration \(-ETIME\)'
 #
 # SDW related logs
 #
@@ -463,15 +464,16 @@ if &>/dev/null declare -p sof_local_extra_kernel_ignores; then
 fi
 
 # confirm begin_timestamp is in UNIX timestamp format, otherwise search full log
-if [[ $begin_timestamp =~ ^[0-9]{10} ]]; then
-    cmd="journalctl_cmd --since=@$begin_timestamp"
-else
-    die "Invalid begin_timestamp $1 argument: $begin_timestamp"
-fi
+# if [[ $begin_timestamp =~ ^[0-9]{10} ]]; then
+#     cmd="journalctl_cmd --since=@$begin_timestamp"
+# else
+#     die "Invalid begin_timestamp $1 argument: $begin_timestamp"
+# fi
 
+cmd="cat /home/plangowx/projects/dmesg.log"
 declare -p cmd
 
-if err=$($cmd --priority=err |
+if err=$($cmd |
           grep -v -E -e "$ignore_str" "${sof_local_extra_kernel_ignores[@]}"); then
 
     type journalctl_cmd
