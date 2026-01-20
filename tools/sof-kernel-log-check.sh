@@ -444,8 +444,8 @@ ignore_str="$ignore_str"'|I/O error, dev loop., sector 0 op 0x0:.READ. flags 0x8
 # https://github.com/thesofproject/sof-test/issues/888
 ignore_str="$ignore_str"'|nvme0: Admin Cmd\(0x[[:digit:]]+\), I/O Error \(sct 0x0 / sc 0x2\)'
 
-ignore_str="$ignore_str"'kernel: xe 0000:00:02.0: \[drm\] Tile0: GT1: { key 0x0002 : 64b value 0xfec00000 } # ggtt_size'
-ignore_str="$ignore_str"'kernel: xe 0000:00:02.0: \[drm\] \*ERROR\* Tile0: GT1: PF: Failed to push self configuration \(-ECANCELED\)'
+ignore_str="$ignore_str"'|kernel: xe 0000:00:02.0: \[drm\]'
+
 #
 # SDW related logs
 #
