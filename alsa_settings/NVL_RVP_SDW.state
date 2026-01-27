@@ -1,0 +1,171 @@
+state.sofsoundwire {
+	control.1 {
+		iface MIXER
+		name 'rt722 FU05 Playback Volume'
+		value.0 87
+		value.1 87
+	}
+	control.2 {
+		iface MIXER
+		name 'rt722 FU0F Capture Switch'
+		value.0 true
+		value.1 true
+	}
+	control.3 {
+		iface MIXER
+		name 'rt722 FU0F Capture Volume'
+		value.0 46
+		value.1 46
+	}
+	control.4 {
+		iface MIXER
+		name 'rt722 FU33 Boost Volume'
+		value.0 0
+		value.1 0
+	}
+	control.5 {
+		iface MIXER
+		name 'rt722 FU06 Playback Volume'
+		value.0 60
+		value.1 60
+	}
+	control.6 {
+		iface MIXER
+		name 'rt722 FU1E Capture Switch'
+		value.0 true
+		value.1 true
+		value.2 true
+		value.3 true
+	}
+	control.7 {
+		iface MIXER
+		name 'rt722 FU1E Capture Volume'
+		value.0 63
+		value.1 63
+		value.2 63
+		value.3 63
+	}
+	control.8 {
+		iface MIXER
+		name 'rt722 FU15 Boost Volume'
+		value.0 0
+		value.1 0
+		value.2 0
+		value.3 0
+	}
+	control.9 {
+		iface MIXER
+		name 'Headphone Switch'
+		value true
+	}
+	control.10 {
+		iface MIXER
+		name 'Headset Mic Switch'
+		value true
+	}
+	control.11 {
+		iface CARD
+		name 'Headphone Jack'
+		value true
+	}
+	control.12 {
+		iface CARD
+		name 'Headset Mic Jack'
+		value true
+	}
+	control.13 {
+		iface MIXER
+		name 'Speaker Switch'
+		value true
+	}
+	control.14 {
+		iface MIXER
+		name 'rt722 ADC 22 Mux'
+		value MIC2
+	}
+	control.15 {
+		iface MIXER
+		name 'rt722 ADC 24 Mux'
+		value DMIC1
+	}
+	control.16 {
+		iface MIXER
+		name 'rt722 ADC 25 Mux'
+		value DMIC2
+	}
+	control.17 {
+		iface MIXER
+		name 'Pre Mixer Jack Out Playback Volume'
+		value.0 45
+		value.1 45
+	}
+	control.18 {
+		iface MIXER
+		name 'Post Mixer Jack Out Playback Volume'
+		value.0 45
+		value.1 45
+	}
+	control.20 {
+		iface MIXER
+		name 'Pre Mixer Deepbuffer Jack Out Volume'
+		value.0 45
+		value.1 45
+	}
+	control.21 {
+		iface MIXER
+		name 'Pre Mixer Speaker Playback Volume'
+		value.0 45
+		value.1 45
+	}
+	control.22 {
+		iface MIXER
+		name 'Post Mixer Speaker Playback Volume'
+		value.0 45
+		value.1 45
+	}
+	control.26 {
+		iface MIXER
+		name 'Post Mixer Speaker Playback DRC switch'
+		value false
+	}
+	control.28 {
+		iface MIXER
+		name 'Microphone Capture TDFB beam switch'
+		value false
+	}
+	control.29 {
+		iface MIXER
+		name 'Microphone Capture TDFB angle set enum'
+		value '-90'
+	}
+	control.31 {
+		iface MIXER
+		name 'Microphone Capture DRC switch'
+		value false
+	}
+}
+state.CODEC {
+	control.1 {
+		iface PCM
+		name 'Playback Channel Map'
+		value.0 0
+		value.1 0
+	}
+	control.2 {
+		iface PCM
+		name 'Capture Channel Map'
+		value.0 0
+		value.1 0
+	}
+	control.3 {
+		iface MIXER
+		name 'PCM Playback Switch'
+		value true
+	}
+	control.4 {
+		iface MIXER
+		name 'PCM Playback Volume'
+		value.0 108
+		value.1 108
+	}
+}
