@@ -184,10 +184,8 @@ ignore_str="$ignore_str"'|EXT4-fs \(nvme0n1p6\): re-mounted\. Opts: errors=remou
 ignore_str="$ignore_str"'|usb .+: (Enable|Disable) of device-initiated .+ failed\.'
 ignore_str="$ignore_str"'|thermal thermal_zone.*: failed to read out thermal zone \(-61\)'
 
-# ISH timeout found on CML_RVP_SDW, CML_SKU0955_HDA, EHL_RVP_I2S, MTL_RVP_SDW, MTL_RVP_NOCODEC
-# BugLink: https://github.com/thesofproject/sof-test/issues/857
-ignore_str="$ignore_str"'|intel_ish_ipc 0000:00:[0-9]+\.0: \[ishtp-ish\]: Timed out waiting for FW-initiated reset'
-ignore_str="$ignore_str"'|intel_ish_ipc 0000:00:[0-9]+\.0: ISH: hw start failed.'
+# Ignore all ISH related issues. We have no shared flows between ISH and audio.
+ignore_str="$ignore_str"'|intel_ish_ipc 0000:00:[0-9]+\.0:'
 
 # Dell CML-U laptop with SoundWire, issues reported by sof-test
 # BugLink: https://github.com/thesofproject/sof-test/issues/307
@@ -334,9 +332,6 @@ esac
 # Also: Failed to fetch the HID Descriptor / unexpected bcdVersion (0x0000)
 # on one CML_HEL_RT5682
 ignore_str="$ignore_str"'|kernel: i2c_hid_acpi i2c-GDIX0000:00'
-
-# ISH firmware missing failure can be ignored
-ignore_str="$ignore_str"'|kernel: intel_ish_ipc 0000:00:12.0: ISH loader: request ISH firmware failed:-2'
 
 
 # below are new error level kernel logs from journalctl --priority=err
