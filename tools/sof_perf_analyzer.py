@@ -21,6 +21,7 @@ is used to extract component name.
 import re
 import pathlib
 import argparse
+from datetime import timedelta
 from typing import TextIO
 from typing import Generator
 from dataclasses import dataclass
@@ -135,7 +136,18 @@ def make_trace_item(fileio: TextIO) -> TraceItemGenerator:
             # both some specific offset from the sentinel.
             span_end_pos = match_obj.span()[1]
             trace_lvl = line[span_end_pos - 4: span_end_pos - 1]
-            timestamp = float(line[span_end_pos - 19: span_end_pos - 7].strip())
+            try:
+                timestamp = float(line[span_end_pos - 19: span_end_pos - 7].strip())
+            # Support for CONFIG_LOG_OUTPUT_FORMAT_TIME_TIMESTAMP - For when default Zephyr timestamp format is used
+            except ValueError:
+                h, m, rest = line[span_end_pos - 23: span_end_pos - 7].strip().split(':')
+                s1, s2 = rest.split(',')
+                s = s1+s2
+                timestamp = timedelta(
+                    hours=int(h),
+                    minutes=int(m),
+                    seconds=float(s)
+                ).total_seconds()
 
             # The rest after removing timestamp and log level
             rest = line[span_end_pos + 1:].split(': ')
