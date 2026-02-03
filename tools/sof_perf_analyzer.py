@@ -109,6 +109,21 @@ def skip_to_first_trace(trace_item_gen: TraceItemGenerator):
             return item
     return next(trace_item_gen)
 
+def get_timestamp_from_line(line, span_end_pos):
+    try:
+        timestamp = float(line[span_end_pos - 19: span_end_pos - 7].strip())
+    # Support for CONFIG_LOG_OUTPUT_FORMAT_TIME_TIMESTAMP - For when default Zephyr timestamp format is used
+    except ValueError:
+        h, m, rest = line[span_end_pos - 23: span_end_pos - 7].strip().split(':')
+        s1, s2 = rest.split(',')
+        s = s1+s2
+        timestamp = timedelta(
+            hours=int(h),
+            minutes=int(m),
+            seconds=float(s)
+        ).total_seconds()
+    return timestamp
+
 def make_trace_item(fileio: TextIO) -> TraceItemGenerator:
     '''Filter and parse a line of trace in string form into TraceItem object, for example:
     '[    2.566046] <inf> component: comp_copy: comp:0 0x40000 perf comp_copy samples
@@ -134,26 +149,18 @@ def make_trace_item(fileio: TextIO) -> TraceItemGenerator:
             # second trace from the line. This is done by regarding the end position
             # of the matched substring as sentinel, timestamp and trace level are
             # both some specific offset from the sentinel.
-            span_end_pos = match_obj.span()[1]
-            trace_lvl = line[span_end_pos - 4: span_end_pos - 1]
             try:
-                timestamp = float(line[span_end_pos - 19: span_end_pos - 7].strip())
-            # Support for CONFIG_LOG_OUTPUT_FORMAT_TIME_TIMESTAMP - For when default Zephyr timestamp format is used
-            except ValueError:
-                h, m, rest = line[span_end_pos - 23: span_end_pos - 7].strip().split(':')
-                s1, s2 = rest.split(',')
-                s = s1+s2
-                timestamp = timedelta(
-                    hours=int(h),
-                    minutes=int(m),
-                    seconds=float(s)
-                ).total_seconds()
+                span_end_pos = match_obj.span()[1]
+                trace_lvl = line[span_end_pos - 4: span_end_pos - 1]
+                timestamp = get_timestamp_from_line(line, span_end_pos)
 
-            # The rest after removing timestamp and log level
-            rest = line[span_end_pos + 1:].split(': ')
-            ctx, func = rest[0:2]
-            msg = ': '.join(rest[2:]).strip()
-            yield TraceItem(timestamp, trace_lvl, ctx, func, msg)
+                # The rest after removing timestamp and log level
+                rest = line[span_end_pos + 1:].split(': ')
+                ctx, func = rest[0:2]
+                msg = ': '.join(rest[2:]).strip()
+                yield TraceItem(timestamp, trace_lvl, ctx, func, msg)
+            except Exception as e: # pylint: disable=W0718
+                print(f"WARNING: Couldn't parse line: {line}, error: {e}")
 
 def process_trace_file():
     '''The top-level caller for processing the trace file'''
