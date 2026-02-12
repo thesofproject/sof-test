@@ -14,6 +14,10 @@ function func_exit_handler()
 
     func_lib_check_and_disable_pipewire
 
+    if [ "$RUN_SOCWATCH" == true ]; then
+        unload_socwatch
+    fi
+
     # call trace
     if [ "$exit_status" -ne 0 ] ; then
         dloge "Starting ${FUNCNAME[0]}(), exit status=$exit_status, FUNCNAME stack:"

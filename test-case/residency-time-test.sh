@@ -137,10 +137,6 @@ load_modules()
 
 run_socwatch_tests()
 {
-    # load socwatch module, if the module is loaded, go ahead with the testing
-    sudo bash "$SOCWATCH_PATH"/drivers/insmod-socwatch || true
-    check_socwatch_module_loaded || die "socwatch module not loaded"
-
     # Create a dir for all socwatch reports
     mkdir "$LOG_ROOT/socwatch-results"
     pc10_results_file="$LOG_ROOT/socwatch-results/pc10_results.json"
@@ -159,15 +155,14 @@ run_socwatch_tests()
     cd "$LOG_ROOT"
     tar -zcvf socwatch-results.tar.gz socwatch-results/
     rm -rf "$LOG_ROOT/socwatch-results/"
-
-    # unload socwatch module
-    sudo bash "$SOCWATCH_PATH"/drivers/rmmod-socwatch
 }
 
 main()
 {
     unload_modules
+    load_socwatch
     run_socwatch_tests
+    unload_socwatch
     load_modules
 }
 
