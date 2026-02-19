@@ -1604,11 +1604,15 @@ analyze_mixed_sound()
     fi
 }
 
-# Generates 20s .mp3 file for testing
-# Arguments: 1 - output filename
+# Generates s 2-channels .mp3 file for testing
+# Arguments:
+# 1 - output filename
+# 2 - duration of the soundfile in seconds
+# 3 - number of channels
 generate_mp3_file()
 {
-    ffmpeg -f lavfi -i "sine=frequency=1000:duration=20" "$1"
+    mkdir -p "$HOME/Music"
+    ffmpeg -f lavfi -i "sine=frequency=1000:duration=$2" -ac "$3" "$1"
 }
 
 # Load socwatch and check if module was loaded correctly
