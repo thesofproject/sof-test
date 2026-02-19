@@ -83,10 +83,6 @@ minvalue() { printf '%d' $(( "$1" < "$2"  ? "$1" : "$2" )); }
 #
 start_test()
 {
-    if [ "$SOF_TEST_PIPEWIRE" == true ]; then
-        func_lib_enable_pipewire
-    fi
-
     if [ "$RUN_SOCWATCH" == true ]; then
         load_socwatch
     fi
@@ -1710,11 +1706,15 @@ analyze_mixed_sound()
     fi
 }
 
-# Generates 20s .mp3 file for testing
-# Arguments: 1 - output filename
+# Generates s 2-channels .mp3 file for testing
+# Arguments:
+# 1 - output filename
+# 2 - duration of the soundfile in seconds
+# 3 - number of channels
 generate_mp3_file()
 {
-    ffmpeg -f lavfi -i "sine=frequency=1000:duration=20" "$1"
+    mkdir -p "$HOME/Music"
+    ffmpeg -f lavfi -i "sine=frequency=1000:duration=$2" -ac "$3" "$1"
 }
 
 # Load socwatch and check if module was loaded correctly
@@ -1743,8 +1743,7 @@ run_with_socwatch()
     shift 
 
     ( set -x
-      sudo "$SOCWATCH_PATH"/socwatch -m -f sys -f cpu -f cpu-hw -f pcie \
-      -f hw-cpu-cstate -f pcd-slps0 -f tcss-state -f tcss -f pcie-lpm -n 200 \
+      sudo "$SOCWATCH_PATH"/socwatch -m -n 200 -f cpu-pkg-cstate-res \
       -r json -o "$output_file" -p "$@") ||
     die "socwatch returned $?"
 }
