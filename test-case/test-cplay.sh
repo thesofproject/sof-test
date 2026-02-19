@@ -97,28 +97,6 @@ analyze_socwatch_results()
     fi
 }
 
-check_for_PC10_state()
-{
-    pc10_count=$(awk '/Package C-State Summary: Entry Counts/{f=1; next} f && /PC10/{print $3; exit}' "$socwatch_output".csv)
-    if [ -z "$pc10_count" ]; then
-        die "PC10 State not achieved"
-    fi
-    dlogi "Entered into PC10 State $pc10_count times"
-
-    pc10_per=$(awk '/Package C-State Summary: Residency/{f=1; next} f && /PC10/{print $3; exit}' "$socwatch_output".csv)
-    pc10_time=$(awk '/Package C-State Summary: Residency/{f=1; next} f && /PC10/{print $5; exit}' "$socwatch_output".csv)
-    dlogi "Spent $pc10_time ms ($pc10_per %) in PC10 State"
-
-    json_str=$( jq -n \
-                --arg id "$i" \
-                --arg cnt "$pc10_count" \
-                --arg time "$pc10_time" \
-                --arg per "$pc10_per" \
-                '{$id: {pc10_entires_count: $cnt, time_ms: $time, time_percentage: $per}}' )
-
-    results=$(jq --slurp 'add' <(echo "$results") <(echo "$json_str"))
-}
-
 check_the_pcms()
 {
     aplay   "-Dplug${pcm_p}" -d 1 /dev/zero -q || die "Failed to play on PCM: ${pcm_p}"
@@ -128,7 +106,6 @@ check_the_pcms()
 # Checks for soundfile needed for test, generates missing ones
 prepare_test_soundfile()
 {
-    mkdir -p "$HOME/Music"
     if [ ! -f "$audio_filename" ]; then
         generate_mp3_file "$audio_filename"
     fi
@@ -137,13 +114,12 @@ prepare_test_soundfile()
 run_test()
 {
     check_the_pcms
-    # audio_filename="$HOME/Music/test.mp3"
-    # prepare_test_soundfile
+    audio_filename="$HOME/Music/test.mp3"
+    prepare_test_soundfile
 
     socwatch_output="$LOG_ROOT/socwatch-results/socwatch_report"
 
-    # play_command="cplay -D${pcm_p} -d ${duration} ${audio_filename}"
-    play_command=(aplay -Dplug${pcm_p} -d ${duration} /dev/zero)
+    play_command="cplay -d 0 -c 50 ${audio_filename}"
     run_with_socwatch "$socwatch_output" "${play_command[@]}"
     
     analyze_socwatch_results
@@ -153,11 +129,11 @@ main()
 {
     export RUN_SOCWATCH=true
     start_test
-    if [ "$pcm_p" = "" ]||[ "$pcm_c" = "" ];
-    then
-        dloge "No playback or capture PCM specified."
-        exit 2
-    fi
+    # if [ "$pcm_p" = "" ]||[ "$pcm_c" = "" ];
+    # then
+    #     dloge "No playback or capture PCM specified."
+    #     exit 2
+    # fi
     logger_disabled || func_lib_start_log_collect
 
     run_test

@@ -1608,7 +1608,8 @@ analyze_mixed_sound()
 # Arguments: 1 - output filename
 generate_mp3_file()
 {
-    ffmpeg -f lavfi -i "sine=frequency=1000:duration=20" "$1"
+    mkdir -p "$HOME/Music"
+    ffmpeg -f lavfi -i "sine=frequency=1000:duration=20" -ac 2 "$1"
 }
 
 # Load socwatch and check if module was loaded correctly
