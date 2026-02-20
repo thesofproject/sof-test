@@ -1,0 +1,151 @@
+state.CODEC {
+	control.1 {
+		iface PCM
+		name 'Playback Channel Map'
+		value.0 0
+		value.1 0
+	}
+	control.2 {
+		iface PCM
+		name 'Capture Channel Map'
+		value.0 0
+		value.1 0
+	}
+	control.3 {
+		iface MIXER
+		name 'PCM Playback Switch'
+		value true
+	}
+	control.4 {
+		iface MIXER
+		name 'PCM Playback Volume'
+		value.0 108
+		value.1 108
+	}
+}
+state.sofhdadsp {
+	control.1 {
+		iface MIXER
+		name 'Headphone Playback Volume'
+		value.0 65
+		value.1 65
+	}
+	control.2 {
+		iface MIXER
+		name 'Headphone Playback Switch'
+		value.0 true
+		value.1 true
+	}
+	control.3 {
+		iface MIXER
+		name 'Speaker Playback Volume'
+		value.0 0
+		value.1 0
+	}
+	control.4 {
+		iface MIXER
+		name 'Speaker Playback Switch'
+		value.0 true
+		value.1 true
+	}
+	control.5 {
+		iface MIXER
+		name 'Auto-Mute Mode'
+		value Disabled
+	}
+	control.6 {
+		iface MIXER
+		name 'Capture Volume'
+		value.0 51
+		value.1 51
+	}
+	control.7 {
+		iface MIXER
+		name 'Capture Switch'
+		value.0 true
+		value.1 true
+	}
+	control.8 {
+		iface MIXER
+		name 'Mic Boost Volume'
+		value.0 2
+		value.1 2
+	}
+	control.9 {
+		iface MIXER
+		name 'Master Playback Volume'
+		value 65
+	}
+	control.10 {
+		iface MIXER
+		name 'Master Playback Switch'
+		value true
+	}
+	control.11 {
+		iface CARD
+		name 'Mic Jack'
+		value true
+	}
+	control.12 {
+		iface CARD
+		name 'Headphone Jack'
+		value true
+	}
+	control.13 {
+		iface CARD
+		name 'Speaker Phantom Jack'
+		value true
+	}
+	control.14 {
+		iface MIXER
+		name 'Pre Mixer Analog Playback Volume'
+		value.0 45
+		value.1 45
+	}
+	control.15 {
+		iface MIXER
+		name 'Post Mixer Analog Playback Volume'
+		value.0 45
+		value.1 45
+	}
+	control.19 {
+		iface MIXER
+		name 'Post Mixer Analog Playback DRC switch'
+		value true
+	}
+	control.22 {
+		iface MIXER
+		name 'Dmic0 Capture TDFB beam switch'
+		value true
+	}
+	control.23 {
+		iface MIXER
+		name 'Dmic0 Capture TDFB angle set enum'
+		value '-90'
+	}
+	control.25 {
+		iface MIXER
+		name 'Dmic0 Capture DRC switch'
+		value true
+	}
+	control.27 {
+		iface MIXER
+		name 'Dmic0 Capture Volume'
+		value.0 45
+		value.1 45
+	}
+	control.28 {
+		iface MIXER
+		name 'Dmic0 Capture Switch'
+		value.0 true
+		value.1 true
+		value.2 true
+		value.3 true
+	}
+	control.29 {
+		iface MIXER
+		name 'Pre Mixer Deepbuffer HDA Analog Volume'
+		value.0 45
+		value.1 45
+	}
+}
