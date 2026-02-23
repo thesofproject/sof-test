@@ -87,6 +87,10 @@ start_test()
         func_lib_enable_pipewire
     fi
 
+    if [ "$RUN_SOCWATCH" == true ]; then
+        load_socwatch
+    fi
+
     if is_subtest; then
         return 0
     fi
@@ -1598,4 +1602,44 @@ analyze_mixed_sound()
         dlogw "$1 file not found, check for previous errors"
         return 1
     fi
+}
+
+# Generates 20s .mp3 file for testing
+# Arguments: 1 - output filename
+generate_mp3_file()
+{
+    mkdir -p "$HOME/Music"
+    ffmpeg -f lavfi -i "sine=frequency=1000:duration=20" -ac 2 "$1"
+}
+
+# Load socwatch and check if module was loaded correctly
+load_socwatch()
+{
+    sudo bash "$SOCWATCH_PATH"/drivers/insmod-socwatch || true
+    lsmod | grep -q socwatch || die "Socwatch is not loaded"
+}
+
+unload_socwatch()
+{
+    sudo bash "$SOCWATCH_PATH"/drivers/rmmod-socwatch
+}
+
+# Run any command with socwatch
+# Arguments: 
+# 1 - socwatch output report filename
+# 2 - command you want to run with socwatch (with arguments)
+run_with_socwatch()
+{
+    if [ -z "$SOCWATCH_PATH" ]; then
+        die "SOCWATCH_PATH not set"
+    fi
+
+    local output_file="$1"
+    shift 
+
+    ( set -x
+      sudo "$SOCWATCH_PATH"/socwatch -m -f sys -f cpu -f cpu-hw -f pcie \
+      -f hw-cpu-cstate -f pcd-slps0 -f tcss-state -f tcss -f pcie-lpm -n 200 \
+      -r json -o "$output_file" -p "$@") ||
+    die "socwatch returned $?"
 }
