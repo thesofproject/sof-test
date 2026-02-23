@@ -162,13 +162,10 @@ function func_exit_handler()
 
     # get ps command result as list
     local -a cmd_lst
-    # $$ as current script pid
-    # NOTICE: already test with $BASHPID:
-    # it can output the same result of $$
-    # but the result could not be stored in the array
-    readarray -t cmd_lst < <(pgrep -P $$ -a|grep -v "$SCRIPT_NAME")
+    # can't run pgrep in any subshell because the latter would pollute the list
+    if pgrep -P $$ -a > "$LOG_ROOT/children_left.txt"; then
+        readarray -t cmd_lst < "$LOG_ROOT/children_left.txt"
     # now force kill target process which maybe block the script quit
-    if [ ${#cmd_lst[@]} -gt 0 ]; then
         local line
         dlogw "Process(es) started by $SCRIPT_NAME are still active, killing these process(es):"
         for line in "${cmd_lst[@]}"
@@ -177,6 +174,8 @@ function func_exit_handler()
             dlogw "Kill cmd:'${line#* }' by kill -9"
             kill -9 "${line%% *}"
         done
+    else
+        rm  "$LOG_ROOT/children_left.txt"
     fi
 
     # check if function already defined.
