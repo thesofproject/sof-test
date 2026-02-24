@@ -2,18 +2,8 @@ state.sofhdadsp {
 	control.1 {
 		iface MIXER
 		name 'Front Playback Volume'
-		value.0 87
-		value.1 87
-		comment {
-			access 'read write'
-			type INTEGER
-			count 2
-			range '0 - 87'
-			dbmin -6525
-			dbmax 0
-			dbvalue.0 0
-			dbvalue.1 0
-		}
+		value.0 71
+		value.1 71
 	}
 	control.2 {
 		iface MIXER
@@ -29,437 +19,187 @@ state.sofhdadsp {
 	control.3 {
 		iface MIXER
 		name 'Surround Playback Volume'
-		value.0 87
-		value.1 87
-		comment {
-			access 'read write'
-			type INTEGER
-			count 2
-			range '0 - 87'
-			dbmin -6525
-			dbmax 0
-			dbvalue.0 0
-			dbvalue.1 0
-		}
+		value.0 71
+		value.1 71
 	}
 	control.4 {
 		iface MIXER
 		name 'Surround Playback Switch'
 		value.0 true
 		value.1 true
-		comment {
-			access 'read write'
-			type BOOLEAN
-			count 2
-		}
 	}
 	control.5 {
 		iface MIXER
 		name 'Center Playback Volume'
-		value 87
-		comment {
-			access 'read write'
-			type INTEGER
-			count 1
-			range '0 - 87'
-			dbmin -6525
-			dbmax 0
-			dbvalue.0 0
-		}
+		value 71
 	}
 	control.6 {
 		iface MIXER
 		name 'LFE Playback Volume'
-		value 87
-		comment {
-			access 'read write'
-			type INTEGER
-			count 1
-			range '0 - 87'
-			dbmin -6525
-			dbmax 0
-			dbvalue.0 0
-		}
+		value 71
 	}
 	control.7 {
 		iface MIXER
 		name 'Center Playback Switch'
 		value true
-		comment {
-			access 'read write'
-			type BOOLEAN
-			count 1
-		}
 	}
 	control.8 {
 		iface MIXER
 		name 'LFE Playback Switch'
 		value true
-		comment {
-			access 'read write'
-			type BOOLEAN
-			count 1
-		}
 	}
 	control.9 {
 		iface MIXER
 		name 'Side Playback Volume'
-		value.0 87
-		value.1 87
-		comment {
-			access 'read write'
-			type INTEGER
-			count 2
-			range '0 - 87'
-			dbmin -6525
-			dbmax 0
-			dbvalue.0 0
-			dbvalue.1 0
-		}
+		value.0 65
+		value.1 65
 	}
 	control.10 {
 		iface MIXER
 		name 'Side Playback Switch'
 		value.0 true
 		value.1 true
-		comment {
-			access 'read write'
-			type BOOLEAN
-			count 2
-		}
 	}
 	control.11 {
 		iface MIXER
 		name 'Loopback Mixing'
 		value Disabled
-		comment {
-			access 'read write'
-			type ENUMERATED
-			count 1
-			item.0 Disabled
-			item.1 Enabled
-		}
 	}
 	control.12 {
 		iface MIXER
 		name 'Mic Playback Volume'
-		value.0 26
-		value.1 26
-		comment {
-			access 'read write'
-			type INTEGER
-			count 2
-			range '0 - 31'
-			dbmin -3450
-			dbmax 1200
-			dbvalue.0 450
-			dbvalue.1 450
-		}
+		value.0 23
+		value.1 23
 	}
 	control.13 {
 		iface MIXER
 		name 'Mic Playback Switch'
 		value.0 true
 		value.1 true
-		comment {
-			access 'read write'
-			type BOOLEAN
-			count 2
-		}
 	}
 	control.14 {
 		iface MIXER
 		name 'Line Playback Volume'
 		value.0 0
 		value.1 0
-		comment {
-			access 'read write'
-			type INTEGER
-			count 2
-			range '0 - 31'
-			dbmin -3450
-			dbmax 1200
-			dbvalue.0 -3450
-			dbvalue.1 -3450
-		}
 	}
 	control.15 {
 		iface MIXER
 		name 'Line Playback Switch'
 		value.0 false
 		value.1 false
-		comment {
-			access 'read write'
-			type BOOLEAN
-			count 2
-		}
 	}
 	control.16 {
 		iface MIXER
 		name 'Capture Source'
 		value Mic
-		comment {
-			access 'read write'
-			type ENUMERATED
-			count 1
-			item.0 Mic
-			item.1 'Internal Mic'
-			item.2 Line
-		}
 	}
 	control.17 {
 		iface MIXER
 		name 'Capture Volume'
-		value.0 41
-		value.1 41
-		comment {
-			access 'read write'
-			type INTEGER
-			count 2
-			range '0 - 63'
-			dbmin -1725
-			dbmax 3000
-			dbvalue.0 1350
-			dbvalue.1 1350
-		}
+		value.0 50
+		value.1 50
 	}
 	control.18 {
 		iface MIXER
 		name 'Capture Switch'
 		value.0 true
 		value.1 true
-		comment {
-			access 'read write'
-			type BOOLEAN
-			count 2
-		}
 	}
 	control.19 {
 		iface MIXER
 		name 'Mic Boost Volume'
 		value.0 2
 		value.1 2
-		comment {
-			access 'read write'
-			type INTEGER
-			count 2
-			range '0 - 3'
-			dbmin 0
-			dbmax 3000
-			dbvalue.0 2000
-			dbvalue.1 2000
-		}
 	}
 	control.20 {
 		iface MIXER
 		name 'Line Boost Volume'
 		value.0 0
 		value.1 0
-		comment {
-			access 'read write'
-			type INTEGER
-			count 2
-			range '0 - 3'
-			dbmin 0
-			dbmax 3000
-			dbvalue.0 0
-			dbvalue.1 0
-		}
 	}
 	control.21 {
 		iface MIXER
 		name 'Master Playback Volume'
-		value 65
-		comment {
-			access 'read write'
-			type INTEGER
-			count 1
-			range '0 - 87'
-			dbmin -6525
-			dbmax 0
-			dbvalue.0 -1650
-		}
+		value 71
 	}
 	control.22 {
 		iface MIXER
 		name 'Master Playback Switch'
 		value true
-		comment {
-			access 'read write'
-			type BOOLEAN
-			count 1
-		}
 	}
 	control.23 {
 		iface CARD
 		name 'Mic Jack'
 		value true
-		comment {
-			access read
-			type BOOLEAN
-			count 1
-		}
 	}
 	control.24 {
 		iface CARD
 		name 'Internal Mic Phantom Jack'
 		value true
-		comment {
-			access read
-			type BOOLEAN
-			count 1
-		}
 	}
 	control.25 {
 		iface CARD
 		name 'Line Jack'
 		value false
-		comment {
-			access read
-			type BOOLEAN
-			count 1
-		}
 	}
 	control.26 {
 		iface CARD
 		name 'Line Out Front Jack'
 		value true
-		comment {
-			access read
-			type BOOLEAN
-			count 1
-		}
 	}
 	control.27 {
 		iface CARD
 		name 'Line Out Surround Jack'
 		value false
-		comment {
-			access read
-			type BOOLEAN
-			count 1
-		}
 	}
 	control.28 {
 		iface CARD
 		name 'Line Out CLFE Jack'
 		value false
-		comment {
-			access read
-			type BOOLEAN
-			count 1
-		}
 	}
 	control.29 {
 		iface CARD
 		name 'Line Out Side Jack'
 		value false
-		comment {
-			access read
-			type BOOLEAN
-			count 1
-		}
 	}
 	control.30 {
 		iface MIXER
 		name 'Pre Mixer Analog Playback Volume'
 		value.0 45
 		value.1 45
-		comment {
-			access 'read write'
-			type INTEGER
-			count 2
-			range '0 - 45'
-			dbmin -9999999
-			dbmax 0
-			dbvalue.0 0
-			dbvalue.1 0
-		}
 	}
 	control.31 {
 		iface MIXER
 		name 'Post Mixer Analog Playback Volume'
 		value.0 45
 		value.1 45
-		comment {
-			access 'read write'
-			type INTEGER
-			count 2
-			range '0 - 45'
-			dbmin -9999999
-			dbmax 0
-			dbvalue.0 0
-			dbvalue.1 0
-		}
 	}
 	control.35 {
 		iface MIXER
 		name 'Post Mixer Analog Playback DRC switch'
 		value false
-		comment {
-			access 'read write'
-			type BOOLEAN
-			count 1
-		}
 	}
 	control.38 {
 		iface MIXER
 		name 'Dmic0 Capture TDFB beam switch'
 		value false
-		comment {
-			access 'read write'
-			type BOOLEAN
-			count 1
-		}
 	}
 	control.39 {
 		iface MIXER
 		name 'Dmic0 Capture TDFB angle set enum'
 		value '-90'
-		comment {
-			access 'read write'
-			type ENUMERATED
-			count 1
-			item.0 '-90'
-			item.1 '-75'
-			item.2 '-60'
-			item.3 '-45'
-			item.4 '-30'
-			item.5 '-15'
-			item.6 '0'
-			item.7 '15'
-			item.8 '30'
-			item.9 '45'
-			item.10 '60'
-			item.11 '75'
-			item.12 '90'
-		}
 	}
 	control.41 {
 		iface MIXER
 		name 'Dmic0 Capture DRC switch'
 		value false
-		comment {
-			access 'read write'
-			type BOOLEAN
-			count 1
-		}
 	}
 	control.43 {
 		iface MIXER
 		name 'Dmic0 Capture Volume'
 		value.0 45
 		value.1 45
-		comment {
-			access 'read write'
-			type INTEGER
-			count 2
-			range '0 - 45'
-			dbmin -9999999
-			dbmax 0
-			dbvalue.0 0
-			dbvalue.1 0
-		}
 	}
 	control.44 {
 		iface MIXER
@@ -468,27 +208,12 @@ state.sofhdadsp {
 		value.1 true
 		value.2 true
 		value.3 true
-		comment {
-			access 'read write'
-			type BOOLEAN
-			count 4
-		}
 	}
 	control.45 {
 		iface MIXER
 		name 'Pre Mixer Deepbuffer HDA Analog Volume'
 		value.0 45
 		value.1 45
-		comment {
-			access 'read write'
-			type INTEGER
-			count 2
-			range '0 - 45'
-			dbmin -9999999
-			dbmax 0
-			dbvalue.0 0
-			dbvalue.1 0
-		}
 	}
 }
 state.CODEC {
@@ -497,49 +222,22 @@ state.CODEC {
 		name 'Playback Channel Map'
 		value.0 0
 		value.1 0
-		comment {
-			access 'read volatile'
-			type INTEGER
-			count 2
-			range '0 - 36'
-		}
 	}
 	control.2 {
 		iface PCM
 		name 'Capture Channel Map'
 		value.0 0
 		value.1 0
-		comment {
-			access 'read volatile'
-			type INTEGER
-			count 2
-			range '0 - 36'
-		}
 	}
 	control.3 {
 		iface MIXER
 		name 'PCM Playback Switch'
 		value true
-		comment {
-			access 'read write'
-			type BOOLEAN
-			count 1
-		}
 	}
 	control.4 {
 		iface MIXER
 		name 'PCM Playback Volume'
 		value.0 108
 		value.1 108
-		comment {
-			access 'read write'
-			type INTEGER
-			count 2
-			range '0 - 128'
-			dbmin -12800
-			dbmax 0
-			dbvalue.0 -2000
-			dbvalue.1 -2000
-		}
 	}
 }
