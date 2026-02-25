@@ -115,7 +115,7 @@ for round in $(seq 1 $round_cnt); do
             else
                 dlogi "parecord runs successfully"
                 # kill all parecord processes
-                kill -9 $pid
+                kill_process "$pid" || true
                 sleep 0.5
             fi
         fi

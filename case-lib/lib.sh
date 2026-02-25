@@ -945,6 +945,30 @@ check_alsa_tool_process()
     esac
 }
 
+kill_process()
+{
+    local pid="$1"
+    local sleep_secs="${2:-1}"
+
+    [[ -n "$pid" ]] || {
+        die "kill_process: missing pid"
+        return 1
+    }
+
+    ps -p "$pid" >/dev/null || return 0
+
+    kill -15 "$pid" || true
+    sleep "$sleep_secs"
+
+    ps -p "$pid" >/dev/null || return 0
+
+    kill -9 "$pid" || true
+
+    ps -p "$pid" >/dev/null && return 1
+
+    return 0
+}
+
 aplay_opts()
 {
     if [[ "$SOF_ALSA_TOOL" = "tinyalsa" ]]; then

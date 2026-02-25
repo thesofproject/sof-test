@@ -70,7 +70,7 @@ func_stop_start_pipeline()
         # check aplay/arecord process state
         sof-process-state.sh "$pid" >/dev/null || {
             dloge "$cmd($pid) process is in an abnormal status"
-            kill -9 "$pid"
+            kill_process "$pid" || true
             exit 1
         }
         dlogi "Stop/start count: $i"
@@ -116,8 +116,8 @@ do
     func_stop_start_pipeline
 
     # kill aplay/arecord process
-    dlogc "kill process: kill -9 $pid"
-    kill -9 "$pid"
+    dlogc "kill process: $pid"
+    kill_process "$pid" || true
 done
 
 sof-kernel-log-check.sh "$KERNEL_CHECKPOINT"

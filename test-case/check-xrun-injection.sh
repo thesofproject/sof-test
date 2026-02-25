@@ -72,7 +72,8 @@ func_xrun_injection()
         # check aplay/arecord process state
         sof-process-state.sh "$pid" >/dev/null || {
             dloge "aplay/arecord process is in an abnormal status"
-            kill -9 "$pid" && wait "$pid" 2>/dev/null
+            kill_process "$pid" || true
+            wait "$pid" 2>/dev/null || true
             exit 1
         }
         dlogi "XRUN injection: $i"
@@ -119,8 +120,9 @@ do
     dlogc "echo 1 > $xrun_injection"
     func_xrun_injection
     # kill aplay/arecord process
-    dlogc "kill process: kill -9 $pid"
-    kill -9 $pid && wait $pid 2>/dev/null
+    dlogc "kill process: $pid"
+    kill_process "$pid" || true
+    wait "$pid" 2>/dev/null || true
 done
 
 sof-kernel-log-check.sh "$KERNEL_CHECKPOINT"
