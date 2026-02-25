@@ -127,8 +127,10 @@ func_error_exit()
 {
     dloge "$*"
 
-    pgrep -a aplay   &&  pkill -9 aplay
-    pgrep -a arecord &&  pkill -9 arecord
+    pgrep -a aplay &&
+        while read -r pid; do kill_process "$pid" || true; done < <(pgrep -x aplay)
+    pgrep -a arecord &&
+        while read -r pid; do kill_process "$pid" || true; done < <(pgrep -x arecord)
 
     exit 1
 }
@@ -208,9 +210,9 @@ do
     dlogi "checking pipeline status again"
     ps_checks
 
-    dlogc 'pkill -9 aplay arecord'
-    pkill -9 arecord || true
-    pkill -9 aplay   || true
+    dlogc 'kill_process all aplay/arecord pids'
+    while read -r pid; do kill_process "$pid" || true; done < <(pgrep -x arecord)
+    while read -r pid; do kill_process "$pid" || true; done < <(pgrep -x aplay)
     sleep 1 # try not to pollute the next iteration
 
     if pgrep arecord || pgrep aplay; then

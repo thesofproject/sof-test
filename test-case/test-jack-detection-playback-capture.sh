@@ -156,7 +156,7 @@ testing_one_pcm()
         die "Plug $headphone_jack_name jack failed."
     }
 
-    kill -9 $pid_playback > /dev/null 2>&1
+    kill_process "$pid_playback" > /dev/null 2>&1 || true
     wait $pid_playback 2>/dev/null || true
     ps -p "$pid_playback" > /dev/null && {
         dloge "Failed to kill playback process."

@@ -137,6 +137,6 @@ do
         exit 1
     }
     dlogi "Killing $cmd_args"
-    kill -9 $process_id || true
+    kill_process "$process_id" || true
 done
 

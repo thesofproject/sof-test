@@ -109,8 +109,9 @@ do
         dlogi "runtime status: $result"
         if [[ $result == active ]]; then
             # stop playback or capture device - check status again
-            dlogc "kill process: kill -9 $pid"
-            kill -9 $pid && wait $pid 2>/dev/null
+            dlogc "kill process: $pid"
+            kill_process "$pid" || true
+            wait "$pid" 2>/dev/null || true
             dlogi "$cmd killed"
             func_check_dsp_status ${OPT_VAL['d']}
             result=`sof-dump-status.py --dsp_status 0`
@@ -123,8 +124,9 @@ do
         else
             dloge "$cmd process for pcm $pcm runtime status is not active as expected"
             # stop playback or capture device otherwise no one will stop this $cmd.
-            dlogc "kill process: kill -9 $pid"
-            kill -9 $pid && wait $pid 2>/dev/null
+            dlogc "kill process: $pid"
+            kill_process "$pid" || true
+            wait "$pid" 2>/dev/null || true
             func_lib_lsof_error_dump $snd
             exit 1
         fi
