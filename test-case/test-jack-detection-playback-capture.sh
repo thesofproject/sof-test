@@ -171,8 +171,6 @@ main()
 {
     func_pipeline_export "$tplg" "type:playback"
 
-    setup_kernel_check_point
-
     start_test
 
     dlogi "Checking usbrelay availability..."

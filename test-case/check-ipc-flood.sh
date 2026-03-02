@@ -28,7 +28,6 @@ OPT_NAME['l']='loop'     OPT_DESC['l']='loop count'
 OPT_HAS_ARG['l']=1         OPT_VAL['l']=1
 
 func_opt_parse_option "$@"
-setup_kernel_check_point
 
 lpc_loop_cnt=${OPT_VAL['c']}
 ipc_flood_dfs=${OPT_VAL['f']}
@@ -47,12 +46,12 @@ sof-kernel-dump.sh | grep sof-audio | grep -q "Firmware debug" ||
 func_lib_check_sudo
 
 dlogi "Check $ipc_flood_dfs"
-sudo test -e $ipc_flood_dfs ||
+sudo test -e "$ipc_flood_dfs" ||
   skip_test "${BASH_SOURCE[0]} need $ipc_flood_dfs to run the test case"
 
 dlogi "Running ipc flood test!"
 
-for i in $(seq 1 $loop_cnt)
+for i in $(seq 1 "$loop_cnt")
 do
     # TODO: use journalctl to replace dmesg
     # cleanup dmesg buffer for each iteration

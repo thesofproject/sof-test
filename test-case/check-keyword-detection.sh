@@ -44,7 +44,6 @@ OPT_NAME['d']='duration'          OPT_DESC['d']='interrupt kwd pipeline in # sec
 OPT_HAS_ARG['d']=1                  OPT_VAL['d']=10
 
 func_opt_parse_option "$@"
-setup_kernel_check_point
 
 tplg=${OPT_VAL['t']}
 loop_cnt=${OPT_VAL['l']}
@@ -107,7 +106,7 @@ _restore_default_wov_config_bolb()
 # update the blob
 _update_blob(){
     new_blob=$test_dir"/new_blob"
-    [ $preamble_time -ge $history_depth ] || {
+    [ "$preamble_time" -ge "$history_depth" ] || {
         die "Warning: invalid arguments, preamble_time must be greater than or equal to history_depth"
     }
     awk -F, -v OFS=, '{if ( $4 == '"$def_pt"' && $7 == '"$def_hd"' ) $4='"$preamble_time"'; $7='"$history_depth"'}1' \

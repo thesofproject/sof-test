@@ -34,7 +34,6 @@ OPT_NAME['l']='loop'     OPT_DESC['l']='loop count'
 OPT_HAS_ARG['l']=1         OPT_VAL['l']=1
 
 func_opt_parse_option "$@"
-setup_kernel_check_point
 
 tplg=${OPT_VAL['t']}
 wait_time=${OPT_VAL['w']}
@@ -72,7 +71,7 @@ func_error_exit()
     exit 1
 }
 
-for i in $(seq 1 $loop_cnt)
+for i in $(seq 1 "$loop_cnt")
 do
     # set up checkpoint for each iteration
     setup_kernel_check_point
@@ -101,7 +100,7 @@ do
         arecord_pid=$!
 
         dlogi "Preparing to sleep for $wait_time"
-        sleep $wait_time
+        sleep "$wait_time"
 
         # aplay/arecord processes should be persistent for sleep duration.
         dlogi "check pipeline after ${wait_time}s"
