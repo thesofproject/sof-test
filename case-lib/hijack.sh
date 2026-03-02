@@ -12,6 +12,8 @@ function func_exit_handler()
 
     dlogi "Starting func_exit_handler($exit_status)"
 
+    finish_kmsg_collection
+
     func_lib_check_and_disable_pipewire
 
     # call trace
@@ -133,32 +135,6 @@ function func_exit_handler()
     if [ "$ENABLE_STORAGE_CHECKS" = '1' ]; then
         storage_checks || exit_status=1
     fi
-
-    local journalctl_logs="$LOG_ROOT/dmesg.txt"
-    if [[ "$KERNEL_CHECKPOINT" =~ ^[0-9]{10} ]]; then
-        # Do not collect the entire duration of the test but only the
-        # last iteration.
-        dlogi "Save kernel messages since ${KERNEL_CHECKPOINT} to ${journalctl_logs}"
-        journalctl_cmd --since=@"$KERNEL_CHECKPOINT" > "${journalctl_logs}"
-    elif [[ "$KERNEL_CHECKPOINT" == "disabled" ]]; then
-        dlogi "Save all kernel messages to ${journalctl_logs}"
-        journalctl_cmd > "${journalctl_logs}"
-    else
-       dloge 'Kernel check point "KERNEL_CHECKPOINT" is not properly set'
-       dloge "KERNEL_CHECKPOINT=$KERNEL_CHECKPOINT"
-       test "$exit_status" -ne 0 || exit_status=1
-    fi
-    if test -s "${journalctl_logs}"; then
-       wcLog=$(wc -l "${journalctl_logs}")
-       dlogi  "nlines=$wcLog"
-    else
-       dlogw "Empty ${journalctl_logs}"
-    fi
-    # Make sure the logs are written on disk just in case of DUT power reset.
-    sync
-
-    # After log collected, KERNEL_CHECKPOINT will not be used any more
-    unset KERNEL_CHECKPOINT
 
     # get ps command result as list
     local -a cmd_lst
