@@ -60,12 +60,10 @@ case $test_mode in
     ;;
 esac
 
-setup_kernel_check_point
-
 func_stop_start_pipeline()
 {
     local i=1
-    while [ $i -le $count ]
+    while [ $i -le "$count" ]
     do
         # check aplay/arecord process state
         sof-process-state.sh "$pid" >/dev/null || {
@@ -76,10 +74,10 @@ func_stop_start_pipeline()
         dlogi "Stop/start count: $i"
         # stop the pipeline
         kill -SIGSTOP "$pid"
-        sleep $interval
+        sleep "$interval"
         # start the pipeline
         kill -SIGCONT "$pid"
-        sleep $interval
+        sleep "$interval"
         (( i++ ))
     done
 }

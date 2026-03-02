@@ -42,7 +42,6 @@ OPT_NAME['C']='channels'   OPT_DESC['C']='channels'
 OPT_HAS_ARG['C']=1         OPT_VAL['C']=2
 
 func_opt_parse_option "$@"
-setup_kernel_check_point
 
 start_test
 
@@ -60,7 +59,7 @@ channel=${OPT_VAL['C']}
 # go through all the sinks
 # get all the sinks name
 sinkkeys=$(pactlinfo.py --showsinks)
-for round in $(seq 1 $round_cnt); do
+for round in $(seq 1 "$round_cnt"); do
     for i in $sinkkeys; do
         sinkcard=$(pactlinfo.py --getsinkcardname "$i") || {
             dlogw "failed to get sink $i card_name"
@@ -94,10 +93,11 @@ for round in $(seq 1 $round_cnt); do
             sinkname=$(eval echo "$sinkname")
             dlogi "===== Testing: (Round: $round/$round_cnt) (sink: $sinkname.$actport) ====="
             dlogc "paplay -v --device=$sinkname --raw --rate=$rate --format=$format --channels=$channel $file"
-            paplay -v --device="$sinkname" --raw --rate=$rate --format=$format --channels=$channel $file &
+            paplay -v --device="$sinkname" --raw --rate="$rate" --format="$format" --channels="$channel" "$file" &
             pid=$!
-            sleep $duration
+            sleep "$duration"
             # check whether process is still running
+            # shellcheck disable=SC2009
             count=$(ps -A| grep -c $pid) || true
             if [[ $count -eq 0 ]]; then
                 if wait $pid; then #checks if process executed successfully or not

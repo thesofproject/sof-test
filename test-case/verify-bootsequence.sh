@@ -30,7 +30,6 @@ ALSALIB_VER=1.2.2-44
 ALSAUCM_VER=1.2.3-15
 
 func_opt_parse_option "$@"
-setup_kernel_check_point
 
 start_test
 

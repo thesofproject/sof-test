@@ -97,7 +97,7 @@ func_run_pipeline_with_type()
     [[ $tmp_count -le 0 ]] && return
     func_pipeline_export "$tplg" "type:$direction $opt_filter"
     local -a idx_lst
-    if [ ${OPT_VAL['r']} -eq 0 ]; then
+    if [ "${OPT_VAL['r']}" -eq 0 ]; then
         # shellcheck disable=SC2207
         idx_lst=($(seq 0 $((PIPELINE_COUNT - 1))))
     else
@@ -172,7 +172,7 @@ main()
 main "$@"
 
 # TODO: move this to main() https://github.com/thesofproject/sof-test/issues/740
-for i in $(seq 1 $loop_cnt)
+for i in $(seq 1 "$loop_cnt")
 do
     # set up checkpoint for each iteration
     setup_kernel_check_point
@@ -202,7 +202,7 @@ do
     ps_checks
 
     dlogi "Letting playback/capture run for ${OPT_VAL['w']}s"
-    sleep ${OPT_VAL['w']}
+    sleep "${OPT_VAL['w']}"
 
     # check processes again
     dlogi "checking pipeline status again"

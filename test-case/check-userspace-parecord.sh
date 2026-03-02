@@ -42,7 +42,6 @@ OPT_NAME['C']='channels'   OPT_DESC['C']='channels'
 OPT_HAS_ARG['C']=1         OPT_VAL['C']=2
 
 func_opt_parse_option "$@"
-setup_kernel_check_point
 
 round_cnt=${OPT_VAL['r']}
 duration=${OPT_VAL['d']}
@@ -60,7 +59,7 @@ start_test
 # go through all the sources
 # get all the sources name
 sourcekeys=$(pactlinfo.py --showsources)
-for round in $(seq 1 $round_cnt); do
+for round in $(seq 1 "$round_cnt"); do
     for i in $sourcekeys; do
         sourcecard=$(pactlinfo.py --getsourcecardname "$i") || {
             dlogw "failed to get source $i card_name"
@@ -101,10 +100,11 @@ for round in $(seq 1 $round_cnt); do
             sourcename=$(eval echo "$sourcename")
             dlogi "===== Testing: (Round: $round/$round_cnt) (source: $sourcename.$actport) ====="
             dlogc "parecord -v --device=$sourcename --raw --rate=$rate --format=$format --channels=$channel $file"
-            parecord -v --device="$sourcename" --raw --rate=$rate --format=$format --channels=$channel $file &
+            parecord -v --device="$sourcename" --raw --rate="$rate" --format="$format" --channels="$channel" "$file" &
             pid=$!
-            sleep $duration
+            sleep "$duration"
             # check whether process is still running
+            # shellcheck disable=SC2009
             count=$(ps -A| grep -c $pid) || true
             if [[ $count -eq 0 ]]; then
                 if wait $pid; then #checks if process executed successfully or not

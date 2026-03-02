@@ -45,7 +45,6 @@ interval=${OPT_VAL['i']}
 start_test
 logger_disabled || func_lib_start_log_collect
 
-setup_kernel_check_point
 func_lib_check_sudo
 
 case $test_mode in
@@ -67,7 +66,7 @@ esac
 func_xrun_injection()
 {
     local i=1
-    while [ $i -le $count ] && [ "$(ps -p "$pid" --no-header)" ]
+    while [ $i -le "$count" ] && [ "$(ps -p "$pid" --no-header)" ]
     do
         # check aplay/arecord process state
         sof-process-state.sh "$pid" >/dev/null || {
@@ -77,7 +76,7 @@ func_xrun_injection()
         }
         dlogi "XRUN injection: $i"
         sudo bash -c "echo '1' > $xrun_injection"
-        sleep $interval
+        sleep "$interval"
         (( i++ ))
     done
 }

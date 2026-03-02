@@ -33,7 +33,6 @@ OPT_HAS_ARG['s']=0             OPT_VAL['s']=1
 set -e
 
 func_opt_parse_option "$@"
-setup_kernel_check_point
 tplg=${OPT_VAL['t']}
 maxloop=${OPT_VAL['l']}
 

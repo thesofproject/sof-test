@@ -23,7 +23,6 @@ OPT_NAME['t']='tplg'     OPT_DESC['t']="tplg file, default value is env TPLG: $T
 OPT_HAS_ARG['t']=1         OPT_VAL['t']="$TPLG"
 
 func_opt_parse_option "$@"
-setup_kernel_check_point
 tplg=${OPT_VAL['t']}
 
 start_test

@@ -36,7 +36,6 @@ OPT_NAME['p']='pulseaudio'   OPT_DESC['p']='disable pulseaudio on the test proce
 OPT_HAS_ARG['p']=0             OPT_VAL['p']=1
 
 func_opt_parse_option "$@"
-setup_kernel_check_point
 
 start_test
 
@@ -45,11 +44,11 @@ loop_cnt=${OPT_VAL['l']}
 PATH="${PATH%%:*}/kmod:$PATH"
 func_lib_check_sudo 'unloading modules'
 
-if [ ${OPT_VAL['p']} -eq 1 ];then
+if [ "${OPT_VAL['p']}" -eq 1 ];then
     func_lib_disable_pulseaudio
 fi
 
-for idx in $(seq 1 $loop_cnt)
+for idx in $(seq 1 "$loop_cnt")
 do
     dlogi "===== Starting iteration $idx of $loop_cnt ====="
     ## - 1: remove module section

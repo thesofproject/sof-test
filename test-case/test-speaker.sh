@@ -36,7 +36,7 @@ logger_disabled || func_lib_start_log_collect
 
 func_pipeline_export "$tplg" "type:playback"
 tcnt=${OPT_VAL['l']}
-setup_kernel_check_point
+
 for idx in $(seq 0 $((PIPELINE_COUNT - 1)))
 do
     channel=$(func_pipeline_parse_value "$idx" channel)

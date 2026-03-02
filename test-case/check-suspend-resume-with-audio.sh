@@ -57,7 +57,6 @@ OPT_NAME['P']='pipelines'    OPT_DESC['P']="run test case on specified pipelines
 OPT_HAS_ARG['P']=1           OPT_VAL['P']="id:any"
 
 func_opt_parse_option "$@"
-setup_kernel_check_point
 func_lib_check_sudo
 
 tplg=${OPT_VAL['t']}
@@ -86,7 +85,7 @@ opt_arr=(-l "${OPT_VAL['l']}")
 if [ "${OPT_VAL['T']}" ]; then
     opt_arr+=(-T "${OPT_VAL['T']}")
 fi
-if [ ${OPT_VAL['r']} -eq 0  ]; then
+if [ "${OPT_VAL['r']}" -eq 0  ]; then
     opt_arr+=(-S "${OPT_VAL['S']}" -w "${OPT_VAL['w']}")
 else
     opt_arr+=(-r)
@@ -103,6 +102,7 @@ do
     fmt=$(func_pipeline_parse_value "$idx" fmt)
     dev=$(func_pipeline_parse_value "$idx" dev)
     snd=$(func_pipeline_parse_value "$idx" snd)
+    # shellcheck disable=SC2153
     dlogi "Run $TYPE command for the background"
     cmd_args="$cmd -D$dev -r $rate -c $channel -f $fmt $file_name -q"
     dlogc "$cmd_args"
