@@ -990,10 +990,7 @@ kill_process()
     local pid="$1"
     local sleep_secs="${2:-1}"
 
-    [[ -n "$pid" ]] || {
-        die "kill_process: missing pid"
-        return 1
-    }
+    [[ -n "$pid" ]] || die "kill_process: missing pid"
 
     ps -p "$pid" >/dev/null || return 0
 
@@ -1310,7 +1307,8 @@ is_ipc4()
 logger_disabled()
 {
     # Disable logging when available...
-    if [ "${OPT_VAL['s']}" -eq 0 ]; then
+    local log_switch="${OPT_VAL['s']:-1}"
+    if [ "$log_switch" -eq 0 ]; then
         return 0
     fi
 
