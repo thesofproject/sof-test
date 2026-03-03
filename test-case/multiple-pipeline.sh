@@ -86,6 +86,9 @@ DEV_LST['playback']='/dev/zero'
 APP_LST['capture']='arecord_opts'
 DEV_LST['capture']='/dev/null'
 
+# Global associative array to track used PCM devices across playback/capture
+declare -A USED_PCMS
+
 # define for load pipeline
 # args: $1: playback or capture
 #       $2: optional filter
@@ -113,6 +116,13 @@ func_run_pipeline_with_type()
         fmt=$(func_pipeline_parse_value "$idx" fmt)
         dev=$(func_pipeline_parse_value "$idx" dev)
         pcm=$(func_pipeline_parse_value "$idx" pcm)
+
+        # Skip if this PCM device was already tested
+        if [[ -n "${USED_PCMS[$dev]}" ]]; then
+            dlogi "Skipping duplicate PCM: $pcm [$dev] (already tested)"
+            continue
+        fi
+        USED_PCMS["$dev"]=1
 
         dlogi "Testing: $pcm [$dev]"
 
@@ -179,6 +189,9 @@ do
     # set up checkpoint for each iteration
     setup_kernel_check_point
     dlogi "===== Testing: (Loop: $i/$loop_cnt) ====="
+
+    # Reset used PCMs tracker for this iteration
+    USED_PCMS=()
 
     # start playback or capture:
     case "$f_arg" in

@@ -51,8 +51,24 @@ sleep 1
 check_alsa_tool_process
 sofcard=${SOFCARD:-0}
 
-# https://mywiki.wooledge.org/BashFAQ/024 why cant I pipe data to read?
-readarray -t pgalist < <("$TOPDIR"/tools/topo_vol_kcontrols.py "$tplg")
+# Extract PGA controls from all topology files
+# Parse multiple topologies (comma or colon separated) and collect unique PGA controls
+func_tplg_parse_and_validate "$tplg"
+tplg_files="$TPLG_FILES"
+
+# Collect PGA controls from all topology files
+pgalist_tmp=()
+IFS=',' read -ra tplg_array <<< "$tplg_files"
+for single_tplg in "${tplg_array[@]}"; do
+    dlogi "Extracting PGA controls from: $single_tplg"
+    # Collect output from this topology
+    while IFS= read -r line; do
+        [[ -n "$line" ]] && pgalist_tmp+=("$line")
+    done < <("$TOPDIR"/tools/topo_vol_kcontrols.py "$single_tplg" 2>/dev/null || true)
+done
+
+# Deduplicate PGA controls (same control can appear in multiple topologies)
+readarray -t pgalist < <(printf '%s\n' "${pgalist_tmp[@]}" | sort -u)
 
 # This (1) provides some logging (2) avoids skip_test if amixer fails
 get_sof_controls "$sofcard"

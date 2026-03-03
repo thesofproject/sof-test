@@ -6,8 +6,9 @@
 ##    N/A
 ## Description:
 ##    simultaneous running of aplay and arecord on "both" pipelines
+##    Supports multiple topology files separated by colon (:) or comma (,)
 ## Case step:
-##    1. Parse TPLG file to get pipeline with type "both"
+##    1. Parse TPLG file(s) to get pipeline with type "both"
 ##    2. Run aplay and arecord
 ##    3. Check for aplay and arecord process existence
 ##    4. Sleep for given time period
@@ -21,7 +22,7 @@
 # shellcheck source=case-lib/lib.sh
 source "$(dirname "${BASH_SOURCE[0]}")"/../case-lib/lib.sh
 
-OPT_NAME['t']='tplg'     OPT_DESC['t']="tplg file, default value is env TPLG: $TPLG"
+OPT_NAME['t']='tplg'     OPT_DESC['t']="tplg file(s), separated by : or , default value is env TPLG: $TPLG"
 OPT_HAS_ARG['t']=1         OPT_VAL['t']="$TPLG"
 
 OPT_NAME['w']='wait'     OPT_DESC['w']='sleep for wait duration'
@@ -41,23 +42,53 @@ loop_cnt=${OPT_VAL['l']}
 
 start_test
 
-# get 'both' pcm, it means pcm have same id with different type
-declare -A tmp_id_lst
+# Support multiple topologies separated by colon (:) or comma (,)
+# sof-tplgreader.py natively supports multiple files with comma separator
+tplg="${tplg//,/:}"  # Normalize to colon first
+# Parse and validate topology files
+func_tplg_parse_and_validate "$tplg"
+tplg_files="$TPLG_FILES"
+
+dlogi "Processing $TPLG_COUNT topology file(s) for 'both' pipelines"
+
+# get 'both' pcm: pipelines with same id but different types (playback + capture)
+declare -A tmp_id_types  # Store "id:type" combinations seen
+declare -A id_has_playback
+declare -A id_has_capture
 id_lst_str=""
-tplg_path=$(func_lib_get_tplg_path "$tplg") ||
-    die "No available topology for this test case"
-for i in $(sof-tplgreader.py "$tplg_path" -d id -v)
-do
-    if [ ! "${tmp_id_lst["$i"]}" ]; then  # this id is never used
-        tmp_id_lst["$i"]=0
-    else # this id already used
-        tmp_id_lst["$i"]=1
-        id_lst_str="$id_lst_str,$i"
+
+# sof-tplgreader.py handles multiple files natively
+# Parse output to find IDs with both playback and capture
+while IFS= read -r line; do
+    # Expected format: id=X;pcm=NAME;type=TYPE;...
+    if [[ "$line" =~ id=([0-9]+)\;.*type=(playback|capture) ]]; then
+        pid="${BASH_REMATCH[1]}"
+        ptype="${BASH_REMATCH[2]}"
+        key="${pid}:${ptype}"
+        
+        # Skip if we've seen this exact id:type combination (duplicate from multiple topologies)
+        [[ -n "${tmp_id_types[$key]}" ]] && continue
+        tmp_id_types["$key"]=1
+        
+        # Track which IDs have which types
+        if [[ "$ptype" == "playback" ]]; then
+            id_has_playback["$pid"]=1
+        elif [[ "$ptype" == "capture" ]]; then
+            id_has_capture["$pid"]=1
+        fi
+    fi
+done < <(sof-tplgreader.py "$tplg_files" -d id pcm type -o)
+
+# Find IDs that have both playback and capture
+for pid in "${!id_has_playback[@]}"; do
+    if [[ -n "${id_has_capture[$pid]}" ]]; then
+        id_lst_str="${id_lst_str},${pid}"
     fi
 done
-# now all duplicate ids have already been caught
-unset tmp_id_lst tplg_path
-id_lst_str=${id_lst_str/,/} # remove 1st, which is not used
+
+# Clean up
+unset tmp_id_types id_has_playback id_has_capture
+id_lst_str=${id_lst_str/,/} # remove leading comma
 [[ ${#id_lst_str} -eq 0 ]] && dlogw "no pipeline with both playback and capture capabilities found in $tplg" && exit 2
 func_pipeline_export "$tplg" "id:$id_lst_str"
 
