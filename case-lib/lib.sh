@@ -97,7 +97,7 @@ start_test()
     }
 
     # func_exit_handler() is in hijack.sh
-    trap 'func_exit_handler $?' EXIT SIGTERM
+    trap 'func_exit_handler $?' EXIT
 
     if test -z "$MAX_WAIT_FW_LOADING"; then
         local _pltf; _pltf=$("$SCRIPT_HOME/tools/sof-dump-status.py" -p)
@@ -125,7 +125,6 @@ start_test()
             die "FW is not loaded for $MAX_WAIT_FW_LOADING"
         fi
     }
-    func_kmsg_collect
 
     export SOF_TEST_TOP_PID="$$"
     local prefix; prefix="ktime=$(ktime) sof-test PID=${SOF_TEST_TOP_PID}"
@@ -196,26 +195,6 @@ stop_test()
     logger -p user.info "$end_msg"
 
     rm "$ftemp" "$ftemp".2
-}
-
-
-finish_kmsg_collection()
-{
-    if [[ -n "$DMESG_PID" ]]; then
-        kill "$DMESG_PID" 2>/dev/null
-        wait "$DMESG_PID" 2>/dev/null
-        unset KERNEL_CHECKPOINT
-    fi
-
-    local journalctl_logs="$LOG_ROOT/dmesg.txt"
-    if test -s "${journalctl_logs}"; then
-       wcLog=$(wc -l "${journalctl_logs}")
-       dlogi  "nlines=$wcLog"
-    else
-       dlogw "Empty ${journalctl_logs}"
-    fi
-    # Make sure the logs are written on disk just in case of DUT power reset.
-    sync
 }
 
 
@@ -427,24 +406,6 @@ func_mtrace_collect()
     # other issues, see bug #1151.
     # shellcheck disable=SC2024
     sudo bash -c "${mtraceCmd[*]} &" >& "$clogfile"
-}
-
-func_kmsg_collect() {
-    local journalctl_logs="$LOG_ROOT/dmesg.txt"
-
-    if [[ "$KERNEL_CHECKPOINT" =~ ^[0-9]{10} ]]; then
-        dlogi "Saving kernel messages since ${KERNEL_CHECKPOINT} to ${journalctl_logs}"
-        journalctl_cmd --since=@"$KERNEL_CHECKPOINT" -f >> "${journalctl_logs}" &
-    elif [[ "$KERNEL_CHECKPOINT" == "disabled" ]]; then
-        dlogi "Saving all kernel messages"
-        journalctl_cmd -f >> "${journalctl_logs}" &
-    else
-        dloge 'Kernel check point "KERNEL_CHECKPOINT" is not properly set'
-        dloge "KERNEL_CHECKPOINT=$KERNEL_CHECKPOINT"
-        test "$exit_status" -ne 0 || exit_status=1
-        return
-    fi
-    DMESG_PID=$!
 }
 
 func_lib_log_post_process()
