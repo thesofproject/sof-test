@@ -85,7 +85,7 @@ def detect_vertical_lines(wav_file):
     # If the normalised frequency is greater than the threshold, mark it as active.
     active_freqs = Sxx_norm > freq_threshold
     coverage = np.sum(active_freqs, axis=0) / active_freqs.shape[0]
-    coverage_threshold = 0.8
+    coverage_threshold = 0.95
     # If coverage exceeds threshold, mark as vertical line.
     vertical_lines = np.where(coverage > coverage_threshold)[0]
     print(f"Detected possible glitches at time indices: {vertical_lines + trim_samples + non_silent[0]}")
