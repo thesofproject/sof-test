@@ -81,15 +81,28 @@ prepare_test_soundfiles()
 
 run_tests()
 {
+    failures=0
     set +e
     for ch_nr in "${channels_to_test[@]}"
     do
+        test_pass=true
         test_filename="$HOME/Music/${ch_nr}_channels_test.wav"
         result_filename="$LOG_ROOT/rec_${ch_nr}ch.wav"
+        dlogi "--------------- PLAY $ch_nr CHANNELS, RECORD ON 2 channels ---------------"
 
         play_and_record "-D$capture_dev $rec_opt -d 25 $result_filename" "-Dplug$playback_dev $test_filename"
-
-        if ! analyze_mixed_sound "$result_filename" "$ch_nr"; then
+        if [ $? -eq 1 ]; then
+            test_pass=false
+            dlogi "TEST $ch_nr channels FAIL: aplay/arecord failed, look for previous errors"
+        else
+            if ! analyze_mixed_sound "$result_filename" "$ch_nr"; then
+                test_pass=false
+                dlogi "TEST $ch_nr channels FAIL: Recording has incorrect nr of channels"
+            fi
+        fi
+        if [ "$test_pass" = true ]; then
+            dlogi "TEST $ch_nr channels PASS: No issues found."
+        else
             failures=$((failures+1))
         fi
     done

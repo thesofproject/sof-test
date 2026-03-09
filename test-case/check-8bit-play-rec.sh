@@ -31,11 +31,11 @@ source "$(dirname "${BASH_SOURCE[0]}")"/../case-lib/lib.sh
 OPT_NAME['t']='tplg'             OPT_DESC['t']='tplg file, default value is env TPLG: $''TPLG'
 OPT_HAS_ARG['t']=1               OPT_VAL['t']="$TPLG"
 
-OPT_NAME['p']='playback_device'  OPT_DESC['p']='ALSA pcm playback device. Example: hw:0,1'
-OPT_HAS_ARG['p']=1               OPT_VAL['p']=''
+OPT_NAME['p']='playback_device'  OPT_DESC['p']='ALSA pcm playback device. Default: hw:0,0'
+OPT_HAS_ARG['p']=1               OPT_VAL['p']='hw:0,0'
 
-OPT_NAME['c']='capture_device'   OPT_DESC['c']='ALSA pcm capture device. Example: hw:0,1'
-OPT_HAS_ARG['c']=1               OPT_VAL['c']=''
+OPT_NAME['c']='capture_device'   OPT_DESC['c']='ALSA pcm capture device. Default: hw:0,0'
+OPT_HAS_ARG['c']=1               OPT_VAL['c']='hw:0,0'
 
 OPT_NAME['s']='sof-logger'       OPT_DESC['s']="Open sof-logger trace the data will store at $LOG_ROOT"
 OPT_HAS_ARG['s']=0               OPT_VAL['s']=1
@@ -87,7 +87,6 @@ run_tests()
 {
     generate_chirps
 
-    set +e
     play_and_record "-D$capture_dev $rec_opt $u8_play_filename" "-D$playback_dev $play_opt -t wav $chirp_u8_filename"
     play_and_record "-D$capture_dev $rec_opt $alaw_play_filename" "-D$playback_dev $play_opt -t raw -f A_LAW $chirp_alaw_filename"
     play_and_record "-D$capture_dev $rec_opt $mulaw_play_filename" "-D$playback_dev $play_opt -t raw -f MU_LAW $chirp_mulaw_filename"
@@ -98,9 +97,8 @@ run_tests()
     
     sox --encoding a-law -r 48000 -c 2 tmp1.raw "$alaw_rec_filename"
     sox --encoding u-law -r 48000 -c 2 tmp2.raw "$mulaw_rec_filename"
-    set -e
 
-    if check_soundfile_for_glitches "${all_result_files[@]}"; then
+    if check_soundfiles_for_glitches "${all_result_files[@]}"; then
         dlogi "All files correct"
     else
         die "Detected corrupted files!"

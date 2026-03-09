@@ -30,11 +30,11 @@ source "$(dirname "${BASH_SOURCE[0]}")"/../case-lib/lib.sh
 OPT_NAME['t']='tplg'             OPT_DESC['t']='tplg file, default value is env TPLG: $''TPLG'
 OPT_HAS_ARG['t']=1               OPT_VAL['t']="$TPLG"
 
-OPT_NAME['p']='playback_device'  OPT_DESC['p']='ALSA pcm playback device. Example: hw:0,1'
-OPT_HAS_ARG['p']=1               OPT_VAL['p']=''
+OPT_NAME['p']='playback_device'  OPT_DESC['p']='ALSA pcm playback device. Default: hw:0,2'
+OPT_HAS_ARG['p']=1               OPT_VAL['p']='hw:0,2'
 
-OPT_NAME['c']='capture_device'   OPT_DESC['c']='ALSA pcm capture device. Example: hw:0,1'
-OPT_HAS_ARG['c']=1               OPT_VAL['c']=''
+OPT_NAME['c']='capture_device'   OPT_DESC['c']='ALSA pcm capture device. Default: hw:0,2'
+OPT_HAS_ARG['c']=1               OPT_VAL['c']='hw:0,2'
 
 OPT_NAME['s']='sof-logger'       OPT_DESC['s']="Open sof-logger trace the data will store at $LOG_ROOT"
 OPT_HAS_ARG['s']=0               OPT_VAL['s']=1
@@ -51,30 +51,47 @@ init_globals()
 
     rec_opt="-f S16_LE -c 2 -d 7"
 
-    test_sound_filename=$LOG_ROOT/play.wav
+    test_sound_filename=$HOME/Music/play.wav
     all_result_files=()
 }
 
 run_tests()
 {
     dlogi "Generate 48 kHz chirp 0 - 20 kHz"
-    ffmpeg -y -f lavfi -i "aevalsrc='sin(2000*t*2*PI*t)':s=48000:d=5" -ac 2 "$test_sound_filename"
+    ffmpeg -loglevel error -y -f lavfi -i "aevalsrc='sin(2000*t*2*PI*t)':s=48000:d=5" -ac 2 "$test_sound_filename"
 
+    failures=0
     set +e
     for i in "${!sample_rates[@]}"
     do
+        test_pass=true
         sample_rate=${sample_rates[$i]}
+        dlogi "--------------- TEST $((i+1)): PLAY SAMPLE RATE 48000 Hz, RECORD IN $sample_rate Hz ---------------"
 
         result_filename=$LOG_ROOT/rec_$sample_rate.wav
-        all_result_files+=("$result_filename")
         play_and_record "-D$capture_dev $rec_opt -r $sample_rate $result_filename" "-D$playback_dev $test_sound_filename"
+        if [ $? -eq 1 ]; then
+            test_pass=false
+            dlogi "TEST $((i+1)) FAIL: aplay/arecord failed, look for previous errors"
+        else
+            check_soundfile_for_glitches "$result_filename"
+            if [ $? -eq 1 ]; then
+                test_pass=false
+                dlogi "TEST $((i+1)) FAIL: Found glitch in the recording"
+            fi
+        fi
+        if [ "$test_pass" = true ]; then
+            dlogi "TEST $((i+1)) PASS: No issues found."
+        else
+            failures=$((failures+1))
+        fi
     done
     set -e
 
-    if check_soundfile_for_glitches "${all_result_files[@]}"; then
-        dlogi "All files correct"
+    if [ "$failures" = 0 ]; then
+        dlogi "PASS: All testcases passed"
     else
-        die "Detected corrupted files!"
+        die "FAIL: $failures testcases failed"
     fi
 }
 

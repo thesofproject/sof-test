@@ -1534,47 +1534,89 @@ restore_topology() {
     check_topology
 }
 
+# Check aplay/arecord output for warnings
+# Arguments: 1-aplay/arecord output
+check_for_warnings()
+{
+    if printf '%s' "$1" | grep -q "Warning:"; then
+        dlogw "Caught warning! Look for previous logs."
+        return 1
+    fi
+    return 0
+}
+
 # Play sound and record it
 # Arguments: 1-arecord options 2-aplay options
 play_and_record()
 {
-    dlogi "Play [aplay $SOF_ALSA_OPTS $SOF_APLAY_OPTS $2] and capture sound [arecord $1]"
+    dlogi "Play [aplay $SOF_ALSA_OPTS $SOF_APLAY_OPTS $2] and capture sound [arecord $SOF_ALSA_OPTS $SOF_ARECORD_OPTS $1]"
+    arecord_log=$(mktemp)
+    aplay_log=$(mktemp)
+    errors=0
+
     # shellcheck disable=SC2086
-    arecord $SOF_ALSA_OPTS $SOF_ARECORD_OPTS $1 & PID=$!
-    # shellcheck disable=SC2086
-    aplay $SOF_ALSA_OPTS $SOF_APLAY_OPTS $2
-    wait $PID
+    arecord $SOF_ALSA_OPTS $SOF_ARECORD_OPTS $1 2>&1 | tee "$arecord_log" &
+    PID=$!
     sleep 1
+
+    # shellcheck disable=SC2086
+    aplay $SOF_ALSA_OPTS $SOF_APLAY_OPTS $2 2>&1 | tee "$aplay_log"
+    aplay_ret=${PIPESTATUS[0]}
+    [ "$aplay_ret" -ne 0 ] && errors=$((errors+1))
+
+    wait "$PID" || errors=$((errors+1))
+    sleep 1
+    arecord_output=$(<"$arecord_log")
+    check_for_warnings "$arecord_output" || errors=$((errors+1))
+    aplay_output=$(<"$aplay_log")
+    check_for_warnings "$aplay_output" || errors=$((errors+1))
+
+    rm -f "$arecord_log" "$aplay_log"
+
+    if [ "$errors" = 0 ]; then
+        return 0
+    fi
+    return 1
 }
 
-# Analyze files to look for glitches.
+# Analyze file to look for glitches.
 # Returns exit code 0 if there are no glitches, 1 if there are.
-# Arguments: the list of filenames
+# Arguments: filename
 check_soundfile_for_glitches()
 {
-    glitched_files=0
+    if [ -f "$result_filename" ]; then
+        dlogi "Analyzing $result_filename file..."
+        if python3 "$SCRIPT_HOME"/tools/analyze-wav.py "$result_filename"; then
+            dlogi "$result_filename file is correct" 
+        else
+            dlogw "GLITCHED FILE: $result_filename"
+            return 1
+        fi
+    else
+        dlogw "MISSING FILE: $result_filename"
+        return 1
+    fi
+}
+
+# Check list of soundfiles for glitches
+# Returns exit code 0 if there are no glitches, 1 if there are.
+# Arguments: list of filenames
+check_soundfiles_for_glitches()
+{
+    failures=0
     # shellcheck disable=SC2154
     for result_filename in "${all_result_files[@]}"
     do
-        if [ -f "$result_filename" ]; then
-            dlogi "Analyzing $result_filename file..."
-            if python3 "$SCRIPT_HOME"/tools/analyze-wav.py "$result_filename"; then
-                dlogi "$result_filename file is correct" 
-            else
-                dlogw "Found issues in $result_filename file"
-                glitched_files=$((glitched_files+1))
-            fi
-        else
-            dlogw "$result_filename file not found, check for previous errors"
-            glitched_files=$((glitched_files+1))
+        if ! check_soundfile_for_glitches "$result_filename"; then
+            failures=$((failures+1))
         fi
     done
 
-    if [ $glitched_files -eq 0 ]; then
-        dlogi "Analysis finished, no issues found"
+    if [ "$failures" = 0 ]; then
+        dlogi "All files correct"
         return 0
     else
-        dlogi "$glitched_files files corrupted"
+        dlogw "Found $failures corrupted files"
         return 1
     fi
 }
