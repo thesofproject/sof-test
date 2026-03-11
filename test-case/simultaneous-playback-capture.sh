@@ -67,8 +67,10 @@ logger_disabled || func_lib_start_log_collect
 func_error_exit()
 {
     dloge "$*"
-    kill -9 "$aplay_pid" && wait "$aplay_pid" 2>/dev/null
-    kill -9 "$arecord_pid" && wait "$arecord_pid" 2>/dev/null
+    kill_process "$aplay_pid" || true
+    wait "$aplay_pid" 2>/dev/null || true
+    kill_process "$arecord_pid" || true
+    wait "$arecord_pid" 2>/dev/null || true
     exit 1
 }
 
@@ -113,8 +115,10 @@ do
 
         # kill all live processes, successful end of test
         dlogc "killing all pipelines"
-        kill -9 $aplay_pid && wait $aplay_pid 2>/dev/null
-        kill -9 $arecord_pid && wait $arecord_pid 2>/dev/null
+        kill_process "$aplay_pid" || true
+        wait "$aplay_pid" 2>/dev/null || true
+        kill_process "$arecord_pid" || true
+        wait "$arecord_pid" 2>/dev/null || true
 
     done
     # check kernel log for each iteration to catch issues

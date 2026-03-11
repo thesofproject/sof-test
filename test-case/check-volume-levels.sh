@@ -83,7 +83,7 @@ main () {
     # Stop sine playback and do cleanup
     nap
     dlogi "The test procedure is now complete. Killing the aplay process $aplayPID."
-    kill $aplayPID
+    kill_process "$aplayPID" || true
 
     # Measure, delete unnecessary wav files if passed
     if measure_levels; then
