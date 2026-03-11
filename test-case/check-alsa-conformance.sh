@@ -325,8 +325,6 @@ main()
 {
   init_globals
 
-  setup_kernel_check_point
-
   start_test
 
   check_alsa_conformance_suite

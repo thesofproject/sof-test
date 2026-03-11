@@ -60,7 +60,6 @@ start_test
 logger_disabled || func_lib_start_log_collect
 
 func_pipeline_export "$tplg" "smart_amp:any"
-setup_kernel_check_point
 
 [ "$PIPELINE_COUNT" == "2" ] || die "Only detect $PIPELINE_COUNT pipeline(s) from topology, but two are needed"
 

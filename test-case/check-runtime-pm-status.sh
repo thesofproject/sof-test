@@ -50,7 +50,6 @@ func_check_dsp_status()
 }
 
 func_opt_parse_option "$@"
-setup_kernel_check_point
 
 tplg=${OPT_VAL['t']}
 loop_count=${OPT_VAL['l']}

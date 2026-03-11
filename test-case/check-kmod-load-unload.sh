@@ -36,7 +36,6 @@ OPT_NAME['p']='pulseaudio'   OPT_DESC['p']='disable pulseaudio on the test proce
 OPT_HAS_ARG['p']=0             OPT_VAL['p']=1
 
 func_opt_parse_option "$@"
-setup_kernel_check_point
 
 start_test
 

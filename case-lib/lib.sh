@@ -83,6 +83,9 @@ minvalue() { printf '%d' $(( "$1" < "$2"  ? "$1" : "$2" )); }
 #
 start_test()
 {
+    setup_kernel_check_point
+    func_kmsg_collect
+
     if [ "$SOF_TEST_PIPEWIRE" == true ]; then
         func_lib_enable_pipewire
     fi
@@ -125,7 +128,6 @@ start_test()
             die "FW is not loaded for $MAX_WAIT_FW_LOADING"
         fi
     }
-    func_kmsg_collect
 
     export SOF_TEST_TOP_PID="$$"
     local prefix; prefix="ktime=$(ktime) sof-test PID=${SOF_TEST_TOP_PID}"
@@ -158,7 +160,6 @@ start_test()
     local start_msg="$prefix: starting"
     dlogi "$start_msg"
     logger -p user.info "$start_msg"
-
 }
 
 # See high-level description in start_test header above
@@ -201,11 +202,8 @@ stop_test()
 
 finish_kmsg_collection()
 {
-    if [[ -n "$DMESG_PID" ]]; then
-        kill "$DMESG_PID" 2>/dev/null
-        wait "$DMESG_PID" 2>/dev/null
-        unset KERNEL_CHECKPOINT
-    fi
+    dlogi "Finishing dmesg collection"
+    sudo pkill -9 journalctl
 
     local journalctl_logs="$LOG_ROOT/dmesg.txt"
     if test -s "${journalctl_logs}"; then
@@ -435,14 +433,9 @@ func_kmsg_collect() {
     if [[ "$KERNEL_CHECKPOINT" =~ ^[0-9]{10} ]]; then
         dlogi "Saving kernel messages since ${KERNEL_CHECKPOINT} to ${journalctl_logs}"
         journalctl_cmd --since=@"$KERNEL_CHECKPOINT" -f >> "${journalctl_logs}" &
-    elif [[ "$KERNEL_CHECKPOINT" == "disabled" ]]; then
-        dlogi "Saving all kernel messages"
-        journalctl_cmd -f >> "${journalctl_logs}" &
     else
-        dloge 'Kernel check point "KERNEL_CHECKPOINT" is not properly set'
-        dloge "KERNEL_CHECKPOINT=$KERNEL_CHECKPOINT"
-        test "$exit_status" -ne 0 || exit_status=1
-        return
+        dlogi "KERNEL_CHECKPOINT is not properly set, saving all kernel messages"
+        journalctl_cmd -f >> "${journalctl_logs}" &
     fi
     DMESG_PID=$!
 }

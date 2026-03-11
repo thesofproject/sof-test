@@ -34,7 +34,6 @@ OPT_NAME['l']='loop'     OPT_DESC['l']='loop count'
 OPT_HAS_ARG['l']=1         OPT_VAL['l']=1
 
 func_opt_parse_option "$@"
-setup_kernel_check_point
 
 tplg=${OPT_VAL['t']}
 wait_time=${OPT_VAL['w']}

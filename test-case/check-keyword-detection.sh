@@ -44,7 +44,6 @@ OPT_NAME['d']='duration'          OPT_DESC['d']='interrupt kwd pipeline in # sec
 OPT_HAS_ARG['d']=1                  OPT_VAL['d']=10
 
 func_opt_parse_option "$@"
-setup_kernel_check_point
 
 tplg=${OPT_VAL['t']}
 loop_cnt=${OPT_VAL['l']}

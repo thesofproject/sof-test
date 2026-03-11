@@ -148,8 +148,6 @@ show_control_state()
 
 main()
 {
-    setup_kernel_check_point
-
     start_test
 
     dlogi "Checking usbrelay availability..."
