@@ -60,8 +60,6 @@ case $test_mode in
     ;;
 esac
 
-setup_kernel_check_point
-
 func_stop_start_pipeline()
 {
     local i=1

@@ -106,7 +106,6 @@ main()
     
     logger_disabled || func_lib_start_log_collect
 
-    setup_kernel_check_point
     func_lib_check_sudo
     func_pipeline_export "$tplg" "type:any"
 

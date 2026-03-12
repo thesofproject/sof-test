@@ -42,7 +42,6 @@ OPT_NAME['C']='channels'   OPT_DESC['C']='channels'
 OPT_HAS_ARG['C']=1         OPT_VAL['C']=2
 
 func_opt_parse_option "$@"
-setup_kernel_check_point
 
 start_test
 

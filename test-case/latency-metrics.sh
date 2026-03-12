@@ -273,8 +273,6 @@ main()
   pkill jackd || true
   check_latency_options
 
-  setup_kernel_check_point
-
   start_test
 
   logger_disabled || func_lib_start_log_collect

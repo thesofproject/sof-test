@@ -31,8 +31,6 @@ start_test
 tplg_path=$(func_lib_get_tplg_path "$tplg") ||
        	die "No available topology for this test case"
 
-setup_kernel_check_point
-
 tplg_str=$(sof-tplgreader.py "$tplg_path" -d id pcm type -o)
 pcm_str=$(sof-dump-status.py -i "${SOFCARD:-0}")
 

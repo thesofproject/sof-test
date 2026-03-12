@@ -83,6 +83,9 @@ minvalue() { printf '%d' $(( "$1" < "$2"  ? "$1" : "$2" )); }
 #
 start_test()
 {
+    setup_kernel_check_point
+    func_kmsg_collect
+
     if [ "$SOF_TEST_PIPEWIRE" == true ]; then
         func_lib_enable_pipewire
     fi
@@ -97,7 +100,7 @@ start_test()
     }
 
     # func_exit_handler() is in hijack.sh
-    trap 'func_exit_handler $?' EXIT
+    trap 'func_exit_handler $?' EXIT SIGTERM
 
     if test -z "$MAX_WAIT_FW_LOADING"; then
         local _pltf; _pltf=$("$SCRIPT_HOME/tools/sof-dump-status.py" -p)
@@ -157,7 +160,6 @@ start_test()
     local start_msg="$prefix: starting"
     dlogi "$start_msg"
     logger -p user.info "$start_msg"
-
 }
 
 # See high-level description in start_test header above
@@ -195,6 +197,23 @@ stop_test()
     logger -p user.info "$end_msg"
 
     rm "$ftemp" "$ftemp".2
+}
+
+
+finish_kmsg_collection()
+{
+    dlogi "Finishing dmesg collection"
+    sudo pkill -9 journalctl
+
+    local journalctl_logs="$LOG_ROOT/dmesg.txt"
+    if test -s "${journalctl_logs}"; then
+       wcLog=$(wc -l "${journalctl_logs}")
+       dlogi  "nlines=$wcLog"
+    else
+       dlogw "Empty ${journalctl_logs}"
+    fi
+    # Make sure the logs are written on disk just in case of DUT power reset.
+    sync
 }
 
 
@@ -406,6 +425,19 @@ func_mtrace_collect()
     # other issues, see bug #1151.
     # shellcheck disable=SC2024
     sudo bash -c "${mtraceCmd[*]} &" >& "$clogfile"
+}
+
+func_kmsg_collect() {
+    local journalctl_logs="$LOG_ROOT/dmesg.txt"
+
+    if [[ "$KERNEL_CHECKPOINT" =~ ^[0-9]{10} ]]; then
+        dlogi "Saving kernel messages since ${KERNEL_CHECKPOINT} to ${journalctl_logs}"
+        journalctl_cmd --since=@"$KERNEL_CHECKPOINT" -f >> "${journalctl_logs}" &
+    else
+        dlogi "KERNEL_CHECKPOINT is not properly set, saving all kernel messages"
+        journalctl_cmd -f >> "${journalctl_logs}" &
+    fi
+    DMESG_PID=$!
 }
 
 func_lib_log_post_process()
