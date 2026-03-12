@@ -315,6 +315,7 @@ remove_module snd_hda_codec_realtek_lib
 remove_module snd_hda_codec_generic
 
 remove_module snd_soc_wm8960
+remove_module snd_soc_simple_card
 
 #-------------------------------------------
 # Remaining core SOF parts
