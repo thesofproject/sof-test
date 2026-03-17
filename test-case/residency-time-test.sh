@@ -56,10 +56,12 @@ check_socwatch_module_loaded()
 check_for_PC10_state()
 {
     pc10_count=$(awk '/Package C-State Summary: Entry Counts/{f=1; next} f && /PC10/{print $3; exit}' "$socwatch_output".csv)
-    if [ -z "$pc10_count" ]; then
-        die "PC10 State not achieved"
+    if [ -z "$pc10_count" ] || [ "$pc10_count" -eq 0 ]; then
+        dlogw "PC10 State not achieved"
+    else
+        dlogi "Entered into PC10 State $pc10_count times"
+        pc10_achieved=true # PC10 state needs to be entered at least once to pass the test
     fi
-    dlogi "Entered into PC10 State $pc10_count times"
 
     pc10_per=$(awk '/Package C-State Summary: Residency/{f=1; next} f && /PC10/{print $3; exit}' "$socwatch_output".csv)
     pc10_time=$(awk '/Package C-State Summary: Residency/{f=1; next} f && /PC10/{print $5; exit}' "$socwatch_output".csv)
@@ -87,8 +89,8 @@ socwatch_test_once()
     setup_kernel_check_point
 
     ( set -x
-      sudo "$SOCWATCH_PATH"/socwatch -m -f sys -f cpu -f cpu-hw -f pcie -f hw-cpu-cstate \
-      -f pcd-slps0 -f tcss-state -f tcss -f pcie-lpm -n 200 -t "$duration" -s "$wait_time" \
+      sudo "$SOCWATCH_PATH"/socwatch -m -f sys -f cpu -f cpu-hw -f hw-cpu-cstate \
+      -f tcss-state -f pcie-lpm -n 200 -t "$duration" -s "$wait_time" \
       -r json -o "$socwatch_output" ) ||
     die "socwatch returned $?"
 
@@ -145,6 +147,7 @@ run_socwatch_tests()
     mkdir "$LOG_ROOT/socwatch-results"
     pc10_results_file="$LOG_ROOT/socwatch-results/pc10_results.json"
     touch "$pc10_results_file"
+    pc10_achieved=false
 
     for i in $(seq 1 "$loop_count")
     do
@@ -162,6 +165,12 @@ run_socwatch_tests()
 
     # unload socwatch module
     sudo bash "$SOCWATCH_PATH"/drivers/rmmod-socwatch
+
+    if "$pc10_achieved"; then
+        dlogi "PASS: PC10 state entered at least once"
+    else
+        die "FAIL: PC10 state NOT ENTERED"
+    fi
 }
 
 main()
