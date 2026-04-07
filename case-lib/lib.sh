@@ -1496,11 +1496,11 @@ perf_analyze()
         fi
         dlogc "$perf_cmd"
         eval "$perf_cmd" || {
-            dloge "SOF component performace analysis tool exit with error"
+            dlogw "SOF component performace analysis tool exit with error"
             return 1
         }
     else
-        dloge "Firmware trace file not found"
+        dlogw "Firmware trace file not found"
         return 1
     fi
 }

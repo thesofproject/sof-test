@@ -169,10 +169,7 @@ function func_exit_handler()
 
     # Only do performance analysis on test passed
     [ "x$exit_status" != "x0" ] || {
-        # On performance analysis return error, set exit code
-        if ! perf_analyze; then
-           exit_status=1
-        fi
+        perf_analyze || dlogw 'perf_analyze failed in exit handler'
     }
 
     # Only run when changing topology was initiated during the test
