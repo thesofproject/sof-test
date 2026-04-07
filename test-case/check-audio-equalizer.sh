@@ -22,7 +22,7 @@ my_dir=$(dirname "${BASH_SOURCE[0]}")
 # shellcheck source=case-lib/lib.sh
 source "$my_dir"/../case-lib/lib.sh
 
-OPT_NAME['t']='tplg'     OPT_DESC['t']="tplg file, default value is env TPLG: $TPLG"
+OPT_NAME['t']='tplg'     OPT_DESC['t']="tplg file(s), separated by : or , default value is env TPLG: $TPLG"
 OPT_HAS_ARG['t']=1         OPT_VAL['t']="$TPLG"
 
 OPT_NAME['d']='duration' OPT_DESC['d']='aplay duration in second'
@@ -39,8 +39,13 @@ tplg=${OPT_VAL['t']}
 duration=${OPT_VAL['d']}
 loop_cnt=${OPT_VAL['l']}
 
+# func_pipeline_export validates topology input and exports TPLG_FILES as
+# comma-separated absolute paths, possibly containing multiple files.
+tplg_files=${tplg//:/,}
+
 # import only EQ pipeline from topology
 func_pipeline_export "$tplg" "eq:any"
+tplg_files=${TPLG_FILES:-$tplg_files}
 sofcard=${SOFCARD:-0}
 
 start_test
@@ -81,10 +86,24 @@ func_test_eq()
 func_test_filter()
 {
     local testfilter=$1
+    local tplg_file filter_id
+
     dlogi "Get amixer control id for $testfilter"
-    Filterid=$("$my_dir"/../tools/topo_effect_kcontrols.py "$tplg" "$testfilter")
+
+    Filterid=""
+    IFS=',' read -r -a tplg_array <<< "$tplg_files"
+    for tplg_file in "${tplg_array[@]}"; do
+        [ -n "$tplg_file" ] || continue
+        filter_id=$("$my_dir"/../tools/topo_effect_kcontrols.py "$tplg_file" "$testfilter" 2>/dev/null || true)
+        if [ -n "$filter_id" ]; then
+            Filterid=$filter_id
+            dlogi "Found $testfilter in topology: $tplg_file"
+            break
+        fi
+    done
+
     if [ -z "$Filterid" ]; then
-        die "can't find $testfilter"
+        die "can't find $testfilter in any topology: $tplg_files"
     fi
 
     if is_ipc4; then
