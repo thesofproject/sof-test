@@ -173,7 +173,7 @@ def process_trace_file():
     #
     # pylint: disable=C0103
     ts_shift = 0
-    with open(args.filename, 'r', encoding='utf8') as file:
+    with open(args.filename, 'r', encoding='utf8', errors='ignore') as file:
         trace_item_gen = make_trace_item(file)
         trace_prev = None
         try:
