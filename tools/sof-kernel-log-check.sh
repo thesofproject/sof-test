@@ -185,7 +185,7 @@ ignore_str="$ignore_str"'|usb .+: (Enable|Disable) of device-initiated .+ failed
 ignore_str="$ignore_str"'|thermal thermal_zone.*: failed to read out thermal zone \(-61\)'
 
 # Ignore all ISH related issues. We have no shared flows between ISH and audio.
-ignore_str="$ignore_str"'|intel_ish_ipc 0000:00:[0-9]+\.0:'
+ignore_str="$ignore_str"'|intel_ish_ipc 0000:[0-9a-fA-F]+:[0-9a-fA-F]+\.0:'
 
 # Dell CML-U laptop with SoundWire, issues reported by sof-test
 # BugLink: https://github.com/thesofproject/sof-test/issues/307
@@ -409,7 +409,7 @@ ignore_str="$ignore_str"'|dw_dmac INTL9C60:..: Missing DT data'
 # origin logs seen on CHT platforms
 # proc_thermal 0000:00:0b.0: No auxiliary DTSs enabled
 ignore_str="$ignore_str"'|proc_thermal 0000:00:..\..: No auxiliary DTSs enabled'
-ignore_str="$ignore_str"'|kernel: proc_thermal_pci 0000:00:04.0: failed to add RAPL MMIO interface'
+ignore_str="$ignore_str"'|kernel: proc_thermal_pci 0000:00:04.0:'
 
 # touch pad logs can be ignored
 # origin logs seen on GLK platforms
