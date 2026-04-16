@@ -116,7 +116,7 @@ func_run_pipeline_with_type()
 
         dlogi "Testing: $pcm [$dev]"
 
-        "${APP_LST[$direction]}" -D "$dev" -c "$channel" -r "$rate" -f "$fmt" "${DEV_LST[$direction]}" -q &
+        "${APP_LST[$direction]}" -D "$dev" -c "$channel" -r "$rate" -f "$fmt" "${DEV_LST[$direction]}" -q -d "6" &
 
         : $((tmp_count--))
         if [ "$tmp_count" -le 0 ]; then return 0; fi
@@ -208,9 +208,9 @@ do
     dlogi "checking pipeline status again"
     ps_checks
 
-    dlogc 'pkill -9 aplay arecord'
-    pkill -9 arecord || true
-    pkill -9 aplay   || true
+    #dlogc 'pkill -9 aplay arecord'
+    #pkill -9 arecord || true
+    #pkill -9 aplay   || true
     sleep 1 # try not to pollute the next iteration
 
     if pgrep arecord || pgrep aplay; then
