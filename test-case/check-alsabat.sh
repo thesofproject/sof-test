@@ -72,20 +72,6 @@ frequency=${OPT_VAL['F']}
 sigmak=${OPT_VAL['k']}
 frames=${OPT_VAL['n']}
 
-start_test
-
-if [ "$pcm_p" = "" ]||[ "$pcm_c" = "" ];
-then
-	dloge "No playback or capture PCM is specified. Skip the alsabat test"
-	exit 2
-fi
-
-check_locale_for_alsabat
-
-logger_disabled || func_lib_start_log_collect
-
-set_alsa
-
 function __upload_wav_file
 {
     # upload the alsabat wav file
