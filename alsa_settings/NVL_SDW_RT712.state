@@ -27,8 +27,8 @@ state.sofsoundwire {
 	control.1 {
 		iface MIXER
 		name 'rt1320-1 FU21 Playback Volume'
-		value.0 87
-		value.1 87
+		value.0 72
+		value.1 72
 	}
 	control.2 {
 		iface MIXER
@@ -99,14 +99,14 @@ state.sofsoundwire {
 	control.13 {
 		iface MIXER
 		name 'rt712 FU0F Capture Volume'
-		value.0 46
-		value.1 46
+		value.0 40
+		value.1 40
 	}
 	control.14 {
 		iface MIXER
 		name 'rt712 FU44 Boost Volume'
-		value.0 2
-		value.1 2
+		value.0 0
+		value.1 0
 	}
 	control.15 {
 		iface MIXER
@@ -133,10 +133,10 @@ state.sofsoundwire {
 	control.18 {
 		iface MIXER
 		name 'rt712 FU15 Boost Volume'
-		value.0 2
-		value.1 2
-		value.2 2
-		value.3 2
+		value.0 0
+		value.1 0
+		value.2 0
+		value.3 0
 	}
 	control.19 {
 		iface MIXER
@@ -191,14 +191,14 @@ state.sofsoundwire {
 	control.29 {
 		iface MIXER
 		name 'Pre Mixer Speaker Playback Volume'
-		value.0 45
-		value.1 45
+		value.0 33
+		value.1 33
 	}
 	control.30 {
 		iface MIXER
 		name 'Post Mixer Speaker Playback Volume'
-		value.0 45
-		value.1 45
+		value.0 33
+		value.1 33
 	}
 	control.34 {
 		iface MIXER
