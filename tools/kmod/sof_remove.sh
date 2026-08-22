@@ -346,6 +346,12 @@ remove_module snd_pcm
 remove_module snd_ctl_led
 remove_module snd_seq_midi
 remove_module snd_seq_midi_event
+# MIDI 2.0 UMP support holds a reference on snd_rawmidi (and on snd_seq_device),
+# so it has to go first. It gets loaded on MIDI2-enabled kernels even when
+# nothing is using it, which made snd_rawmidi removal fail with
+#   rmmod: ERROR: Module snd_rawmidi is in use by: snd_ump
+# aborting reload_drivers() and cascading into every driver-reload test case.
+remove_module snd_ump
 remove_module snd_rawmidi
 remove_module snd_seq_dummy
 remove_module snd_seq
