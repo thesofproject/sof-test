@@ -45,7 +45,7 @@ func_opt_parse_option()
     # removing the leading '##' or '## ' from documentation.
     _dump_case_description()
     {
-        grep '^##' "$SCRIPT_NAME" | sed 's/^##//g' | sed 's/^ //g'
+        grep '^##' "$0" | sed 's/^##//g' | sed 's/^ //g'
     }
 
     # This function helps to fill below four variables
