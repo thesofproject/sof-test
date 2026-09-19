@@ -46,18 +46,22 @@ specific case under test.
 """
 
 def parse_opts():
-    global opts
+    global opts # pylint: disable=global-statement
     ap = argparse.ArgumentParser(description=HELP_TEXT,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap.add_argument("-v", "--verbose", action="store_true", help="Verbose output")
     ap.add_argument("--disable-rtnr", action="store_true", help="Disable RTNR noise reduction")
     ap.add_argument("-c", "--card", type=int, default=0, help="ALSA card index")
     ap.add_argument("--pcm", type=int, default=16, help="Output ALSA PCM index")
     ap.add_argument("--cap", type=int, default=18, help="Capture ALSA PCM index")
     ap.add_argument("--rate", type=int, default=48000, help="Sample rate")
     ap.add_argument("--chan", type=int, default=2, help="Output channel count")
+    ap.add_argument("--bufsz", type=int, default=2048, help="Buffer size in frames")
     ap.add_argument("--capchan", type=int,
                       help="Capture channel count (if different from output)")
     ap.add_argument("--capbits", type=int, default=16, help="Capture sample bits (16 or 32)")
+    ap.add_argument("--capmap", type=str, default="01",
+                    help="Capture channel map (as string, e.g. '23' to select 3rd/4th elems)")
     ap.add_argument("--noise", default="noise.wav",
                       help="WAV file containing 'noise' for capture")
     ap.add_argument("--duration", type=int, default=3, help="Capture duration (seconds)")
@@ -69,6 +73,7 @@ def parse_opts():
     opts = ap.parse_args()
     if not opts.capchan:
         opts.capchan = opts.chan
+    opts.capmap = [int(x) for x in opts.capmap]
     opts.base_test = not (opts.chirp_test or opts.echo_test)
 
 class ALSA:
@@ -103,6 +108,7 @@ class ALSA:
         return ret
     def alloc(self, typ):
         return (C.c_byte * getattr(self.lib, f"snd_{typ}_sizeof")())()
+    # pylint: disable=too-few-public-methods
     class pcm_channel_area_t(C.Structure):
         _fields_ = [("addr", C.c_ulong), ("first", C.c_int), ("step", C.c_int)]
 
@@ -111,8 +117,18 @@ def pcm_init_stream(pcm, rate, chans, fmt, access):
     alsa.snd_pcm_hw_params_any(pcm, hwp)
     alsa.snd_pcm_hw_params_set_format(pcm, hwp, fmt)
     alsa.snd_pcm_hw_params_set_channels(pcm, hwp, chans)
-    alsa.snd_pcm_hw_params_set_rate(pcm, hwp, rate, alsa.PCM_STREAM_PLAYBACK)
+    alsa.snd_pcm_hw_params_set_rate(pcm, hwp, rate, 0)
     alsa.snd_pcm_hw_params_set_access(pcm, hwp, access)
+    alsa.snd_pcm_hw_params_set_buffer_size(pcm, hwp, opts.bufsz)
+    if opts.verbose:
+        print("Set hw_params:")
+        out = C.c_ulong(0)
+        alsa.snd_output_buffer_open(C.byref(out))
+        alsa.snd_pcm_hw_params_dump(hwp, out)
+        buf = C.c_ulong(0)
+        alsa.snd_output_buffer_string(out, C.byref(buf))
+        print(C.string_at(buf.value).decode("ascii", errors="ignore"))
+
     alsa.snd_pcm_hw_params(pcm, hwp)
 
 def ctl_disable_rtnr():
@@ -282,7 +298,9 @@ def cap_to_playback(buf):
     # treat it, and it can plausibly create false positive chirp signals
     # loud enough).
     for i in range(0, len(buf), capsz):
-        frame = [scale * x for x in struct.unpack(capfmt, buf[i:i+capsz])[0:opts.chan]]
+        frame = struct.unpack(capfmt, buf[i:i+capsz]) # Decode
+        frame = [frame[n] for n in opts.capmap]       # Select via channel map
+        frame = [scale * x for x in frame]            # Convert to float
         if last_frame:
             delta_sum += sum(abs(last_frame[x] - frame[x]) for x in range(opts.chan))
         last_frame = frame
@@ -352,7 +370,8 @@ def echo_test():
     # Just slurps in the wav file and chops off the header, assuming
     # the user got the format and sampling rate correct.
     WAV_HDR_LEN = 44
-    buf = open(opts.noise, "rb").read()[WAV_HDR_LEN:]
+    with open(opts.noise, "rb") as f:
+        buf = f.read()[WAV_HDR_LEN:]
 
     (rfd, wfd) = os.pipe()
     pid = os.fork()
