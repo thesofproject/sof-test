@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 ##
 ## Case Name: Wrapper to run a test case given with Pipewire in setup that cannot set the environment variable. 
