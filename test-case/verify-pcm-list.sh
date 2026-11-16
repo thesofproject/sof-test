@@ -58,12 +58,12 @@ opt=""
 # Remove leading " & " if present
 opt="${opt# & }"
 
-# Build sof-tplgreader.py command with filter
+# Build sof-tplgreader.py command with filter (exclude compress devs not in /proc/asound/pcm)
 if [ -n "$opt" ]; then
     dlogi "Applying pipeline filter: $opt"
-    tplg_str=$(sof-tplgreader.py "$tplg_files" -f "$opt" -d id pcm type -o)
+    tplg_str=$(sof-tplgreader.py "$tplg_files" -f "$opt" -b 'compress:1' -d id pcm type -o)
 else
-    tplg_str=$(sof-tplgreader.py "$tplg_files" -d id pcm type -o)
+    tplg_str=$(sof-tplgreader.py "$tplg_files" -b 'compress:1' -d id pcm type -o)
 fi
 
 # Deduplicate exact duplicate lines only, preserve original order.

@@ -169,7 +169,7 @@ func_pipeline_export()
             # If this is a new unique dev, copy pipeline to new index if needed
             if [ $new_idx -ne "$idx" ]; then
                 # Copy all fields from old index to new index
-                for key in pcm id dev type fmt fmts rate rates channel channels snd; do
+                for key in pcm id dev type compress fmt fmts rate rates channel channels snd; do
                     local val; val=$(func_pipeline_parse_value "$idx" "$key")
                     if [[ -n "$val" ]]; then
                         eval "PIPELINE_${new_idx}[$key]=\"$val\""
@@ -200,7 +200,7 @@ func_pipeline_export()
             # Create temporary copy of all pipelines
             local -A temp_pipelines
             for idx in $(seq 0 $((PIPELINE_COUNT - 1))); do
-                for key in pcm id dev type fmt fmts rate rates channel channels snd; do
+                for key in pcm id dev type compress fmt fmts rate rates channel channels snd; do
                     local val; val=$(func_pipeline_parse_value "$idx" "$key")
                     [[ -n "$val" ]] && temp_pipelines["${idx}_${key}"]="$val"
                 done
@@ -210,7 +210,7 @@ func_pipeline_export()
             local new_idx=0
             for entry in "${sorted_indices[@]}"; do
                 local old_idx="${entry#*:}"
-                for key in pcm id dev type fmt fmts rate rates channel channels snd; do
+                for key in pcm id dev type compress fmt fmts rate rates channel channels snd; do
                     local val="${temp_pipelines[${old_idx}_${key}]}"
                     if [[ -n "$val" ]]; then
                         eval "PIPELINE_${new_idx}[$key]=\"$val\""
