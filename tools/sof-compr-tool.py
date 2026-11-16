@@ -275,6 +275,16 @@ class SndComprTstamp(ctypes.Structure):
 
 
 @dataclass
+class BufferConfig:
+    """Buffer and wrapper setup options."""
+
+    frag_size: int = 0
+    frags: int = 0
+    bespoke: str = "auto"
+    is_capture: bool = False
+
+
+@dataclass
 class StreamConfig:
     """Resolved compress stream setup parameters."""
 
@@ -284,10 +294,7 @@ class StreamConfig:
     channels: int
     bitrate: int
     fmt_id: int
-    frag_size: int = 0
-    frags: int = 0
-    bespoke: str = "auto"
-    is_capture: bool = False
+    buf: BufferConfig
 # pylint: enable=too-few-public-methods
 
 
@@ -367,8 +374,8 @@ def build_params(caps, cfg, use_bespoke=False):
     """Construct SndComprParams bounded by reported caps."""
     params = SndComprParams()
 
-    req_frag = cfg.frag_size if cfg.frag_size > 0 else (2048 if cfg.is_capture else 8192)
-    req_frags = cfg.frags if cfg.frags > 0 else 4
+    req_frag = cfg.buf.frag_size if cfg.buf.frag_size > 0 else (2048 if cfg.buf.is_capture else 8192)
+    req_frags = cfg.buf.frags if cfg.buf.frags > 0 else 4
 
     min_frag = caps.min_fragment_size or 1024
     max_frag = caps.max_fragment_size or 65536
@@ -393,7 +400,7 @@ def build_params(caps, cfg, use_bespoke=False):
     codec.format = cfg.fmt_id if cfg.codec_id == SND_AUDIOCODEC_PCM else 0
     codec.pcm_format = cfg.fmt_id
 
-    if not use_bespoke and not cfg.is_capture and cfg.codec_id == SND_AUDIOCODEC_OPUS_RAW:
+    if not use_bespoke and not cfg.buf.is_capture and cfg.codec_id == SND_AUDIOCODEC_OPUS_RAW:
         opus_d = codec.options.opus_d
         opus_d.version = 1
         opus_d.num_channels = cfg.channels
@@ -410,9 +417,9 @@ def build_params(caps, cfg, use_bespoke=False):
 
 def set_params_with_fallback(fd, caps, cfg):
     """Call SNDRV_COMPRESS_SET_PARAMS with optional BESPOKE fallback."""
-    if cfg.bespoke == "always":
+    if cfg.buf.bespoke == "always":
         modes = [True]
-    elif cfg.bespoke == "never":
+    elif cfg.buf.bespoke == "never":
         modes = [False]
     else:
         modes = [False, True] if cfg.codec_id > SND_AUDIOCODEC_BESPOKE else [False]
@@ -497,10 +504,12 @@ def _stream_config_from_args(args, is_capture):
         channels=args.channels,
         bitrate=bitrate,
         fmt_id=resolve_pcm_format(args.fmt),
-        frag_size=args.frag_size,
-        frags=args.frags,
-        bespoke=args.bespoke,
-        is_capture=is_capture,
+        buf=BufferConfig(
+            frag_size=args.frag_size,
+            frags=args.frags,
+            bespoke=args.bespoke,
+            is_capture=is_capture,
+        ),
     )
 
 
