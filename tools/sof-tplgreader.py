@@ -298,7 +298,7 @@ def parse_and_set_block_keyword(block_str, tplgreader):
     tplgreader.setBlock(block_list)
 
 
-def main():
+def _build_arg_parser():
     parser = argparse.ArgumentParser(
         description='Filters and prints PCMs found in a .tplg file',
         add_help=True, formatter_class=argparse.RawTextHelpFormatter)
@@ -347,62 +347,48 @@ PIPELINE_$ID['key']='value' ''')
     parser.add_argument('-t', '--tplgroot', type=str, help="load file from tplg-root folder")
     parser.add_argument('-o', '--sort', action='store_true', help="sort pipeline by id for the same tplg")
     parser.add_argument('--version', action='version', version='%(prog)s 1.0')
+    return parser
 
-    ret_args = vars(parser.parse_args())
 
+def _print_pipeline_output(ret_args, pipeline_lst):
+    if ret_args['export'] is True:
+        sys.exit(export_pipeline(pipeline_lst))
+    if ret_args['count'] is True:
+        msg = len(pipeline_lst) if ret_args['value'] else "Pipeline Count: %d" % len(pipeline_lst)
+        print(msg)
+        return
+    if ret_args['index'] is not None and ret_args['index'] < len(pipeline_lst):
+        print(format_pipeline(pipeline_lst[ret_args['index']], ret_args['value']))
+        return
+    for entry in pipeline_lst:
+        print(format_pipeline(entry, ret_args['value']))
+
+
+def main():
+    ret_args = vars(_build_arg_parser().parse_args())
     tplgreader = clsTPLGReader()
-    dump_lst = []
-    pipeline_lst = []
-    tplg_root = ""
 
-    # parse and set filter keyword
-    if ret_args['filter'] is not None and len(ret_args['filter']) > 0:
-        filter_dict = parse_filter(ret_args['filter'])
-        tplgreader.setFilter(filter_dict)
+    if ret_args['filter']:
+        tplgreader.setFilter(parse_filter(ret_args['filter']))
 
-    # If run general test case on WOV pipeline or ECHO REFERENCE capture pipeline, there will be error
-    # due to no feed data, and they should be blocked in general test case.
     default_block_keyword = 'kpbm:any;kpb:any;type:capture & echo;compress:1;'
-    # if no filter or block item is specified, the "block_none" here will help to
-    # block nothing
-    block_str = "block_none"
-    # user specified block items from command line
     cmd_block_str = ret_args['block'].strip() if ret_args['block'] is not None else ''
-
     if ret_args["filter"] is not None and not re.search('echo|kpb|compress', ret_args["filter"]):
         block_str = default_block_keyword + cmd_block_str
     else:
-        block_str = cmd_block_str if cmd_block_str != '' else block_str
-
+        block_str = cmd_block_str or "block_none"
     parse_and_set_block_keyword(block_str, tplgreader)
 
-    if ret_args['dump'] is not None and len(ret_args['dump']) > 0:
-        dump_lst = ret_args['dump']
+    if ret_args['dump']:
+        tplgreader.setField(ret_args['dump'])
 
-    if len(dump_lst) > 0:
-        tplgreader.setField(dump_lst)
+    tplg_root = ret_args['tplgroot'] or ""
+    pipeline_lst = []
+    for fname in ret_args['filename'].split(','):
+        path = f"{tplg_root}/{fname}" if tplg_root else fname
+        pipeline_lst += func_getPipeline(tplgreader, path, ret_args['sofcard'], ret_args['sort'])[:]
 
-    if ret_args['tplgroot'] is not None and len(ret_args['tplgroot']) > 0:
-        tplg_root = ret_args['tplgroot']
-
-    for f in ret_args['filename'].split(','):
-        if len(tplg_root) > 0:
-            f = tplg_root + "/" + f
-        pipeline_lst += func_getPipeline(tplgreader, f, ret_args['sofcard'], ret_args['sort'])[:]
-
-    if ret_args['export'] is True:
-        sys.exit(export_pipeline(pipeline_lst))
-
-    if ret_args['count'] is True:
-        if ret_args['value'] is True:
-            print(len(pipeline_lst))
-        else:
-            print("Pipeline Count: %d" % (len(pipeline_lst)))
-    elif ret_args['index'] is not None and ret_args['index'] < len(pipeline_lst):
-        print(format_pipeline(pipeline_lst[ret_args['index']], ret_args['value']))
-    else:
-        for entry in pipeline_lst:
-            print(format_pipeline(entry, ret_args['value']))
+    _print_pipeline_output(ret_args, pipeline_lst)
 
 
 if __name__ == "__main__":
