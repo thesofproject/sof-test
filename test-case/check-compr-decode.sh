@@ -74,6 +74,10 @@ if [ "$tool_mode" = "cplay" ] && ! func_compr_has_bin cplay; then
     skip_test "cplay binary not found in PATH"
 fi
 
+if [ "$tool_mode" = "cplay" ] && [ "$pause_cycles" -gt 0 ]; then
+    die "Invalid combination: cplay mode does not support --pause_resume ($pause_cycles)"
+fi
+
 func_pipeline_export "$tplg" "type:playback & compress:1 & ${filter_str}"
 
 mkdir -p "$work_dir"
@@ -95,9 +99,13 @@ for idx in $(seq 0 $((PIPELINE_COUNT - 1))); do
     dlogi "Testing compress playback pipeline: $pcm [$dev] ($snd)"
 
     for codec in $codec_list; do
-        if ! func_compr_dev_supports_codec "$snd" playback "$codec"; then
+        caps_rc=0
+        func_compr_dev_supports_codec "$snd" playback "$codec" || caps_rc=$?
+        if [ "$caps_rc" -eq 1 ]; then
             dlogi "Skipping codec=$codec (not advertised in GET_CAPS on $snd)"
             continue
+        elif [ "$caps_rc" -ne 0 ]; then
+            die "Failed to query compress playback capabilities on $snd"
         fi
 
         modes_to_run=()
@@ -113,7 +121,11 @@ for idx in $(seq 0 $((PIPELINE_COUNT - 1))); do
                 modes_to_run=(compr-tool)
                 ;;
             all)
-                func_compr_cplay_supports "$codec" && modes_to_run+=(cplay)
+                if [ "$pause_cycles" -eq 0 ] && func_compr_cplay_supports "$codec"; then
+                    modes_to_run+=(cplay)
+                elif [ "$pause_cycles" -gt 0 ] && func_compr_cplay_supports "$codec"; then
+                    dlogi "Skipping mode=cplay for codec=$codec (pause/resume unsupported by cplay)"
+                fi
                 modes_to_run+=(compr-tool)
                 ;;
             auto)
@@ -126,11 +138,11 @@ for idx in $(seq 0 $((PIPELINE_COUNT - 1))); do
 
         defaults=$(func_compr_codec_defaults "$codec")
         read -r rate ch _ _ _ _ <<< "$defaults"
-        vec_file="${work_dir}/dec_${codec}_${rate}hz_${ch}ch.${codec}"
+        vec_file="${work_dir}/dec_${codec}_${rate}hz_${ch}ch_${duration}s.${codec}"
         if [ "$codec" = "alac" ]; then
-            vec_file="${work_dir}/dec_alac_${rate}hz_${ch}ch.m4a"
+            vec_file="${work_dir}/dec_alac_${rate}hz_${ch}ch_${duration}s.m4a"
         elif [ "$codec" = "msbc" ]; then
-            vec_file="${work_dir}/dec_msbc_${rate}hz_${ch}ch.sbc"
+            vec_file="${work_dir}/dec_msbc_${rate}hz_${ch}ch_${duration}s.sbc"
         fi
 
         if [ ! -s "$vec_file" ]; then
@@ -151,8 +163,10 @@ for idx in $(seq 0 $((PIPELINE_COUNT - 1))); do
                     sleep 0.2
                 fi
 
-                if ! func_compr_run_play "$mode" "$snd" "$codec" "$vec_file" "$pause_cycles"; then
-                    [ -n "$cap_pid" ] && kill "$cap_pid" 2>/dev/null || true
+                if ! func_compr_run_play "$mode" "$snd" "$codec" "$vec_file" "$pause_cycles" "$duration"; then
+                    if [ -n "$cap_pid" ]; then
+                        kill "$cap_pid" 2>/dev/null || true
+                    fi
                     func_lib_lsof_error_dump "$snd"
                     die "Decode playback failed: codec=$codec mode=$mode dev=$snd"
                 fi

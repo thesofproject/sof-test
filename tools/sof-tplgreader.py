@@ -1,8 +1,12 @@
 #!/usr/bin/env python3
 
+import argparse
+import re
+import sys
+
 from tplgtool import TplgParser, TplgFormatter
 from common import format_pipeline, export_pipeline
-import re
+
 
 class clsTPLGReader:
     def __init__(self):
@@ -12,8 +16,8 @@ class clsTPLGReader:
         self._filter_dict = {}
         self._block_lst = []
 
-    def __comp_pipeline(self, pipeline):
-        return int(pipeline['id'])
+    def __comp_pipeline(self, item):
+        return int(item['id'])
 
     def _key2str(self, cap, key):
         return cap["%s_min" % (key)], cap["%s_max" % (key)]
@@ -25,6 +29,74 @@ class clsTPLGReader:
             comp_names = [i['name'] for i in comp]
             pipeline_dict[comp_name.lower()] = " ".join(comp_names)
 
+    def _build_pcm_entry(self, formatter, pcm):
+        pcm_type = TplgFormatter.get_pcm_type(pcm)
+        # if we find None type pcm, there must be errors in topology
+        if pcm_type == "None":
+            print("type of %s is neither playback nor capture, please check your"
+                  "topology source file" % pcm["pcm_name"])
+            sys.exit(1)
+
+        comp_map = {
+            'PGA': formatter.find_comp_for_pcm(pcm, 'PGA'),
+            'EQ': formatter.find_comp_for_pcm(pcm, 'EQ'),
+            'KPBM': formatter.find_comp_for_pcm(pcm, 'KPBM'),
+            'kpb': formatter.find_comp_for_pcm(pcm, 'kpb'),
+            'ASRC': formatter.find_comp_for_pcm(pcm, 'ASRC'),
+            'CODEC_ADAPTER': formatter.find_comp_for_pcm(pcm, 'CODEC_ADAPTER'),
+        }
+        formats = TplgFormatter.get_pcm_fmt(pcm)
+        rates = TplgFormatter.get_pcm_rate_list(pcm)
+
+        def make_entry(dir_idx, entry_type):
+            entry = {
+                'pcm': pcm["pcm_name"],
+                'id': str(pcm["pcm_id"]),
+                'type': entry_type,
+                'compress': str(pcm.get("compress", 0)),
+            }
+            cap = pcm["caps"][dir_idx]
+            entry['cap_name'] = cap['name']
+            for comp_name, comps in comp_map.items():
+                if dir_idx == 0 and comp_name in ('KPBM', 'kpb'):
+                    continue
+                clsTPLGReader.attach_comp_to_pipeline(comps, dir_idx, comp_name, entry)
+            entry['fmts'] = " ".join(formats[dir_idx])
+            entry['fmt'] = entry['fmts'].split(' ')[0]
+            entry['rates'] = " ".join(rates[dir_idx])
+            entry['rate_min'], entry['rate_max'] = self._key2str(cap, 'rate')
+            entry['ch_min'], entry['ch_max'] = self._key2str(cap, 'channels')
+            return entry
+
+        if pcm_type == "both":
+            self._pipeline_lst.append(make_entry(0, "playback"))
+            self._pipeline_lst.append(make_entry(pcm['capture'], "capture"))
+        else:
+            self._pipeline_lst.append(make_entry(pcm['capture'], pcm_type))
+
+    @staticmethod
+    def _finalize_pipeline_entry(entry, sofcard):
+        # If rates is available get first sampling rate from the list.
+        # If rates list doesn't have any, then get it from rate_min or rate_max.
+        # If none of them is available, then set rate to 0
+        if entry['rates']:
+            entry['rate'] = entry['rates'].split(' ')[0]
+        elif int(entry['rate_min']) != 0:
+            entry['rate'] = entry['rate_min']
+        elif int(entry['rate_max']) != 0:
+            entry['rate'] = entry['rate_max']
+        else:
+            entry['rate'] = 0
+        entry['channel'] = entry['ch_min']
+        entry['dev'] = "hw:" + str(sofcard) + ',' + entry['id']
+        if entry.get('compress') == '1':
+            entry['snd'] = "/dev/snd/comprC" + str(sofcard) + "D" + entry['id']
+        else:
+            # the character devices for PCM under /dev/snd take the form of
+            # "pcmC + card_number + D + device_number + capability", eg, pcmC0D0p.
+            entry['snd'] = "/dev/snd/pcmC" + str(sofcard) + "D" + entry['id']
+            entry['snd'] += 'p' if entry['type'] == "playback" else 'c'
+
     # fork & split from TplgFormatter
     def loadFile(self, filename, sofcard=0):
         tplg_parser = TplgParser()
@@ -35,92 +107,11 @@ class clsTPLGReader:
             if "pcm" not in item:
                 continue
             for pcm in item['pcm']:
-                pcm_type = TplgFormatter.get_pcm_type(pcm)
-                # if we find None type pcm, there must be errors in topology
-                if pcm_type == "None":
-                    print("type of %s is neither playback nor capture, please check your"
-                        "topology source file" % pcm["pcm_name"])
-                    exit(1)
-                pgas = formatter.find_comp_for_pcm(pcm, 'PGA')
-                eqs = formatter.find_comp_for_pcm(pcm, 'EQ')
-                kwds = formatter.find_comp_for_pcm(pcm, 'KPBM')
-                kwds_ipc4 = formatter.find_comp_for_pcm(pcm, 'kpb')
-                asrcs = formatter.find_comp_for_pcm(pcm, 'ASRC')
-                codec_adapters = formatter.find_comp_for_pcm(pcm, 'CODEC_ADAPTER')
-                pipeline_dict = {}
-                pipeline_dict['pcm'] = pcm["pcm_name"]
-                pipeline_dict['id'] = str(pcm["pcm_id"])
-                pipeline_dict['type'] = TplgFormatter.get_pcm_type(pcm)
-                pipeline_dict['compress'] = str(pcm.get("compress", 0))
-                cap = pcm["caps"][pcm['capture']]
-                pipeline_dict['cap_name'] = cap['name']
-                # acquire component from pipeline graph, and add to pipeline dict
-                clsTPLGReader.attach_comp_to_pipeline(pgas, pcm['capture'], "PGA", pipeline_dict)
-                clsTPLGReader.attach_comp_to_pipeline(eqs, pcm['capture'], "EQ", pipeline_dict)
-                clsTPLGReader.attach_comp_to_pipeline(kwds, pcm['capture'], "KPBM", pipeline_dict)
-                clsTPLGReader.attach_comp_to_pipeline(kwds_ipc4, pcm['capture'], "kpb", pipeline_dict)
-                clsTPLGReader.attach_comp_to_pipeline(asrcs, pcm['capture'], "ASRC", pipeline_dict)
-                clsTPLGReader.attach_comp_to_pipeline(codec_adapters, pcm['capture'], "CODEC_ADAPTER", pipeline_dict)
-                # supported formats of playback pipeline in formats[0]
-                # supported formats of capture pipeline in formats[1]
-                formats = TplgFormatter.get_pcm_fmt(pcm)
-                rates = TplgFormatter.get_pcm_rate_list(pcm)
-                # if capture is present, pcm['capture'] = 1, otherwise, pcm['capture'] = 0,
-                # same thing for pcm['playback']
-                pipeline_dict['fmts'] = " ".join(formats[pcm['capture']])
-                # use the first supported format for test
-                pipeline_dict['fmt'] = pipeline_dict['fmts'].split(' ')[0]
-                pipeline_dict['rates'] = " ".join(rates[pcm['capture']])
-                pipeline_dict['rate_min'], pipeline_dict['rate_max'] = self._key2str(cap, 'rate')
-                pipeline_dict['ch_min'], pipeline_dict['ch_max'] = self._key2str(cap, 'channels')
-                # for pcm with both playback and capture capabilities, we can extract two pipelines.
-                # the paramters for capture pipeline is filled above, and the parameters for playback
-                # pipeline is filled below.
-                if pcm_type == "both":
-                    pipeline_dict["type"] = "capture"
-                    # copy pipeline and change values
-                    pb_pipeline_dict = pipeline_dict.copy()
-                    pb_pipeline_dict["type"] = "playback"
-                    cap = pcm["caps"][0]
-                    pb_pipeline_dict['cap_name'] = cap['name']
-                    # with index = 0, we get parameters from playback pipeline
-                    clsTPLGReader.attach_comp_to_pipeline(pgas, 0, "PGA", pb_pipeline_dict)
-                    clsTPLGReader.attach_comp_to_pipeline(eqs, 0, "EQ", pb_pipeline_dict)
-                    clsTPLGReader.attach_comp_to_pipeline(asrcs, 0, "ASRC", pb_pipeline_dict)
-                    clsTPLGReader.attach_comp_to_pipeline(codec_adapters, 0, "CODEC_ADAPTER", pb_pipeline_dict)
-                    pb_pipeline_dict["fmts"] = " ".join(formats[0])
-                    pb_pipeline_dict['fmt'] = pb_pipeline_dict['fmts'].split(' ')[0]
-                    pb_pipeline_dict['rate_min'], pb_pipeline_dict['rate_max'] = self._key2str(cap, 'rate')
-                    pb_pipeline_dict['ch_min'], pb_pipeline_dict['ch_max'] = self._key2str(cap, 'channels')
-                    self._pipeline_lst.append(pb_pipeline_dict)
-                self._pipeline_lst.append(pipeline_dict)
+                self._build_pcm_entry(formatter, pcm)
 
         # format pipeline, this change for script direct access 'rate' 'channel' 'dev' 'snd'
-        for pipeline in self._pipeline_lst:
-            #pipeline['fmt']=pipeline['fmt'].upper().replace('LE', '_LE')
-            # If rates is available get first sampling rate from the list.
-            # If rates list doesn't have any, then get it from rate_min or rate_max.
-            # If none of them is available, then set rate to 0
-            if pipeline['rates']:
-                pipeline['rate'] = pipeline['rates'].split(' ')[0]
-            elif int(pipeline['rate_min']) != 0:
-                pipeline['rate'] = pipeline['rate_min']
-            elif int(pipeline['rate_max']) != 0:
-                pipeline['rate'] = pipeline['rate_max']
-            else:
-                pipeline['rate'] = 0
-            pipeline['channel'] = pipeline['ch_min']
-            pipeline['dev'] = "hw:" + str(sofcard) + ',' + pipeline['id']
-            if pipeline.get('compress') == '1':
-                pipeline['snd'] = "/dev/snd/comprC" + str(sofcard) + "D" + pipeline['id']
-            else:
-                # the character devices for PCM under /dev/snd take the form of
-                # "pcmC + card_number + D + device_number + capability", eg, pcmC0D0p.
-                pipeline['snd'] = "/dev/snd/pcmC" + str(sofcard) + "D" + pipeline['id']
-                if pipeline['type'] == "playback":
-                    pipeline['snd'] += 'p'
-                else:
-                    pipeline['snd'] += 'c'
+        for entry in self._pipeline_lst:
+            self._finalize_pipeline_entry(entry, sofcard)
         return 0
 
     # The following functions re-implement built-in Python sets
@@ -189,14 +180,14 @@ class clsTPLGReader:
             # single key:value and then the break/else is pure confusion.
             for key, value in filter_dict.items():
                 if 'any' in value or value == ['']:
-                    check = True if key in line.keys() else False
+                    check = key in line
                 else:
                     # Use full match for numerical values, and use substring
                     # match for string values
                     if str(line[key]).isdigit():
                         check = str(line[key]) in value
                     else:
-                        check = any([em in str(line[key]) for em in value])
+                        check = any(em in str(line[key]) for em in value)
                 if check is bIn:
                     break
             else:
@@ -270,45 +261,46 @@ class clsTPLGReader:
             self.sortPipeline()
         return self._output_lst
 
-if __name__ == "__main__":
+def func_getPipeline(tplgObj, tplgName, sdcard_id, sort):
+    if tplgObj.loadFile(tplgName, sdcard_id) != 0:
+        print("tplgreader load file %s failed" % (tplgName))
+        sys.exit(1)
+    return tplgObj.getPipeline(sort)
 
-    def func_getPipeline(tplgObj, tplgName, sdcard_id, sort):
-        if tplgObj.loadFile(tplgName, sdcard_id) != 0:
-            print("tplgreader load file %s failed" %(tplgName))
-            exit(1)
-        return tplgObj.getPipeline(sort)
 
-    def parse_filter(filter_str):
-        """Parse filter input into two structures, one is dict list for each
-        filter item, and another is logic operation list.  For example
-        "id:2 | pga & id:1" is parsed as:
+def parse_filter(filter_str):
+    """Parse filter input into two structures, one is dict list for each
+    filter item, and another is logic operation list.  For example
+    "id:2 | pga & id:1" is parsed as:
 
-        { 'filter':  [ {'id': ['2']}, {'pga': ['']}, {'id': ['1']} ],
-               'op': [              '|',           '&'             ]
-        }
-        """
-        filter_lst = []
-        op_lst = []
-        for filter_elem in filter_str.split('|'):
-            for item in filter_elem.split('&'):
-                key, _, value = item.partition(':')
-                filter_lst.append({key.strip():value.strip().split(',')})
-        for char in filter_str:
-            if char == '|' or char == "&":
-                op_lst.append(char)
-        return dict(zip(['filter', 'op'], [filter_lst, op_lst]))
+    { 'filter':  [ {'id': ['2']}, {'pga': ['']}, {'id': ['1']} ],
+           'op': [              '|',           '&'             ]
+    }
+    """
+    filter_lst = []
+    op_lst = []
+    for filter_elem in filter_str.split('|'):
+        for item in filter_elem.split('&'):
+            key, _, value = item.partition(':')
+            filter_lst.append({key.strip(): value.strip().split(',')})
+    for char in filter_str:
+        if char in ('|', '&'):
+            op_lst.append(char)
+    return dict(zip(['filter', 'op'], [filter_lst, op_lst]))
 
-    def parse_and_set_block_keyword(block_str, tplgreader):
-        block_list = []
-        block_strs = block_str.split(';')
-        block_items = [item.strip() for item in block_strs if item != ""]
-        for item in block_items:
-            block_list.append(parse_filter(item))
-        tplgreader.setBlock(block_list)
 
-    import argparse
+def parse_and_set_block_keyword(block_str, tplgreader):
+    block_list = []
+    block_strs = block_str.split(';')
+    block_items = [item.strip() for item in block_strs if item != ""]
+    for item in block_items:
+        block_list.append(parse_filter(item))
+    tplgreader.setBlock(block_list)
 
-    parser = argparse.ArgumentParser(description='Filters and prints PCMs found in a .tplg file',
+
+def main():
+    parser = argparse.ArgumentParser(
+        description='Filters and prints PCMs found in a .tplg file',
         add_help=True, formatter_class=argparse.RawTextHelpFormatter)
 
     parser.add_argument('filename', type=str, help='tplg file name, multi-tplg file name use "," to split it')
@@ -390,7 +382,7 @@ PIPELINE_$ID['key']='value' ''')
     if len(dump_lst) > 0:
         tplgreader.setField(dump_lst)
 
-    if ret_args['tplgroot'] is not None and len(ret_args['tplgroot']) >0:
+    if ret_args['tplgroot'] is not None and len(ret_args['tplgroot']) > 0:
         tplg_root = ret_args['tplgroot']
 
     for f in ret_args['filename'].split(','):
@@ -399,7 +391,7 @@ PIPELINE_$ID['key']='value' ''')
         pipeline_lst += func_getPipeline(tplgreader, f, ret_args['sofcard'], ret_args['sort'])[:]
 
     if ret_args['export'] is True:
-        exit(export_pipeline(pipeline_lst))
+        sys.exit(export_pipeline(pipeline_lst))
 
     if ret_args['count'] is True:
         if ret_args['value'] is True:
@@ -409,5 +401,9 @@ PIPELINE_$ID['key']='value' ''')
     elif ret_args['index'] is not None and ret_args['index'] < len(pipeline_lst):
         print(format_pipeline(pipeline_lst[ret_args['index']], ret_args['value']))
     else:
-        for pipeline in pipeline_lst:
-            print(format_pipeline(pipeline, ret_args['value']))
+        for entry in pipeline_lst:
+            print(format_pipeline(entry, ret_args['value']))
+
+
+if __name__ == "__main__":
+    main()
