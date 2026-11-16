@@ -51,6 +51,7 @@ class clsTPLGReader:
                 pipeline_dict['pcm'] = pcm["pcm_name"]
                 pipeline_dict['id'] = str(pcm["pcm_id"])
                 pipeline_dict['type'] = TplgFormatter.get_pcm_type(pcm)
+                pipeline_dict['compress'] = str(pcm.get("compress", 0))
                 cap = pcm["caps"][pcm['capture']]
                 pipeline_dict['cap_name'] = cap['name']
                 # acquire component from pipeline graph, and add to pipeline dict
@@ -110,13 +111,16 @@ class clsTPLGReader:
                 pipeline['rate'] = 0
             pipeline['channel'] = pipeline['ch_min']
             pipeline['dev'] = "hw:" + str(sofcard) + ',' + pipeline['id']
-            # the character devices for PCM under /dev/snd take the form of
-            # "pcmC + card_number + D + device_number + capability", eg, pcmC0D0p.
-            pipeline['snd'] = "/dev/snd/pcmC" + str(sofcard) + "D" + pipeline['id']
-            if pipeline['type'] == "playback":
-                pipeline['snd'] += 'p'
+            if pipeline.get('compress') == '1':
+                pipeline['snd'] = "/dev/snd/comprC" + str(sofcard) + "D" + pipeline['id']
             else:
-                pipeline['snd'] += 'c'
+                # the character devices for PCM under /dev/snd take the form of
+                # "pcmC + card_number + D + device_number + capability", eg, pcmC0D0p.
+                pipeline['snd'] = "/dev/snd/pcmC" + str(sofcard) + "D" + pipeline['id']
+                if pipeline['type'] == "playback":
+                    pipeline['snd'] += 'p'
+                else:
+                    pipeline['snd'] += 'c'
         return 0
 
     # The following functions re-implement built-in Python sets
@@ -366,14 +370,14 @@ PIPELINE_$ID['key']='value' ''')
 
     # If run general test case on WOV pipeline or ECHO REFERENCE capture pipeline, there will be error
     # due to no feed data, and they should be blocked in general test case.
-    default_block_keyword = 'kpbm:any;kpb:any;type:capture & echo;'
+    default_block_keyword = 'kpbm:any;kpb:any;type:capture & echo;compress:1;'
     # if no filter or block item is specified, the "block_none" here will help to
     # block nothing
     block_str = "block_none"
     # user specified block items from command line
     cmd_block_str = ret_args['block'].strip() if ret_args['block'] is not None else ''
 
-    if ret_args["filter"] is not None and not re.search('echo|kpb', ret_args["filter"]):
+    if ret_args["filter"] is not None and not re.search('echo|kpb|compress', ret_args["filter"]):
         block_str = default_block_keyword + cmd_block_str
     else:
         block_str = cmd_block_str if cmd_block_str != '' else block_str
