@@ -9,11 +9,13 @@ including codecs and profiles not exposed by tinycompress cplay/crecord
 
 import argparse
 import ctypes
+from dataclasses import dataclass
 import errno
 import fcntl
 import os
 import re
 import select
+import signal
 import sys
 import time
 
@@ -132,6 +134,7 @@ def _ioc(direction, ioc_type, nr, size):
     )
 
 
+# pylint: disable=too-few-public-methods
 class SndEncGeneric(ctypes.Structure):
     """struct snd_enc_generic from <sound/compress_params.h>."""
 
@@ -271,6 +274,23 @@ class SndComprTstamp(ctypes.Structure):
     ]
 
 
+@dataclass
+class StreamConfig:
+    """Resolved compress stream setup parameters."""
+
+    codec_id: int
+    profile: int
+    rate: int
+    channels: int
+    bitrate: int
+    fmt_id: int
+    frag_size: int = 0
+    frags: int = 0
+    bespoke: str = "auto"
+    is_capture: bool = False
+# pylint: enable=too-few-public-methods
+
+
 assert ctypes.sizeof(SndCodec) == 120
 assert ctypes.sizeof(SndComprParams) == 132
 assert ctypes.sizeof(SndComprCaps) == 196
@@ -326,9 +346,7 @@ def resolve_pcm_format(fmt_name):
 
 def query_caps(fd, direction=None):
     """Issue SNDRV_COMPRESS_GET_CAPS on an open compress fd."""
-    caps = SndComprCaps()
-    if direction is not None:
-        caps.direction = direction
+    caps = SndComprCaps(direction=direction) if direction is not None else SndComprCaps()
     fcntl.ioctl(fd, SNDRV_COMPRESS_GET_CAPS, caps)
     return caps
 
@@ -345,24 +363,12 @@ def open_compress_with_caps(dev_path, flags):
         raise
 
 
-def build_params(
-    caps,
-    codec_id,
-    profile,
-    rate,
-    channels,
-    bitrate,
-    fmt_id,
-    frag_size=0,
-    frags=0,
-    use_bespoke=False,
-    is_capture=False,
-):
+def build_params(caps, cfg, use_bespoke=False):
     """Construct SndComprParams bounded by reported caps."""
     params = SndComprParams()
 
-    req_frag = frag_size if frag_size > 0 else (2048 if is_capture else 8192)
-    req_frags = frags if frags > 0 else 4
+    req_frag = cfg.frag_size if cfg.frag_size > 0 else (2048 if cfg.is_capture else 8192)
+    req_frags = cfg.frags if cfg.frags > 0 else 4
 
     min_frag = caps.min_fragment_size or 1024
     max_frag = caps.max_fragment_size or 65536
@@ -375,69 +381,45 @@ def build_params(
     codec = params.codec
     if use_bespoke:
         codec.id = SND_AUDIOCODEC_BESPOKE
-        codec.options.generic.reserved[0] = codec_id
+        codec.options.generic.reserved[0] = cfg.codec_id
     else:
-        codec.id = codec_id
+        codec.id = cfg.codec_id
 
-    codec.ch_in = channels
-    codec.ch_out = channels
-    codec.sample_rate = rate
-    codec.bit_rate = bitrate
-    codec.profile = profile
-    codec.format = fmt_id if codec_id == SND_AUDIOCODEC_PCM else 0
-    codec.pcm_format = fmt_id
+    codec.ch_in = cfg.channels
+    codec.ch_out = cfg.channels
+    codec.sample_rate = cfg.rate
+    codec.bit_rate = cfg.bitrate
+    codec.profile = cfg.profile
+    codec.format = cfg.fmt_id if cfg.codec_id == SND_AUDIOCODEC_PCM else 0
+    codec.pcm_format = cfg.fmt_id
 
-    if not use_bespoke and not is_capture and codec_id == SND_AUDIOCODEC_OPUS_RAW:
-        codec.options.opus_d.version = 1
-        codec.options.opus_d.num_channels = channels
-        codec.options.opus_d.pre_skip = 312
-        codec.options.opus_d.sample_rate = 48000
-        codec.options.opus_d.mapping_family = 0
-        codec.options.opus_d.chan_map.stream_count = 1
-        codec.options.opus_d.chan_map.coupled_count = 1 if channels >= 2 else 0
-        for idx in range(min(channels, 8)):
-            codec.options.opus_d.chan_map.channel_map[idx] = idx
+    if not use_bespoke and not cfg.is_capture and cfg.codec_id == SND_AUDIOCODEC_OPUS_RAW:
+        opus_d = codec.options.opus_d
+        opus_d.version = 1
+        opus_d.num_channels = cfg.channels
+        opus_d.pre_skip = 312
+        opus_d.sample_rate = 48000
+        opus_d.mapping_family = 0
+        opus_d.chan_map.stream_count = 1
+        opus_d.chan_map.coupled_count = 1 if cfg.channels >= 2 else 0
+        for idx in range(min(cfg.channels, 8)):
+            opus_d.chan_map.channel_map[idx] = idx
 
     return params
 
 
-def set_params_with_fallback(
-    fd,
-    caps,
-    codec_id,
-    profile,
-    rate,
-    channels,
-    bitrate,
-    fmt_id,
-    frag_size,
-    frags,
-    bespoke_mode,
-    is_capture,
-):
+def set_params_with_fallback(fd, caps, cfg):
     """Call SNDRV_COMPRESS_SET_PARAMS with optional BESPOKE fallback."""
-    if bespoke_mode == "always":
+    if cfg.bespoke == "always":
         modes = [True]
-    elif bespoke_mode == "never":
+    elif cfg.bespoke == "never":
         modes = [False]
     else:
-        modes = [False, True] if codec_id > SND_AUDIOCODEC_BESPOKE else [False]
+        modes = [False, True] if cfg.codec_id > SND_AUDIOCODEC_BESPOKE else [False]
 
     last_err = None
     for use_bespoke in modes:
-        params = build_params(
-            caps,
-            codec_id,
-            profile,
-            rate,
-            channels,
-            bitrate,
-            fmt_id,
-            frag_size=frag_size,
-            frags=frags,
-            use_bespoke=use_bespoke,
-            is_capture=is_capture,
-        )
+        params = build_params(caps, cfg, use_bespoke=use_bespoke)
         try:
             fcntl.ioctl(fd, SNDRV_COMPRESS_SET_PARAMS, params)
             return params, use_bespoke
@@ -489,12 +471,138 @@ def cmd_caps(args):
     return 0
 
 
+def _stream_config_from_args(args, is_capture):
+    """Build StreamConfig from parsed CLI arguments."""
+    codec_id, default_profile = resolve_codec(args.codec)
+    profile = args.profile if args.profile is not None else default_profile
+    default_bitrates = {
+        "flac": 0,
+        "alac": 0,
+        "msbc": 64000,
+        "g722": 64000,
+        "sbc": 328000,
+        "aptx": 384000,
+        "mp3": 192000,
+        "aac": 192000,
+    }
+    bitrate = (
+        args.bitrate
+        if args.bitrate is not None
+        else default_bitrates.get(args.codec.lower(), 128000)
+    )
+    return StreamConfig(
+        codec_id=codec_id,
+        profile=profile,
+        rate=args.rate,
+        channels=args.channels,
+        bitrate=bitrate,
+        fmt_id=resolve_pcm_format(args.fmt),
+        frag_size=args.frag_size,
+        frags=args.frags,
+        bespoke=args.bespoke,
+        is_capture=is_capture,
+    )
+
+
+def _drain_timeout_handler(_signum, _frame):
+    """Interrupt blocking SNDRV_COMPRESS_DRAIN ioctl on expiry."""
+    raise TimeoutError("Timed out waiting for SNDRV_COMPRESS_DRAIN completion")
+
+
+def _drain_with_timeout(fd, timeout_ms):
+    """Issue SNDRV_COMPRESS_DRAIN bounded by SIGALRM ITIMER_REAL deadline."""
+    if timeout_ms <= 0:
+        fcntl.ioctl(fd, SNDRV_COMPRESS_DRAIN)
+        return
+    old_handler = signal.signal(signal.SIGALRM, _drain_timeout_handler)
+    signal.siginterrupt(signal.SIGALRM, True)
+    signal.setitimer(signal.ITIMER_REAL, timeout_ms / 1000.0)
+    try:
+        fcntl.ioctl(fd, SNDRV_COMPRESS_DRAIN)
+    finally:
+        signal.setitimer(signal.ITIMER_REAL, 0)
+        signal.signal(signal.SIGALRM, old_handler)
+
+
+def _run_pause_resume(fd):
+    """Exercise one PAUSE -> RESUME cycle."""
+    fcntl.ioctl(fd, SNDRV_COMPRESS_PAUSE)
+    time.sleep(0.25)
+    fcntl.ioctl(fd, SNDRV_COMPRESS_RESUME)
+
+
+def _stream_playback_data(fd, data, frag_size, frags, args):
+    """Prefill, start, write remaining frames, and exercise pause/resume."""
+    prefill_bytes = min(len(data), frag_size * frags)
+    offset = 0
+    while offset < prefill_bytes:
+        chunk = data[offset : min(offset + frag_size, prefill_bytes)]
+        written = os.write(fd, chunk)
+        if written <= 0:
+            raise RuntimeError("Short zero-byte write during prefill")
+        offset += written
+
+    fcntl.ioctl(fd, SNDRV_COMPRESS_START)
+    poller = select.poll()
+    poller.register(fd, select.POLLOUT)
+    paused_done = 0
+
+    while offset < len(data):
+        events = poller.poll(args.timeout_ms)
+        if not events:
+            raise TimeoutError("Timed out waiting for POLLOUT on compress playback")
+        if events[0][1] & (select.POLLERR | select.POLLHUP | select.POLLNVAL):
+            raise RuntimeError(f"Compress playback poll error mask=0x{events[0][1]:x}")
+        chunk = data[offset : min(offset + frag_size, len(data))]
+        written = os.write(fd, chunk)
+        if written <= 0:
+            raise RuntimeError("Zero-byte write during compress playback")
+        offset += written
+
+        if (
+            paused_done < args.pause_resume
+            and offset >= len(data) // (args.pause_resume + 1) * (paused_done + 1)
+        ):
+            _run_pause_resume(fd)
+            paused_done += 1
+
+    while paused_done < args.pause_resume:
+        _run_pause_resume(fd)
+        paused_done += 1
+
+    return offset
+
+
+def _capture_loop(fd, outfile, frag_size, args):
+    """Poll and read compressed frames until duration or max_bytes."""
+    poller = select.poll()
+    poller.register(fd, select.POLLIN)
+    total_bytes = 0
+    deadline = time.monotonic() + args.duration
+
+    while True:
+        remaining = deadline - time.monotonic()
+        if remaining <= 0 or (args.max_bytes and total_bytes >= args.max_bytes):
+            break
+        events = poller.poll(max(1, min(int(remaining * 1000), 500)))
+        if not events:
+            continue
+        if events[0][1] & (select.POLLERR | select.POLLNVAL):
+            raise RuntimeError(f"Compress capture poll error mask=0x{events[0][1]:x}")
+        if events[0][1] & select.POLLIN:
+            chunk = os.read(fd, frag_size)
+            if not chunk:
+                break
+            outfile.write(chunk)
+            total_bytes += len(chunk)
+
+    return total_bytes
+
+
 def cmd_play(args):
     """Play a compressed audio file through the compress playback device."""
     dev_path = resolve_device_path(args.device, args.card, args.dev)
-    codec_id, default_profile = resolve_codec(args.codec)
-    profile = args.profile if args.profile is not None else default_profile
-    fmt_id = resolve_pcm_format(args.fmt)
+    cfg = _stream_config_from_args(args, is_capture=False)
 
     with open(args.file, "rb") as infile:
         data = infile.read()
@@ -504,73 +612,18 @@ def cmd_play(args):
     fd, caps = open_compress_with_caps(dev_path, os.O_WRONLY)
     started = False
     try:
-        params, used_bespoke = set_params_with_fallback(
-            fd,
-            caps,
-            codec_id,
-            profile,
-            args.rate,
-            args.channels,
-            args.bitrate,
-            fmt_id,
-            args.frag_size,
-            args.frags,
-            args.bespoke,
-            is_capture=False,
-        )
+        params, used_bespoke = set_params_with_fallback(fd, caps, cfg)
         frag_size = params.buffer.fragment_size
-        prefill_bytes = min(len(data), frag_size * params.buffer.fragments)
-
+        frags = params.buffer.fragments
         print(
             f"Playing {args.file} ({len(data)} B) on {dev_path} "
-            f"codec=0x{codec_id:02x} profile={profile} rate={args.rate} "
-            f"ch={args.channels} bespoke={used_bespoke} frag={frag_size}x{params.buffer.fragments}"
+            f"codec=0x{cfg.codec_id:02x} profile={cfg.profile} rate={cfg.rate} "
+            f"ch={cfg.channels} bespoke={used_bespoke} frag={frag_size}x{frags}"
         )
 
-        offset = 0
-        started = False
-        paused_done = 0
-        poller = select.poll()
-        poller.register(fd, select.POLLOUT)
-
-        while offset < prefill_bytes:
-            chunk = data[offset : min(offset + frag_size, prefill_bytes)]
-            written = os.write(fd, chunk)
-            if written <= 0:
-                raise RuntimeError("Short zero-byte write during prefill")
-            offset += written
-
-        fcntl.ioctl(fd, SNDRV_COMPRESS_START)
         started = True
-
-        while offset < len(data):
-            events = poller.poll(args.timeout_ms)
-            if not events:
-                raise TimeoutError("Timed out waiting for POLLOUT on compress playback")
-            if events[0][1] & (select.POLLERR | select.POLLHUP | select.POLLNVAL):
-                raise RuntimeError(f"Compress playback poll error mask=0x{events[0][1]:x}")
-            chunk = data[offset : min(offset + frag_size, len(data))]
-            written = os.write(fd, chunk)
-            if written <= 0:
-                raise RuntimeError("Zero-byte write during compress playback")
-            offset += written
-
-            if (
-                paused_done < args.pause_resume
-                and offset >= len(data) // (args.pause_resume + 1) * (paused_done + 1)
-            ):
-                fcntl.ioctl(fd, SNDRV_COMPRESS_PAUSE)
-                time.sleep(0.25)
-                fcntl.ioctl(fd, SNDRV_COMPRESS_RESUME)
-                paused_done += 1
-
-        while paused_done < args.pause_resume:
-            fcntl.ioctl(fd, SNDRV_COMPRESS_PAUSE)
-            time.sleep(0.25)
-            fcntl.ioctl(fd, SNDRV_COMPRESS_RESUME)
-            paused_done += 1
-
-        fcntl.ioctl(fd, SNDRV_COMPRESS_DRAIN)
+        offset = _stream_playback_data(fd, data, frag_size, frags, args)
+        _drain_with_timeout(fd, args.drain_timeout_ms)
         tstamp = read_tstamp(fd)
         if tstamp:
             print(
@@ -594,64 +647,25 @@ def cmd_play(args):
 def cmd_record(args):
     """Capture a compressed audio stream from the compress capture device."""
     dev_path = resolve_device_path(args.device, args.card, args.dev)
-    codec_id, default_profile = resolve_codec(args.codec)
-    profile = args.profile if args.profile is not None else default_profile
-    fmt_id = resolve_pcm_format(args.fmt)
+    cfg = _stream_config_from_args(args, is_capture=True)
 
     fd, caps = open_compress_with_caps(dev_path, os.O_RDONLY)
     total_bytes = 0
     started = False
     try:
-        params, used_bespoke = set_params_with_fallback(
-            fd,
-            caps,
-            codec_id,
-            profile,
-            args.rate,
-            args.channels,
-            args.bitrate,
-            fmt_id,
-            args.frag_size,
-            args.frags,
-            args.bespoke,
-            is_capture=True,
-        )
+        params, used_bespoke = set_params_with_fallback(fd, caps, cfg)
         frag_size = params.buffer.fragment_size
         print(
             f"Recording to {args.output} from {dev_path} duration={args.duration}s "
-            f"codec=0x{codec_id:02x} profile={profile} rate={args.rate} ch={args.channels} "
-            f"bitrate={args.bitrate} fmt={args.fmt} bespoke={used_bespoke} "
-            f"frag={frag_size}x{params.buffer.fragments}"
+            f"codec=0x{cfg.codec_id:02x} profile={cfg.profile} rate={cfg.rate} "
+            f"ch={cfg.channels} bitrate={cfg.bitrate} fmt={args.fmt} "
+            f"bespoke={used_bespoke} frag={frag_size}x{params.buffer.fragments}"
         )
-
-        poller = select.poll()
-        poller.register(fd, select.POLLIN)
 
         with open(args.output, "wb") as outfile:
             fcntl.ioctl(fd, SNDRV_COMPRESS_START)
             started = True
-            deadline = time.monotonic() + args.duration
-
-            while True:
-                remaining = deadline - time.monotonic()
-                if remaining <= 0:
-                    break
-                if args.max_bytes and total_bytes >= args.max_bytes:
-                    break
-                wait_ms = max(1, min(int(remaining * 1000), 500))
-                events = poller.poll(wait_ms)
-                if not events:
-                    continue
-                if events[0][1] & (select.POLLERR | select.POLLNVAL):
-                    raise RuntimeError(
-                        f"Compress capture poll error mask=0x{events[0][1]:x}"
-                    )
-                if events[0][1] & select.POLLIN:
-                    chunk = os.read(fd, frag_size)
-                    if not chunk:
-                        break
-                    outfile.write(chunk)
-                    total_bytes += len(chunk)
+            total_bytes = _capture_loop(fd, outfile, frag_size, args)
 
         if started:
             fcntl.ioctl(fd, SNDRV_COMPRESS_STOP)
@@ -710,7 +724,9 @@ def parse_args():
     p_play.add_argument("-f", "--file", required=True, help="Compressed input file")
     p_play.add_argument("-r", "--rate", type=int, default=48000, help="Sample rate")
     p_play.add_argument("-n", "--channels", type=int, default=2, help="Channel count")
-    p_play.add_argument("-b", "--bitrate", type=int, default=128000, help="Bitrate (bps)")
+    p_play.add_argument(
+        "-b", "--bitrate", type=int, default=None, help="Bitrate (bps, default per codec)"
+    )
     p_play.add_argument("--profile", type=int, default=None, help="Codec profile")
     p_play.add_argument("--fmt", default="UNDEFINED", help="Codec format field")
     p_play.add_argument("--frag-size", type=int, default=0, help="Buffer fragment size")
@@ -733,6 +749,12 @@ def parse_args():
         default=10000,
         help="POLLOUT timeout in milliseconds",
     )
+    p_play.add_argument(
+        "--drain-timeout-ms",
+        type=int,
+        default=15000,
+        help="SNDRV_COMPRESS_DRAIN timeout in milliseconds (0 disables)",
+    )
     p_play.set_defaults(func=cmd_play)
 
     p_rec = subparsers.add_parser("record", help="Record compressed audio stream")
@@ -742,7 +764,9 @@ def parse_args():
     p_rec.add_argument("-t", "--duration", type=float, default=3.0, help="Duration (s)")
     p_rec.add_argument("-r", "--rate", type=int, default=48000, help="Sample rate")
     p_rec.add_argument("-n", "--channels", type=int, default=2, help="Channel count")
-    p_rec.add_argument("-b", "--bitrate", type=int, default=128000, help="Bitrate (bps)")
+    p_rec.add_argument(
+        "-b", "--bitrate", type=int, default=None, help="Bitrate (bps, default per codec)"
+    )
     p_rec.add_argument("--profile", type=int, default=None, help="Codec profile")
     p_rec.add_argument("--fmt", default="UNDEFINED", help="Stream/PCM format (UNDEFINED/S16_LE/S32_LE)")
     p_rec.add_argument("--frag-size", type=int, default=0, help="Buffer fragment size")

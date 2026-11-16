@@ -100,9 +100,13 @@ for idx in $(seq 0 $((PIPELINE_COUNT - 1))); do
     dlogi "Testing compress capture pipeline: $pcm [$dev] ($snd)"
 
     for codec in $codec_list; do
-        if ! func_compr_dev_supports_codec "$snd" capture "$codec"; then
+        caps_rc=0
+        func_compr_dev_supports_codec "$snd" capture "$codec" || caps_rc=$?
+        if [ "$caps_rc" -eq 1 ]; then
             dlogi "Skipping codec=$codec (not advertised in GET_CAPS on $snd)"
             continue
+        elif [ "$caps_rc" -ne 0 ]; then
+            die "Failed to query compress capture capabilities on $snd"
         fi
 
         modes_to_run=()
@@ -143,17 +147,28 @@ for idx in $(seq 0 $((PIPELINE_COUNT - 1))); do
                 fi
 
                 if ! func_compr_run_record "$mode" "$snd" "$codec" "$enc_file" "$duration"; then
-                    [ -n "$play_pid" ] && kill "$play_pid" 2>/dev/null || true
+                    if [ -n "$play_pid" ]; then
+                        kill "$play_pid" 2>/dev/null || true
+                    fi
                     func_lib_lsof_error_dump "$snd"
                     die "Encode capture failed: codec=$codec mode=$mode dev=$snd"
                 fi
 
-                [ -n "$play_pid" ] && wait "$play_pid" || true
+                if [ -n "$play_pid" ]; then
+                    wait "$play_pid" || true
+                fi
 
-                func_compr_verify_encoded_file "$codec" "$enc_file" "$dec_wav" || \
+                rm -f "$dec_wav"
+                verify_rc=0
+                func_compr_verify_encoded_file "$codec" "$enc_file" "${tone_wav:+$dec_wav}" || verify_rc=$?
+                if [ "$verify_rc" -ne 0 ] && [ "$verify_rc" -ne 2 ]; then
                     die "Encoded bitstream verification failed for $codec ($mode)"
+                fi
 
                 if [ -n "$tone_wav" ]; then
+                    if [ "$verify_rc" -eq 2 ]; then
+                        die "Loopback tone verification unsupported for raw header-only $codec stream"
+                    fi
                     func_compr_verify_wav_tone "$dec_wav" "$tone_hz" || \
                         die "Loopback encoded tone check failed for $codec"
                 fi

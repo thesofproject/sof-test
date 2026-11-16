@@ -69,31 +69,42 @@ dlogi "Roundtrip playback=$play_pcm ($play_snd), capture=$cap_pcm ($cap_snd)"
 
 tested_count=0
 for codec in ${codec_opt//,/ }; do
-    if ! func_compr_dev_supports_codec "$play_snd" playback "$codec"; then
+    play_caps_rc=0
+    func_compr_dev_supports_codec "$play_snd" playback "$codec" || play_caps_rc=$?
+    if [ "$play_caps_rc" -eq 1 ]; then
         dlogi "Skipping $codec: playback unsupported on $play_snd"
         continue
+    elif [ "$play_caps_rc" -ne 0 ]; then
+        die "Failed to query compress playback capabilities on $play_snd"
     fi
-    if ! func_compr_dev_supports_codec "$cap_snd" capture "$codec"; then
+
+    cap_caps_rc=0
+    func_compr_dev_supports_codec "$cap_snd" capture "$codec" || cap_caps_rc=$?
+    if [ "$cap_caps_rc" -eq 1 ]; then
         dlogi "Skipping $codec: capture unsupported on $cap_snd"
         continue
+    elif [ "$cap_caps_rc" -ne 0 ]; then
+        die "Failed to query compress capture capabilities on $cap_snd"
     fi
 
     defaults=$(func_compr_codec_defaults "$codec")
     read -r rate ch _ _ _ _ <<< "$defaults"
-    in_vec="${work_dir}/in_${codec}.${codec}"
-    [ "$codec" = "alac" ] && in_vec="${work_dir}/in_alac.m4a"
-    func_compr_gen_vector "$codec" "$in_vec" "$duration" 997 || \
-        die "Failed to generate input vector for $codec"
+    in_vec="${work_dir}/in_${codec}_${duration}s.${codec}"
+    [ "$codec" = "alac" ] && in_vec="${work_dir}/in_alac_${duration}s.m4a"
+    [ "$codec" = "msbc" ] && in_vec="${work_dir}/in_msbc_${duration}s.sbc"
+    if [ ! -s "$in_vec" ]; then
+        func_compr_gen_vector "$codec" "$in_vec" "$duration" 997 || \
+            die "Failed to generate input vector for $codec"
+    fi
 
     out_stream="${work_dir}/out_${codec}.${codec}"
-    out_wav="${work_dir}/out_${codec}.wav"
 
     dlogi "===== Simultaneous decode+encode ($codec, ${rate}Hz ${ch}ch) ====="
     func_compr_run_record auto "$cap_snd" "$codec" "$out_stream" "$duration" &
     rec_pid=$!
     sleep 0.2
 
-    if ! func_compr_run_play auto "$play_snd" "$codec" "$in_vec" 0; then
+    if ! func_compr_run_play auto "$play_snd" "$codec" "$in_vec" 0 "$duration"; then
         kill "$rec_pid" 2>/dev/null || true
         wait "$rec_pid" 2>/dev/null || true
         die "Roundtrip compress playback failed for $codec"
@@ -101,8 +112,11 @@ for codec in ${codec_opt//,/ }; do
 
     wait "$rec_pid" || die "Roundtrip compress capture failed for $codec"
 
-    func_compr_verify_encoded_file "$codec" "$out_stream" "$out_wav" || \
+    verify_rc=0
+    func_compr_verify_encoded_file "$codec" "$out_stream" "" || verify_rc=$?
+    if [ "$verify_rc" -ne 0 ] && [ "$verify_rc" -ne 2 ]; then
         die "Roundtrip captured stream invalid for $codec"
+    fi
 
     tested_count=$((tested_count + 1))
 done

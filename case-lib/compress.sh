@@ -2,8 +2,8 @@
 # SPDX-License-Identifier: BSD-3-Clause
 # Shared helpers for SOF compressed audio (FFmpeg decoder/encoder) tests.
 
-COMPR_DECODE_CODECS_ALL="flac mp3 aac opus alac sbc msbc g722 aptx"
-COMPR_ENCODE_CODECS_ALL="mp3 aac flac alac sbc msbc g722 aptx"
+export COMPR_DECODE_CODECS_ALL="flac mp3 aac opus alac sbc msbc g722 aptx"
+export COMPR_ENCODE_CODECS_ALL="mp3 aac flac alac sbc msbc g722 aptx"
 
 COMPR_TOOL="${COMPR_TOOL:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)/tools/sof-compr-tool.py}"
 
@@ -73,14 +73,25 @@ func_compr_parse_dev()
 }
 
 # Query whether a compress device advertises support for <codec>
+# Returns: 0=supported, 1=unsupported codec (rc=2 from tool), 2=device/ioctl error
 func_compr_dev_supports_codec()
 {
     local snd_dev="$1"
     local direction="$2"
     local codec="$3"
+    local caps_out
+    local rc=0
 
-    python3 "$COMPR_TOOL" caps -D "$snd_dev" --direction "$direction" \
-        --has-codec "$codec" >/dev/null 2>&1
+    caps_out=$(python3 "$COMPR_TOOL" caps -D "$snd_dev" --direction "$direction" \
+        --has-codec "$codec" 2>&1) || rc=$?
+    if [ "$rc" -eq 0 ]; then
+        return 0
+    fi
+    if [ "$rc" -eq 2 ]; then
+        return 1
+    fi
+    dloge "Compress capability query failed on $snd_dev ($direction, codec=$codec, rc=$rc): $caps_out"
+    return 2
 }
 
 # Check if cplay supports the given codec
@@ -311,7 +322,8 @@ EOF
 ) || return 1
             if [ "${alac_mode%% *}" != "caf" ]; then
                 dlogi "Verified alac magic cookie + raw frames ($fsize B, ${alac_mode#raw })"
-                return 0
+                [ -n "$out_wav" ] && rm -f "$out_wav"
+                return 2
             fi
             dec_input="$caf_file"
             dec_cmd+=(-f caf -i "$dec_input")
@@ -408,23 +420,38 @@ func_compr_run_play()
     local codec="$3"
     local in_file="$4"
     local pause_cycles="${5:-0}"
+    local duration="${6:-0}"
+
+    if [ "$tool_mode" = "cplay" ] && [ "$pause_cycles" -gt 0 ]; then
+        dloge "cplay mode does not support pause/resume cycles ($pause_cycles); use compr-tool"
+        return 1
+    fi
 
     local defaults
     defaults=$(func_compr_codec_defaults "$codec") || return 1
     local rate ch bitrate fmt cplay_codec _
     read -r rate ch bitrate fmt cplay_codec _ <<< "$defaults"
 
+    local watchdog=30
+    if [ "$duration" -gt 0 ] 2>/dev/null; then
+        watchdog=$((duration + 30))
+    fi
+    if [ "$pause_cycles" -gt 0 ] 2>/dev/null; then
+        watchdog=$((watchdog + pause_cycles * 2))
+    fi
+
     if [ "$tool_mode" = "cplay" ] || { [ "$tool_mode" = "auto" ] && [ "$pause_cycles" -eq 0 ] && func_compr_cplay_supports "$codec"; }; then
         func_compr_parse_dev "$snd_dev" || {
             dloge "Cannot parse card/dev from $snd_dev for cplay"
             return 1
         }
-        dlogc "timeout -s INT 30 cplay -c $COMPR_CARD -d $COMPR_DEV -I $cplay_codec $in_file"
-        timeout -s INT 30 cplay -c "$COMPR_CARD" -d "$COMPR_DEV" -I "$cplay_codec" "$in_file"
+        dlogc "timeout -k 5 -s INT $watchdog cplay -c $COMPR_CARD -d $COMPR_DEV -I $cplay_codec $in_file"
+        timeout -k 5 -s INT "$watchdog" cplay -c "$COMPR_CARD" -d "$COMPR_DEV" -I "$cplay_codec" "$in_file"
         return $?
     fi
 
     local -a cmd=(
+        timeout -k 5 -s TERM "$watchdog"
         python3 "$COMPR_TOOL" play
         -D "$snd_dev" -C "$codec" -f "$in_file"
         -r "$rate" -n "$ch" -b "$bitrate" --fmt "$fmt"
@@ -472,8 +499,8 @@ func_compr_run_record()
             -I "$crecord_id" -C "$ch" -R "$rate" -b 6144 -f 3
         )
         dlogc "${rec_cmd[*]} > $out_file"
-        "${rec_cmd[@]}" > "$out_file"
-        local rc=$?
+        local rc=0
+        "${rec_cmd[@]}" > "$out_file" || rc=$?
         # timeout returns 124 (or 130 on SIGINT) when duration expires normally
         if [ "$rc" -ne 0 ] && [ "$rc" -ne 124 ] && [ "$rc" -ne 130 ]; then
             dloge "crecord failed with exit code $rc"
