@@ -79,10 +79,6 @@ sudo true
 # interrupted when unloading the drivers.
 kill_trace_users
 
-# SOF CI has a dependency on usb audio
-remove_module snd_usb_audio
-remove_module snd_usbmidi_lib
-
 #-------------------------------------------
 # Top level devices
 # ACPI is after PCI due to TNG dependencies
@@ -195,6 +191,12 @@ remove_module snd_soc_cml_rt1011_rt5682
 remove_module snd_soc_skl_hda_dsp
 remove_module snd_soc_sdw_rt700
 remove_module snd_soc_sdw_rt711_rt1308_rt715
+remove_module snd_usb_offload
+remove_module soc_usb
+# SOF CI has a dependency on usb audio. This has to come after
+# snd_usb_offload and soc_usb, which hold references on snd_usb_audio.
+remove_module snd_usb_audio
+remove_module snd_usbmidi_lib
 remove_module snd_soc_sof_sdw
 remove_module snd_soc_sdw_utils
 remove_module snd_soc_sof_es8336
@@ -206,6 +208,7 @@ remove_module snd_soc_intel_sof_cirrus_common
 remove_module snd_soc_intel_sof_maxim_common
 remove_module snd_soc_intel_sof_nuvoton_common
 remove_module snd_soc_intel_sof_realtek_common
+remove_module snd_soc_sof_uaol
 
 #-------------------------------------------
 # SOF client drivers
