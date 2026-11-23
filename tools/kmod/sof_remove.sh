@@ -193,10 +193,16 @@ remove_module snd_soc_sdw_rt700
 remove_module snd_soc_sdw_rt711_rt1308_rt715
 remove_module snd_usb_offload
 remove_module soc_usb
-# SOF CI has a dependency on usb audio. This has to come after
-# snd_usb_offload and soc_usb, which hold references on snd_usb_audio.
-remove_module snd_usb_audio
-remove_module snd_usbmidi_lib
+# SOF CI has a dependency on usb audio, but it's not part of the SOF stack
+# under test, so don't abort the whole unload if it's briefly busy. If it
+# stays loaded, it also keeps the shared snd_hwdep/snd_rawmidi/snd_timer/snd
+# modules below in use; that specific, already-tolerated condition is
+# preserved there too, instead of blanket-ignored, so unrelated SOF-stack
+# failures still abort. This has to come after snd_usb_offload and soc_usb,
+# which hold references on snd_usb_audio.
+usb_audio_still_loaded=false
+remove_module snd_usb_audio || usb_audio_still_loaded=true
+remove_module snd_usbmidi_lib || usb_audio_still_loaded=true
 remove_module snd_soc_sof_sdw
 remove_module snd_soc_sdw_utils
 remove_module snd_soc_sof_es8336
@@ -342,7 +348,7 @@ remove_module snd_soc_sdca
 remove_module snd_soc_core
 remove_module snd_hda_codec
 remove_module snd_hda_core
-remove_module snd_hwdep
+remove_module snd_hwdep || [ "$usb_audio_still_loaded" = true ]
 remove_module snd_compress
 remove_module snd_pcm_dmaengine
 remove_module snd_pcm
@@ -355,11 +361,11 @@ remove_module snd_seq_midi_event
 #   rmmod: ERROR: Module snd_rawmidi is in use by: snd_ump
 # aborting reload_drivers() and cascading into every driver-reload test case.
 remove_module snd_ump
-remove_module snd_rawmidi
+remove_module snd_rawmidi || [ "$usb_audio_still_loaded" = true ]
 remove_module snd_seq_dummy
 remove_module snd_seq
-remove_module snd_seq_device
+remove_module snd_seq_device || [ "$usb_audio_still_loaded" = true ]
 remove_module snd_hrtimer
-remove_module snd_timer
-remove_module snd
-remove_module soundcore
+remove_module snd_timer || [ "$usb_audio_still_loaded" = true ]
+remove_module snd || [ "$usb_audio_still_loaded" = true ]
+remove_module soundcore || [ "$usb_audio_still_loaded" = true ]
