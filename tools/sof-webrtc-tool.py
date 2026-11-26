@@ -165,6 +165,45 @@ def _encode_pcm_frames(mono_samples, channels, sampwidth):
     return bytes(packed)
 
 
+def _encode_pcm_frames_multi(channel_samples, sampwidth):
+    """Pack normalized [-1, 1] per-channel floats into interleaved PCM bytes."""
+    max_pos = 2147483647 if sampwidth == 4 else 32767
+    min_neg = -2147483648 if sampwidth == 4 else -32768
+    channels = len(channel_samples)
+    nframes = min(len(ch) for ch in channel_samples)
+
+    if np is not None:
+        dtype = np.int32 if sampwidth == 4 else np.int16
+        mat = np.column_stack([
+            np.clip(np.asarray(ch[:nframes], dtype=np.float64), -1.0, 1.0)
+            for ch in channel_samples
+        ])
+        ints = np.clip(np.rint(mat * max_pos), min_neg, max_pos).astype(dtype)
+        return ints.tobytes()
+
+    packed = bytearray()
+    pack_fmt = "<i" if sampwidth == 4 else "<h"
+    for i in range(nframes):
+        for c in range(channels):
+            clamped = max(-1.0, min(1.0, channel_samples[c][i]))
+            ival = max(min_neg, min(max_pos, int(round(clamped * max_pos))))
+            packed.extend(struct.pack(pack_fmt, ival))
+    return bytes(packed)
+
+
+def write_wav_multi(path, channel_samples, rate, fmt):
+    """Write normalized [-1, 1] per-channel signals to interleaved WAV."""
+    os.makedirs(os.path.dirname(os.path.abspath(path)), exist_ok=True)
+    sampwidth = 4 if fmt == "S32_LE" else 2
+    payload = _encode_pcm_frames_multi(channel_samples, sampwidth)
+
+    with wave.Wave_write(path) as wf:
+        wf.setnchannels(len(channel_samples))
+        wf.setsampwidth(sampwidth)
+        wf.setframerate(rate)
+        wf.writeframes(payload)
+
+
 def write_wav(path, mono_samples, rate, channels, fmt):
     """Write normalized [-1, 1] mono signal replicated across channels to WAV."""
     os.makedirs(os.path.dirname(os.path.abspath(path)), exist_ok=True)
@@ -178,8 +217,8 @@ def write_wav(path, mono_samples, rate, channels, fmt):
         wf.writeframes(payload)
 
 
-def read_wav(path):
-    """Read WAV file and return (channel_0_floats, rate, channels, sampwidth)."""
+def read_wav_channels(path):
+    """Read WAV file and return (per_channel_float_lists, rate, channels, sampwidth)."""
     with wave.Wave_read(path) as wf:
         channels = wf.getnchannels()
         sampwidth = wf.getsampwidth()
@@ -198,12 +237,19 @@ def read_wav(path):
     if np is not None:
         dtype = np.int16 if sampwidth == 2 else np.int32
         arr = np.frombuffer(raw, dtype=dtype).reshape(-1, channels)
-        return (arr[:, 0].astype(np.float64) * scale).tolist(), rate, channels, sampwidth
+        chans = [(arr[:, c].astype(np.float64) * scale).tolist() for c in range(channels)]
+        return chans, rate, channels, sampwidth
 
     pcm = array.array(typecode)
     pcm.frombytes(raw)
-    ch0 = [pcm[i] * scale for i in range(0, len(pcm), channels)]
-    return ch0, rate, channels, sampwidth
+    chans = [[pcm[i] * scale for i in range(c, len(pcm), channels)] for c in range(channels)]
+    return chans, rate, channels, sampwidth
+
+
+def read_wav(path):
+    """Read WAV file and return (channel_0_floats, rate, channels, sampwidth)."""
+    chans, rate, channels, sampwidth = read_wav_channels(path)
+    return chans[0], rate, channels, sampwidth
 
 
 def build_sync_header(rate):
@@ -219,41 +265,92 @@ def mix_signals(sig_a, sig_b):
     return [max(-0.999, min(0.999, a + b)) for a, b in zip(sig_a, sig_b)]
 
 
-def _generate_aec_pair(args, rng, header):
-    """Generate synchronized mic (echo + double-talk) and echo-reference WAVs."""
-    rate = args.rate
+def _overlay_near_and_chirp(track, rate, near_freq):
+    """Add double-talk near-end sine burst and alignment chirp onto track in-place."""
+    near_start = int(round((SYNC_HEADER_SEC + 2.5) * rate))
+    for i, val in enumerate(make_sine(rate, 2.5, near_freq, -14.0)):
+        idx = near_start + i
+        if idx < len(track):
+            track[idx] = max(-0.999, min(0.999, track[idx] + val))
+
+    chirp_start = int(round(SYNC_PRE_SEC * rate))
+    for i, val in enumerate(make_chirp(rate)):
+        idx = chirp_start + i
+        if idx < len(track):
+            track[idx] = max(-0.999, min(0.999, val))
+
+
+def _generate_aec_mono(args, rng, header):
+    """Generate correlated mono/cloned AEC mic and echo-reference WAVs."""
+    delay_samples = int(round((args.echo_delay_ms / 1000.0) * args.rate))
+    echo_gain = db_to_amp(args.echo_gain_db)
     far_a = mix_signals(
-        make_multitone(rate, 2.5, (420.0, 710.0, 1380.0, 2150.0), -10.0),
-        make_noise(rate, 2.5, -26.0, rng),
+        make_multitone(args.rate, 2.5, (420.0, 710.0, 1380.0, 2150.0), -10.0),
+        make_noise(args.rate, 2.5, -26.0, rng),
     )
     far_b = mix_signals(
-        make_multitone(rate, 2.5, (420.0, 710.0, 1380.0, 2150.0), -10.0),
-        make_noise(rate, 2.5, -26.0, rng),
+        make_multitone(args.rate, 2.5, (420.0, 710.0, 1380.0, 2150.0), -10.0),
+        make_noise(args.rate, 2.5, -26.0, rng),
     )
     ref_full = header + far_a + far_b
-
-    delay_samples = int(round((args.echo_delay_ms / 1000.0) * rate))
-    echo_gain = db_to_amp(args.echo_gain_db)
     mic_full = [
         echo_gain * ref_full[i - delay_samples] if i >= delay_samples else 0.0
         for i in range(len(ref_full))
     ]
+    _overlay_near_and_chirp(mic_full, args.rate, 997.0)
+    write_wav(args.out_mic, mic_full, args.rate, args.mic_channels or args.channels, args.format)
+    write_wav(args.out_ref, ref_full, args.rate, args.ref_channels or args.channels, args.format)
 
-    near_start = int(round((SYNC_HEADER_SEC + 2.5) * rate))
-    for i, val in enumerate(make_sine(rate, 2.5, 997.0, -14.0)):
-        idx = near_start + i
-        if idx < len(mic_full):
-            mic_full[idx] = max(-0.999, min(0.999, mic_full[idx] + val))
 
-    # Include un-delayed sync chirp in mic too for SSP loopback alignment.
-    chirp_start = int(round(SYNC_PRE_SEC * rate))
-    for i, val in enumerate(make_chirp(rate)):
-        idx = chirp_start + i
-        if idx < len(mic_full):
-            mic_full[idx] = max(-0.999, min(0.999, val))
+def _build_mimo_ref_tracks(rate, ref_ch, header):
+    """Build per-channel uncorrelated far-end reference tracks for MIMO AEC."""
+    tone_sets = (
+        (420.0, 710.0, 1380.0, 2150.0),
+        (530.0, 890.0, 1620.0, 2510.0),
+        (360.0, 640.0, 1210.0, 1980.0),
+        (480.0, 790.0, 1490.0, 2320.0),
+    )
+    ref_tracks = []
+    for c in range(ref_ch):
+        rng_c = random.Random(PRNG_SEED + c * 101)
+        tones = tone_sets[c % len(tone_sets)]
+        far_a = mix_signals(make_multitone(rate, 2.5, tones, -10.0), make_noise(rate, 2.5, -26.0, rng_c))
+        far_b = mix_signals(make_multitone(rate, 2.5, tones, -10.0), make_noise(rate, 2.5, -26.0, rng_c))
+        ref_tracks.append(header + far_a + far_b)
+    return ref_tracks
 
-    write_wav(args.out_mic, mic_full, rate, args.channels, args.format)
-    write_wav(args.out_ref, ref_full, rate, args.channels, args.format)
+
+def _build_mimo_mic_track(args, ref_tracks, mc):
+    """Synthesize one MIMO mic channel with crosstalk echo and unique near-end tone."""
+    delay_samples = int(round((args.echo_delay_ms / 1000.0) * args.rate))
+    echo_gain = db_to_amp(args.echo_gain_db)
+    track = [0.0] * len(ref_tracks[0])
+    for rc, src_r in enumerate(ref_tracks):
+        coupling = 0.8 if (mc % max(len(ref_tracks), 1)) == rc else 0.35 / max(len(ref_tracks) - 1, 1)
+        d_samp = delay_samples + rc * int(round(0.003 * args.rate))
+        for i in range(d_samp, len(track)):
+            track[i] += echo_gain * coupling * src_r[i - d_samp]
+
+    _overlay_near_and_chirp(track, args.rate, (997.0, 1301.0, 1597.0, 1889.0)[mc % 4])
+    return [max(-0.999, min(0.999, s)) for s in track]
+
+
+def _generate_aec_mimo(args, header):
+    """Generate stereo-independent MIMO mic and echo-reference WAVs."""
+    mic_ch = args.mic_channels if args.mic_channels else args.channels
+    ref_ch = args.ref_channels if args.ref_channels else args.channels
+    ref_tracks = _build_mimo_ref_tracks(args.rate, ref_ch, header)
+    mic_tracks = [_build_mimo_mic_track(args, ref_tracks, mc) for mc in range(mic_ch)]
+    write_wav_multi(args.out_mic, mic_tracks, args.rate, args.format)
+    write_wav_multi(args.out_ref, ref_tracks, args.rate, args.format)
+
+
+def _generate_aec_pair(args, rng, header):
+    """Generate synchronized mic (echo + double-talk) and echo-reference WAVs."""
+    if args.stereo_independent:
+        _generate_aec_mimo(args, header)
+    else:
+        _generate_aec_mono(args, rng, header)
 
 
 def generate_profile(args):
@@ -540,56 +637,89 @@ def analyze_vad(cap, rate):
         raise RuntimeError(f"VAD silence/speech contrast {contrast:.2f} dB < 20.0 dB")
 
 
-def _aec_segment_levels(samples, rate):
-    """Extract sync score, single-talk far-end RMS, and double-talk 997 Hz power."""
+def _aec_segment_levels(samples, rate, near_freq=997.0):
+    """Extract sync score, single-talk far-end RMS, and double-talk near-end tone power."""
     far_seg, score = slice_after_header(samples, rate, 0.8, 1.5)
     dt_seg, _ = slice_after_header(samples, rate, 2.8, 2.0)
     check_no_dropouts(dt_seg, rate, "aec_double_talk")
-    return score, rms_db(far_seg), goertzel_power_db(dt_seg, rate, 997.0)
+    return score, rms_db(far_seg), goertzel_power_db(dt_seg, rate, near_freq), dt_seg
 
 
-def analyze_aec(cap, rate, base, args):
-    """Verify single-talk ERLE and double-talk near-end preservation."""
-    score, far_on_db, near_on_997 = _aec_segment_levels(cap, rate)
-
-    if base is not None:
-        bscore, far_off_db, near_off_997 = _aec_segment_levels(base, rate)
-        erle_db = far_off_db - far_on_db
-        near_delta = near_on_997 - near_off_997
-        print(
-            f"AEC sync={score:.3f}/{bscore:.3f} far_on={far_on_db:.2f}dB "
-            f"(off {far_off_db:.2f}dB) ERLE={erle_db:.2f}dB "
-            f"near_997_delta={near_delta:+.2f}dB"
+def _report_aec_ab(ch_idx, near_freq, on_vals, off_vals, args):
+    """Evaluate A/B ERLE and near-end preservation against baseline metrics."""
+    erle_db = off_vals[1] - on_vals[1]
+    near_delta = on_vals[2] - off_vals[2]
+    print(
+        f"AEC ch{ch_idx} sync={on_vals[0]:.3f}/{off_vals[0]:.3f} far_on={on_vals[1]:.2f}dB "
+        f"(off {off_vals[1]:.2f}dB) ERLE={erle_db:.2f}dB "
+        f"near_{int(near_freq)}_delta={near_delta:+.2f}dB"
+    )
+    if erle_db < args.min_erle_db:
+        raise RuntimeError(
+            f"AEC ch{ch_idx} ERLE {erle_db:.2f} dB < {args.min_erle_db:.1f} dB"
         )
-        if erle_db < args.min_erle_db:
-            raise RuntimeError(f"AEC ERLE {erle_db:.2f} dB < {args.min_erle_db:.1f} dB")
-        if not args.single_talk_only and near_delta < -6.0:
-            raise RuntimeError(
-                f"AEC attenuated near-end double-talk by {-near_delta:.2f} dB (> 6.0 dB)"
-            )
+    if not args.single_talk_only and near_delta < -6.0:
+        raise RuntimeError(
+            f"AEC ch{ch_idx} attenuated near-end double-talk by {-near_delta:.2f} dB (> 6.0 dB)"
+        )
+
+
+def _report_aec_nobase(ch_idx, near_freq, on_vals, args):
+    """Evaluate single-capture near-to-residual-echo ratio without a baseline WAV."""
+    if args.single_talk_only:
+        print(
+            f"AEC ch{ch_idx} sync={on_vals[0]:.3f} far_on={on_vals[1]:.2f}dB (single-talk baseline missing)"
+        )
+        return
+    ratio = on_vals[2] - on_vals[1]
+    print(
+        f"AEC ch{ch_idx} sync={on_vals[0]:.3f} far_on={on_vals[1]:.2f}dB "
+        f"near_{int(near_freq)}={on_vals[2]:.2f}dB near_to_echo={ratio:.2f}dB"
+    )
+    if ratio < args.min_erle_db:
+        raise RuntimeError(
+            f"AEC ch{ch_idx} near-to-residual-echo ratio {ratio:.2f} dB < {args.min_erle_db:.1f} dB"
+        )
+
+
+def _verify_aec_channel(ch_idx, rate, cap, base_sig, args):
+    """Run AEC single-talk and double-talk metrics check on one capture channel."""
+    near_freq = (997.0, 1301.0, 1597.0, 1889.0)[ch_idx % 4] if args.stereo_independent else 997.0
+    on_vals = _aec_segment_levels(cap, rate, near_freq)
+    if base_sig is not None:
+        _report_aec_ab(ch_idx, near_freq, on_vals, _aec_segment_levels(base_sig, rate, near_freq), args)
     else:
-        if args.single_talk_only:
-            print(
-                f"AEC sync={score:.3f} far_on={far_on_db:.2f}dB (single-talk baseline missing)"
-            )
-            return
-        ratio = near_on_997 - far_on_db
-        print(
-            f"AEC sync={score:.3f} far_on={far_on_db:.2f}dB "
-            f"near_997={near_on_997:.2f}dB near_to_echo={ratio:.2f}dB"
-        )
-        if ratio < args.min_erle_db:
+        _report_aec_nobase(ch_idx, near_freq, on_vals, args)
+    return on_vals[3]
+
+
+def analyze_aec(cap_chans, rate, base_chans, args):
+    """Verify single-talk ERLE and double-talk near-end preservation across all channels."""
+    dt_segments = []
+    for ch_idx, cap in enumerate(cap_chans):
+        base_sig = base_chans[ch_idx if ch_idx < len(base_chans) else 0] if base_chans is not None else None
+        dt_segments.append(_verify_aec_channel(ch_idx, rate, cap, base_sig, args))
+
+    if args.stereo_independent and not args.single_talk_only and len(dt_segments) >= 2:
+        nmin = min(len(s) for s in dt_segments)
+        diff = [dt_segments[0][i] - dt_segments[1][i] for i in range(nmin)]
+        diff_db = rms_db(diff)
+        print(f"AEC stereo channel independence diff_rms={diff_db:.2f}dB")
+        if diff_db < -30.0:
             raise RuntimeError(
-                f"AEC near-to-residual-echo ratio {ratio:.2f} dB < {args.min_erle_db:.1f} dB"
+                f"AEC stereo ch1 appears cloned from ch0 (diff_rms={diff_db:.2f} dB)"
             )
 
 
 def analyze_profile(args):
     """Run profile-specific verification on captured WAV."""
-    cap, rate, _, _ = read_wav(args.captured)
+    cap_chans, rate, _, _ = read_wav_channels(args.captured)
+    cap = cap_chans[0]
+    base_chans = None
     base = None
     if args.baseline:
-        base, b_rate, _, _ = read_wav(args.baseline)
+        base_chans, b_rate, _, _ = read_wav_channels(args.baseline)
+        base = base_chans[0]
         if b_rate != rate:
             raise RuntimeError(f"Sample rate mismatch: captured={rate}, baseline={b_rate}")
 
@@ -602,7 +732,7 @@ def analyze_profile(args):
     elif args.profile == "vad":
         analyze_vad(cap, rate)
     elif args.profile == "aec":
-        analyze_aec(cap, rate, base, args)
+        analyze_aec(cap_chans, rate, base_chans, args)
     else:
         raise ValueError(f"Unsupported profile {args.profile}")
 
@@ -620,6 +750,10 @@ def parse_args():
     gen.add_argument("--duration", type=float, default=2.0)
     gen.add_argument("--echo-delay-ms", type=float, default=20.0)
     gen.add_argument("--echo-gain-db", type=float, default=-6.0)
+    gen.add_argument("--mic-channels", type=int, default=0, help="Override mic channels for aec")
+    gen.add_argument("--ref-channels", type=int, default=0, help="Override ref channels for aec")
+    gen.add_argument("--stereo-independent", action="store_true",
+                     help="Generate uncorrelated stereo far-end, MIMO crosstalk, and distinct per-mic near-end")
     gen.add_argument("--output", help="Output WAV path (for non-aec profiles)")
     gen.add_argument("--out-mic", help="Output mic WAV path (for aec profile)")
     gen.add_argument("--out-ref", help="Output echo-ref WAV path (for aec profile)")
@@ -633,6 +767,8 @@ def parse_args():
     ana.add_argument("--min-snr-gain-db", type=float, default=8.0)
     ana.add_argument("--min-agc-comp-db", type=float, default=6.0)
     ana.add_argument("--min-erle-db", type=float, default=10.0)
+    ana.add_argument("--stereo-independent", action="store_true",
+                     help="Verify independent per-channel ERLE, near-end freqs, and ch0!=ch1")
     ana.add_argument(
         "--single-talk-only",
         action="store_true",
