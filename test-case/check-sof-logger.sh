@@ -102,13 +102,44 @@ wait_for_sof_alsa_card()
 
 ping_pcm_devices()
 {
-    # Open all ALSA PCM nodes and read one byte out of them.
-    # The operation will fail, but this is enough to cause
-    # the device to be powered up if it was in runtime-suspended (D3)
-    # state.
-    for pcm in /dev/snd/pcm* ; do
-        dd if="$pcm" of=/dev/null bs=1 count=1 >/dev/null 2>/dev/null || true
+    # Run a short real stream on one SOF PCM to power up the DSP (and
+    # boot it if needed), including when it was in runtime-suspended
+    # (D3) state. Merely opening the PCM device node is not enough with
+    # recent SOF drivers. Topology independent: try the PCMs of all SOF
+    # cards until one works. plughw converts format, rate and channels
+    # to what the PCM supports. Failing PCMs, e.g. HDMI without a
+    # monitor, are expected.
+    local cardpath cardnum pcm dev dir
+    local params=(-q -t raw -f S16_LE -r 48000 -c 2 -d 1)
+
+    for cardpath in /proc/asound/card[0-9]*; do
+        # SOF card ids start with "sof", see sof_alsa_card_found()
+        case $(cat "$cardpath/id" 2>/dev/null) in
+            sof*) ;;
+            *) continue ;;
+        esac
+        cardnum=${cardpath##*card}
+
+        for pcm in "$cardpath"/pcm[0-9]*[pc]; do
+            test -e "$pcm" || continue
+            dev=${pcm##*/pcm}  # e.g. 12p
+            dir=${dev: -1}
+            dev=${dev%?}
+
+            if [ "$dir" = p ]; then
+                timeout -k 2 5 aplay "${params[@]}" \
+                    -D "plughw:$cardnum,$dev" /dev/zero \
+                    >/dev/null 2>&1 && return 0
+            else
+                timeout -k 2 5 arecord "${params[@]}" \
+                    -D "plughw:$cardnum,$dev" /dev/null \
+                    >/dev/null 2>&1 && return 0
+            fi
+        done
     done
+
+    dlogw "No SOF PCM could be opened, DSP may not be active"
+    return 0
 }
 
 run_loggers()
@@ -147,6 +178,10 @@ run_loggers()
                 }
             fi
             local mtracetool="$MTRACE"
+
+            # Make sure the DSP is active before the reader attaches
+            ping_pcm_devices
+
             dlogi "Trying to get Zephyr logs from mtrace with background $mtracetool ..."
             dlogc \
                 "sudo  $mtracetool >  $etrace_file  2>  $etrace_stderr_file"
