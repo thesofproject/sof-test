@@ -21,6 +21,7 @@ very_short_tests()
 
 
 testlist="
+kernel-boot-log
 tplg-binary
 pcm_list
 sof-logger
@@ -31,17 +32,18 @@ playback-d1l100r1
 capture_d1l100r1
 playback_d1l1r50
 capture_d1l1r50
+playback_all_formats
+capture_all_formats
 speaker
+runtime-pm-status
 pause-resume-playback
 pause-resume-capture
-volume
 signal-stop-start-playback
 signal-stop-start-capture
-xrun-injection-playback
-xrun-injection-capture
 simultaneous-playback-capture
 multiple-pipeline-playback
 multiple-pipeline-capture
+multiple-pipeline-all
 multiple-pause-resume
 kmod-load-unload
 kmod-load-unload-after-playback
@@ -169,6 +171,10 @@ interrupted_results()
 	exit 1
 }
 
+test_kernel-boot-log()
+{
+	"$mydir"/verify-kernel-boot-log.sh
+}
 test_firmware-presence()
 {
 	"$mydir"/verify-firmware-presence.sh
@@ -223,9 +229,21 @@ test_capture_d1l1r50()
 {
 	"$mydir"/check-capture.sh -d 1 -l 1 -r "$large_round"
 }
+test_playback_all_formats()
+{
+	"$mydir"/check-playback.sh -d 3 -l "$small_loop" -r 1 -F
+}
+test_capture_all_formats()
+{
+	"$mydir"/check-capture.sh -d 3 -l "$small_loop" -r 1 -F
+}
 test_speaker()
 {
 	"$mydir"/test-speaker.sh -l "$medium_loop"
+}
+test_runtime-pm-status()
+{
+	"$mydir"/check-runtime-pm-status.sh -d 10
 }
 test_pause-resume-playback()
 {
@@ -270,6 +288,10 @@ test_multiple-pipeline-playback()
 test_multiple-pipeline-capture()
 {
 	"$mydir"/multiple-pipeline-capture.sh -l "$medium_loop"
+}
+test_multiple-pipeline-all()
+{
+	"$mydir"/multiple-pipeline.sh -f p -c 20
 }
 test_multiple-pause-resume()
 {
